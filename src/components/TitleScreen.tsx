@@ -1,12 +1,11 @@
 import React from 'react';
-import type { GameAction, GameState } from '../types/game';
+import type { GameAction } from '../types/game';
 import { OCCUPATIONS } from '../engine/initialData';
 import { Compass, UserCheck, BookOpen, Heart, Zap, Coins, Sparkles, Shield, ArrowRight } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 
 interface TitleScreenProps {
-  state?: GameState;
   dispatch: React.Dispatch<GameAction>;
 }
 

@@ -88,9 +88,17 @@ export class SoundEngine {
   }
 
   /**
-   * 2. 卡牌懸浮微聲 (Card Hover Lift)
+   * 輔助函式：封裝單一振盪器與增益節點的生命週期與淡出曲線
    */
-  public playCardHover(): void {
+  private playTone(options: {
+    type: OscillatorType;
+    freqStart: number;
+    freqEnd: number;
+    gainStart: number;
+    duration: number;
+    linearRamp?: boolean;
+    gainEnd?: number;
+  }): void {
     if (this.isMuted) return;
     const ctx = this.initContext();
     if (!ctx || !this.masterGain) return;
@@ -99,18 +107,35 @@ export class SoundEngine {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(520, t);
-    osc.frequency.exponentialRampToValueAtTime(680, t + 0.04);
+    osc.type = options.type;
+    osc.frequency.setValueAtTime(Math.max(1, options.freqStart), t);
+    if (options.linearRamp) {
+      osc.frequency.linearRampToValueAtTime(Math.max(1, options.freqEnd), t + options.duration);
+    } else {
+      osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.freqEnd), t + options.duration);
+    }
 
-    gain.gain.setValueAtTime(0.08, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
 
     osc.start(t);
-    osc.stop(t + 0.04);
+    osc.stop(t + options.duration);
+  }
+
+  /**
+   * 2. 卡牌懸浮微聲 (Card Hover Lift)
+   */
+  public playCardHover(): void {
+    this.playTone({
+      type: 'sine',
+      freqStart: 520,
+      freqEnd: 680,
+      gainStart: 0.08,
+      duration: 0.04,
+    });
   }
 
   /**
@@ -121,44 +146,31 @@ export class SoundEngine {
     const ctx = this.initContext();
     if (!ctx || !this.masterGain) return;
 
-    const t = ctx.currentTime;
-
     switch (category) {
       case 'combat': {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(260, t);
-        osc.frequency.exponentialRampToValueAtTime(60, t + 0.16);
-
-        gain.gain.setValueAtTime(0.4, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(t);
-        osc.stop(t + 0.16);
+        this.playTone({
+          type: 'sawtooth',
+          freqStart: 260,
+          freqEnd: 60,
+          gainStart: 0.4,
+          duration: 0.16,
+        });
         break;
       }
 
       case 'skill': {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, t);
-        osc.frequency.exponentialRampToValueAtTime(440, t + 0.14);
-
-        gain.gain.setValueAtTime(0.35, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(t);
-        osc.stop(t + 0.14);
+        this.playTone({
+          type: 'sine',
+          freqStart: 880,
+          freqEnd: 440,
+          gainStart: 0.35,
+          duration: 0.14,
+        });
         break;
       }
 
       case 'magic': {
+        const t = ctx.currentTime;
         const osc1 = ctx.createOscillator();
         const osc2 = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -185,23 +197,18 @@ export class SoundEngine {
       }
 
       case 'truth': {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1046, t);
-        osc.frequency.exponentialRampToValueAtTime(1318, t + 0.25);
-
-        gain.gain.setValueAtTime(0.35, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(t);
-        osc.stop(t + 0.25);
+        this.playTone({
+          type: 'sine',
+          freqStart: 1046,
+          freqEnd: 1318,
+          gainStart: 0.35,
+          duration: 0.25,
+        });
         break;
       }
 
       case 'madness': {
+        const t = ctx.currentTime;
         const osc1 = ctx.createOscillator();
         const osc2 = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -233,77 +240,39 @@ export class SoundEngine {
    * 4. 受到傷害 / 撕咬打擊聲 (Damage Take / Hit)
    */
   public playDamage(): void {
-    if (this.isMuted) return;
-    const ctx = this.initContext();
-    if (!ctx || !this.masterGain) return;
-
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(130, t);
-    osc.frequency.exponentialRampToValueAtTime(45, t + 0.18);
-
-    gain.gain.setValueAtTime(0.5, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-
-    osc.start(t);
-    osc.stop(t + 0.2);
+    this.playTone({
+      type: 'square',
+      freqStart: 130,
+      freqEnd: 45,
+      gainStart: 0.5,
+      duration: 0.2,
+    });
   }
 
   /**
    * 5. 羊皮紙按鈕點擊聲 (Parchment Click)
    */
   public playClick(): void {
-    if (this.isMuted) return;
-    const ctx = this.initContext();
-    if (!ctx || !this.masterGain) return;
-
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(800, t);
-    osc.frequency.exponentialRampToValueAtTime(200, t + 0.035);
-
-    gain.gain.setValueAtTime(0.18, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-
-    osc.start(t);
-    osc.stop(t + 0.035);
+    this.playTone({
+      type: 'triangle',
+      freqStart: 800,
+      freqEnd: 200,
+      gainStart: 0.18,
+      duration: 0.035,
+    });
   }
 
   /**
    * 6. 打字機鍵盤微敲擊聲 (Typewriter tick)
    */
   public playTypewriterKey(): void {
-    if (this.isMuted) return;
-    const ctx = this.initContext();
-    if (!ctx || !this.masterGain) return;
-
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1600 + Math.random() * 400, t);
-
-    gain.gain.setValueAtTime(0.04, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-
-    osc.start(t);
-    osc.stop(t + 0.02);
+    this.playTone({
+      type: 'sine',
+      freqStart: 1600 + Math.random() * 400,
+      freqEnd: 1600,
+      gainStart: 0.04,
+      duration: 0.02,
+    });
   }
 }
 

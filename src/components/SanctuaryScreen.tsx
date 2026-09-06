@@ -39,7 +39,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
 
       <div className="sanctuary-card-panel">
         <header className="sanctuary-header">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '12px' }}>
+          <div className="sanctuary-header-top">
             <div className="sanctuary-icon-badge">
               <Tent size={36} color="#74c69d" />
             </div>

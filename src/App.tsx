@@ -12,7 +12,7 @@ export function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, () => createInitialGameState());
 
   if (state.phase === 'title') {
-    return <TitleScreen state={state} dispatch={dispatch} />;
+    return <TitleScreen dispatch={dispatch} />;
   }
 
   if (state.phase === 'map') {

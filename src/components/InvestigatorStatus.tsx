@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Investigator } from '../types/game';
 import { Heart, Zap, Shield, BookOpen, UserCheck, Flame } from 'lucide-react';
 
@@ -21,6 +21,31 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
   isCombatEnded,
   isMadness = false,
 }) => {
+  const [isHealthShaking, setIsHealthShaking] = useState<boolean>(false);
+  const [isSanityShaking, setIsSanityShaking] = useState<boolean>(false);
+  const prevHealthRef = useRef<number>(investigator.health);
+  const prevSanityRef = useRef<number>(sanityCount);
+
+  useEffect(() => {
+    if (investigator.health < prevHealthRef.current) {
+      setIsHealthShaking(true);
+      const timer = setTimeout(() => setIsHealthShaking(false), 450);
+      prevHealthRef.current = investigator.health;
+      return () => clearTimeout(timer);
+    }
+    prevHealthRef.current = investigator.health;
+  }, [investigator.health]);
+
+  useEffect(() => {
+    if (sanityCount < prevSanityRef.current) {
+      setIsSanityShaking(true);
+      const timer = setTimeout(() => setIsSanityShaking(false), 450);
+      prevSanityRef.current = sanityCount;
+      return () => clearTimeout(timer);
+    }
+    prevSanityRef.current = sanityCount;
+  }, [sanityCount]);
+
   return (
     <div className="investigator-panel">
       {/* Investigator Identity */}
@@ -37,7 +62,10 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
       {/* Resource Meters */}
       <div className="resource-meters">
         {/* Health */}
-        <div className="resource-badge health" title="肉體生命值（凡人體質，戰後不自動恢復）">
+        <div
+          className={`resource-badge health ${isHealthShaking ? 'trauma-shake' : ''}`}
+          title="肉體生命值（凡人體質，戰後不自動恢復）"
+        >
           <Heart size={20} className="res-icon" />
           <div className="res-content">
             <span className="res-label">肉體生命</span>
@@ -69,7 +97,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
 
         {/* Sanity (Sanity Deck) */}
         <div
-          className={`resource-badge sanity ${isMadness ? 'madness' : ''}`}
+          className={`resource-badge sanity ${isMadness ? 'madness' : ''} ${isSanityShaking ? 'trauma-shake' : ''}`}
           title={
             isMadness
               ? '理智牌庫已歸零！處於瘋狂狀態，抽牌將轉為臨時黑色瘋狂卡反噬肉體'

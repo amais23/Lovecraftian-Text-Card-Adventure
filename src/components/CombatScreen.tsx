@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { EnemyView } from './EnemyView';
 import { BattleLog } from './BattleLog';
@@ -18,6 +18,35 @@ interface CombatScreenProps {
 export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) => {
   const [isDraggingCard, setIsDraggingCard] = useState<boolean>(false);
   const isCombatEnded = state.phase !== 'combat';
+
+  const prevPlayerHealthRef = useRef(state.investigator.health);
+  const prevEnemyHealthRef = useRef(state.currentEnemy.health);
+  const prevTurnRef = useRef(state.turn);
+
+  // Audio: play damage sound when player or enemy takes damage
+  useEffect(() => {
+    if (
+      state.investigator.health < prevPlayerHealthRef.current ||
+      state.currentEnemy.health < prevEnemyHealthRef.current
+    ) {
+      soundEngine.playDamage();
+    }
+    prevPlayerHealthRef.current = state.investigator.health;
+    prevEnemyHealthRef.current = state.currentEnemy.health;
+  }, [state.investigator.health, state.currentEnemy.health]);
+
+  // Audio: play draw card sound on combat start and when turn advances
+  useEffect(() => {
+    if (state.turn > prevTurnRef.current) {
+      soundEngine.playDrawCard();
+    }
+    prevTurnRef.current = state.turn;
+  }, [state.turn]);
+
+  useEffect(() => {
+    soundEngine.playDrawCard();
+  }, []);
+
   // Compute permanent deck capacity excluding in-combat temporary cards (ADR-0006 & CONTEXT.md)
   const permanentDeckCapacity = [
     ...state.sanityDeck,
@@ -67,8 +96,8 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
           <span className="combat-header-badge">遭遇戰 · 第一章</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: '#ffd700' }}>
+        <div className="combat-header-right">
+          <div className="combat-header-obols">
             <Coins size={16} />
             <span>{state.investigator.obols} 古金幣</span>
           </div>
@@ -137,7 +166,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
       {state.phase === 'victory' && (
         <div className="combat-modal-overlay">
           <div className="combat-modal-box victory">
-            <Trophy size={48} color="#74c69d" style={{ margin: '0 auto 16px' }} />
+            <Trophy size={48} color="#74c69d" className="modal-hero-icon" />
             <h2 className="combat-modal-title">戰鬥勝利</h2>
             <p className="combat-modal-desc">
               敵怪發出最後的哀嚎倒斃在地，潮濕腥臭的空氣漸漸散去。你的理智在這場驚險的搏殺中經受住了考驗。
@@ -165,7 +194,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
       {state.phase === 'gameover' && (
         <div className="combat-modal-overlay">
           <div className="combat-modal-box gameover">
-            <Skull size={48} color="#ff4d5a" style={{ margin: '0 auto 16px' }} />
+            <Skull size={48} color="#ff4d5a" className="modal-hero-icon" />
             <h2 className="combat-modal-title">調查員殞命</h2>
             <p className="combat-modal-desc">
               你的肉體被鋒利的爪牙撕碎，意識沉入冰冷深邃的無底深淵……未知之物將這座墓穴重新掩埋。

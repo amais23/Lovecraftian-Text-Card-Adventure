@@ -106,7 +106,7 @@ export const CardView: React.FC<CardViewProps> = ({
   const handleDragStart = () => {
     setIsDragging(true);
     onDragStateChange?.(true);
-    soundEngine.playDrawCard();
+    soundEngine.playCardHover();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {

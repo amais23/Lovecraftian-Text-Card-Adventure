@@ -47,7 +47,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="market-header-actions">
             <div className="market-obols-badge" id="market-current-obols">
               <Coins size={22} color="#ffd700" />
               <div className="market-obols-info">

@@ -476,13 +476,12 @@
 
 /* Hand Section */
 .hand-area {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  height: 250px;
-  padding: 10px;
   position: relative;
+  height: 250px;
+  width: 100%;
+  padding: 10px;
   perspective: 1000px;
+  overflow: visible;
 }
 
 /* Drag & Drop Guidance Bar */
@@ -543,7 +542,10 @@
   width: 175px;
   height: 220px;
   border-radius: var(--radius-md);
-  position: relative;
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  margin-left: -87.5px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2531,28 +2533,7 @@
   filter: brightness(1.1);
 }
 
-/* Audio Toggle Button */
-.audio-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(22, 26, 35, 0.85);
-  border: 1px solid var(--border-gold);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-.audio-toggle-btn:hover {
-  background: rgba(35, 42, 58, 0.95);
-  border-color: #ffd700;
-  box-shadow: 0 0 14px rgba(255, 215, 0, 0.35);
-  transform: scale(1.08);
-}
-
+/* Screen Specific Header & Component Layout Helpers */
 .title-screen-audio-corner {
   position: absolute;
   top: 24px;
@@ -2568,43 +2549,64 @@
   margin-bottom: 8px;
 }
 
-/* Typewriter Visuals */
-.typewriter-cursor {
-  display: inline-block;
+.event-skip-all-btn {
+  background: transparent;
+  border: 1px dashed rgba(207, 168, 102, 0.4);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+  align-self: flex-end;
+}
+
+.event-skip-all-btn:hover {
+  border-color: var(--border-gold-bright);
   color: var(--text-gold);
-  font-weight: 700;
-  animation: typewriterBlink 0.75s infinite steps(1);
-  margin-left: 2px;
+  background: rgba(207, 168, 102, 0.1);
 }
 
-@keyframes typewriterBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+.market-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.typewriter-text-span.typing {
-  position: relative;
+.sanctuary-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 12px;
 }
 
-/* Ambient Cosmic Dust Particles & Eldritch Spores */
-.cosmic-particles-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: 
-    radial-gradient(1.5px 1.5px at 20px 30px, rgba(207, 168, 102, 0.35), transparent),
-    radial-gradient(1px 1px at 40px 70px, rgba(199, 125, 255, 0.25), transparent),
-    radial-gradient(2px 2px at 90px 40px, rgba(255, 215, 0, 0.3), transparent),
-    radial-gradient(1.5px 1.5px at 160px 120px, rgba(207, 168, 102, 0.2), transparent);
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  opacity: 0.6;
-  animation: cosmicFloat 45s linear infinite;
+.battle-log-badge {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-@keyframes cosmicFloat {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-200px); }
+.combat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.combat-header-obols {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #ffd700;
+}
+
+.modal-hero-icon {
+  margin: 0 auto 16px;
+  display: block;
 }
 
 

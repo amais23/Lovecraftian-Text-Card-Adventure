@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { BookOpen, MapPin, ArrowRight, ShieldAlert, Heart, Coins } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
@@ -13,6 +13,14 @@ interface EventScreenProps {
 export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => {
   const event = state.currentEvent;
   const investigator = state.investigator;
+
+  const [activeParagraphIdx, setActiveParagraphIdx] = useState<number>(0);
+  const [currentEventId, setCurrentEventId] = useState<string | null>(event?.id ?? null);
+
+  if (event && currentEventId !== event.id) {
+    setCurrentEventId(event.id);
+    setActiveParagraphIdx(0);
+  }
 
   if (!event) {
     return (
@@ -69,16 +77,35 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
             <BookOpen size={48} color="#cfa866" />
           </div>
 
-          {event.storyText.map((paragraph, idx) => (
-            <p key={idx} className="event-story-paragraph">
-              <TypewriterText
-                text={paragraph}
-                speed={16}
-                delay={idx * 300}
-                playSound={false}
-              />
-            </p>
-          ))}
+          {event.storyText.map((paragraph, idx) => {
+            if (idx > activeParagraphIdx) return null;
+            const isCurrentlyTyping = idx === activeParagraphIdx;
+
+            return (
+              <p key={idx} className="event-story-paragraph">
+                {isCurrentlyTyping ? (
+                  <TypewriterText
+                    text={paragraph}
+                    speed={16}
+                    playSound={false}
+                    onComplete={() => setActiveParagraphIdx((prev) => Math.max(prev, idx + 1))}
+                  />
+                ) : (
+                  <span className="typewriter-text-span done">{paragraph}</span>
+                )}
+              </p>
+            );
+          })}
+
+          {activeParagraphIdx < event.storyText.length && (
+            <button
+              className="event-skip-all-btn"
+              onClick={() => setActiveParagraphIdx(event.storyText.length)}
+              title="略過打字直接顯示全部故事內文"
+            >
+              略過打字 (Skip All)
+            </button>
+          )}
         </div>
 
         {/* Status Bar Indicators */}

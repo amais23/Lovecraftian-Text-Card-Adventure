@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import type { Enemy, EnemyIntent } from '../types/game';
 import { Skull, Swords, Shield, Brain } from 'lucide-react';
 
@@ -16,7 +17,19 @@ interface EnemyViewProps {
 }
 
 export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
+  const [isShaking, setIsShaking] = useState<boolean>(false);
+  const prevHealthRef = useRef<number>(enemy.health);
   const healthPercent = Math.max(0, Math.min(100, (enemy.health / enemy.maxHealth) * 100));
+
+  useEffect(() => {
+    if (enemy.health < prevHealthRef.current) {
+      setIsShaking(true);
+      const timer = setTimeout(() => setIsShaking(false), 450);
+      prevHealthRef.current = enemy.health;
+      return () => clearTimeout(timer);
+    }
+    prevHealthRef.current = enemy.health;
+  }, [enemy.health]);
 
   return (
     <div className="enemy-stage">
@@ -32,7 +45,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
       </div>
 
       {/* Enemy Visual Avatar */}
-      <div className="enemy-avatar-wrapper">
+      <div className={`enemy-avatar-wrapper ${isShaking ? 'trauma-shake' : ''}`}>
         <div className="enemy-avatar-circle">
           <Skull className="enemy-avatar-icon" />
         </div>
@@ -43,7 +56,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
       <div className="enemy-title">{enemy.title}</div>
 
       {/* Health Bar */}
-      <div className="enemy-health-container">
+      <div className={`enemy-health-container ${isShaking ? 'trauma-shake' : ''}`}>
         <div className="enemy-health-meta">
           <span>生命值</span>
           <span>
@@ -61,3 +74,4 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
     </div>
   );
 };
+

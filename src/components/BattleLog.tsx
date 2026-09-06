@@ -30,7 +30,7 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs }) => {
           <Scroll size={18} color="#cfa866" />
           戰鬥日誌 (Battle Log)
         </h2>
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span className="battle-log-badge">
           <Sparkles size={12} color="#cfa866" />
           即時記錄
         </span>

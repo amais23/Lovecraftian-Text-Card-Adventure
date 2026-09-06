@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { soundEngine } from '../engine/audioManager';
 
 interface TypewriterTextProps {
@@ -22,18 +22,32 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
   const [isDone, setIsDone] = useState<boolean>(false);
   const [prevText, setPrevText] = useState<string>(text);
 
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   if (prevText !== text) {
     setPrevText(text);
     setDisplayedLength(0);
     setIsDone(false);
   }
 
+  const clearTimers = () => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    clearTimers();
     let charIndex = 0;
 
     const startTyping = () => {
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         charIndex += 1;
         setDisplayedLength(charIndex);
 
@@ -42,32 +56,30 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
         }
 
         if (charIndex >= text.length) {
-          clearInterval(interval);
+          if (intervalRef.current !== null) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
           setIsDone(true);
           onComplete?.();
         }
       }, speed);
-
-      return () => clearInterval(interval);
     };
 
     if (delay > 0) {
-      timer = setTimeout(startTyping, delay);
+      timerRef.current = setTimeout(startTyping, delay);
     } else {
-      const cleanup = startTyping();
-      return () => {
-        cleanup();
-        if (timer) clearTimeout(timer);
-      };
+      startTyping();
     }
 
     return () => {
-      if (timer) clearTimeout(timer);
+      clearTimers();
     };
   }, [text, speed, delay, playSound, onComplete]);
 
   const handleSkip = () => {
     if (!isDone) {
+      clearTimers();
       setDisplayedLength(text.length);
       setIsDone(true);
       onComplete?.();
@@ -79,7 +91,6 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
       className={`typewriter-text-span ${className} ${isDone ? 'done' : 'typing'}`}
       onClick={handleSkip}
       title={isDone ? undefined : '點擊立即顯示全部文字'}
-      style={{ cursor: isDone ? 'inherit' : 'pointer' }}
     >
       {text.slice(0, displayedLength)}
       {!isDone && <span className="typewriter-cursor">▌</span>}
