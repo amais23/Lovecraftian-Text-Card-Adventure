@@ -28,7 +28,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
   };
 
   return (
-    <div className="combat-container">
+    <div className={`combat-container ${state.isMadness ? 'madness-mode' : ''}`}>
       <div className="vignette-overlay" />
       <div className="fog-layer" />
 
@@ -51,6 +51,13 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         </div>
       </header>
 
+      {/* Madness State Warning Banner */}
+      {state.isMadness && (
+        <div className="madness-status-banner">
+          <span>⚠️ 【瘋狂狀態】理智牌庫已抽空！手牌將補入臨時黑卡，威力兇猛但會直接反噬生命值！</span>
+        </div>
+      )}
+
       {/* Upper Split-Screen: Enemy & Literary Battle Log */}
       <section className="combat-upper-section">
         <EnemyView enemy={state.currentEnemy} />
@@ -66,6 +73,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
           turn={state.turn}
           onEndTurn={handleEndTurn}
           isCombatEnded={isCombatEnded}
+          isMadness={state.isMadness}
         />
 
         {/* Dynamic Hand Cards */}

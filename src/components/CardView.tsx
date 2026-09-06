@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Card } from '../types/game';
-import { Swords, Shield, Sparkles, Wind } from 'lucide-react';
+import { Swords, Shield, Sparkles, Wind, Flame, Eye } from 'lucide-react';
 
 interface CardViewProps {
   card: Card;
@@ -26,6 +26,12 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const getCardIcon = () => {
+    if (card.category === 'madness') {
+      return <Flame size={22} color="#ef4444" />;
+    }
+    if (card.category === 'truth') {
+      return <Eye size={22} color="#f8fafc" />;
+    }
     if (card.category === 'combat') {
       return <Swords size={22} color="#e63946" />;
     }
@@ -37,6 +43,23 @@ export const CardView: React.FC<CardViewProps> = ({
     }
     return <Sparkles size={22} color="#cfa866" />;
   };
+
+  const getCategoryLabel = (category: Card['category']) => {
+    switch (category) {
+      case 'combat':
+        return '戰鬥';
+      case 'skill':
+        return '技能';
+      case 'truth':
+        return '真相';
+      case 'madness':
+        return '狂亂';
+      default:
+        return category;
+    }
+  };
+
+  const selfDamageEffect = card.effects.find((e) => e.type === 'self_damage');
 
   return (
     <div
@@ -51,21 +74,33 @@ export const CardView: React.FC<CardViewProps> = ({
           {card.costValue}
         </div>
         <div className={`card-category-tag ${card.category}`}>
-          {card.category === 'combat' ? '戰鬥' : '技能'}
+          {getCategoryLabel(card.category)}
         </div>
       </div>
 
-      {/* Body: Icon, Name, Effect */}
+      {/* Body: Icon, Name, Badges, Effect */}
       <div className="card-body">
         <div className="card-icon-container">{getCardIcon()}</div>
         <div className="card-title">{card.name}</div>
+
+        {(card.isTemporary || selfDamageEffect) && (
+          <div className="card-badges-row">
+            {card.isTemporary && <span className="card-tag-badge temp">臨時</span>}
+            {selfDamageEffect && (
+              <span className="card-tag-badge recoil" title="打出此卡將直接扣除生命值">
+                反噬 -{selfDamageEffect.value}
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="card-effect-desc">{card.description}</div>
         <div className="card-flavor">{card.flavorText}</div>
       </div>
 
       {/* Bottom prompt */}
       <div className="card-play-prompt">
-        {isPlayable ? '點擊打出' : '精力不足'}
+        {isPlayable ? (card.category === 'madness' ? '發動狂擊' : '點擊打出') : '精力不足'}
       </div>
     </div>
   );

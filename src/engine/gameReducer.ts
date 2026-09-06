@@ -1,5 +1,5 @@
 import type { Card, Enemy, EnemyIntent, GameAction, GameState, Investigator } from '../types/game';
-import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
+import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR, generateMadnessCards } from './initialData';
 
 export const BASELINE_HAND_SIZE = 4;
 
@@ -154,21 +154,55 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           } else {
             newLogs.push(`調查員打出【${card.name}】，但棄牌堆中尚無任何已棄卡牌可供洗回！`);
           }
+        } else if (effect.type === 'self_damage') {
+          investigatorHealth = Math.max(0, investigatorHealth - effect.value);
+          newLogs.push(`受到不可名狀的反噬傷害，自身損失 ${effect.value} 點肉體生命！`);
+        } else if (effect.type === 'add_to_deck') {
+          const injectedCards: Card[] = [];
+          for (let i = 0; i < effect.value; i++) {
+            injectedCards.push({
+              id: `card_injected_truth_${Date.now()}_${i}`,
+              name: '禁忌認知',
+              category: 'truth',
+              costType: 'stamina',
+              costValue: 1,
+              isTemporary: false,
+              effects: [{ type: 'armor', value: 4 }],
+              description: '獲得 4 點護甲。',
+              flavorText: '「在不可名狀的微光中凝視深淵。」',
+            });
+          }
+          newSanityDeck.unshift(...injectedCards);
+          newLogs.push(`調查員打出【${card.name}】，向理智牌庫注入了 ${effect.value} 張深淵真相卡牌！`);
         }
       }
 
-      // Now add the played card itself to the discard pile
-      const finalDiscardPile = [...pastDiscardPile, card];
+      // If temporary card, it dissolves and is not put into discard pile
+      const finalDiscardPile = card.isTemporary ? [...pastDiscardPile] : [...pastDiscardPile, card];
 
-      // Check Victory
-      const isVictory = enemyHealth <= 0;
-      if (isVictory) {
+      // Check Madness transitions
+      let isMadnessNow = state.isMadness;
+      if (state.isMadness && newSanityDeck.length > 0) {
+        isMadnessNow = false;
+        newLogs.push(`【心智平復】理智牌庫已回補卡牌，不可名狀的狂暴瘋狂隨之平復，調查員恢復清醒。`);
+      } else if (!state.isMadness && newSanityDeck.length === 0) {
+        isMadnessNow = true;
+        newLogs.push(`【理智歸零】理智牌庫徹底抽空！調查員雙眼染上血色，進入「瘋狂狂暴狀態」！`);
+      }
+
+      // Check Victory / Defeat
+      let phase: GameState['phase'] = state.phase;
+      if (investigatorHealth <= 0) {
+        phase = 'gameover';
+        newLogs.unshift(`【調查員殞命】不可名狀的反噬耗盡了你最後一絲氣息，你倒在血泊中……`);
+      } else if (enemyHealth <= 0) {
+        phase = 'victory';
         newLogs.unshift(`【戰鬥勝利】${state.currentEnemy.name} 發出臨死的淒厲悲鳴，化為一灘腥臭的黑水消滅了！`);
       }
 
       return {
         ...state,
-        phase: isVictory ? 'victory' : state.phase,
+        phase,
         investigator: {
           ...state.investigator,
           stamina: newStamina,
@@ -178,7 +212,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: newSanityDeck,
         hand: newHand,
         discardPile: finalDiscardPile,
-        isMadness: newSanityDeck.length === 0,
+        isMadness: isMadnessNow,
         currentEnemy: {
           ...state.currentEnemy,
           health: enemyHealth,
@@ -240,6 +274,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
+      // Check madness state transition
+      let isMadnessNow = state.isMadness || sanityDeck.length === 0;
+      if (!state.isMadness && sanityDeck.length === 0) {
+        isMadnessNow = true;
+        newLogs.push(`【理智歸零】理智牌庫徹底抽空！調查員雙眼燃起血焰，進入「瘋狂狂暴狀態」！`);
+      }
+
       // Advance enemy intent sequence
       let nextIntentIndex = 0;
       let nextIntent: EnemyIntent = intent;
@@ -248,19 +289,33 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         nextIntent = enemy.intentSequence[nextIntentIndex];
       }
 
-      // Hand retention & refill to BASELINE_HAND_SIZE (Without automatic reshuffle!)
+      // Hand retention & refill to BASELINE_HAND_SIZE
       const currentHand = [...state.hand];
       const cardsNeeded = Math.max(0, BASELINE_HAND_SIZE - currentHand.length);
-      const cardsToDraw = Math.min(sanityDeck.length, cardsNeeded);
-      const drawnCards = sanityDeck.slice(0, cardsToDraw);
-      sanityDeck = sanityDeck.slice(cardsToDraw);
-      const newHand = [...currentHand, ...drawnCards];
+      let newHand = [...currentHand];
+      let drawnCardsCount = 0;
+
+      if (isMadnessNow && cardsNeeded > 0) {
+        // In madness state, drawn cards are transformed into temporary black madness cards!
+        const madnessCards = generateMadnessCards(cardsNeeded);
+        newHand = [...currentHand, ...madnessCards];
+        drawnCardsCount = cardsNeeded;
+        newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵狂暴力量轉化為 ${cardsNeeded} 張臨時黑色瘋狂卡！`);
+      } else if (cardsNeeded > 0) {
+        const cardsToDraw = Math.min(sanityDeck.length, cardsNeeded);
+        const drawnCards = sanityDeck.slice(0, cardsToDraw);
+        sanityDeck = sanityDeck.slice(cardsToDraw);
+        newHand = [...currentHand, ...drawnCards];
+        drawnCardsCount = cardsToDraw;
+
+        if (cardsToDraw < cardsNeeded && sanityDeck.length === 0) {
+          isMadnessNow = true;
+          newLogs.push(`【理智告急】理智牌庫已抽空，無法繼續抽牌！根據無自動重洗規則，棄牌堆保持不變。`);
+        }
+      }
 
       const nextTurn = state.turn + 1;
-      if (cardsNeeded > 0 && cardsToDraw < cardsNeeded && sanityDeck.length === 0) {
-        newLogs.push(`【理智告急】理智牌庫已抽空，無法繼續抽牌！根據無自動重洗規則，棄牌堆保持不變。`);
-      }
-      newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，自理智牌庫補抽 ${drawnCards.length} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
+      newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，補抽 ${drawnCardsCount} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
 
       return {
         ...state,
@@ -274,7 +329,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck,
         hand: newHand,
         discardPile,
-        isMadness: sanityDeck.length === 0,
+        isMadness: isMadnessNow,
         currentEnemy: {
           ...enemy,
           currentIntent: nextIntent,

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Investigator } from '../types/game';
-import { Heart, Zap, Shield, BookOpen, UserCheck } from 'lucide-react';
+import { Heart, Zap, Shield, BookOpen, UserCheck, Flame } from 'lucide-react';
 
 interface InvestigatorStatusProps {
   investigator: Investigator;
@@ -9,6 +9,7 @@ interface InvestigatorStatusProps {
   turn: number;
   onEndTurn: () => void;
   isCombatEnded: boolean;
+  isMadness?: boolean;
 }
 
 export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
@@ -18,6 +19,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
   turn,
   onEndTurn,
   isCombatEnded,
+  isMadness = false,
 }) => {
   return (
     <div className="investigator-panel">
@@ -66,10 +68,23 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
         </div>
 
         {/* Sanity (Sanity Deck) */}
-        <div className="resource-badge sanity" title="理智牌庫（剩餘卡牌數量即為調查員理智值）">
-          <BookOpen size={20} className="res-icon" />
+        <div
+          className={`resource-badge sanity ${isMadness ? 'madness' : ''}`}
+          title={
+            isMadness
+              ? '理智牌庫已歸零！處於瘋狂狂暴狀態，抽牌將轉為臨時黑卡反噬肉體'
+              : '理智牌庫（剩餘卡牌數量即為調查員理智值）'
+          }
+        >
+          {isMadness ? (
+            <Flame size={20} className="res-icon" />
+          ) : (
+            <BookOpen size={20} className="res-icon" />
+          )}
           <div className="res-content">
-            <span className="res-label">理智牌庫 (SAN)</span>
+            <span className="res-label">
+              {isMadness ? '理智牌庫 (狂暴!)' : '理智牌庫 (SAN)'}
+            </span>
             <span className="res-value">
               {sanityCount} / {totalDeckCapacity}
             </span>

@@ -28,9 +28,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(initialState.investigator.stamina).toBe(3);
     expect(initialState.investigator.armor).toBe(0);
 
-    // Initial 11 cards: 4 drawn into hand, 7 remaining in sanityDeck (Sanity = 7)
+    // Initial 12 cards: 4 drawn into hand, 8 remaining in sanityDeck (ADR-0007: 10~12 cards)
     expect(initialState.hand.length).toBe(4);
-    expect(initialState.sanityDeck.length).toBe(7);
+    expect(initialState.sanityDeck.length).toBe(8);
     expect(initialState.discardPile.length).toBe(0);
 
     // Enemy
@@ -390,9 +390,11 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     // No automatic reshuffle: discardPile remains in discardPile, sanityDeck stays 0
     expect(nextState.sanityDeck.length).toBe(0);
     expect(nextState.isMadness).toBe(true);
-    expect(nextState.hand.length).toBe(1); // Could not draw additional cards
+    // In madness state, hand refills to 4 using temporary black madness cards
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.hand.filter((c) => c.category === 'madness').length).toBe(3);
     expect(nextState.discardPile.length).toBe(1);
-    expect(nextState.battleLog.some((log) => log.includes('理智牌庫已抽空'))).toBe(true);
+    expect(nextState.battleLog.some((log) => log.includes('瘋狂'))).toBe(true);
   });
 
   it('restores multiple cards with Sedative (restore_sanity: 2) from discard pile', () => {
@@ -475,7 +477,230 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     state = gameReducer(state, { type: 'PLAY_CARD', payload: { cardId: defenseCard.id } });
     expect(state.investigator.armor).toBe(10);
   });
+
+  it('triggers madness state automatically when sanity deck reaches 0 and investigator does not die', () => {
+    const state: GameState = {
+      ...createInitialCombatState(),
+      sanityDeck: [createMockCard()], // 1 card left in sanityDeck
+      hand: [createMockCard(), createMockCard(), createMockCard(), createMockCard()],
+      isMadness: false,
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'erode',
+          value: 1,
+          name: '狂亂凝視',
+          description: '侵蝕 1 點理智',
+        },
+      },
+    };
+
+    const nextState = gameReducer(state, { type: 'END_TURN' });
+
+    expect(nextState.sanityDeck.length).toBe(0);
+    expect(nextState.isMadness).toBe(true);
+    expect(nextState.phase).toBe('combat'); // Still fighting, not gameover!
+    expect(nextState.battleLog.some((log) => log.includes('瘋狂') || log.includes('狂暴'))).toBe(true);
+  });
+
+  it('generates temporary black madness cards when drawing in madness state', () => {
+    const state: GameState = {
+      ...createInitialCombatState(),
+      sanityDeck: [],
+      hand: [createMockCard({ id: 'retained_1' })], // 1 retained card, needs 3 cards to reach 4
+      isMadness: true,
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'attack',
+          value: 0,
+          name: '觀察',
+          description: '無動作',
+        },
+      },
+    };
+
+    const nextState = gameReducer(state, { type: 'END_TURN' });
+
+    // Refilled to 4 cards total
+    expect(nextState.hand.length).toBe(4);
+    // 3 new cards must all be temporary black madness cards
+    const newlyDrawnCards = nextState.hand.filter((c) => c.id !== 'retained_1');
+    expect(newlyDrawnCards.length).toBe(3);
+    newlyDrawnCards.forEach((c) => {
+      expect(c.category).toBe('madness');
+      expect(c.isTemporary).toBe(true);
+    });
+    expect(nextState.battleLog.some((log) => log.includes('瘋狂') || log.includes('黑色瘋狂卡'))).toBe(true);
+  });
+
+  it('deals high damage and inflicts self-recoil damage when playing a black madness card', () => {
+    const madnessCard: Card = {
+      id: 'temp_madness_claw',
+      name: '盲目爪擊',
+      category: 'madness',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: true,
+      effects: [
+        { type: 'damage', value: 10 },
+        { type: 'self_damage', value: 2 },
+      ],
+      description: '造成 10 點傷害，反噬 2 點生命。',
+      flavorText: '狂暴',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [madnessCard],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 20,
+        armor: 5,
+        stamina: 3,
+      },
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        health: 30,
+        armor: 0,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: madnessCard.id },
+    });
+
+    // Enemy took 10 damage: 30 - 10 = 20
+    expect(nextState.currentEnemy.health).toBe(20);
+    // Investigator took 2 self recoil damage directly to health (bypassing armor): 20 - 2 = 18
+    expect(nextState.investigator.health).toBe(18);
+    expect(nextState.investigator.armor).toBe(5); // Armor preserved
+    expect(nextState.battleLog.some((log) => log.includes('反噬'))).toBe(true);
+  });
+
+  it('triggers gameover if self-recoil damage from black card reduces investigator health to 0', () => {
+    const suicidalCard: Card = {
+      id: 'temp_madness_overkill',
+      name: '深淵狂嘯',
+      category: 'madness',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: true,
+      effects: [
+        { type: 'damage', value: 14 },
+        { type: 'self_damage', value: 5 },
+      ],
+      description: '造成 14 點傷害，反噬 5 點生命。',
+      flavorText: '滅亡',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [suicidalCard],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 3, // Less than 5 self_damage
+        armor: 0,
+        stamina: 3,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: suicidalCard.id },
+    });
+
+    expect(nextState.investigator.health).toBe(0);
+    expect(nextState.phase).toBe('gameover');
+    expect(nextState.battleLog.some((log) => log.includes('殞命') || log.includes('反噬'))).toBe(true);
+  });
+
+  it('restores sanity deck and relieves madness state when playing white truth card', () => {
+    const truthCard: Card = {
+      id: 'card_truth_fragment_1',
+      name: '舊日殘頁',
+      category: 'truth',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [
+        { type: 'self_damage', value: 2 },
+        { type: 'add_to_deck', value: 2 },
+      ],
+      description: '承受 2 點反噬，注入 2 張卡牌至理智牌庫。',
+      flavorText: '真理',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      sanityDeck: [], // Currently 0, in madness state
+      isMadness: true,
+      hand: [truthCard],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 20,
+        stamina: 3,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: truthCard.id },
+    });
+
+    // Investigator took 2 self damage: 20 - 2 = 18
+    expect(nextState.investigator.health).toBe(18);
+    // Sanity deck has 2 cards added:
+    expect(nextState.sanityDeck.length).toBe(2);
+    // Madness state relieved!
+    expect(nextState.isMadness).toBe(false);
+    expect(nextState.battleLog.some((log) => log.includes('心智平復') || log.includes('清醒'))).toBe(true);
+  });
+
+  it('allows investigator in madness state to achieve victory by eliminating the enemy', () => {
+    const lethalMadnessCard: Card = {
+      id: 'temp_madness_finish',
+      name: '盲目爪擊',
+      category: 'madness',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: true,
+      effects: [
+        { type: 'damage', value: 10 },
+        { type: 'self_damage', value: 1 },
+      ],
+      description: '斬殺',
+      flavorText: '勝負',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      isMadness: true,
+      sanityDeck: [],
+      hand: [lethalMadnessCard],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 10,
+        stamina: 3,
+      },
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        health: 8,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: lethalMadnessCard.id },
+    });
+
+    expect(nextState.currentEnemy.health).toBe(0);
+    expect(nextState.phase).toBe('victory');
+    expect(nextState.isMadness).toBe(true); // Remained in berserk until victory
+  });
 });
+
 
 
 

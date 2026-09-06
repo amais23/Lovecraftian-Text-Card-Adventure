@@ -2,7 +2,7 @@ export type CardCategory = 'combat' | 'skill' | 'magic' | 'truth' | 'madness';
 export type CostType = 'stamina' | 'sanity' | 'free';
 
 export interface CardEffect {
-  type: 'damage' | 'armor' | 'heal' | 'draw' | 'erode_sanity' | 'restore_sanity';
+  type: 'damage' | 'armor' | 'heal' | 'draw' | 'erode_sanity' | 'restore_sanity' | 'self_damage' | 'add_to_deck';
   value: number;
 }
 

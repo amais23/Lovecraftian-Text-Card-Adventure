@@ -30,6 +30,14 @@
   --card-skill-border: #b08928;
   --card-skill-bg: linear-gradient(145deg, #221a08, #130f04);
   --card-skill-accent: #f4a261;
+  --card-truth-border: #e2e8f0;
+  --card-truth-bg: linear-gradient(145deg, #1e2530, #0f141c);
+  --card-truth-accent: #f8fafc;
+  --card-truth-glow: rgba(241, 245, 249, 0.45);
+  --card-madness-border: #7f1d1d;
+  --card-madness-bg: linear-gradient(145deg, #180507, #080002);
+  --card-madness-accent: #ef4444;
+  --card-madness-glow: rgba(239, 68, 68, 0.5);
 
   /* Typography */
   --text-parchment: #ece6d8;
