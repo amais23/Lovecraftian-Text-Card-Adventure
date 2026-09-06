@@ -274,6 +274,82 @@ export class SoundEngine {
       duration: 0.02,
     });
   }
+
+  /**
+   * 7. 報紙甩拍桌面重音 (Newspaper Table Slam)
+   * 結合深沉木質撞擊低頻與紙張摩擦高頻帶通雜訊
+   */
+  public playNewspaperSlam(): void {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain) return;
+
+    const t = ctx.currentTime;
+
+    // 1. 低頻木桌撞擊振動
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(28, t + 0.26);
+
+    gain.gain.setValueAtTime(0.55, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.26);
+
+    // 2. 厚重油墨紙張摔落沙沙聲 (Paper flutter bandpass)
+    const paperOsc = ctx.createOscillator();
+    const paperFilter = ctx.createBiquadFilter();
+    const paperGain = ctx.createGain();
+
+    paperOsc.type = 'sawtooth';
+    paperOsc.frequency.setValueAtTime(320, t);
+    paperOsc.frequency.exponentialRampToValueAtTime(80, t + 0.16);
+
+    paperFilter.type = 'bandpass';
+    paperFilter.frequency.setValueAtTime(1600, t);
+    paperFilter.Q.setValueAtTime(2.5, t);
+
+    paperGain.gain.setValueAtTime(0.2, t);
+    paperGain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+
+    paperOsc.connect(paperFilter);
+    paperFilter.connect(paperGain);
+    paperGain.connect(this.masterGain);
+
+    paperOsc.start(t);
+    paperOsc.stop(t + 0.16);
+  }
+
+  /**
+   * 8. 結局微鳴神秘低音 (Eerie Ending Ambience)
+   */
+  public playEndingEerieTension(): void {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain) return;
+
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(68, t);
+    osc.frequency.linearRampToValueAtTime(62, t + 1.2);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.18, t + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 1.2);
+  }
 }
 
 export const soundEngine = new SoundEngine();

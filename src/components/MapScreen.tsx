@@ -14,8 +14,8 @@ import {
   Eye,
   CheckCircle2,
   Navigation,
-  Award,
 } from 'lucide-react';
+import { ArkhamGazette } from './ArkhamGazette';
 
 interface MapScreenProps {
   state: GameState;
@@ -263,45 +263,13 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         </div>
       </main>
 
-      {/* Campaign Victory Modal */}
+      {/* Arkham Gazette Normal Victory Ending Sequence */}
       {map.isCompleted && (
-        <div className="map-victory-backdrop">
-          <div className="map-victory-modal">
-            <div className="map-victory-icon">
-              <Award size={48} color="#ffd700" />
-            </div>
-            <h2 className="map-victory-title">【舊日封印完成 · 封鎖區調查告終】</h2>
-            <p className="map-victory-narrative">
-              在無底深淵祭壇前，修格斯那令人作嘔的原生質巨軀終於崩解消散，虛空裂隙暫告合攏。
-              阿卡姆的迷霧似乎稀薄了幾分……你帶著傷痕與禁忌真相，活著走出了封鎖區。
-            </p>
-            <div className="map-victory-stats">
-              <div className="map-victory-stat-item">
-                <span className="stat-label">倖存調查員</span>
-                <span className="stat-value">{investigator.name}（{investigator.occupation}）</span>
-              </div>
-              <div className="map-victory-stat-item">
-                <span className="stat-label">終局肉體生命值</span>
-                <span className="stat-value">{investigator.health} / {investigator.maxHealth}</span>
-              </div>
-              <div className="map-victory-stat-item">
-                <span className="stat-label">一般卡規模</span>
-                <span className="stat-value">{permanentDeckCapacity} 張（理智上限）</span>
-              </div>
-              <div className="map-victory-stat-item">
-                <span className="stat-label">結餘古金幣</span>
-                <span className="stat-value">{investigator.obols} 枚</span>
-              </div>
-            </div>
-            <button
-              id="map-victory-return-title-btn"
-              className="map-victory-btn"
-              onClick={() => dispatch({ type: 'RETURN_TO_TITLE' })}
-            >
-              凱旋返回標題畫面
-            </button>
-          </div>
-        </div>
+        <ArkhamGazette
+          endingType="victory"
+          state={state}
+          dispatch={dispatch}
+        />
       )}
     </div>
   );

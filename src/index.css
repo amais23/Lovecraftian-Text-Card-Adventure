@@ -1,6 +1,7 @@
 @import './styles/theme.css';
 @import './styles/combat.css';
 @import './styles/compendium.css';
+@import './styles/gazette.css';
 
 #root {
   width: 100%;

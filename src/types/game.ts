@@ -113,6 +113,13 @@ export interface MarketItem {
   isPurchased?: boolean;
 }
 
+export interface AdventureStats {
+  enemiesDefeated: number;
+  totalObolsCollected: number;
+  nodesVisited: number;
+  maxLayer: number;
+}
+
 export interface GameState {
   phase: 'title' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'gameover';
   turn: number;
@@ -129,6 +136,7 @@ export interface GameState {
   currentEvent?: MythosEvent;
   sanctuaryUsed?: boolean;
   marketItems?: MarketItem[];
+  adventureStats?: AdventureStats;
 }
 
 export type GameAction =

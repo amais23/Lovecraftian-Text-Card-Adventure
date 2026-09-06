@@ -1,4 +1,5 @@
 import type {
+  AdventureStats,
   Card,
   Enemy,
   EnemyIntent,
@@ -183,6 +184,15 @@ export function applyDamage(
   };
 }
 
+export function ensureAdventureStats(state: Partial<GameState>): AdventureStats {
+  return state.adventureStats ?? {
+    enemiesDefeated: 0,
+    totalObolsCollected: state.investigator?.obols ?? 0,
+    nodesVisited: 0,
+    maxLayer: state.map?.nodes?.[state.map?.currentNodeId ?? '']?.layer ?? 0,
+  };
+}
+
 export function createInitialCombatState(
   customEnemy?: Enemy,
   customDeck?: Card[],
@@ -214,6 +224,12 @@ export function createInitialCombatState(
     discardPile: [],
     isMadness: sanityDeck.length === 0,
     currentEnemy: enemy,
+    adventureStats: {
+      enemiesDefeated: 0,
+      totalObolsCollected: investigator.obols ?? 0,
+      nodesVisited: 0,
+      maxLayer: 0,
+    },
     battleLog: [
       `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
     ],
@@ -255,6 +271,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map,
+        adventureStats: {
+          enemiesDefeated: 0,
+          totalObolsCollected: investigator.obols ?? 0,
+          nodesVisited: 0,
+          maxLayer: 0,
+        },
         battleLog: [
           `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`,
         ],
@@ -283,6 +305,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state.map,
         nodes: updatedNodes,
         currentNodeId: targetNode.id,
+      };
+
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        nodesVisited: currentStats.nodesVisited + 1,
+        maxLayer: Math.max(currentStats.maxLayer, targetNode.layer),
       };
 
       if (targetNode.type === 'combat' || targetNode.type === 'elite' || targetNode.type === 'boss') {
@@ -326,6 +355,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isMadness: false,
           map: updatedMap,
           currentEnemy: enemy,
+          adventureStats: updatedStats,
           battleLog: [logMsg, ...state.battleLog],
         };
       }
@@ -337,6 +367,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'event',
           map: updatedMap,
           currentEvent: event,
+          adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！觸發秘識奇遇【${event.title}】。`,
             ...state.battleLog,
@@ -350,6 +381,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'sanctuary',
           map: updatedMap,
           sanctuaryUsed: false,
+          adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！抵達安全避難所。`,
             ...state.battleLog,
@@ -363,6 +395,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'market',
           map: updatedMap,
           marketItems: generateDefaultMarketItems(),
+          adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！進入黑市商鋪。`,
             ...state.battleLog,
@@ -435,6 +468,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
+      const gainedObols = Math.max(0, newObols - state.investigator.obols);
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + gainedObols,
+      };
+
       const updatedInvestigator: Investigator = {
         ...state.investigator,
         health: newHealth,
@@ -453,6 +493,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'gameover',
           investigator: updatedInvestigator,
           currentEvent: updatedEvent,
+          adventureStats: updatedStats,
           battleLog: [`【肉體殞命】調查員在奇遇事件中傷重不治！`, ...state.battleLog],
         };
       }
@@ -484,6 +525,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isMadness: false,
           currentEnemy: cloneEnemy(triggerCombatEnemy),
           currentEvent: undefined,
+          adventureStats: updatedStats,
           battleLog: outcomeTexts.concat(state.battleLog),
         };
       }
@@ -676,6 +718,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         : [...currentPermanentCards];
 
       const addedObols = state.rewardObols ?? 15;
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + addedObols,
+      };
+
       // 2. Persistent health: investigator.health does NOT heal!
       const updatedInvestigator: Investigator = {
         ...state.investigator,
@@ -721,6 +769,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         rewardObols: undefined,
         currentEnemy: nextEnemy,
         map: updatedMap,
+        adventureStats: updatedStats,
         battleLog: [...newLogs, ...state.battleLog],
       };
     }
@@ -903,11 +952,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Check Victory / Defeat
       let phase: GameState['phase'] = state.phase;
+      let stats = ensureAdventureStats(state);
       if (investigatorHealth <= 0) {
         phase = 'gameover';
         newLogs.unshift(`【調查員殞命】不可名狀的反噬耗盡了你最後一絲氣息，你倒在血泊中……`);
       } else if (enemyHealth <= 0) {
         phase = 'victory';
+        stats = {
+          ...stats,
+          enemiesDefeated: stats.enemiesDefeated + 1,
+        };
         newLogs.unshift(`【戰鬥勝利】${state.currentEnemy.name} 發出臨死的淒厲悲鳴，化為一灘腥臭的黑水消滅了！`);
       }
 
@@ -929,6 +983,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           health: enemyHealth,
           armor: enemyArmor,
         },
+        adventureStats: stats,
         battleLog: [...newLogs, ...state.battleLog],
       };
     }
@@ -976,6 +1031,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return {
           ...state,
           phase: 'gameover',
+          adventureStats: ensureAdventureStats(state),
           investigator: {
             ...state.investigator,
             health: 0,
