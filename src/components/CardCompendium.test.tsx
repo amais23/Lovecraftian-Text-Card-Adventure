@@ -19,9 +19,10 @@ describe('CardCompendium Component', () => {
     expect(screen.getByText(/卡牌圖鑑 \(Card Compendium\)/)).toBeDefined();
     expect(screen.getByText(/28 張/)).toBeDefined();
 
-    // Check that all 28 card items are rendered
-    const cardItems = container.querySelectorAll('.compendium-card-card-wrapper');
+    // Check that all 28 card items are rendered and none have playable combat glow
+    const cardItems = container.querySelectorAll('.compendium-card-wrapper');
     expect(cardItems.length).toBe(28);
+    expect(container.querySelector('.card-item.playable')).toBeNull();
   });
 
   it('filters cards when category tabs are clicked', () => {
@@ -32,21 +33,21 @@ describe('CardCompendium Component', () => {
     const combatTab = screen.getByText(/紅色戰鬥/);
     fireEvent.click(combatTab);
 
-    let cardWrappers = container.querySelectorAll('.compendium-card-card-wrapper');
+    let cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
     expect(cardWrappers.length).toBe(7);
 
     // Click "黃色技能" tab
     const skillTab = screen.getByText(/黃色技能/);
     fireEvent.click(skillTab);
 
-    cardWrappers = container.querySelectorAll('.compendium-card-card-wrapper');
+    cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
     expect(cardWrappers.length).toBe(8);
 
     // Click "黑色瘋狂" tab
     const madnessTab = screen.getByText(/黑色瘋狂/);
     fireEvent.click(madnessTab);
 
-    cardWrappers = container.querySelectorAll('.compendium-card-card-wrapper');
+    cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
     expect(cardWrappers.length).toBe(3);
   });
 
@@ -59,7 +60,7 @@ describe('CardCompendium Component', () => {
 
     // Should find the revolver card
     expect(screen.getByText('左輪射擊')).toBeDefined();
-    const cardWrappers = container.querySelectorAll('.compendium-card-card-wrapper');
+    const cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
     expect(cardWrappers.length).toBe(1);
 
     // Searching non-existent query should show empty state
@@ -72,7 +73,7 @@ describe('CardCompendium Component', () => {
     const { container } = render(<CardCompendium onClose={onClose} />);
 
     // Click on the first card
-    const firstCard = container.querySelector('.compendium-card-card-wrapper');
+    const firstCard = container.querySelector('.compendium-card-wrapper');
     expect(firstCard).toBeTruthy();
     fireEvent.click(firstCard!);
 

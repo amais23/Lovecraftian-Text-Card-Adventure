@@ -284,9 +284,24 @@ const ARTWORKS_BY_NAME = new Map<string, CardArtworkInfo>(
   ALL_CARD_ARTWORKS.map((art) => [art.name, art])
 );
 
+// Aliases for card variants (e.g. black market goods and narrative derivatives)
+const CARD_NAME_ALIASES: Record<string, string> = {
+  '戰壕雙管獵槍': '雙管獵槍',
+  '遠古青銅護身符': '遠古護身符',
+  '心智防波堤手稿': '心智防波堤',
+  '軍用嗎啡注射劑': '醫療鎮定劑',
+  '高純度酒精繃帶': '應急急救包',
+};
+
 const ARTWORKS_BY_ID_SUBSTRING: [string, CardArtworkInfo][] = Object.entries(CARD_ARTWORKS_REGISTRY).map(
   ([key, art]) => [key.replace('card_', ''), art]
 );
+
+const ID_TOKEN_ALIASES: [string, CardArtworkInfo][] = [
+  ['morphine', CARD_ARTWORKS_REGISTRY.card_sedative],
+  ['gauze', CARD_ARTWORKS_REGISTRY.card_first_aid],
+  ['amulet', CARD_ARTWORKS_REGISTRY.card_ancient_amulet],
+];
 
 const CATEGORY_FALLBACKS: Record<CardCategory, CardArtworkInfo> = {
   combat: CARD_ARTWORKS_REGISTRY.card_revolver,
@@ -307,10 +322,25 @@ export function getCardArtwork(card: Card | { name: string; category?: CardCateg
     return byName;
   }
 
-  // Second attempt: match by card id substring
+  // Second attempt: match by name alias
+  const aliasName = CARD_NAME_ALIASES[card.name];
+  if (aliasName) {
+    const byAlias = ARTWORKS_BY_NAME.get(aliasName);
+    if (byAlias) {
+      return byAlias;
+    }
+  }
+
+  // Third attempt: match by card id substring
   if (card.id) {
     for (let i = 0; i < ARTWORKS_BY_ID_SUBSTRING.length; i++) {
       const [token, art] = ARTWORKS_BY_ID_SUBSTRING[i];
+      if (card.id.includes(token)) {
+        return art;
+      }
+    }
+    for (let i = 0; i < ID_TOKEN_ALIASES.length; i++) {
+      const [token, art] = ID_TOKEN_ALIASES[i];
       if (card.id.includes(token)) {
         return art;
       }

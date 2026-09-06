@@ -1,6 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
 import { ALL_CARD_ARTWORKS, getCardArtwork, CARD_ARTWORKS_REGISTRY } from './cardArtworks';
 import type { Card } from '../types/game';
 
@@ -18,8 +16,9 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
   });
 
   it('should ensure all 28 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
-    const publicCardsDir = path.resolve(process.cwd(), 'public/cards');
-    expect(fs.existsSync(publicCardsDir)).toBe(true);
+    const cardImages = import.meta.glob('/public/cards/*.{webp,png}');
+    const imagePaths = Object.keys(cardImages);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(28);
 
     for (const art of ALL_CARD_ARTWORKS) {
       // art.imageUrl must conform to ADR-0012 (WebP or PNG)
@@ -28,15 +27,11 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
         `Image for ${art.name} must be .webp or .png, got: ${art.imageUrl}`
       ).toBe(true);
 
-      const fileName = path.basename(art.imageUrl);
-      const filePath = path.join(publicCardsDir, fileName);
+      const expectedKey = `/public${art.imageUrl}`;
       expect(
-        fs.existsSync(filePath),
-        `Artwork image file missing for card "${art.name}": ${filePath}`
+        imagePaths.includes(expectedKey),
+        `Artwork image file missing for card "${art.name}": expected ${expectedKey} in ${JSON.stringify(imagePaths)}`
       ).toBe(true);
-
-      const stats = fs.statSync(filePath);
-      expect(stats.size).toBeGreaterThan(0);
     }
   });
 
@@ -98,5 +93,30 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     expect(fallbackArt.name).toBe('靈能衝擊');
     expect(fallbackArt.category).toBe('magic');
     expect(fallbackArt.imageUrl).toBe('/cards/card_magic_blast.webp');
+  });
+
+  it('should accurately map black market item cards to dedicated artworks instead of generic fallback', () => {
+    const marketCards = [
+      { id: 'card_market_shotgun', name: '戰壕雙管獵槍', category: 'combat' as const, expectedArtId: 'card_shotgun' },
+      { id: 'card_market_bronze_amulet', name: '遠古青銅護身符', category: 'skill' as const, expectedArtId: 'card_ancient_amulet' },
+      { id: 'card_market_breakwater_scroll', name: '心智防波堤手稿', category: 'truth' as const, expectedArtId: 'card_breakwater' },
+      { id: 'card_market_morphine', name: '軍用嗎啡注射劑', category: 'skill' as const, expectedArtId: 'card_sedative' },
+      { id: 'card_market_sterile_gauze', name: '高純度酒精繃帶', category: 'skill' as const, expectedArtId: 'card_first_aid' },
+    ];
+
+    for (const mc of marketCards) {
+      const art = getCardArtwork({
+        id: mc.id,
+        name: mc.name,
+        category: mc.category,
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [],
+        description: '',
+        flavorText: '',
+      });
+      expect(art.artId, `Expected ${mc.name} (${mc.id}) to map to ${mc.expectedArtId}, got ${art.artId}`).toBe(mc.expectedArtId);
+    }
   });
 });

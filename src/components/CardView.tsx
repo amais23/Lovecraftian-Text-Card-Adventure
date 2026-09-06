@@ -76,6 +76,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
   const isPlayable =
     !disabled &&
+    !isStandalone &&
     (card.costType === 'sanity'
       ? currentSanity !== undefined
         ? currentSanity >= card.costValue
@@ -211,7 +212,6 @@ export const CardView: React.FC<CardViewProps> = ({
           loading="lazy"
         />
         <div className="card-illustration-vignette" />
-        <div className="card-illustration-border" />
       </div>
 
       {/* Title Banner */}

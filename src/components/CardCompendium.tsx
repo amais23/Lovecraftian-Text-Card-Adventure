@@ -7,7 +7,7 @@ import { Search, X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame
 
 // Representative card data mapped from registry for preview in compendium
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
-import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER } from '../engine/eventData';
+import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER, generateDefaultMarketItems } from '../engine/eventData';
 
 const CATEGORY_NAMES: Record<CardCategory, string> = {
   combat: '紅色戰鬥卡',
@@ -65,6 +65,11 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
           if (c.card) registerCard(c.card);
         });
       });
+    });
+
+    // Black market cards
+    generateDefaultMarketItems().forEach((item) => {
+      if (item.card) registerCard(item.card);
     });
 
     return map;
@@ -225,13 +230,13 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
                 return (
                   <div
                     key={art.artId}
-                    className="compendium-card-card-wrapper"
+                    className="compendium-card-wrapper"
                     onClick={() => handleCardClick(art)}
                   >
                     <CardView
                       card={card}
-                      currentStamina={99}
-                      currentSanity={99}
+                      currentStamina={0}
+                      currentSanity={0}
                       isStandalone={true}
                       onClick={() => handleCardClick(art)}
                     />
@@ -270,8 +275,8 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               <div className="detail-modal-left">
                 <CardView
                   card={resolveCardForArtwork(activeDetailCard)}
-                  currentStamina={99}
-                  currentSanity={99}
+                  currentStamina={0}
+                  currentSanity={0}
                   isStandalone={true}
                 />
               </div>
