@@ -16,7 +16,7 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
   });
 
   it('should ensure all 28 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
-    const cardImages = import.meta.glob('/public/cards/*.{webp,png}');
+    const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
     const imagePaths = Object.keys(cardImages);
     expect(imagePaths.length).toBeGreaterThanOrEqual(28);
 
@@ -92,7 +92,7 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     const fallbackArt = getCardArtwork(unknownCard);
     expect(fallbackArt.name).toBe('靈能衝擊');
     expect(fallbackArt.category).toBe('magic');
-    expect(fallbackArt.imageUrl).toBe('/cards/card_magic_blast.webp');
+    expect(fallbackArt.imageUrl).toBe('/cards/magic/card_magic_blast.webp');
   });
 
   it('should accurately map black market item cards to dedicated artworks instead of generic fallback', () => {

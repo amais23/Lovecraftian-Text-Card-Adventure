@@ -136,7 +136,7 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
             <article className="gazette-article-column">
               <div className="gazette-illustration-box">
                 <img
-                  src={isDeath ? '/cards/card_truth_fragment.webp' : '/cards/card_astral_insight.png'}
+                  src={isDeath ? '/cards/truth/card_truth_fragment.webp' : '/cards/truth/card_astral_insight.png'}
                   alt={isDeath ? '密斯卡托尼克河畔物證' : '修道院星穹異變'}
                   className="gazette-illustration-img"
                 />
