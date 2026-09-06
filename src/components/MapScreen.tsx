@@ -1,5 +1,4 @@
-import React from 'react';
-import type { GameAction, GameState, MapNode, MapNodeType } from '../types/game';
+import type { GameAction, GameState, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 import {
   Compass,
   Heart,
@@ -62,6 +61,17 @@ const NODE_TYPE_CONFIG: Record<
     bg: 'rgba(199, 125, 255, 0.25)',
   },
 };
+
+/**
+ * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標
+ */
+function getNodeCoordinates(node: MapNode, map: InvestigationMap): { x: string; y: string } {
+  const layerLength = map.layers[node.layer]?.length ?? 1;
+  return {
+    x: `${(node.col + 1) * (100 / (layerLength + 1))}%`,
+    y: `${node.layer * 130 + 60}px`,
+  };
+}
 
 export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const map = state.map;
@@ -154,13 +164,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                     (node.status === 'current' && target.status === 'accessible') ||
                     (node.status === 'visited' && (target.status === 'visited' || target.status === 'current'));
 
+                  const sourceCoord = getNodeCoordinates(node, map);
+                  const targetCoord = getNodeCoordinates(target, map);
+
                   return (
                     <line
                       key={`${node.id}->${target.id}`}
-                      x1={`${(node.col + 1) * (100 / (map.layers[node.layer].length + 1))}%`}
-                      y1={`${node.layer * 130 + 60}px`}
-                      x2={`${(target.col + 1) * (100 / (map.layers[target.layer].length + 1))}%`}
-                      y2={`${target.layer * 130 + 60}px`}
+                      x1={sourceCoord.x}
+                      y1={sourceCoord.y}
+                      x2={targetCoord.x}
+                      y2={targetCoord.y}
                       stroke={isPathAvailable ? '#d4af37' : 'rgba(255, 255, 255, 0.15)'}
                       strokeWidth={isPathAvailable ? 2.5 : 1.5}
                       strokeDasharray={isPathAvailable ? 'none' : '4 4'}

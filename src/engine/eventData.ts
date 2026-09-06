@@ -1,4 +1,4 @@
-import type { Enemy, EnemyIntent, MarketItem, MythosEvent } from '../types/game';
+import type { Card, Enemy, EnemyIntent, MarketItem, MythosEvent } from '../types/game';
 
 /* =========================================================
    Elite & Boss Enemies
@@ -378,6 +378,24 @@ export function getMythosEventForNode(nodeId: string): MythosEvent {
 }
 
 /* =========================================================
+   Shared Sanctuary & Market Card Templates
+   ========================================================= */
+
+export const TRUTH_CARD_BREAKWATER: Omit<Card, 'id'> = {
+  name: '心智防波堤',
+  category: 'truth',
+  costType: 'stamina',
+  costValue: 1,
+  isTemporary: false,
+  effects: [
+    { type: 'self_damage', value: 1 },
+    { type: 'add_to_deck', value: 3 },
+  ],
+  description: '承受 1 點肉體傷害，向理智牌庫注入 3 張真相卡。',
+  flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
+};
+
+/* =========================================================
    Black Market Stock Generator
    ========================================================= */
 
@@ -426,18 +444,8 @@ export function generateDefaultMarketItems(): MarketItem[] {
       price: 15,
       description: '記載精神分析與冥想防護的真相典籍，將 3 張真相卡洗回理智牌庫。',
       card: {
+        ...TRUTH_CARD_BREAKWATER,
         id: 'card_market_breakwater',
-        name: '心智防波堤',
-        category: 'truth',
-        costType: 'stamina',
-        costValue: 1,
-        isTemporary: false,
-        effects: [
-          { type: 'self_damage', value: 1 },
-          { type: 'add_to_deck', value: 3 },
-        ],
-        description: '承受 1 點肉體傷害，向理智牌庫注入 3 張真相卡。',
-        flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
       },
     },
     {

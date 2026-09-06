@@ -2194,6 +2194,31 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(nextState.sanctuaryUsed).toBeFalsy();
     });
 
+    it('rejects bandage healing when investigator cannot afford it (obols < 5 and sanityDeck is empty)', () => {
+      const stateBrokeAndInsane: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        investigator: {
+          ...createInitialCombatState().investigator,
+          health: 10,
+          maxHealth: 25,
+          obols: 2, // Less than 5 obols
+        },
+        sanityDeck: [], // Zero sanity cards left
+        sanctuaryUsed: false,
+      };
+
+      const nextState = gameReducer(stateBrokeAndInsane, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'bandage' },
+      });
+
+      // Must be rejected: no healing granted, sanctuary not marked as used, state unchanged
+      expect(nextState).toBe(stateBrokeAndInsane);
+      expect(nextState.investigator.health).toBe(10);
+      expect(nextState.sanctuaryUsed).toBeFalsy();
+    });
+
     it('sets phase to gameover, retains currentEvent on fatal event option, and resets via RETURN_TO_TITLE', () => {
       const stateInFatalEvent: GameState = {
         ...createInitialCombatState(),

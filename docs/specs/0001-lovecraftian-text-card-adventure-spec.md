@@ -72,7 +72,7 @@
 
 ### 1. 核心狀態機引擎 (Core Game State Machine)
 - 採用純狀態機架構（Pure State Reducer），將遊戲全局狀態抽離：
-  - `phase`: `'title' | 'map' | 'story' | 'combat' | 'reward' | 'gameover' | 'victory'`
+  - `phase`: `'title' | 'map' | 'event' | 'sanctuary' | 'market' | 'combat' | 'reward' | 'gameover' | 'victory'`
   - `investigator`: `health` (預設 25), `maxHealth`, `stamina` (每回合 3), `maxStamina`, `armor`, `obols`, `occupation`
   - `sanityDeck`: `Card[]`（剩餘張數即等同於當前理智值）
   - `hand`: `Card[]`（手牌上限 7 張，回合開始補抽至 4 張）

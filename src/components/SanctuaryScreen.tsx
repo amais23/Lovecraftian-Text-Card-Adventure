@@ -10,10 +10,14 @@ interface SanctuaryScreenProps {
 export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatch }) => {
   const investigator = state.investigator;
   const isUsed = Boolean(state.sanctuaryUsed);
+  const canAffordBandage = investigator.obols >= 5 || state.sanityDeck.length > 0;
 
   const handleUseSanctuary = (optionId: 'bandage' | 'meditate') => {
     if (isUsed) return;
-    if (optionId === 'bandage' && investigator.health >= investigator.maxHealth) return;
+    if (optionId === 'bandage') {
+      if (investigator.health >= investigator.maxHealth) return;
+      if (!canAffordBandage) return;
+    }
     dispatch({
       type: 'USE_SANCTUARY',
       payload: { optionId },
@@ -60,7 +64,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
           {/* Option 1: Bandage Flesh */}
           <div
             id="sanctuary-bandage-card"
-            className={`sanctuary-option-card ${isUsed || investigator.health >= investigator.maxHealth ? 'disabled' : ''}`}
+            className={`sanctuary-option-card ${isUsed || investigator.health >= investigator.maxHealth || !canAffordBandage ? 'disabled' : ''}`}
             onClick={() => handleUseSanctuary('bandage')}
           >
             <div className="sanctuary-card-icon health">
@@ -68,15 +72,17 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
             </div>
             <h3 className="sanctuary-card-title">深層縫合與包紮</h3>
             <p className="sanctuary-card-desc">
-              在凡人極限下清洗撕裂的傷口並重新敷藥。消耗 5 枚古金幣購置急救藥品；若金幣不足，將忍受劇痛損耗 1 點理智完成自救。恢復 8 點肉體生命值（上限 25 點）。
+              在凡人極限下清洗撕裂的傷口並重新敷藥。消耗 5 枚古金幣購置急救藥品；若古金幣不足，將忍受劇痛損耗 1 點理智完成自救。恢復 8 點肉體生命值（上限 25 點）。
             </p>
             <button
               id="sanctuary-bandage-btn"
               className="sanctuary-action-btn"
-              disabled={isUsed || investigator.health >= investigator.maxHealth}
+              disabled={isUsed || investigator.health >= investigator.maxHealth || !canAffordBandage}
             >
               {investigator.health >= investigator.maxHealth
                 ? '生命值已滿'
+                : !canAffordBandage
+                ? '代價不足 (需 5 古金幣或 1 理智)'
                 : investigator.obols >= 5
                 ? '執行包紮 (耗 5 古金幣)'
                 : '強行包紮 (耗 1 理智)'}

@@ -24,6 +24,7 @@ import {
   INITIAL_SHOGGOTH,
   getMythosEventForNode,
   generateDefaultMarketItems,
+  TRUTH_CARD_BREAKWATER,
 } from './eventData';
 
 export const BASELINE_HAND_SIZE = 4;
@@ -512,8 +513,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'USE_SANCTUARY': {
       if (state.phase !== 'sanctuary' || state.sanctuaryUsed) return state;
       const optionId = action.payload.optionId;
-      if (optionId === 'bandage' && state.investigator.health >= state.investigator.maxHealth) {
-        return state;
+      if (optionId === 'bandage') {
+        if (state.investigator.health >= state.investigator.maxHealth) {
+          return state;
+        }
+        if (state.investigator.obols < 5 && state.sanityDeck.length === 0) {
+          return state;
+        }
       }
 
       let newHealth = state.investigator.health;
@@ -538,18 +544,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       } else if (optionId === 'meditate') {
         const truthCard: Card = {
+          ...TRUTH_CARD_BREAKWATER,
           id: `sanctuary_truth_${state.sanityDeck.length + 1}`,
-          name: '心智防波堤',
-          category: 'truth',
-          costType: 'stamina',
-          costValue: 1,
-          isTemporary: false,
-          effects: [
-            { type: 'self_damage', value: 1 },
-            { type: 'add_to_deck', value: 3 },
-          ],
-          description: '承受 1 點肉體傷害，向理智牌庫注入 3 張真相卡。',
-          flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
         };
         newSanityDeck.push(truthCard);
         newLogs.push(`在避難所深層冥想，獲得真相卡【心智防波堤】納入理智牌庫！`);
