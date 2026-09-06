@@ -653,9 +653,48 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.investigator.health).toBe(18);
     // Sanity deck has 2 cards added:
     expect(nextState.sanityDeck.length).toBe(2);
+    expect(nextState.sanityDeck.every((c) => c.isTemporary)).toBe(true);
     // Madness state relieved!
     expect(nextState.isMadness).toBe(false);
     expect(nextState.battleLog.some((log) => log.includes('心智平復') || log.includes('清醒'))).toBe(true);
+  });
+
+  it('fills remaining hand deficit with temporary black madness cards when sanity deck empties mid-draw on turn end', () => {
+    const keptCard = createMockCard({ id: 'kept_card_1', name: '保留手牌' });
+    const lastDeckCard = createMockCard({ id: 'last_deck_card', name: '最後理智牌' });
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      turn: 1,
+      isMadness: false,
+      hand: [keptCard], // Needs 3 cards to reach baseline 4
+      sanityDeck: [lastDeckCard], // Only 1 card available in deck
+      discardPile: [createMockCard({ id: 'discarded_1' })],
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'attack',
+          value: 0,
+          name: '觀察',
+          description: '無動作',
+        },
+      },
+    };
+
+    const nextState = gameReducer(state, { type: 'END_TURN' });
+
+    // Sanity deck was exhausted (1 drawn)
+    expect(nextState.sanityDeck.length).toBe(0);
+    // Madness state entered
+    expect(nextState.isMadness).toBe(true);
+    // Hand replenished to baseline 4: 1 kept + 1 normal from deck + 2 temporary black madness cards
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.hand[0].id).toBe('kept_card_1');
+    expect(nextState.hand[1].id).toBe('last_deck_card');
+    const madnessCards = nextState.hand.filter((c) => c.category === 'madness');
+    expect(madnessCards.length).toBe(2);
+    expect(madnessCards.every((c) => c.isTemporary)).toBe(true);
+    expect(nextState.battleLog.some((log) => log.includes('手牌缺額立即補入 2 張臨時黑色瘋狂卡'))).toBe(true);
   });
 
   it('allows investigator in madness state to achieve victory by eliminating the enemy', () => {

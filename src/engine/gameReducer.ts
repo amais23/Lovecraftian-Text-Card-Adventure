@@ -1,7 +1,30 @@
 import type { Card, Enemy, EnemyIntent, GameAction, GameState, Investigator } from '../types/game';
-import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR, generateMadnessCards } from './initialData';
+import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
+import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
 
 export const BASELINE_HAND_SIZE = 4;
+
+/**
+ * 集中評估理智牌庫與瘋狂狀態切換之共用純函式
+ */
+export function evaluateMadnessTransition(
+  wasMadness: boolean,
+  sanityDeckLength: number
+): { isMadness: boolean; logMessage?: string } {
+  if (wasMadness && sanityDeckLength > 0) {
+    return {
+      isMadness: false,
+      logMessage: '【心智平復】理智牌庫已回補卡牌，心智平復解除瘋狂狀態，調查員恢復清醒。',
+    };
+  }
+  if (!wasMadness && sanityDeckLength === 0) {
+    return {
+      isMadness: true,
+      logMessage: '【理智歸零】理智牌庫徹底抽空！調查員進入「瘋狂狀態」！',
+    };
+  }
+  return { isMadness: wasMadness };
+}
 
 export interface DamageResult {
   newHealth: number;
@@ -158,20 +181,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           investigatorHealth = Math.max(0, investigatorHealth - effect.value);
           newLogs.push(`受到不可名狀的反噬傷害，自身損失 ${effect.value} 點肉體生命！`);
         } else if (effect.type === 'add_to_deck') {
-          const injectedCards: Card[] = [];
-          for (let i = 0; i < effect.value; i++) {
-            injectedCards.push({
-              id: `card_injected_truth_${Date.now()}_${i}`,
-              name: '禁忌認知',
-              category: 'truth',
-              costType: 'stamina',
-              costValue: 1,
-              isTemporary: false,
-              effects: [{ type: 'armor', value: 4 }],
-              description: '獲得 4 點護甲。',
-              flavorText: '「在不可名狀的微光中凝視深淵。」',
-            });
-          }
+          const injectedCards = createTruthInjectedCards(effect.value, state.turn);
           newSanityDeck.unshift(...injectedCards);
           newLogs.push(`調查員打出【${card.name}】，向理智牌庫注入了 ${effect.value} 張深淵真相卡牌！`);
         }
@@ -181,13 +191,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const finalDiscardPile = card.isTemporary ? [...pastDiscardPile] : [...pastDiscardPile, card];
 
       // Check Madness transitions
-      let isMadnessNow = state.isMadness;
-      if (state.isMadness && newSanityDeck.length > 0) {
-        isMadnessNow = false;
-        newLogs.push(`【心智平復】理智牌庫已回補卡牌，不可名狀的狂暴瘋狂隨之平復，調查員恢復清醒。`);
-      } else if (!state.isMadness && newSanityDeck.length === 0) {
-        isMadnessNow = true;
-        newLogs.push(`【理智歸零】理智牌庫徹底抽空！調查員雙眼染上血色，進入「瘋狂狂暴狀態」！`);
+      const madnessEval = evaluateMadnessTransition(state.isMadness, newSanityDeck.length);
+      const isMadnessNow = madnessEval.isMadness;
+      if (madnessEval.logMessage) {
+        newLogs.push(madnessEval.logMessage);
       }
 
       // Check Victory / Defeat
@@ -275,10 +282,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // Check madness state transition
-      let isMadnessNow = state.isMadness || sanityDeck.length === 0;
-      if (!state.isMadness && sanityDeck.length === 0) {
-        isMadnessNow = true;
-        newLogs.push(`【理智歸零】理智牌庫徹底抽空！調查員雙眼燃起血焰，進入「瘋狂狂暴狀態」！`);
+      // Check madness state transition
+      const madnessEval = evaluateMadnessTransition(state.isMadness, sanityDeck.length);
+      let isMadnessNow = madnessEval.isMadness;
+      if (madnessEval.logMessage) {
+        newLogs.push(madnessEval.logMessage);
       }
 
       // Advance enemy intent sequence
@@ -289,6 +297,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         nextIntent = enemy.intentSequence[nextIntentIndex];
       }
 
+      const nextTurn = state.turn + 1;
+
       // Hand retention & refill to BASELINE_HAND_SIZE
       const currentHand = [...state.hand];
       const cardsNeeded = Math.max(0, BASELINE_HAND_SIZE - currentHand.length);
@@ -297,10 +307,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       if (isMadnessNow && cardsNeeded > 0) {
         // In madness state, drawn cards are transformed into temporary black madness cards!
-        const madnessCards = generateMadnessCards(cardsNeeded);
+        const madnessCards = createMadnessCards(cardsNeeded, nextTurn, 0);
         newHand = [...currentHand, ...madnessCards];
         drawnCardsCount = cardsNeeded;
-        newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵狂暴力量轉化為 ${cardsNeeded} 張臨時黑色瘋狂卡！`);
+        newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵力量轉化為 ${cardsNeeded} 張臨時黑色瘋狂卡！`);
       } else if (cardsNeeded > 0) {
         const cardsToDraw = Math.min(sanityDeck.length, cardsNeeded);
         const drawnCards = sanityDeck.slice(0, cardsToDraw);
@@ -310,11 +320,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         if (cardsToDraw < cardsNeeded && sanityDeck.length === 0) {
           isMadnessNow = true;
-          newLogs.push(`【理智告急】理智牌庫已抽空，無法繼續抽牌！根據無自動重洗規則，棄牌堆保持不變。`);
+          const deficit = cardsNeeded - cardsToDraw;
+          const madnessCards = createMadnessCards(deficit, nextTurn, 0);
+          newHand = [...newHand, ...madnessCards];
+          drawnCardsCount += deficit;
+          newLogs.push(
+            `【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」，手牌缺額立即補入 ${deficit} 張臨時黑色瘋狂卡！`
+          );
+        } else if (sanityDeck.length === 0 && !isMadnessNow) {
+          isMadnessNow = true;
+          newLogs.push(`【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」！`);
         }
       }
 
-      const nextTurn = state.turn + 1;
       newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，補抽 ${drawnCardsCount} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
 
       return {

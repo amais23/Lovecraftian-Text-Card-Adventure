@@ -149,66 +149,8 @@ export const INITIAL_DECK: Card[] = [
   },
 ];
 
-export const MADNESS_CARD_TEMPLATES: Card[] = [
-  {
-    id: 'madness_claw',
-    name: '盲目爪擊',
-    category: 'madness',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: true,
-    effects: [
-      { type: 'damage', value: 10 },
-      { type: 'self_damage', value: 2 },
-    ],
-    description: '造成 10 點極致物理傷害，自身承受 2 點肉體反噬傷害。',
-    flavorText: '「指甲翻開、血肉模糊，但你已感覺不到痛楚。」',
-  },
-  {
-    id: 'madness_screaming',
-    name: '深淵狂嘯',
-    category: 'madness',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: true,
-    effects: [
-      { type: 'damage', value: 14 },
-      { type: 'self_damage', value: 3 },
-    ],
-    description: '造成 14 點毀滅傷害，自身承受 3 點肉體反噬傷害。',
-    flavorText: '「非人的狂吼撕裂了喉管，震碎了眼前怪物的血肉。」',
-  },
-  {
-    id: 'madness_blood_frenzy',
-    name: '狂亂血刃',
-    category: 'madness',
-    costType: 'stamina',
-    costValue: 2,
-    isTemporary: true,
-    effects: [
-      { type: 'damage', value: 20 },
-      { type: 'self_damage', value: 5 },
-    ],
-    description: '消耗 2 精力造成 20 點滅絕傷害，自身承受 5 點致命反噬傷害。',
-    flavorText: '「燃燒最後的肉魄，化為毀滅深淵的漆黑利刃。」',
-  },
-];
-
-let madnessCardCounter = 0;
-
-export function generateMadnessCards(count: number): Card[] {
-  const cards: Card[] = [];
-  for (let i = 0; i < count; i++) {
-    const template = MADNESS_CARD_TEMPLATES[i % MADNESS_CARD_TEMPLATES.length];
-    madnessCardCounter += 1;
-    cards.push({
-      ...template,
-      id: `${template.id}_temp_${Date.now()}_${madnessCardCounter}`,
-      isTemporary: true,
-    });
-  }
-  return cards;
-}
+// Temporary card factories and templates are defined in cardFactory.ts
+export { MADNESS_CARD_TEMPLATES, createMadnessCards } from './cardFactory';
 
 export const GHOUL_INTENTS: EnemyIntent[] = [
   {

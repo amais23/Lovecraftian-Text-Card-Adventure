@@ -1,6 +1,46 @@
 import React from 'react';
-import type { Card } from '../types/game';
+import type { Card, CardCategory } from '../types/game';
 import { Swords, Shield, Sparkles, Wind, Flame, Eye } from 'lucide-react';
+
+interface CategoryMeta {
+  label: string;
+  defaultPrompt: string;
+  playablePrompt: string;
+  defaultIcon: React.ReactNode;
+}
+
+const CATEGORY_META_CONFIG: Record<CardCategory, CategoryMeta> = {
+  combat: {
+    label: '戰鬥',
+    defaultPrompt: '精力不足',
+    playablePrompt: '點擊打出',
+    defaultIcon: <Swords size={22} color="#e63946" />,
+  },
+  skill: {
+    label: '技能',
+    defaultPrompt: '精力不足',
+    playablePrompt: '點擊打出',
+    defaultIcon: <Shield size={22} color="#f4a261" />,
+  },
+  truth: {
+    label: '真相',
+    defaultPrompt: '精力不足',
+    playablePrompt: '點擊打出',
+    defaultIcon: <Eye size={22} color="#f8fafc" />,
+  },
+  madness: {
+    label: '瘋狂',
+    defaultPrompt: '精力不足',
+    playablePrompt: '發動狂擊',
+    defaultIcon: <Flame size={22} color="#ef4444" />,
+  },
+  magic: {
+    label: '魔法',
+    defaultPrompt: '精力不足',
+    playablePrompt: '引導秘術',
+    defaultIcon: <Sparkles size={22} color="#cfa866" />,
+  },
+};
 
 interface CardViewProps {
   card: Card;
@@ -18,6 +58,12 @@ export const CardView: React.FC<CardViewProps> = ({
   style,
 }) => {
   const isPlayable = !disabled && card.costType === 'stamina' && currentStamina >= card.costValue;
+  const meta = CATEGORY_META_CONFIG[card.category] ?? {
+    label: card.category,
+    defaultPrompt: '精力不足',
+    playablePrompt: '點擊打出',
+    defaultIcon: <Sparkles size={22} color="#cfa866" />,
+  };
 
   const handleClick = () => {
     if (isPlayable) {
@@ -26,37 +72,10 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const getCardIcon = () => {
-    if (card.category === 'madness') {
-      return <Flame size={22} color="#ef4444" />;
-    }
-    if (card.category === 'truth') {
-      return <Eye size={22} color="#f8fafc" />;
-    }
-    if (card.category === 'combat') {
-      return <Swords size={22} color="#e63946" />;
-    }
-    if (card.effects.some((e) => e.type === 'armor')) {
-      return <Shield size={22} color="#f4a261" />;
-    }
     if (card.effects.some((e) => e.type === 'restore_sanity')) {
       return <Wind size={22} color="#e9d8a6" />;
     }
-    return <Sparkles size={22} color="#cfa866" />;
-  };
-
-  const getCategoryLabel = (category: Card['category']) => {
-    switch (category) {
-      case 'combat':
-        return '戰鬥';
-      case 'skill':
-        return '技能';
-      case 'truth':
-        return '真相';
-      case 'madness':
-        return '狂亂';
-      default:
-        return category;
-    }
+    return meta.defaultIcon;
   };
 
   const selfDamageEffect = card.effects.find((e) => e.type === 'self_damage');
@@ -74,7 +93,7 @@ export const CardView: React.FC<CardViewProps> = ({
           {card.costValue}
         </div>
         <div className={`card-category-tag ${card.category}`}>
-          {getCategoryLabel(card.category)}
+          {meta.label}
         </div>
       </div>
 
@@ -100,7 +119,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
       {/* Bottom prompt */}
       <div className="card-play-prompt">
-        {isPlayable ? (card.category === 'madness' ? '發動狂擊' : '點擊打出') : '精力不足'}
+        {isPlayable ? meta.playablePrompt : meta.defaultPrompt}
       </div>
     </div>
   );

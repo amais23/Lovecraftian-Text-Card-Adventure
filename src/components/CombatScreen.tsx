@@ -13,7 +13,12 @@ interface CombatScreenProps {
 
 export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) => {
   const isCombatEnded = state.phase !== 'combat';
-  const totalDeckCount = state.sanityDeck.length + state.hand.length + state.discardPile.length;
+  // Compute permanent deck capacity excluding in-combat temporary cards (ADR-0006 & CONTEXT.md)
+  const permanentDeckCapacity = [
+    ...state.sanityDeck,
+    ...state.hand,
+    ...state.discardPile,
+  ].filter((card) => !card.isTemporary).length;
 
   const handlePlayCard = (cardId: string) => {
     dispatch({ type: 'PLAY_CARD', payload: { cardId } });
@@ -54,7 +59,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
       {/* Madness State Warning Banner */}
       {state.isMadness && (
         <div className="madness-status-banner">
-          <span>⚠️ 【瘋狂狀態】理智牌庫已抽空！手牌將補入臨時黑卡，威力兇猛但會直接反噬生命值！</span>
+          <span>⚠️ 【瘋狂狀態】理智牌庫已抽空！手牌將補入臨時黑色瘋狂卡，威力兇猛但會直接反噬生命值！</span>
         </div>
       )}
 
@@ -69,7 +74,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         <InvestigatorStatus
           investigator={state.investigator}
           sanityCount={state.sanityDeck.length}
-          totalDeckCapacity={totalDeckCount}
+          totalDeckCapacity={permanentDeckCapacity}
           turn={state.turn}
           onEndTurn={handleEndTurn}
           isCombatEnded={isCombatEnded}

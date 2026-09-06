@@ -72,7 +72,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
           className={`resource-badge sanity ${isMadness ? 'madness' : ''}`}
           title={
             isMadness
-              ? '理智牌庫已歸零！處於瘋狂狂暴狀態，抽牌將轉為臨時黑卡反噬肉體'
+              ? '理智牌庫已歸零！處於瘋狂狀態，抽牌將轉為臨時黑色瘋狂卡反噬肉體'
               : '理智牌庫（剩餘卡牌數量即為調查員理智值）'
           }
         >
@@ -83,7 +83,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
           )}
           <div className="res-content">
             <span className="res-label">
-              {isMadness ? '理智牌庫 (狂暴!)' : '理智牌庫 (SAN)'}
+              {isMadness ? '理智牌庫 (瘋狂狀態)' : '理智牌庫 (SAN)'}
             </span>
             <span className="res-value">
               {sanityCount} / {totalDeckCapacity}
