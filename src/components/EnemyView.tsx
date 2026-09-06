@@ -1,7 +1,7 @@
 import type { Enemy, EnemyIntent } from '../types/game';
 import { Skull, Swords, Shield, Brain } from 'lucide-react';
 
-export function formatIntentValue(intent: EnemyIntent): string {
+function formatIntentValue(intent: EnemyIntent): string {
   if (intent.type === 'erode') {
     return `侵蝕 ${intent.value}`;
   }
