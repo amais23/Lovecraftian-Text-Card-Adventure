@@ -98,4 +98,14 @@ describe('TypewriterText', () => {
     });
     expect(screen.getByText('第二章')).toBeDefined();
   });
+
+  it('completes immediately and does not display cursor when text is empty', () => {
+    const onComplete = vi.fn();
+    const { container } = render(<TypewriterText text="" speed={20} onComplete={onComplete} />);
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('.typewriter-cursor')).toBeNull();
+    const span = container.querySelector('.typewriter-text-span');
+    expect(span?.classList.contains('done')).toBe(true);
+  });
 });

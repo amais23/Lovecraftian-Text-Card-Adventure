@@ -542,10 +542,7 @@
   width: 175px;
   height: 220px;
   border-radius: var(--radius-md);
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  margin-left: -87.5px;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -556,6 +553,14 @@
   user-select: none;
   transform-origin: center bottom;
   touch-action: none;
+}
+
+/* Fan-out Center Anchoring inside Hand Area */
+.hand-area .card-item {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  margin-left: -87.5px;
 }
 
 .card-item.dragging {
@@ -1356,6 +1361,10 @@
 
 .reward-card-wrapper:hover {
   transform: translateY(-6px);
+}
+
+.reward-card-wrapper .card-item {
+  cursor: pointer;
 }
 
 .reward-card-choose-btn {

@@ -19,7 +19,7 @@ const TypewriterTextInner: React.FC<TypewriterTextProps> = ({
   onComplete,
 }) => {
   const [displayedLength, setDisplayedLength] = useState<number>(0);
-  const [isDone, setIsDone] = useState<boolean>(false);
+  const [isDone, setIsDone] = useState<boolean>(text.length === 0);
 
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
@@ -43,6 +43,7 @@ const TypewriterTextInner: React.FC<TypewriterTextProps> = ({
   useEffect(() => {
     clearTimers();
     if (text.length === 0) {
+      onCompleteRef.current?.();
       return;
     }
 
