@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { GameAction } from '../types/game';
 import { OCCUPATIONS } from '../engine/initialData';
 import { Compass, UserCheck, BookOpen, Heart, Zap, Coins, Sparkles, Shield, ArrowRight } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
+import { CardCompendium } from './CardCompendium';
 
 interface TitleScreenProps {
   dispatch: React.Dispatch<GameAction>;
 }
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
+  const [showCompendium, setShowCompendium] = useState<boolean>(false);
+
   const handleSelect = (occupationId: 'investigator' | 'occultist') => {
     soundEngine.playClick();
     dispatch({
@@ -25,9 +28,26 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
     <div className="title-screen-container">
       <div className="vignette-overlay" />
       <div className="fog-layer" />
-      <div className="title-screen-audio-corner">
+      <div className="title-screen-top-bar">
+        <button
+          id="open-compendium-btn"
+          className="title-compendium-btn"
+          onClick={() => {
+            soundEngine.playClick();
+            setShowCompendium(true);
+          }}
+          title="開啟五大類別手記卡牌圖鑑"
+        >
+          <BookOpen size={16} color="#ffd700" />
+          <span>卡牌圖鑑 (Card Compendium)</span>
+        </button>
         <AudioToggle />
       </div>
+
+      {/* Card Compendium Fullscreen Modal */}
+      {showCompendium && (
+        <CardCompendium onClose={() => setShowCompendium(false)} />
+      )}
 
       {/* Main Title Header */}
       <header className="title-screen-header">

@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <!-- Background Cartoon Radial -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#4a0e17" />
+      <stop offset="45%" stop-color="#2a080d" />
+      <stop offset="100%" stop-color="#120305" />
+    </radialGradient>
+
+    <!-- Comic Burst Rays Gradient -->
+    <radialGradient id="sunburstGrad" cx="60%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#ff4d6d" stop-opacity="0.35" />
+      <stop offset="70%" stop-color="#e63946" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#e63946" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Gun Metal Body (Chibi candy metallic) -->
+    <linearGradient id="gunMetal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8f9fa" />
+      <stop offset="25%" stop-color="#dee2e6" />
+      <stop offset="70%" stop-color="#adb5bd" />
+      <stop offset="100%" stop-color="#6c757d" />
+    </linearGradient>
+
+    <!-- Gun Cylinder Metallic -->
+    <linearGradient id="cylinderMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ced4da" />
+      <stop offset="30%" stop-color="#f8f9fa" />
+      <stop offset="70%" stop-color="#adb5bd" />
+      <stop offset="100%" stop-color="#495057" />
+    </linearGradient>
+
+    <!-- Wood Grip Gradient -->
+    <linearGradient id="woodGrip" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e07a5f" />
+      <stop offset="40%" stop-color="#c15c3d" />
+      <stop offset="100%" stop-color="#6b2d18" />
+    </linearGradient>
+
+    <!-- Muzzle Flash Core -->
+    <radialGradient id="flashCore" cx="40%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#fff3b0" />
+      <stop offset="60%" stop-color="#ffb703" />
+      <stop offset="90%" stop-color="#fb8500" />
+      <stop offset="100%" stop-color="#d90429" />
+    </radialGradient>
+
+    <!-- Bullet Gradient -->
+    <linearGradient id="bulletGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffe6a7" />
+      <stop offset="40%" stop-color="#ffb703" />
+      <stop offset="85%" stop-color="#fb8500" />
+      <stop offset="100%" stop-color="#d90429" />
+    </linearGradient>
+
+    <!-- Pop Shadow -->
+    <filter id="popShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="5" stdDeviation="3" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="240" height="180" rx="10" fill="url(#bgGrad)" />
+
+  <!-- Comic Action Starburst Background -->
+  <g opacity="0.65">
+    <path d="M 120 90 L 240 40 L 220 70 Z" fill="#ff4d6d" opacity="0.15" />
+    <path d="M 120 90 L 240 100 L 230 130 Z" fill="#ff4d6d" opacity="0.2" />
+    <path d="M 120 90 L 190 170 L 160 180 Z" fill="#ff4d6d" opacity="0.15" />
+    <path d="M 120 90 L 80 180 L 50 170 Z" fill="#ff4d6d" opacity="0.15" />
+    <path d="M 120 90 L 0 130 L 10 90 Z" fill="#ff4d6d" opacity="0.15" />
+    <path d="M 120 90 L 30 30 L 70 10 Z" fill="#ff4d6d" opacity="0.15" />
+    <path d="M 120 90 L 130 0 L 170 10 Z" fill="#ff4d6d" opacity="0.18" />
+  </g>
+  <circle cx="120" cy="90" r="85" fill="url(#sunburstGrad)" />
+
+  <!-- Comic Action Speedlines -->
+  <g stroke="#ff758f" stroke-width="1.5" stroke-linecap="round" opacity="0.4">
+    <line x1="15" y1="95" x2="35" y2="95" />
+    <line x1="22" y1="80" x2="40" y2="82" />
+    <line x1="20" y1="110" x2="38" y2="108" />
+  </g>
+
+  <!-- THE CHIBI REVOLVER MAIN GROUP -->
+  <g filter="url(#popShadow)">
+    <!-- Wooden Grip -->
+    <path d="M 68 105 C 68 105, 52 118, 50 138 C 48 152, 60 156, 74 154 C 88 152, 92 138, 90 126 L 85 106 Z"
+          fill="url(#woodGrip)" stroke="#1a0608" stroke-width="3.5" stroke-linejoin="round" />
+    <!-- Grip Screw Rivet -->
+    <circle cx="68" cy="136" r="3.5" fill="#f4a261" stroke="#3d0c11" stroke-width="1.5" />
+    <line x1="66" y1="134" x2="70" y2="138" stroke="#3d0c11" stroke-width="1.2" />
+
+    <!-- Trigger Guard & Trigger -->
+    <path d="M 83 118 C 83 130, 98 132, 102 120" fill="none" stroke="#1a0608" stroke-width="3.5" stroke-linecap="round" />
+    <path d="M 91 120 C 90 124, 88 126, 86 128" fill="none" stroke="#1a0608" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Gun Frame Lower -->
+    <path d="M 72 105 L 128 105 C 132 105, 134 100, 134 96 L 134 88 L 74 88 Z"
+          fill="url(#gunMetal)" stroke="#1a0608" stroke-width="3.5" stroke-linejoin="round" />
+
+    <!-- Hammer (Chibi Cocked Hammer) -->
+    <path d="M 66 88 C 62 82, 58 76, 52 78 C 50 79, 52 84, 58 86 C 62 87, 65 88, 65 92 Z"
+          fill="#ced4da" stroke="#1a0608" stroke-width="3" stroke-linejoin="round" />
+
+    <!-- Revolver Cylinder (Chunky 6-Chamber drum) -->
+    <rect x="76" y="74" width="34" height="34" rx="6"
+          fill="url(#cylinderMetal)" stroke="#1a0608" stroke-width="3.5" />
+    <!-- Cylinder Grooves -->
+    <rect x="80" y="80" width="26" height="5" rx="2.5" fill="#6c757d" opacity="0.6" />
+    <rect x="80" y="92" width="26" height="5" rx="2.5" fill="#6c757d" opacity="0.6" />
+
+    <!-- Revolver Snub/Chubby Barrel -->
+    <path d="M 110 77 L 148 77 C 151 77, 153 79, 153 82 L 153 100 C 153 103, 151 105, 148 105 L 110 105 Z"
+          fill="url(#gunMetal)" stroke="#1a0608" stroke-width="3.5" stroke-linejoin="round" />
+    <!-- Front Sight Post (Cute triangle) -->
+    <path d="M 144 77 L 147 70 L 150 77 Z" fill="#ced4da" stroke="#1a0608" stroke-width="2.5" stroke-linejoin="round" />
+
+    <!-- SWEET CHIBI EYE (荒誕萌感反差) -->
+    <!-- Eye Base -->
+    <ellipse cx="126" cy="91" rx="8" ry="9" fill="#1b1d22" stroke="#1a0608" stroke-width="1.5" />
+    <!-- Cute highlight pupils -->
+    <circle cx="128.5" cy="88" r="3.5" fill="#ffffff" />
+    <circle cx="123" cy="94" r="1.5" fill="#ffffff" />
+    <!-- Kawaii Blush Cheek -->
+    <ellipse cx="114" cy="97" rx="5" ry="3" fill="#ff4d6d" opacity="0.75" />
+  </g>
+
+  <!-- MUZZLE BLAST & CARTOON EXPLOSION -->
+  <!-- Back Smoke Puffs -->
+  <g filter="url(#popShadow)">
+    <circle cx="152" cy="70" r="9" fill="#f8f9fa" stroke="#1a0608" stroke-width="2.5" />
+    <circle cx="148" cy="112" r="8" fill="#f8f9fa" stroke="#1a0608" stroke-width="2.5" />
+    <circle cx="160" cy="116" r="6" fill="#e9ecef" stroke="#1a0608" stroke-width="2" />
+  </g>
+
+  <!-- Big Pop Starburst Flash -->
+  <path d="M 152 91 
+           L 165 78 L 168 84 L 180 72 L 178 85 L 194 80 L 186 91 
+           L 200 96 L 186 102 L 195 112 L 179 107 L 180 120 L 168 108 L 164 116 L 158 103 Z"
+        fill="url(#flashCore)" stroke="#1a0608" stroke-width="3" stroke-linejoin="round" />
+
+  <!-- Inner Spark Star -->
+  <polygon points="160,91 168,87 175,91 168,95" fill="#ffffff" />
+
+  <!-- ZOOMING CHIBI BULLET (.38 Special) -->
+  <g>
+    <!-- Bullet Trail / Motion Lines -->
+    <line x1="185" y1="87" x2="200" y2="87" stroke="#ffd166" stroke-width="3" stroke-linecap="round" />
+    <line x1="180" y1="95" x2="198" y2="95" stroke="#ffd166" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Chubby Bullet -->
+    <path d="M 205 87 L 218 87 C 224 87, 228 91, 228 91 C 228 91, 224 95, 218 95 L 205 95 Z"
+          fill="url(#bulletGrad)" stroke="#1a0608" stroke-width="2.5" stroke-linejoin="round" />
+    <!-- Bullet Shell Rim -->
+    <line x1="208" y1="87" x2="208" y2="95" stroke="#ffe6a7" stroke-width="1.8" />
+  </g>
+
+  <!-- CARTOON ACTION SPARKS & LITTLE STARS -->
+  <g fill="#ffd166" stroke="#1a0608" stroke-width="1.5">
+    <!-- Top Sparkle -->
+    <path d="M 188 56 Q 192 56 192 52 Q 192 56 196 56 Q 192 56 192 60 Q 192 56 188 56 Z" />
+    <!-- Bottom Sparkle -->
+    <path d="M 165 136 Q 169 136 169 132 Q 169 136 173 136 Q 169 136 169 140 Q 169 136 165 136 Z" />
+    <!-- Tiny Whimsical Dot Stars -->
+    <circle cx="215" cy="68" r="2.5" fill="#ffffff" stroke="#e63946" stroke-width="1" />
+    <circle cx="178" cy="46" r="2" fill="#ffb703" stroke="#e63946" stroke-width="1" />
+    <circle cx="225" cy="115" r="2" fill="#ffffff" stroke="#e63946" stroke-width="1" />
+  </g>
+
+  <!-- Whimsical little smoke ring -->
+  <path d="M 198 62 C 204 58, 212 62, 210 68 C 208 72, 202 70, 202 66" fill="none" stroke="#f8f9fa" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+</svg>

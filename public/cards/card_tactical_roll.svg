@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="trenchBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#26231e"/>
+      <stop offset="50%" stop-color="#171512"/>
+      <stop offset="100%" stop-color="#0a0807"/>
+    </linearGradient>
+    <linearGradient id="leatherBoot" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="50%" stop-color="#451a03"/>
+      <stop offset="100%" stop-color="#1c0a02"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="180" rx="10" fill="url(#trenchBg)"/>
+  <path d="M 0 140 Q 60 130 120 145 T 240 135 L 240 180 L 0 180 Z" fill="#1c1917"/>
+  <g transform="rotate(42 120 90)">
+    <path d="M 90 70 L 145 65 C 155 65, 160 75, 158 85 L 148 115 C 146 122, 138 126, 128 124 L 95 115 Z" fill="url(#leatherBoot)" stroke="#1c0a02" stroke-width="2"/>
+    <path d="M 85 105 L 125 115 L 120 128 L 78 118 Z" fill="#0f0702"/>
+    <line x1="108" y1="75" x2="140" y2="78" stroke="#ca8a04" stroke-width="1.8"/>
+    <line x1="105" y1="85" x2="137" y2="88" stroke="#ca8a04" stroke-width="1.8"/>
+    <line x1="102" y1="95" x2="134" y2="98" stroke="#ca8a04" stroke-width="1.8"/>
+  </g>
+  <path d="M 30 125 Q 70 85 140 70 Q 180 65 210 90" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-dasharray="8 6" opacity="0.65"/>
+  <circle cx="160" cy="135" r="3" fill="#78350f"/>
+  <circle cx="175" cy="142" r="2.5" fill="#a16207"/>
+  <circle cx="145" cy="145" r="4" fill="#451a03"/>
+  <circle cx="190" cy="138" r="2" fill="#ca8a04"/>
+  <text x="24" y="32" fill="#ca8a04" font-family="monospace" font-size="7" letter-spacing="1.5" opacity="0.6">TACTICAL EVASION // TRENCH ROLL</text>
+</svg>

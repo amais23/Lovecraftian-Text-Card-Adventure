@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <radialGradient id="meditateBg" cx="50%" cy="60%" r="65%">
+      <stop offset="0%" stop-color="#2d1d0c"/>
+      <stop offset="45%" stop-color="#191107"/>
+      <stop offset="100%" stop-color="#080502"/>
+    </radialGradient>
+    <radialGradient id="candleFlame" cx="40%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="60%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </radialGradient>
+    <linearGradient id="deskWood" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#451a03"/>
+      <stop offset="50%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#290e02"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="180" rx="10" fill="url(#meditateBg)"/>
+  <rect x="0" y="130" width="240" height="50" fill="url(#deskWood)"/>
+  <line x1="0" y1="130" x2="240" y2="130" stroke="#92400e" stroke-width="1.5"/>
+  <rect x="110" y="85" width="20" height="48" rx="2" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+  <line x1="120" y1="85" x2="120" y2="76" stroke="#451a03" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M 120 54 C 126 62, 128 68, 126 76 C 124 80, 116 80, 114 76 C 112 68, 114 62, 120 54 Z" fill="url(#candleFlame)"/>
+  <ellipse cx="120" cy="74" rx="3" ry="5" fill="#ffffff" opacity="0.8"/>
+  <path d="M 50 148 L 90 144 L 98 165 L 56 170 Z" fill="#d97706" opacity="0.7"/>
+  <circle cx="170" cy="150" r="14" fill="#ca8a04" stroke="#78350f" stroke-width="1.5"/>
+  <circle cx="170" cy="150" r="11" fill="#fef08a"/>
+  <line x1="170" y1="150" x2="170" y2="142" stroke="#451a03" stroke-width="1.5"/>
+  <line x1="170" y1="150" x2="176" y2="150" stroke="#451a03" stroke-width="1.2"/>
+  <text x="24" y="32" fill="#d97706" font-family="monospace" font-size="7" letter-spacing="1.5" opacity="0.6">SANITY RESTORATION // PSYCHIC MEDITATION</text>
+</svg>

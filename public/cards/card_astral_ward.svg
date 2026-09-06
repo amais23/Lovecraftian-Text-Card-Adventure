@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="astralBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="50%" stop-color="#141210"/>
+      <stop offset="100%" stop-color="#0a0806"/>
+    </linearGradient>
+    <linearGradient id="brassWard" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="35%" stop-color="#ca8a04"/>
+      <stop offset="70%" stop-color="#854d0e"/>
+      <stop offset="100%" stop-color="#422006"/>
+    </linearGradient>
+    <radialGradient id="wardAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#ca8a04" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ca8a04" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="240" height="180" rx="10" fill="url(#astralBg)"/>
+  <circle cx="120" cy="90" r="75" fill="url(#wardAura)"/>
+  <circle cx="120" cy="90" r="68" fill="none" stroke="url(#brassWard)" stroke-width="3"/>
+  <circle cx="120" cy="90" r="64" fill="none" stroke="#fef08a" stroke-width="0.8" stroke-dasharray="3 3"/>
+  <circle cx="120" cy="90" r="50" fill="none" stroke="url(#brassWard)" stroke-width="2"/>
+  <ellipse cx="120" cy="90" rx="48" ry="24" fill="none" stroke="url(#brassWard)" stroke-width="1.8" transform="rotate(35 120 90)"/>
+  <ellipse cx="120" cy="90" rx="48" ry="24" fill="none" stroke="url(#brassWard)" stroke-width="1.8" transform="rotate(-35 120 90)"/>
+  <polygon points="120,44 140,80 100,80" fill="none" stroke="#fef08a" stroke-width="1.2"/>
+  <polygon points="120,136 140,100 100,100" fill="none" stroke="#fef08a" stroke-width="1.2"/>
+  <circle cx="120" cy="90" r="10" fill="url(#brassWard)"/>
+  <circle cx="120" cy="90" r="4" fill="#fef08a"/>
+  <text x="24" y="165" fill="#ca8a04" font-family="monospace" font-size="7" letter-spacing="1.5" opacity="0.6">DEFENSIVE SPHERE // ASTRAL BARRIER MK.II</text>
+</svg>

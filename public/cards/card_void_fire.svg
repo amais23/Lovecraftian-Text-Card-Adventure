@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <radialGradient id="voidFireBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#4a0e4e"/>
+      <stop offset="50%" stop-color="#240046"/>
+      <stop offset="100%" stop-color="#0d001a"/>
+    </radialGradient>
+    <linearGradient id="violetFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#f72585"/>
+      <stop offset="40%" stop-color="#7209b7"/>
+      <stop offset="70%" stop-color="#4cc9f0"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="180" rx="10" fill="url(#voidFireBg)"/>
+  <circle cx="120" cy="95" r="60" fill="#ffd166" opacity="0.2" filter="blur(10px)"/>
+  <path d="M 120 25 C 135 55, 165 75, 160 115 C 155 145, 120 155, 120 155 C 120 155, 85 145, 80 115 C 75 75, 105 55, 120 25 Z" fill="url(#violetFlame)"/>
+  <path d="M 120 60 C 130 80, 142 95, 138 120 C 135 138, 120 145, 120 145 C 120 145, 105 138, 102 120 C 98 95, 110 80, 120 60 Z" fill="#ffd166"/>
+  <ellipse cx="120" cy="115" rx="10" ry="18" fill="#ffffff"/>
+  <circle cx="95" cy="55" r="2.5" fill="#ffd166"/>
+  <circle cx="145" cy="45" r="2" fill="#4cc9f0"/>
+  <circle cx="165" cy="85" r="3" fill="#f72585"/>
+  <text x="24" y="165" fill="#ffd166" font-family="monospace" font-size="7" letter-spacing="1.5" opacity="0.6">SUNNY HIGH FANTASY // VIOLET COLD FLAME</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <radialGradient id="insightBg" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#0a192f"/>
+      <stop offset="60%" stop-color="#040c17"/>
+      <stop offset="100%" stop-color="#010307"/>
+    </radialGradient>
+  </defs>
+  <rect width="240" height="180" rx="10" fill="url(#insightBg)"/>
+  <circle cx="120" cy="90" r="70" fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.4"/>
+  <circle cx="120" cy="90" r="50" fill="none" stroke="#e0f2fe" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <circle cx="120" cy="90" r="32" fill="none" stroke="#0284c7" stroke-width="1.8"/>
+  <ellipse cx="120" cy="90" rx="68" ry="25" fill="none" stroke="#7dd3fc" stroke-width="1" transform="rotate(45 120 90)"/>
+  <ellipse cx="120" cy="90" rx="68" ry="25" fill="none" stroke="#7dd3fc" stroke-width="1" transform="rotate(-45 120 90)"/>
+  <circle cx="120" cy="90" r="6" fill="#ffffff"/>
+  <circle cx="85" cy="55" r="3" fill="#38bdf8"/>
+  <circle cx="155" cy="125" r="3" fill="#38bdf8"/>
+  <text x="24" y="165" fill="#38bdf8" font-family="monospace" font-size="7" letter-spacing="1.5" opacity="0.6">CELESTIAL INSIGHT // NON-EUCLIDEAN SPHERES</text>
+</svg>

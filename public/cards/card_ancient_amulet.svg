@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%">
+  <defs>
+    <radialGradient id="amuletBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#132a26"/>
+      <stop offset="60%" stop-color="#091412"/>
+      <stop offset="100%" stop-color="#030807"/>
+    </radialGradient>
+    <radialGradient id="bronzeVerdigris" cx="40%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="35%" stop-color="#0f766e"/>
+      <stop offset="70%" stop-color="#115e59"/>
+      <stop offset="100%" stop-color="#042f2c"/>
+    </radialGradient>
+  </defs>
+  <rect width="240" height="180" rx="10" fill="url(#amuletBg)"/>
+  <path d="M 120 0 C 118 20, 115 40, 118 60" fill="none" stroke="#78350f" stroke-width="3"/>
+  <path d="M 124 0 C 122 20, 125 40, 122 60" fill="none" stroke="#451a03" stroke-width="2.5"/>
+  <circle cx="120" cy="65" r="6" fill="#0f766e" stroke="#115e59" stroke-width="2"/>
+  <circle cx="120" cy="105" r="45" fill="url(#bronzeVerdigris)" stroke="#042f2c" stroke-width="3.5"/>
+  <circle cx="120" cy="105" r="38" fill="none" stroke="#5eead4" stroke-width="1.2" opacity="0.75"/>
+  <polygon points="120,74 126,98 150,105 126,112 120,136 114,112 90,105 114,98" fill="#134e4a" stroke="#5eead4" stroke-width="1.8"/>
+  <circle cx="120" cy="105" r="5" fill="#5eead4"/>
+  <text x="24" y="165" fill="#5eead4" font-family="monospace" font-size="7" letter-spacing="1.5" opacity="0.6">ANCIENT RELIC // BRONZE ELDER WARD</text>
+</svg>
