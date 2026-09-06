@@ -1,5 +1,6 @@
 @import './styles/theme.css';
 @import './styles/combat.css';
+@import './styles/titleMenu.css';
 
 #root {
   width: 100%;
