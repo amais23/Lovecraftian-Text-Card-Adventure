@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Skull, X, EyeOff, ShieldAlert } from 'lucide-react';
 import { soundEngine } from '../../engine/audioManager';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 interface ExitEasterEggModalProps {
   isOpen: boolean;
@@ -8,16 +9,7 @@ interface ExitEasterEggModalProps {
 }
 
 export const ExitEasterEggModal: React.FC<ExitEasterEggModalProps> = ({ isOpen, onClose }) => {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        soundEngine.playClick();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -29,13 +21,6 @@ export const ExitEasterEggModal: React.FC<ExitEasterEggModalProps> = ({ isOpen, 
   const handleStruggle = () => {
     soundEngine.playClick();
     onClose();
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      soundEngine.playClick();
-      onClose();
-    }
   };
 
   return (
@@ -54,10 +39,7 @@ export const ExitEasterEggModal: React.FC<ExitEasterEggModalProps> = ({ isOpen, 
           </div>
           <button
             className="eldritch-modal-close-btn abyss-close-btn"
-            onClick={() => {
-              soundEngine.playClick();
-              onClose();
-            }}
+            onClick={dismiss}
             aria-label="關閉對話"
           >
             <X size={20} />

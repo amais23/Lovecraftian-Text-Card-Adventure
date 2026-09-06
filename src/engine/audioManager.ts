@@ -8,12 +8,23 @@ export class SoundEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private masterGain: GainNode | null = null;
+  private listeners: Set<(muted: boolean) => void> = new Set();
 
   constructor() {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('lovecraft_card_muted');
       this.isMuted = saved === 'true';
     }
+  }
+
+  /**
+   * 訂閱全域靜音狀態變更
+   */
+  public subscribe(listener: (muted: boolean) => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   /**
@@ -41,12 +52,22 @@ export class SoundEngine {
   }
 
   public setMuted(muted: boolean): void {
+    const changed = this.isMuted !== muted;
     this.isMuted = muted;
     if (typeof window !== 'undefined') {
       localStorage.setItem('lovecraft_card_muted', String(muted));
     }
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(muted ? 0 : 0.35, this.ctx.currentTime);
+    }
+    if (changed) {
+      this.listeners.forEach((listener) => {
+        try {
+          listener(muted);
+        } catch {
+          // Ignore listener error
+        }
+      });
     }
   }
 

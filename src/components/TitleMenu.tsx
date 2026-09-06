@@ -89,7 +89,7 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">調查紀錄手冊</span>
-              <span className="btn-sub-text">理智牌庫 · 五色卡牌與瘋狂對弈規則</span>
+              <span className="btn-sub-text">調查手記 · 理智牌庫、五色卡牌與瘋狂對弈規則</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>

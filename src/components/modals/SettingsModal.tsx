@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Settings, X, Volume2, VolumeX, Sparkles, Swords, Shield, Flame, Activity, Keyboard } from 'lucide-react';
 import { soundEngine } from '../../engine/audioManager';
+import { useSoundMuted } from '../../hooks/useSoundMuted';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -8,33 +10,15 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const [isMuted, setIsMuted] = useState<boolean>(() => soundEngine.getMuted());
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        soundEngine.playClick();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const isMuted = useSoundMuted();
+  const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
 
   if (!isOpen) return null;
 
   const handleToggleMute = () => {
     const nextMuted = soundEngine.toggleMute();
-    setIsMuted(nextMuted);
     if (!nextMuted) {
       soundEngine.playClick();
-    }
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      soundEngine.playClick();
-      onClose();
     }
   };
 
@@ -62,10 +46,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
           <button
             className="eldritch-modal-close-btn"
-            onClick={() => {
-              soundEngine.playClick();
-              onClose();
-            }}
+            onClick={dismiss}
             aria-label="關閉設定"
           >
             <X size={20} />

@@ -161,27 +161,34 @@ describe('TitleScreen & TitleMenu Integration', () => {
     expect(screen.queryByRole('heading', { name: '卡牌圖鑑' })).toBeNull();
   });
 
-  it('opens Settings modal and toggles global audio and sound cues', () => {
+  it('synchronizes audio mute state reactively between AudioToggle and SettingsModal', () => {
     render(<TitleScreen dispatch={mockDispatch} />);
 
-    // Open Settings
+    // Initial state: not muted
+    const audioToggleBtn = screen.getByRole('button', { name: '靜音' });
+    expect(soundEngine.getMuted()).toBe(false);
+
+    // Toggle mute via top AudioToggle button
+    fireEvent.click(audioToggleBtn);
+    expect(soundEngine.getMuted()).toBe(true);
+    expect(screen.getByRole('button', { name: '開啟音效' })).toBeDefined();
+
+    // Now open SettingsModal: it must reflect the muted state
     fireEvent.click(screen.getByRole('button', { name: /遊戲設定/i }));
+    expect(screen.getByText('靜音中')).toBeDefined();
 
-    expect(screen.getByRole('heading', { name: '遊戲設定' })).toBeDefined();
+    // Toggle mute inside SettingsModal
+    const settingsSwitch = screen.getByRole('button', { name: '開啟全域音效' });
+    fireEvent.click(settingsSwitch);
 
-    // Toggle mute
-    const initialMuted = soundEngine.getMuted();
-    const toggleBtn = screen.getByLabelText(/全域音效/i);
-    fireEvent.click(toggleBtn);
-    expect(soundEngine.getMuted()).toBe(!initialMuted);
+    expect(soundEngine.getMuted()).toBe(false);
+    expect(screen.getByText('已啟用')).toBeDefined();
 
-    // Click sound test buttons
-    const testClickBtn = screen.getByRole('button', { name: /羊皮紙點擊/i });
-    fireEvent.click(testClickBtn);
+    // Verify the outer AudioToggle is also synchronized to unmuted
+    expect(screen.getByRole('button', { name: '靜音' })).toBeDefined();
 
-    // Close modal
+    // Close settings modal
     fireEvent.click(screen.getByRole('button', { name: '關閉設定' }));
-    expect(screen.queryByRole('heading', { name: '遊戲設定' })).toBeNull();
   });
 
   it('opens Exit Easter Egg dialog and triggers abyss options', () => {
@@ -205,6 +212,19 @@ describe('TitleScreen & TitleMenu Integration', () => {
     fireEvent.click(submitBtn);
 
     expect(screen.queryByRole('heading', { name: '深淵呢喃 · 無法逃離' })).toBeNull();
+  });
+
+  it('closes modals on backdrop click', () => {
+    render(<TitleScreen dispatch={mockDispatch} />);
+
+    // Open manual
+    fireEvent.click(screen.getByRole('button', { name: /調查紀錄手冊/i }));
+    const backdrop = screen.getByRole('dialog');
+    expect(backdrop).toBeDefined();
+
+    // Click backdrop itself
+    fireEvent.click(backdrop);
+    expect(screen.queryByRole('heading', { name: '調查紀錄手冊' })).toBeNull();
   });
 
   it('closes modals on Escape key press', () => {

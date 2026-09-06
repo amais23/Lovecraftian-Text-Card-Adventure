@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sparkles, X, Swords, Shield, Eye, Flame, Search, Info } from 'lucide-react';
 import type { Card, CardCategory } from '../../types/game';
 import { getCardCatalog, getCardCatalogStats } from '../../engine/cardCatalog';
 import { soundEngine } from '../../engine/audioManager';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 interface CardCompendiumModalProps {
   isOpen: boolean;
@@ -13,35 +14,41 @@ type FilterCategory = 'all' | CardCategory;
 
 const CATEGORY_CONFIG: Record<
   FilterCategory,
-  { label: string; icon: React.ReactNode; color: string }
+  { label: string; shortLabel: string; icon: React.ReactNode; color: string }
 > = {
   all: {
     label: '全部典藏',
+    shortLabel: '全部',
     icon: <Sparkles size={16} color="#cfa866" />,
     color: '#cfa866',
   },
   combat: {
     label: '紅色戰鬥',
+    shortLabel: '戰鬥',
     icon: <Swords size={16} color="#e63946" />,
     color: '#e63946',
   },
   skill: {
     label: '黃色技能',
+    shortLabel: '技能',
     icon: <Shield size={16} color="#f4a261" />,
     color: '#f4a261',
   },
   magic: {
     label: '紫色魔法',
+    shortLabel: '魔法',
     icon: <Sparkles size={16} color="#c77dff" />,
     color: '#c77dff',
   },
   truth: {
     label: '白色真相',
+    shortLabel: '真相',
     icon: <Eye size={16} color="#f8fafc" />,
     color: '#f8fafc',
   },
   madness: {
     label: '黑色瘋狂',
+    shortLabel: '瘋狂',
     icon: <Flame size={16} color="#ef4444" />,
     color: '#ef4444',
   },
@@ -54,6 +61,7 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
 
   const allCards = useMemo(() => getCardCatalog(), []);
   const stats = useMemo(() => getCardCatalogStats(), []);
@@ -78,17 +86,6 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
 
   const selectedCard = allCards.find((c) => c.id === effectiveSelectedCardId) ?? filteredCards[0];
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        soundEngine.playClick();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
   const handleCategoryChange = (cat: FilterCategory) => {
@@ -99,13 +96,6 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
   const handleCardClick = (card: Card) => {
     soundEngine.playCardHover();
     setSelectedCardId(card.id);
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      soundEngine.playClick();
-      onClose();
-    }
   };
 
   return (
@@ -132,10 +122,7 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
           </div>
           <button
             className="eldritch-modal-close-btn"
-            onClick={() => {
-              soundEngine.playClick();
-              onClose();
-            }}
+            onClick={dismiss}
             aria-label="關閉圖鑑"
           >
             <X size={20} />
@@ -215,12 +202,16 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
                     >
                       <div className="cell-top">
                         <span className={`cell-cost ${card.costType}`}>
-                          {card.costType === 'sanity'
-                            ? `理智 ${card.costValue}`
-                            : `${card.costValue} 精力`}
+                          {card.costType === 'free'
+                            ? '免費'
+                            : card.costValue === 0 && card.costType === 'stamina'
+                              ? '0 精力 (免費)'
+                              : card.costType === 'sanity'
+                                ? `理智 ${card.costValue}`
+                                : `${card.costValue} 精力`}
                         </span>
                         <span className={`cell-cat-pill ${card.category}`}>
-                          {cfg.label.replace(/^[^\u4e00-\u9fa5]+/, '')}
+                          {cfg.shortLabel}
                         </span>
                       </div>
                       <div className="cell-name">{card.name}</div>
@@ -239,8 +230,15 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
                 <div className="frame-glow" />
                 <div className="frame-header">
                   <div className={`frame-cost-badge ${selectedCard.costType}`}>
-                    {selectedCard.costType === 'sanity' ? '理智消耗' : '精力消耗'}：
-                    <strong>{selectedCard.costValue}</strong>
+                    {selectedCard.costType === 'free' ? (
+                      <span>消耗：<strong>免費</strong></span>
+                    ) : selectedCard.costValue === 0 && selectedCard.costType === 'stamina' ? (
+                      <span>精力消耗：<strong>0 (免費)</strong></span>
+                    ) : selectedCard.costType === 'sanity' ? (
+                      <span>理智消耗：<strong>{selectedCard.costValue}</strong></span>
+                    ) : (
+                      <span>精力消耗：<strong>{selectedCard.costValue}</strong></span>
+                    )}
                   </div>
                   <span className={`frame-category-tag ${selectedCard.category}`}>
                     {CATEGORY_CONFIG[selectedCard.category].label}

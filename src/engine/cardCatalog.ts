@@ -78,15 +78,26 @@ export interface CardCatalogStats {
 }
 
 /**
+ * 預先計算並快取卡牌圖鑑各分類統計數據
+ */
+const CARD_COMPENDIUM_STATS: CardCatalogStats = (() => {
+  const stats: CardCatalogStats = {
+    combat: 0,
+    skill: 0,
+    magic: 0,
+    truth: 0,
+    madness: 0,
+    total: CARD_COMPENDIUM_REGISTRY.length,
+  };
+  for (const card of CARD_COMPENDIUM_REGISTRY) {
+    stats[card.category]++;
+  }
+  return stats;
+})();
+
+/**
  * 取得卡牌圖鑑各分類統計數據
  */
 export function getCardCatalogStats(): CardCatalogStats {
-  return {
-    combat: CARD_COMPENDIUM_REGISTRY.filter((c) => c.category === 'combat').length,
-    skill: CARD_COMPENDIUM_REGISTRY.filter((c) => c.category === 'skill').length,
-    magic: CARD_COMPENDIUM_REGISTRY.filter((c) => c.category === 'magic').length,
-    truth: CARD_COMPENDIUM_REGISTRY.filter((c) => c.category === 'truth').length,
-    madness: CARD_COMPENDIUM_REGISTRY.filter((c) => c.category === 'madness').length,
-    total: CARD_COMPENDIUM_REGISTRY.length,
-  };
+  return { ...CARD_COMPENDIUM_STATS };
 }

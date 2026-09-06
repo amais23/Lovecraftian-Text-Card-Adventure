@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BookOpen, X, Brain, Shield, Flame, Map, ArrowRight, Layers, Award } from 'lucide-react';
 import { soundEngine } from '../../engine/audioManager';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 interface InvestigationManualModalProps {
   isOpen: boolean;
@@ -60,30 +61,13 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
   onClose,
 }) => {
   const [activeKey, setActiveKey] = useState<ManualSectionKey>('sanity');
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        soundEngine.playClick();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
 
   if (!isOpen) return null;
 
   const handleTabClick = (key: ManualSectionKey) => {
     soundEngine.playClick();
     setActiveKey(key);
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      soundEngine.playClick();
-      onClose();
-    }
   };
 
   return (
@@ -110,10 +94,7 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
           </div>
           <button
             className="eldritch-modal-close-btn"
-            onClick={() => {
-              soundEngine.playClick();
-              onClose();
-            }}
+            onClick={dismiss}
             aria-label="關閉手冊"
           >
             <X size={20} />
