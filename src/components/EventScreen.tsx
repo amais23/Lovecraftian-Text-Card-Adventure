@@ -10,17 +10,55 @@ interface EventScreenProps {
   dispatch: React.Dispatch<GameAction>;
 }
 
+interface EventStoryNarrativeProps {
+  storyText: string[];
+}
+
+export const EventStoryNarrative: React.FC<EventStoryNarrativeProps> = ({ storyText }) => {
+  const [activeParagraphIdx, setActiveParagraphIdx] = useState<number>(0);
+
+  return (
+    <div className="event-story-content">
+      <div className="event-icon-watermark">
+        <BookOpen size={48} color="#cfa866" />
+      </div>
+
+      {storyText.map((paragraph, idx) => {
+        if (idx > activeParagraphIdx) return null;
+        const isCurrentlyTyping = idx === activeParagraphIdx;
+
+        return (
+          <p key={idx} className="event-story-paragraph">
+            {isCurrentlyTyping ? (
+              <TypewriterText
+                text={paragraph}
+                speed={16}
+                playSound={false}
+                onComplete={() => setActiveParagraphIdx((prev) => Math.max(prev, idx + 1))}
+              />
+            ) : (
+              <span className="typewriter-text-span done">{paragraph}</span>
+            )}
+          </p>
+        );
+      })}
+
+      {activeParagraphIdx < storyText.length && (
+        <button
+          className="event-skip-all-btn"
+          onClick={() => setActiveParagraphIdx(storyText.length)}
+          title="略過打字直接顯示全部故事內文"
+        >
+          略過打字 (Skip All)
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => {
   const event = state.currentEvent;
   const investigator = state.investigator;
-
-  const [activeParagraphIdx, setActiveParagraphIdx] = useState<number>(0);
-  const [currentEventId, setCurrentEventId] = useState<string | null>(event?.id ?? null);
-
-  if (event && currentEventId !== event.id) {
-    setCurrentEventId(event.id);
-    setActiveParagraphIdx(0);
-  }
 
   if (!event) {
     return (
@@ -72,41 +110,7 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
         </header>
 
         {/* Narrative Literary Story Text */}
-        <div className="event-story-content">
-          <div className="event-icon-watermark">
-            <BookOpen size={48} color="#cfa866" />
-          </div>
-
-          {event.storyText.map((paragraph, idx) => {
-            if (idx > activeParagraphIdx) return null;
-            const isCurrentlyTyping = idx === activeParagraphIdx;
-
-            return (
-              <p key={idx} className="event-story-paragraph">
-                {isCurrentlyTyping ? (
-                  <TypewriterText
-                    text={paragraph}
-                    speed={16}
-                    playSound={false}
-                    onComplete={() => setActiveParagraphIdx((prev) => Math.max(prev, idx + 1))}
-                  />
-                ) : (
-                  <span className="typewriter-text-span done">{paragraph}</span>
-                )}
-              </p>
-            );
-          })}
-
-          {activeParagraphIdx < event.storyText.length && (
-            <button
-              className="event-skip-all-btn"
-              onClick={() => setActiveParagraphIdx(event.storyText.length)}
-              title="略過打字直接顯示全部故事內文"
-            >
-              略過打字 (Skip All)
-            </button>
-          )}
-        </div>
+        <EventStoryNarrative key={event.id} storyText={event.storyText} />
 
         {/* Status Bar Indicators */}
         <div className="event-status-strip">

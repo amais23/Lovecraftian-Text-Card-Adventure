@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import type { Investigator } from '../types/game';
 import { Heart, Zap, Shield, BookOpen, UserCheck, Flame } from 'lucide-react';
+import { useTraumaShake } from '../hooks/useTraumaShake';
 
 interface InvestigatorStatusProps {
   investigator: Investigator;
@@ -21,30 +22,8 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
   isCombatEnded,
   isMadness = false,
 }) => {
-  const [isHealthShaking, setIsHealthShaking] = useState<boolean>(false);
-  const [isSanityShaking, setIsSanityShaking] = useState<boolean>(false);
-  const prevHealthRef = useRef<number>(investigator.health);
-  const prevSanityRef = useRef<number>(sanityCount);
-
-  useEffect(() => {
-    if (investigator.health < prevHealthRef.current) {
-      setIsHealthShaking(true);
-      const timer = setTimeout(() => setIsHealthShaking(false), 450);
-      prevHealthRef.current = investigator.health;
-      return () => clearTimeout(timer);
-    }
-    prevHealthRef.current = investigator.health;
-  }, [investigator.health]);
-
-  useEffect(() => {
-    if (sanityCount < prevSanityRef.current) {
-      setIsSanityShaking(true);
-      const timer = setTimeout(() => setIsSanityShaking(false), 450);
-      prevSanityRef.current = sanityCount;
-      return () => clearTimeout(timer);
-    }
-    prevSanityRef.current = sanityCount;
-  }, [sanityCount]);
+  const { isShaking: isHealthShaking, shakeKey: healthShakeKey } = useTraumaShake(investigator.health);
+  const { isShaking: isSanityShaking, shakeKey: sanityShakeKey } = useTraumaShake(sanityCount);
 
   return (
     <div className="investigator-panel">
@@ -63,6 +42,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
       <div className="resource-meters">
         {/* Health */}
         <div
+          key={`health-badge-${healthShakeKey}`}
           className={`resource-badge health ${isHealthShaking ? 'trauma-shake' : ''}`}
           title="肉體生命值（凡人體質，戰後不自動恢復）"
         >
@@ -97,6 +77,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
 
         {/* Sanity (Sanity Deck) */}
         <div
+          key={`sanity-badge-${sanityShakeKey}`}
           className={`resource-badge sanity ${isMadness ? 'madness' : ''} ${isSanityShaking ? 'trauma-shake' : ''}`}
           title={
             isMadness
