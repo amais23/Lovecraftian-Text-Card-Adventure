@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Scroll, Sparkles } from 'lucide-react';
+import { TypewriterText } from './TypewriterText';
 
 interface BattleLogProps {
   logs: string[];
@@ -38,7 +39,11 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs }) => {
       <div className="battle-log-scroll" ref={scrollRef}>
         {logs.map((log, index) => (
           <div key={`${index}-${log.slice(0, 10)}`} className={getLogClass(log, index)}>
-            {log}
+            {index === 0 ? (
+              <TypewriterText text={log} speed={14} playSound={false} />
+            ) : (
+              log
+            )}
           </div>
         ))}
       </div>

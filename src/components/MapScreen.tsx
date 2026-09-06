@@ -1,4 +1,6 @@
 import type { GameAction, GameState, InvestigationMap, MapNode, MapNodeType } from '../types/game';
+import { AudioToggle } from './AudioToggle';
+import { soundEngine } from '../engine/audioManager';
 import {
   Compass,
   Heart,
@@ -85,6 +87,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
 
   const handleNodeClick = (node: MapNode) => {
     if (node.status === 'accessible') {
+      soundEngine.playClick();
       dispatch({
         type: 'NAVIGATE_TO_NODE',
         payload: { nodeId: node.id },
@@ -142,6 +145,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
             <Coins size={18} color="#ffd700" />
             <span>{investigator.obols} 枚</span>
           </div>
+
+          <AudioToggle />
         </div>
       </header>
 

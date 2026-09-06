@@ -2,14 +2,17 @@ import React from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { OCCUPATIONS } from '../engine/initialData';
 import { Compass, UserCheck, BookOpen, Heart, Zap, Coins, Sparkles, Shield, ArrowRight } from 'lucide-react';
+import { AudioToggle } from './AudioToggle';
+import { soundEngine } from '../engine/audioManager';
 
 interface TitleScreenProps {
-  state: GameState;
+  state?: GameState;
   dispatch: React.Dispatch<GameAction>;
 }
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
   const handleSelect = (occupationId: 'investigator' | 'occultist') => {
+    soundEngine.playClick();
     dispatch({
       type: 'SELECT_OCCUPATION',
       payload: { occupationId, procedural: true },
@@ -23,6 +26,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
     <div className="title-screen-container">
       <div className="vignette-overlay" />
       <div className="fog-layer" />
+      <div className="title-screen-audio-corner">
+        <AudioToggle />
+      </div>
 
       {/* Main Title Header */}
       <header className="title-screen-header">

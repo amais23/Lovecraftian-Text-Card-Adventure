@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { EnemyView } from './EnemyView';
 import { BattleLog } from './BattleLog';
 import { InvestigatorStatus } from './InvestigatorStatus';
 import { CardView } from './CardView';
+import { AudioToggle } from './AudioToggle';
 import { generateRewardCards } from '../engine/initialData';
-import { Skull, Trophy, Coins, Compass } from 'lucide-react';
+import { calculateCardFanOut } from '../engine/handMath';
+import { soundEngine } from '../engine/audioManager';
+import { Skull, Trophy, Coins, Compass, Sparkles } from 'lucide-react';
 
 interface CombatScreenProps {
   state: GameState;
@@ -13,6 +16,7 @@ interface CombatScreenProps {
 }
 
 export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) => {
+  const [isDraggingCard, setIsDraggingCard] = useState<boolean>(false);
   const isCombatEnded = state.phase !== 'combat';
   // Compute permanent deck capacity excluding in-combat temporary cards (ADR-0006 & CONTEXT.md)
   const permanentDeckCapacity = [
@@ -26,10 +30,12 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
   };
 
   const handleEndTurn = () => {
+    soundEngine.playClick();
     dispatch({ type: 'END_TURN' });
   };
 
   const handleRestart = () => {
+    soundEngine.playClick();
     dispatch({
       type: 'RESET_COMBAT',
       payload: {
@@ -40,6 +46,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
   };
 
   const handleProceedReward = () => {
+    soundEngine.playClick();
     const rewardCards = generateRewardCards(3);
     dispatch({
       type: 'PROCEED_TO_REWARD',
@@ -68,6 +75,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
           <div className="combat-header-turn">
             第 {state.turn} 回合
           </div>
+          <AudioToggle />
         </div>
       </header>
 
@@ -86,6 +94,14 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
 
       {/* Lower Split-Screen: Investigator Dashboard & Hand */}
       <section className="combat-lower-section">
+        {/* Drag & Drop Guidance Bar */}
+        <div className={`drag-drop-target-bar ${isDraggingCard ? 'active' : ''}`}>
+          <div className="drop-target-glow" />
+          <span className="drop-target-label">
+            <Sparkles size={16} /> 向上拖曳至此引導打出 (Drag Up to Cast)
+          </span>
+        </div>
+
         <InvestigatorStatus
           investigator={state.investigator}
           sanityCount={state.sanityDeck.length}
@@ -96,13 +112,10 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
           isMadness={state.isMadness}
         />
 
-        {/* Dynamic Hand Cards */}
+        {/* Dynamic Hand Cards with Fan-Out Layout */}
         <div className="hand-area" id="player-hand">
           {state.hand.map((card, index) => {
-            const total = state.hand.length;
-            const offset = index - (total - 1) / 2;
-            const rotateDeg = offset * 2.5;
-            const translateY = Math.abs(offset) * 3;
+            const fan = calculateCardFanOut(index, state.hand.length);
 
             return (
               <CardView
@@ -112,9 +125,8 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 currentSanity={state.sanityDeck.length}
                 onPlay={handlePlayCard}
                 disabled={isCombatEnded}
-                style={{
-                  transform: `rotate(${rotateDeg}deg) translateY(${translateY}px)`,
-                }}
+                fanTransform={fan}
+                onDragStateChange={setIsDraggingCard}
               />
             );
           })}

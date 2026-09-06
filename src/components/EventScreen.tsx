@@ -1,6 +1,9 @@
 import React from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { BookOpen, MapPin, ArrowRight, ShieldAlert, Heart, Coins } from 'lucide-react';
+import { AudioToggle } from './AudioToggle';
+import { TypewriterText } from './TypewriterText';
+import { soundEngine } from '../engine/audioManager';
 
 interface EventScreenProps {
   state: GameState;
@@ -23,6 +26,7 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
   const isGameOver = state.phase === 'gameover' || investigator.health <= 0;
 
   const handleSelectOption = (optionId: string) => {
+    soundEngine.playClick();
     dispatch({
       type: 'RESOLVE_EVENT_OPTION',
       payload: { optionId },
@@ -30,10 +34,12 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
   };
 
   const handleCompleteEvent = () => {
+    soundEngine.playClick();
     dispatch({ type: 'COMPLETE_EVENT' });
   };
 
   const handleReturnToTitle = () => {
+    soundEngine.playClick();
     dispatch({ type: 'RETURN_TO_TITLE' });
   };
 
@@ -45,9 +51,12 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
       <div className="event-panel-card">
         {/* Event Header */}
         <header className="event-header">
-          <div className="event-location-tag">
-            <MapPin size={16} color="#cfa866" />
-            <span>{event.location}</span>
+          <div className="event-header-top-row">
+            <div className="event-location-tag">
+              <MapPin size={16} color="#cfa866" />
+              <span>{event.location}</span>
+            </div>
+            <AudioToggle />
           </div>
 
           <h1 className="event-title">{event.title}</h1>
@@ -62,7 +71,12 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
 
           {event.storyText.map((paragraph, idx) => (
             <p key={idx} className="event-story-paragraph">
-              {paragraph}
+              <TypewriterText
+                text={paragraph}
+                speed={16}
+                delay={idx * 300}
+                playSound={false}
+              />
             </p>
           ))}
         </div>

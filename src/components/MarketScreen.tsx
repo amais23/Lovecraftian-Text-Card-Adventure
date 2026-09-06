@@ -1,6 +1,8 @@
 import React from 'react';
 import type { GameAction, GameState, MarketItem } from '../types/game';
 import { ShoppingBag, Coins, Heart, LogOut, Check, Sparkles, Swords, Shield } from 'lucide-react';
+import { AudioToggle } from './AudioToggle';
+import { soundEngine } from '../engine/audioManager';
 
 interface MarketScreenProps {
   state: GameState;
@@ -13,6 +15,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
 
   const handleBuy = (item: MarketItem) => {
     if (!item.isPurchased && investigator.obols >= item.price) {
+      soundEngine.playClick();
       dispatch({
         type: 'BUY_MARKET_ITEM',
         payload: { itemId: item.id },
@@ -21,6 +24,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
   };
 
   const handleLeave = () => {
+    soundEngine.playClick();
     dispatch({ type: 'LEAVE_MARKET' });
   };
 
@@ -43,12 +47,15 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
             </div>
           </div>
 
-          <div className="market-obols-badge" id="market-current-obols">
-            <Coins size={22} color="#ffd700" />
-            <div className="market-obols-info">
-              <span className="market-obols-label">持有古金幣</span>
-              <span className="market-obols-val">{investigator.obols} 枚</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className="market-obols-badge" id="market-current-obols">
+              <Coins size={22} color="#ffd700" />
+              <div className="market-obols-info">
+                <span className="market-obols-label">持有古金幣</span>
+                <span className="market-obols-val">{investigator.obols} 枚</span>
+              </div>
             </div>
+            <AudioToggle />
           </div>
         </header>
 

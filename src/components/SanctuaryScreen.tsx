@@ -1,6 +1,8 @@
 import React from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { Tent, Heart, Sparkles, LogOut, ShieldCheck } from 'lucide-react';
+import { AudioToggle } from './AudioToggle';
+import { soundEngine } from '../engine/audioManager';
 
 interface SanctuaryScreenProps {
   state: GameState;
@@ -18,6 +20,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
       if (investigator.health >= investigator.maxHealth) return;
       if (!canAffordBandage) return;
     }
+    soundEngine.playClick();
     dispatch({
       type: 'USE_SANCTUARY',
       payload: { optionId },
@@ -25,6 +28,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
   };
 
   const handleLeave = () => {
+    soundEngine.playClick();
     dispatch({ type: 'LEAVE_SANCTUARY' });
   };
 
@@ -35,8 +39,11 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
 
       <div className="sanctuary-card-panel">
         <header className="sanctuary-header">
-          <div className="sanctuary-icon-badge">
-            <Tent size={36} color="#74c69d" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '12px' }}>
+            <div className="sanctuary-icon-badge">
+              <Tent size={36} color="#74c69d" />
+            </div>
+            <AudioToggle />
           </div>
           <h1 className="sanctuary-title">安全避難所 · 守墓人小屋</h1>
           <p className="sanctuary-subtitle">
