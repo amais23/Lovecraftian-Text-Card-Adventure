@@ -1,0 +1,54 @@
+import React from 'react';
+import type { Enemy } from '../types/game';
+import { Skull, Swords, Shield, AlertTriangle } from 'lucide-react';
+
+interface EnemyViewProps {
+  enemy: Enemy;
+}
+
+export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
+  const healthPercent = Math.max(0, Math.min(100, (enemy.health / enemy.maxHealth) * 100));
+
+  return (
+    <div className="enemy-stage">
+      {/* Intent Bubble */}
+      <div className="enemy-intent-bubble" title={enemy.currentIntent.description}>
+        <span className="intent-icon">
+          {enemy.currentIntent.type === 'attack' && <Swords size={18} />}
+          {enemy.currentIntent.type === 'defend' && <Shield size={18} />}
+          {enemy.currentIntent.type === 'erode' && <AlertTriangle size={18} />}
+        </span>
+        <span className="intent-name">{enemy.currentIntent.name}</span>
+        <span className="intent-val">{enemy.currentIntent.value}</span>
+      </div>
+
+      {/* Enemy Visual Avatar */}
+      <div className="enemy-avatar-wrapper">
+        <div className="enemy-avatar-circle">
+          <Skull className="enemy-avatar-icon" />
+        </div>
+      </div>
+
+      {/* Enemy Identity */}
+      <div className="enemy-name">{enemy.name}</div>
+      <div className="enemy-title">{enemy.title}</div>
+
+      {/* Health Bar */}
+      <div className="enemy-health-container">
+        <div className="enemy-health-meta">
+          <span>生命體力</span>
+          <span>
+            {enemy.health} / {enemy.maxHealth}
+            {enemy.armor > 0 && ` (護甲 +${enemy.armor})`}
+          </span>
+        </div>
+        <div className="enemy-health-bar-bg">
+          <div
+            className="enemy-health-bar-fill"
+            style={{ width: `${healthPercent}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
