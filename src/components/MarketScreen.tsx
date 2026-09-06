@@ -86,7 +86,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                     )}
                   </div>
                   <span className="market-item-type-badge">
-                    {item.type === 'heal' ? '醫療補給' : '戰術卡牌'}
+                    {item.type === 'heal' ? '醫療補給' : '典藏卡牌'}
                   </span>
                 </div>
 

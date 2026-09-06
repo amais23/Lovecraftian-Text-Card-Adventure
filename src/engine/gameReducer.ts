@@ -8,6 +8,7 @@ import type {
   InvestigationMap,
   MapNode,
   MythosEvent,
+  OccupationId,
 } from '../types/game';
 import {
   INITIAL_GHOUL,
@@ -17,7 +18,7 @@ import {
   fisherYatesShuffle,
 } from './initialData';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
-import { generateInvestigationMap } from './mapGenerator';
+import { generateInvestigationMap, generateProceduralInvestigationMap } from './mapGenerator';
 import {
   INITIAL_DEEP_ONE,
   INITIAL_SHOGGOTH,
@@ -26,6 +27,13 @@ import {
 } from './eventData';
 
 export const BASELINE_HAND_SIZE = 4;
+
+/**
+ * 敵怪物件深拷貝純函式，避免可變狀態污染
+ */
+export function cloneEnemy(enemy: Enemy): Enemy {
+  return JSON.parse(JSON.stringify(enemy));
+}
 
 /**
  * 將完整牌組切分為起始手牌（4張）與理智牌庫（其餘張數）之共用純函式
@@ -41,7 +49,28 @@ export function splitDeckToHandAndSanity(
 }
 
 /**
- * 節點結算後推進地圖：將當前節點標記為 visited，將其連通的下一層節點解鎖為 accessible
+ * 戰鬥牌組構建與洗牌純函式（消除重複代碼，支援洗牌覆寫以利確定性測試）
+ */
+export function setupCombatDeck(
+  cards: Card[],
+  occupationId: OccupationId = 'investigator',
+  overrideDeck?: Card[]
+): { hand: Card[]; sanityDeck: Card[] } {
+  if (overrideDeck && overrideDeck.length > 0) {
+    return splitDeckToHandAndSanity(overrideDeck, BASELINE_HAND_SIZE);
+  }
+  const permanentCards = cards.filter((c) => !c.isTemporary);
+  const occ = OCCUPATIONS[occupationId] ?? OCCUPATIONS.investigator;
+  const pool: Card[] = permanentCards.length >= 10
+    ? permanentCards
+    : occ.deck.map((c) => ({ ...c }));
+  const shuffledDeck = fisherYatesShuffle(pool);
+  return splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
+}
+
+/**
+ * 節點結算後推進地圖：將當前節點標記為 visited，將其連通的下一層節點解鎖為 accessible。
+ * 若當前節點為宿敵（boss），標記調查地圖為已破關（isCompleted = true）。
  */
 export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | undefined {
   if (!map || !map.currentNodeId) return map;
@@ -59,9 +88,12 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
     }
   }
 
+  const isCompleted = currentNode.type === 'boss' || Boolean(map.isCompleted);
+
   return {
     ...map,
     nodes: updatedNodes,
+    isCompleted,
   };
 }
 
@@ -71,21 +103,21 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
 export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap): Enemy {
   const enemyId = candidate?.id;
   if (enemyId === INITIAL_DEEP_ONE.id) {
-    return JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
+    return cloneEnemy(INITIAL_DEEP_ONE);
   }
   if (enemyId === INITIAL_SHOGGOTH.id) {
-    return JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+    return cloneEnemy(INITIAL_SHOGGOTH);
   }
   if (enemyId === INITIAL_GHOUL.id) {
-    return JSON.parse(JSON.stringify(INITIAL_GHOUL));
+    return cloneEnemy(INITIAL_GHOUL);
   }
 
   // If node type from map is available
   if (map?.currentNodeId && map.nodes[map.currentNodeId]) {
     const node = map.nodes[map.currentNodeId];
-    if (node.type === 'elite') return JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
-    if (node.type === 'boss') return JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
-    if (node.type === 'combat') return JSON.parse(JSON.stringify(INITIAL_GHOUL));
+    if (node.type === 'elite') return cloneEnemy(INITIAL_DEEP_ONE);
+    if (node.type === 'boss') return cloneEnemy(INITIAL_SHOGGOTH);
+    if (node.type === 'combat') return cloneEnemy(INITIAL_GHOUL);
   }
 
   if (candidate) {
@@ -98,7 +130,7 @@ export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap)
     };
   }
 
-  return JSON.parse(JSON.stringify(INITIAL_GHOUL));
+  return cloneEnemy(INITIAL_GHOUL);
 }
 
 /**
@@ -163,8 +195,8 @@ export function createInitialCombatState(
     : { ...INITIAL_INVESTIGATOR };
 
   const enemy: Enemy = customEnemy
-    ? JSON.parse(JSON.stringify(customEnemy))
-    : JSON.parse(JSON.stringify(INITIAL_GHOUL));
+    ? cloneEnemy(customEnemy)
+    : cloneEnemy(INITIAL_GHOUL);
 
   const allCards: Card[] = customDeck
     ? [...customDeck]
@@ -208,8 +240,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
       const allCards = occ.deck.map((c) => ({ ...c }));
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
-      const enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
-      const map = generateInvestigationMap();
+      const enemy = cloneEnemy(INITIAL_GHOUL);
+      const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap() : generateInvestigationMap());
       const nextPhase = action.payload.initialPhase ?? 'map';
 
       return {
@@ -257,30 +289,26 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         let logMsg: string;
 
         if (targetNode.type === 'elite') {
-          enemy = JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
+          enemy = cloneEnemy(INITIAL_DEEP_ONE);
           logMsg = `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`;
         } else if (targetNode.type === 'boss') {
-          enemy = JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+          enemy = cloneEnemy(INITIAL_SHOGGOTH);
           logMsg = `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`;
         } else {
-          enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+          enemy = cloneEnemy(INITIAL_GHOUL);
           logMsg = `探索【${targetNode.title}】！遭遇常規敵人：${enemy.name}（${enemy.title}）。`;
         }
 
-        // Gather all permanent cards across current deck
-        const currentPermanentCards = [
+        const currentCards = [
           ...state.sanityDeck,
           ...state.hand,
           ...state.discardPile,
-        ].filter((c) => !c.isTemporary);
-
-        const occ = OCCUPATIONS[state.investigator.occupationId ?? 'investigator'] ?? OCCUPATIONS.investigator;
-        const allCards = currentPermanentCards.length >= 10
-          ? currentPermanentCards
-          : occ.deck.map((c) => ({ ...c }));
-
-        const shuffledDeck = fisherYatesShuffle(allCards);
-        const { hand, sanityDeck } = splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
+        ];
+        const { hand, sanityDeck } = setupCombatDeck(
+          currentCards,
+          state.investigator.occupationId ?? 'investigator',
+          action.payload.shuffledDeck
+        );
 
         return {
           ...state,
@@ -373,11 +401,32 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           if (consequence.value < 0) {
             const burnCount = Math.min(newSanityDeck.length, Math.abs(consequence.value));
             newSanityDeck = newSanityDeck.slice(burnCount);
+          } else if (consequence.value > 0) {
+            let deficit = consequence.value;
+            if (state.discardPile.length > 0) {
+              const recoverCount = Math.min(state.discardPile.length, deficit);
+              const recovered = state.discardPile.slice(0, recoverCount);
+              newSanityDeck = [...newSanityDeck, ...recovered];
+              deficit -= recoverCount;
+            }
+            for (let i = 0; i < deficit; i++) {
+              newSanityDeck.push({
+                id: `event_truth_restored_${newSanityDeck.length + 1}`,
+                name: '心靈澄澈',
+                category: 'truth',
+                costType: 'stamina',
+                costValue: 1,
+                isTemporary: false,
+                effects: [{ type: 'add_to_deck', value: 2 }],
+                description: '平抑恐慌與混亂，向理智牌庫注入 2 張真相卡。',
+                flavorText: '「在混沌之中覓得一絲清明。」',
+              });
+            }
           }
         } else if (consequence.type === 'gain_card' && consequence.card) {
           newSanityDeck.push({
             ...consequence.card,
-            id: `${consequence.card.id}_${Date.now()}`,
+            id: `${consequence.card.id}_evt_${state.sanityDeck.length + 1}`,
             isTemporary: false,
           });
         } else if (consequence.type === 'trigger_combat') {
@@ -408,14 +457,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       if (triggerCombatEnemy) {
-        const currentPermanentCards = [
+        const currentCards = [
           ...newSanityDeck,
           ...newHand,
           ...state.discardPile,
-        ].filter((c) => !c.isTemporary);
-
-        const shuffledDeck = fisherYatesShuffle(currentPermanentCards);
-        const { hand, sanityDeck } = splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
+        ];
+        const { hand, sanityDeck } = setupCombatDeck(
+          currentCards,
+          state.investigator.occupationId ?? 'investigator',
+          action.payload.shuffledDeck
+        );
 
         return {
           ...state,
@@ -430,7 +481,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           hand,
           discardPile: [],
           isMadness: false,
-          currentEnemy: JSON.parse(JSON.stringify(triggerCombatEnemy)),
+          currentEnemy: cloneEnemy(triggerCombatEnemy),
           currentEvent: undefined,
           battleLog: outcomeTexts.concat(state.battleLog),
         };
@@ -462,15 +513,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'sanctuary' || state.sanctuaryUsed) return state;
       const optionId = action.payload.optionId;
       let newHealth = state.investigator.health;
-      const newSanityDeck = [...state.sanityDeck];
+      let newObols = state.investigator.obols;
+      let newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
 
       if (optionId === 'bandage') {
         newHealth = Math.min(state.investigator.maxHealth, newHealth + 8);
-        newLogs.push(`在避難所進行深層包紮，恢復了 8 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}）。`);
+        if (state.investigator.obols >= 5) {
+          newObols = state.investigator.obols - 5;
+          newLogs.push(
+            `在避難所消耗 5 枚古金幣購置急救藥品與防腐繃帶，深層包紮恢復了 8 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}，剩餘古金幣: ${newObols} 枚）。`
+          );
+        } else {
+          if (newSanityDeck.length > 0) {
+            newSanityDeck = newSanityDeck.slice(1);
+          }
+          newLogs.push(
+            `因古金幣不足，調查員忍受劇痛強行縫合創口，損耗 1 點理智，深層包紮恢復了 8 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}）。`
+          );
+        }
       } else if (optionId === 'meditate') {
         const truthCard: Card = {
-          id: `sanctuary_truth_${Date.now()}`,
+          id: `sanctuary_truth_${state.sanityDeck.length + 1}`,
           name: '心智防波堤',
           category: 'truth',
           costType: 'stamina',
@@ -492,6 +556,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         investigator: {
           ...state.investigator,
           health: newHealth,
+          obols: newObols,
         },
         sanityDeck: newSanityDeck,
         hand: state.hand,
@@ -534,7 +599,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       } else if (item.type === 'card' && item.card) {
         newSanityDeck.push({
           ...item.card,
-          id: `${item.card.id}_purchased_${Date.now()}`,
+          id: `${item.card.id}_purchased_${state.sanityDeck.length + 1}`,
           isTemporary: false,
         });
         newLogs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入牌組！`);
@@ -637,7 +702,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newLogs.push(`獲得古金幣 +${addedObols}（當前擁有: ${updatedInvestigator.obols} 枚）。`);
       newLogs.push(`【肉體傷勢保留】當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}。`);
 
-      const nextEnemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+      const nextEnemy = cloneEnemy(INITIAL_GHOUL);
 
       // Advance map if map is present, otherwise remain in combat
       const updatedMap = advanceMapAfterNode(state.map);
@@ -715,15 +780,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state.sanityDeck,
         ...state.hand,
         ...state.discardPile,
-      ].filter((c) => !c.isTemporary);
+      ];
 
-      const allCards = action.payload?.initialCards
-        ? [...action.payload.initialCards]
-        : currentPermanentCards.length >= 10
-        ? currentPermanentCards
-        : occ.deck.map((c) => ({ ...c }));
-
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
+      const { hand, sanityDeck } = setupCombatDeck(
+        currentPermanentCards,
+        occ.id,
+        action.payload?.initialCards
+      );
       const candidateEnemy = action.payload?.enemy ?? state.currentEnemy;
       const enemy = getFreshEnemyTemplate(candidateEnemy, state.map);
 

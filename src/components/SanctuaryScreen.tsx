@@ -68,14 +68,18 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
             </div>
             <h3 className="sanctuary-card-title">深層縫合與包紮</h3>
             <p className="sanctuary-card-desc">
-              在凡人極限下清洗撕裂的傷口並重新敷藥。肉體傷害無法輕易癒合，但可在此恢復 8 點肉體生命值（上限 25 點）。
+              在凡人極限下清洗撕裂的傷口並重新敷藥。消耗 5 枚古金幣購置急救藥品；若金幣不足，將忍受劇痛損耗 1 點理智完成自救。恢復 8 點肉體生命值（上限 25 點）。
             </p>
             <button
               id="sanctuary-bandage-btn"
               className="sanctuary-action-btn"
               disabled={isUsed || investigator.health >= investigator.maxHealth}
             >
-              {investigator.health >= investigator.maxHealth ? '生命值已滿' : '執行包紮 (+8 生命)'}
+              {investigator.health >= investigator.maxHealth
+                ? '生命值已滿'
+                : investigator.obols >= 5
+                ? '執行包紮 (耗 5 古金幣)'
+                : '強行包紮 (耗 1 理智)'}
             </button>
           </div>
 

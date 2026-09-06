@@ -73,6 +73,7 @@ export interface InvestigationMap {
   nodes: Record<string, MapNode>;
   layers: string[][];
   currentNodeId: string | null;
+  isCompleted?: boolean;
 }
 
 export interface MythosEventConsequence {
@@ -104,7 +105,7 @@ export interface MythosEvent {
 export interface MarketItem {
   id: string;
   name: string;
-  type: 'card' | 'heal' | 'max_sanity';
+  type: 'card' | 'heal';
   price: number;
   card?: Card;
   healAmount?: number;
@@ -131,9 +132,9 @@ export interface GameState {
 }
 
 export type GameAction =
-  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId; initialPhase?: 'map' | 'combat' } }
-  | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string } }
-  | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string } }
+  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId; initialPhase?: 'map' | 'combat'; procedural?: boolean; map?: InvestigationMap } }
+  | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string; shuffledDeck?: Card[] } }
+  | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string; shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_EVENT' }
   | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' } }
   | { type: 'LEAVE_SANCTUARY' }
@@ -146,5 +147,3 @@ export type GameAction =
   | { type: 'PLAY_CARD'; payload: { cardId: string } }
   | { type: 'END_TURN' }
   | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } };
-
-

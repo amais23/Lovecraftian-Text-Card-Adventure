@@ -2317,3 +2317,128 @@
   color: var(--text-gold);
 }
 
+/* =========================================================
+   Campaign Victory Modal Styles (Investigation Map Conclusion)
+   ========================================================= */
+
+.map-victory-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 7, 12, 0.88);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.map-victory-modal {
+  background: radial-gradient(circle at top, rgba(30, 24, 12, 0.96) 0%, rgba(10, 14, 20, 0.98) 100%);
+  border: 2px solid #d4af37;
+  border-radius: var(--radius-md);
+  padding: 40px 48px;
+  max-width: 650px;
+  width: 100%;
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.25), 0 20px 60px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+.map-victory-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.12);
+  border: 2px solid #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  animation: pulse 2.5s infinite;
+}
+
+.map-victory-title {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  color: #ffd700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  margin: 0;
+}
+
+.map-victory-narrative {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-parchment);
+  font-style: italic;
+  max-width: 540px;
+  margin: 0;
+}
+
+.map-victory-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin: 4px 0;
+}
+
+.map-victory-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 6px 12px;
+}
+
+.map-victory-stat-item .stat-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.map-victory-stat-item .stat-value {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-gold);
+}
+
+.map-victory-btn {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 14px 36px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #ffd700, #bfa026);
+  border: 1px solid #ffe66d;
+  color: #120e03;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(191, 160, 38, 0.4);
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 8px;
+}
+
+.map-victory-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+  filter: brightness(1.1);
+}
+
+

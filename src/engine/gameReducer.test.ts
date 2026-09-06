@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { gameReducer, createInitialCombatState, createInitialGameState, applyDamage } from './gameReducer';
+import {
+  gameReducer,
+  createInitialCombatState,
+  createInitialGameState,
+  applyDamage,
+  cloneEnemy,
+  setupCombatDeck,
+  advanceMapAfterNode,
+} from './gameReducer';
 import {
   INITIAL_GHOUL,
   INITIAL_INVESTIGATOR,
@@ -9,7 +17,11 @@ import {
   REWARD_CARD_POOL,
   fisherYatesShuffle,
 } from './initialData';
-import { generateInvestigationMap, BASE_MAP_TEMPLATE } from './mapGenerator';
+import {
+  generateInvestigationMap,
+  generateProceduralInvestigationMap,
+  BASE_MAP_TEMPLATE,
+} from './mapGenerator';
 import {
   MYTHOS_EVENTS,
   generateDefaultMarketItems,
@@ -1196,8 +1208,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(new Set(shuffled)).toEqual(new Set(original));
   });
 
-  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆) across all cards and occupations', () => {
-    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆/;
+  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆, 固有, 戰術牌) across all cards and occupations', () => {
+    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆|固有|戰術牌|戰術卡/;
 
     const allCardsToCheck = [
       ...INVESTIGATOR_DECK,
@@ -1742,8 +1754,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     expect(leaveState.map?.nodes['node_1_2'].status).toBe('visited');
   });
 
-  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆) across map, events, and market', () => {
-    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆/;
+  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆, 固有, 戰術牌) across map, events, and market', () => {
+    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆|固有|戰術牌|戰術卡/;
 
     // Map template
     for (const node of BASE_MAP_TEMPLATE) {
@@ -1832,5 +1844,235 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     const totalBattleCards = [...combatState.hand, ...combatState.sanityDeck];
     expect(totalBattleCards.length).toBe(13);
     expect(totalBattleCards.some((c) => c.name === cardItem.card!.name)).toBe(true);
+  });
+
+  describe('Code Review Improvements & Hardening', () => {
+    it('ensures reducer determinism: no Date.now() used for card IDs in events, sanctuary, and market', () => {
+      const baseState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'map',
+        map: generateInvestigationMap(),
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          obols: 50,
+        },
+      };
+
+      // 1. Event card acquisition ID determinism
+      const eventState: GameState = {
+        ...baseState,
+        phase: 'event',
+        currentEvent: MYTHOS_EVENTS['event_sunken_shrine'],
+      };
+      const eventResult = gameReducer(eventState, {
+        type: 'RESOLVE_EVENT_OPTION',
+        payload: { optionId: 'shrine_inspect' },
+      });
+      const eventCard = eventResult.sanityDeck[eventResult.sanityDeck.length - 1];
+      expect(eventCard.id).toBe(`event_card_deep_truth_evt_${baseState.sanityDeck.length + 1}`);
+      expect(eventCard.id).toMatch(/_evt_\d+$/);
+      expect(eventCard.id).not.toContain('undefined');
+      expect(eventCard.id).not.toContain('NaN');
+
+      // 2. Sanctuary meditate ID determinism
+      const sanctuaryState: GameState = {
+        ...baseState,
+        phase: 'sanctuary',
+        sanctuaryUsed: false,
+      };
+      const sanctuaryResult = gameReducer(sanctuaryState, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'meditate' },
+      });
+      const sanctuaryCard = sanctuaryResult.sanityDeck[sanctuaryResult.sanityDeck.length - 1];
+      expect(sanctuaryCard.id).toBe(`sanctuary_truth_${baseState.sanityDeck.length + 1}`);
+
+      // 3. Market buy card ID determinism
+      const marketState: GameState = {
+        ...baseState,
+        phase: 'market',
+        marketItems: generateDefaultMarketItems(),
+      };
+      const marketCardItem = marketState.marketItems!.find((i) => i.type === 'card')!;
+      const marketResult = gameReducer(marketState, {
+        type: 'BUY_MARKET_ITEM',
+        payload: { itemId: marketCardItem.id },
+      });
+      const marketCard = marketResult.sanityDeck[marketResult.sanityDeck.length - 1];
+      expect(marketCard.id).toBe(`${marketCardItem.card!.id}_purchased_${baseState.sanityDeck.length + 1}`);
+    });
+
+    it('supports deterministic opening hand override via action payload shuffledDeck', () => {
+      const map = generateInvestigationMap();
+      const mapState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'map',
+        map,
+      };
+
+      const deterministicDeck = INVESTIGATOR_DECK.map((c) => ({ ...c })).reverse();
+      const combatState = gameReducer(mapState, {
+        type: 'NAVIGATE_TO_NODE',
+        payload: { nodeId: 'node_0_0', shuffledDeck: deterministicDeck },
+      });
+
+      // Opening hand should precisely match first 4 cards of deterministicDeck
+      expect(combatState.hand.map((c) => c.id)).toEqual(deterministicDeck.slice(0, 4).map((c) => c.id));
+      expect(combatState.sanityDeck.map((c) => c.id)).toEqual(deterministicDeck.slice(4).map((c) => c.id));
+    });
+
+    it('deduplicates helper functions: cloneEnemy and setupCombatDeck preserve pure state invariants', () => {
+      const cloned = cloneEnemy(INITIAL_SHOGGOTH);
+      expect(cloned).toEqual(INITIAL_SHOGGOTH);
+      expect(cloned).not.toBe(INITIAL_SHOGGOTH);
+
+      const cards = INVESTIGATOR_DECK.map((c) => ({ ...c }));
+      const { hand, sanityDeck } = setupCombatDeck(cards, 'investigator');
+      expect(hand.length).toBe(4);
+      expect(sanityDeck.length).toBe(cards.length - 4);
+    });
+
+    it('marks map.isCompleted = true upon boss node defeat in CLAIM_CARD_REWARD', () => {
+      const map = generateInvestigationMap();
+      map.nodes['node_4_0'].status = 'accessible';
+
+      const bossCombatState = gameReducer(
+        {
+          ...createInitialCombatState(),
+          phase: 'map',
+          map,
+        },
+        {
+          type: 'NAVIGATE_TO_NODE',
+          payload: { nodeId: 'node_4_0' },
+        }
+      );
+
+      expect(bossCombatState.currentEnemy.id).toBe(INITIAL_SHOGGOTH.id);
+
+      // Win combat and claim reward
+      const victoryState: GameState = {
+        ...bossCombatState,
+        phase: 'victory',
+      };
+      const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      const postBossMapState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+
+      expect(postBossMapState.phase).toBe('map');
+      expect(postBossMapState.map?.isCompleted).toBe(true);
+      expect(postBossMapState.map?.nodes['node_4_0'].status).toBe('visited');
+
+      // Direct test of advanceMapAfterNode on boss node
+      const directAdvanced = advanceMapAfterNode(bossCombatState.map);
+      expect(directAdvanced?.isCompleted).toBe(true);
+
+      // Return to title works from completed state
+      const titleState = gameReducer(postBossMapState, { type: 'RETURN_TO_TITLE' });
+      expect(titleState.phase).toBe('title');
+    });
+
+    it('deducts explicit cost for sanctuary flesh bandaging (5 obols or 1 sanity card)', () => {
+      // Case 1: Investigator has sufficient obols (>= 5)
+      const stateWithObols: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        sanctuaryUsed: false,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 10,
+          obols: 15,
+        },
+      };
+
+      const afterBandageWithObols = gameReducer(stateWithObols, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'bandage' },
+      });
+
+      expect(afterBandageWithObols.investigator.health).toBe(18);
+      expect(afterBandageWithObols.investigator.obols).toBe(10); // 15 - 5
+      expect(afterBandageWithObols.sanityDeck.length).toBe(stateWithObols.sanityDeck.length);
+      expect(afterBandageWithObols.battleLog[0]).toContain('消耗 5 枚古金幣');
+
+      // Case 2: Investigator has insufficient obols (< 5), burns 1 sanity card
+      const stateWithoutObols: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        sanctuaryUsed: false,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 10,
+          obols: 2,
+        },
+      };
+
+      const afterBandageWithoutObols = gameReducer(stateWithoutObols, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'bandage' },
+      });
+
+      expect(afterBandageWithoutObols.investigator.health).toBe(18);
+      expect(afterBandageWithoutObols.investigator.obols).toBe(2);
+      expect(afterBandageWithoutObols.sanityDeck.length).toBe(stateWithoutObols.sanityDeck.length - 1);
+      expect(afterBandageWithoutObols.battleLog[0]).toContain('損耗 1 點理智');
+    });
+
+    it('handles positive sanity changes in events by restoring cards into sanity deck', () => {
+      const baseState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'event',
+        sanityDeck: INVESTIGATOR_DECK.slice(0, 5),
+        discardPile: INVESTIGATOR_DECK.slice(5, 8),
+        currentEvent: {
+          id: 'test_event',
+          title: '心靈綠洲',
+          location: '聖堂廢墟',
+          storyText: ['陽光灑落，安撫了殘破的意志。'],
+          options: [
+            {
+              id: 'opt_calm',
+              text: '深呼吸感受平靜',
+              consequences: [
+                {
+                  type: 'sanity_change',
+                  value: 3,
+                  narrative: '意志得到療癒，理智重新回流。',
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const nextState = gameReducer(baseState, {
+        type: 'RESOLVE_EVENT_OPTION',
+        payload: { optionId: 'opt_calm' },
+      });
+
+      // Sanity deck should have increased from 5 to 8
+      expect(nextState.sanityDeck.length).toBe(8);
+    });
+
+    it('supports procedural map generation with seedable and random variations', () => {
+      // 1. Procedural generation creates valid 5-layer DAG
+      const procMap = generateProceduralInvestigationMap();
+      expect(procMap.layers.length).toBe(5);
+      expect(procMap.nodes['node_4_0'].type).toBe('boss');
+      expect(procMap.nodes['node_0_0'].status).toBe('accessible');
+      expect(procMap.nodes['node_0_1'].status).toBe('accessible');
+
+      // 2. Deterministic PRNG with same seed generates identical maps
+      const map1 = generateProceduralInvestigationMap({ seed: 42 });
+      const map2 = generateProceduralInvestigationMap({ seed: 42 });
+      expect(Object.keys(map1.nodes).map((id) => map1.nodes[id].title)).toEqual(
+        Object.keys(map2.nodes).map((id) => map2.nodes[id].title)
+      );
+
+      // 3. Different seeds generate different node variations
+      const map3 = generateProceduralInvestigationMap({ seed: 999 });
+      const titles1 = Object.values(map1.nodes).map((n) => n.title);
+      const titles3 = Object.values(map3.nodes).map((n) => n.title);
+      expect(titles1).not.toEqual(titles3);
+    });
   });
 });
