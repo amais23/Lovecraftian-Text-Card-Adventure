@@ -77,6 +77,17 @@ export class SoundEngine {
   }
 
   /**
+   * 切換靜音狀態並於解除靜音時播放點擊回饋音
+   */
+  public toggleMuteWithFeedback(): boolean {
+    const nextMuted = this.toggleMute();
+    if (!nextMuted) {
+      this.playClick();
+    }
+    return nextMuted;
+  }
+
+  /**
    * 1. 抽牌 / 洗牌滑動音 (Kenney Card Slide / Flick)
    */
   public playDrawCard(): void {

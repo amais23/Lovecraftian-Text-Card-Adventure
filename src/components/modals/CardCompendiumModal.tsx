@@ -54,6 +54,32 @@ const CATEGORY_CONFIG: Record<
   },
 };
 
+/**
+ * 格式化簡短消耗標籤（用於卡牌清單格子）
+ */
+function formatCardCostShort(costType: Card['costType'], costValue: number): string {
+  if (costType === 'free') return '免費';
+  if (costType === 'sanity') return `理智 ${costValue}`;
+  if (costValue === 0) return '0 精力 (免費)';
+  return `${costValue} 精力`;
+}
+
+/**
+ * 格式化詳細消耗標籤（用於詳情檢視面板）
+ */
+function formatCardCostDetail(costType: Card['costType'], costValue: number): { label: string; value: string } {
+  if (costType === 'free') {
+    return { label: '消耗：', value: '免費' };
+  }
+  if (costType === 'sanity') {
+    return { label: '理智消耗：', value: String(costValue) };
+  }
+  if (costValue === 0) {
+    return { label: '精力消耗：', value: '0 (免費)' };
+  }
+  return { label: '精力消耗：', value: String(costValue) };
+}
+
 export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
   isOpen,
   onClose,
@@ -202,13 +228,7 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
                     >
                       <div className="cell-top">
                         <span className={`cell-cost ${card.costType}`}>
-                          {card.costType === 'free'
-                            ? '免費'
-                            : card.costValue === 0 && card.costType === 'stamina'
-                              ? '0 精力 (免費)'
-                              : card.costType === 'sanity'
-                                ? `理智 ${card.costValue}`
-                                : `${card.costValue} 精力`}
+                          {formatCardCostShort(card.costType, card.costValue)}
                         </span>
                         <span className={`cell-cat-pill ${card.category}`}>
                           {cfg.shortLabel}
@@ -229,17 +249,20 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
               <div className={`detail-card-preview-frame ${selectedCard.category}`}>
                 <div className="frame-glow" />
                 <div className="frame-header">
-                  <div className={`frame-cost-badge ${selectedCard.costType}`}>
-                    {selectedCard.costType === 'free' ? (
-                      <span>消耗：<strong>免費</strong></span>
-                    ) : selectedCard.costValue === 0 && selectedCard.costType === 'stamina' ? (
-                      <span>精力消耗：<strong>0 (免費)</strong></span>
-                    ) : selectedCard.costType === 'sanity' ? (
-                      <span>理智消耗：<strong>{selectedCard.costValue}</strong></span>
-                    ) : (
-                      <span>精力消耗：<strong>{selectedCard.costValue}</strong></span>
-                    )}
-                  </div>
+                  {(() => {
+                    const detailCost = formatCardCostDetail(
+                      selectedCard.costType,
+                      selectedCard.costValue
+                    );
+                    return (
+                      <div className={`frame-cost-badge ${selectedCard.costType}`}>
+                        <span>
+                          {detailCost.label}
+                          <strong>{detailCost.value}</strong>
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <span className={`frame-category-tag ${selectedCard.category}`}>
                     {CATEGORY_CONFIG[selectedCard.category].label}
                   </span>

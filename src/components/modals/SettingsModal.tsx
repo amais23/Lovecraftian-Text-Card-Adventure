@@ -16,10 +16,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   const handleToggleMute = () => {
-    const nextMuted = soundEngine.toggleMute();
-    if (!nextMuted) {
-      soundEngine.playClick();
-    }
+    soundEngine.toggleMuteWithFeedback();
   };
 
   return (

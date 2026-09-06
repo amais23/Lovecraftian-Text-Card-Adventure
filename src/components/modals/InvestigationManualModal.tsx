@@ -231,7 +231,7 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
                       <strong>精力點數 (Stamina)</strong>：每回合開始時刷新至基準值（預設 3 點）。打出紅色戰鬥卡與黃色技能卡均需消耗精力。合理分配精力是每回合攻防佈局的核心。
                     </li>
                     <li>
-                      <strong>護甲值 (Armor)</strong>：由黃色技能卡或特定手段提供的物理防禦護盾。
+                      <strong>護甲值 (Armor)</strong>：由黃色技能卡或特定手段提供的物理防禦防線。
                       <span className="highlight-note">【關鍵機制】護甲跨回合持續累積，不會在回合結束時自動衰退歸零！</span>
                     </li>
                     <li>

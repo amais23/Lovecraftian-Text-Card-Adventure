@@ -27,4 +27,26 @@ describe('SoundEngine subscription', () => {
 
     unsubscribe2();
   });
+
+  it('toggleMuteWithFeedback toggles mute state and plays click feedback only when unmuting', () => {
+    const playClickSpy = vi.spyOn(soundEngine, 'playClick').mockImplementation(() => {});
+
+    // Ensure currently unmuted
+    soundEngine.setMuted(false);
+    playClickSpy.mockClear();
+
+    // Mute: should not play click sound
+    const isNowMuted = soundEngine.toggleMuteWithFeedback();
+    expect(isNowMuted).toBe(true);
+    expect(soundEngine.getMuted()).toBe(true);
+    expect(playClickSpy).not.toHaveBeenCalled();
+
+    // Unmute: should play click sound feedback
+    const isNowUnmuted = soundEngine.toggleMuteWithFeedback();
+    expect(isNowUnmuted).toBe(false);
+    expect(soundEngine.getMuted()).toBe(false);
+    expect(playClickSpy).toHaveBeenCalledTimes(1);
+
+    playClickSpy.mockRestore();
+  });
 });

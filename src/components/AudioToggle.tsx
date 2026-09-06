@@ -7,10 +7,7 @@ export const AudioToggle: React.FC = () => {
   const isMuted = useSoundMuted();
 
   const handleToggle = () => {
-    const nextMuted = soundEngine.toggleMute();
-    if (!nextMuted) {
-      soundEngine.playClick();
-    }
+    soundEngine.toggleMuteWithFeedback();
   };
 
   return (
