@@ -45,7 +45,11 @@ Thumbs.db
 # Agent skills
 .agents/skills/
 
-# Tauri builds
+# Tauri builds & installer bundles
 src-tauri/target/
-
-
+src-tauri/gen/
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.msi
