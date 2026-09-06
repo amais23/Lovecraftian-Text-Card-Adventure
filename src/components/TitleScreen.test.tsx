@@ -90,7 +90,7 @@ describe('TitleScreen & TitleMenu Integration', () => {
     fireEvent.click(screen.getByRole('button', { name: /卡牌圖鑑/i }));
 
     expect(screen.getByRole('heading', { name: /卡牌圖鑑/i })).toBeDefined();
-    expect(screen.getByText(/已收錄 28 張專屬五色卡牌/i)).toBeDefined();
+    expect(screen.getByText(/已收錄 \d+ 張專屬五色卡牌/i)).toBeDefined();
 
     // Filter by category: combat
     const combatTab = screen.getByRole('tab', { name: /紅色戰鬥/i });

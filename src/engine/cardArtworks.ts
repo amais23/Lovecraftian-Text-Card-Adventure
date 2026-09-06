@@ -272,21 +272,97 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '血肉筋膜與黑曜石深淵金屬共生熔鑄的魔刃，刀脊滴落著沸騰狂暴的深紫血液。',
     imageUrl: '/cards/madness/card_frenzy_blade.png',
   },
+
+  // === TIER 4+ EXCLUSIVE BOSS CARDS (ADR-0017) ===
+  card_tier4_god_slayer: {
+    artId: 'card_tier4_god_slayer',
+    name: '屠神裁決爆轟',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 弒神巨砲',
+    conceptLore: 'Q版誇張度破表的金色重砲轟出舊印核爆蘑菇雲，舊日觸手驚恐退散，黑色幽默巔峰。',
+    imageUrl: '/cards/combat/card_god_slayer.png',
+  },
+  card_tier4_elder_aegis: {
+    artId: 'card_tier4_elder_aegis',
+    name: '舊神庇護之陣',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 舊神聖域',
+    conceptLore: '純銀渾天儀與古老玄武岩舊印石柱投影出神聖五芒力場，深淵污穢如初雪消融。',
+    imageUrl: '/cards/skill/card_elder_aegis.png',
+  },
+  card_tier4_void_annihilation: {
+    artId: 'card_tier4_void_annihilation',
+    name: '超維虛空湮滅',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法 · 虛空超新星',
+    conceptLore: '陽光奇幻風格的七彩超新星大爆發，絢麗耀眼的彩虹稜鏡魔導光束將深淵異質蒸發殆盡。',
+    imageUrl: '/cards/magic/card_void_annihilation.png',
+  },
+  card_tier4_astral_revelation: {
+    artId: 'card_tier4_astral_revelation',
+    name: '源初星辰啟示',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 群星共振',
+    conceptLore: '超維度萬千幾何星軌正位共振，純銀神性天眼投下貫穿所有維度的終極真理之光。',
+    imageUrl: '/cards/truth/card_astral_revelation.png',
+  },
 };
 
 /**
- * All 28 unique card artworks list for Compendium
+ * All unique card artworks list for Compendium (28 base cards + 4 Tier 4+ boss exclusive cards)
  */
 export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);
+
+/**
+ * Standard Lovecraftian Parchment WIP Placeholder for cards whose dedicated artwork is in progress.
+ */
+export const WIP_CARD_ARTWORK: CardArtworkInfo = {
+  artId: 'card_wip_placeholder',
+  name: '還沒畫好',
+  category: 'truth',
+  styleTag: 'eldritch',
+  styleName: '繪卷繪製中',
+  conceptLore: '密契學者正於阿卡姆手抄館探詢原典，太古殘卷待勘，繪卷繪製中 (WIP)。',
+  imageUrl: '/cards/card_wip_placeholder.svg',
+};
+
+/**
+ * Cards currently pending dedicated illustrations (Tier 2 & Tier 3)
+ */
+export const WIP_TIERED_CARD_NAMES = new Set<string>([
+  // Tier 2 Cards
+  '泵動式散彈槍',
+  '破魔銀質短刃',
+  '鋼鐵意志屏障',
+  '戰地快速縫合',
+  '深海冰霜之握',
+  '心靈震波',
+  '禁忌海蝕石板殘卷',
+  '銀鑰指引微光',
+
+  // Tier 3 Cards
+  '達姆高爆彈連射',
+  '軍用特種炸藥包',
+  '不可侵犯之壁',
+  '極限精神錨定',
+  '虛空黑洞坍縮',
+  '深淵靈能撕裂',
+  '拉萊耶原典啟示',
+  '超維星辰共鳴',
+]);
 
 // Fast static lookup indexes for O(1) performance
 const ARTWORKS_BY_NAME = new Map<string, CardArtworkInfo>(
   ALL_CARD_ARTWORKS.map((art) => [art.name, art])
 );
 
-// Aliases for card variants (e.g. black market goods, tiered cards, and narrative derivatives)
+// Aliases for card variants (e.g. black market narrative goods)
 export const CARD_NAME_ALIASES: Record<string, string> = {
-  // Market goods
+  // Market goods variants
   '戰壕雙管獵槍': '雙管獵槍',
   '遠古青銅護身符': '遠古護身符',
   '心智防波堤手稿': '心智防波堤',
@@ -296,32 +372,6 @@ export const CARD_NAME_ALIASES: Record<string, string> = {
   '深海抗逆血清': '醫療鎮定劑',
   '禁忌復甦針劑': '醫療鎮定劑',
   '聖所聖水金樽': '遠古護身符',
-
-  // Tier 2 Cards
-  '泵動式散彈槍': '雙管獵槍',
-  '破魔銀質短刃': '防身短刀',
-  '鋼鐵意志屏障': '就地掩蔽',
-  '戰地快速縫合': '應急急救包',
-  '深海冰霜之握': '虛空烈焰',
-  '心靈震波': '恐懼低語',
-  '禁忌海蝕石板殘卷': '舊日殘頁',
-  '銀鑰指引微光': '銀鑰儀式',
-
-  // Tier 3 Cards
-  '達姆高爆彈連射': '左輪射擊',
-  '軍用特種炸藥包': '雙管獵槍',
-  '不可侵犯之壁': '星界庇護',
-  '極限精神錨定': '心靈冥想',
-  '虛空黑洞坍縮': '虛空烈焰',
-  '深淵靈能撕裂': '靈能衝擊',
-  '拉萊耶原典啟示': '深潛者手札',
-  '超維星辰共鳴': '星界洞察',
-
-  // Tier 4+ Exclusive Cards
-  '屠神裁決爆轟': '雙管獵槍',
-  '舊神庇護之陣': '星界庇護',
-  '超維虛空湮滅': '虛空烈焰',
-  '源初星辰啟示': '星界洞察',
 };
 
 interface TokenArtworkPattern {
@@ -371,7 +421,16 @@ export function getCardArtwork(card: Card | { name: string; category?: CardCateg
     return byName;
   }
 
-  // Second attempt: match by name alias
+  // Second attempt: check if card is a WIP tiered card awaiting dedicated artwork
+  if (WIP_TIERED_CARD_NAMES.has(card.name)) {
+    return {
+      ...WIP_CARD_ARTWORK,
+      name: card.name,
+      category: card.category ?? 'combat',
+    };
+  }
+
+  // Third attempt: match by name alias
   const aliasName = CARD_NAME_ALIASES[card.name];
   if (aliasName) {
     const byAlias = ARTWORKS_BY_NAME.get(aliasName);

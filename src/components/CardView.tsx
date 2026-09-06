@@ -147,11 +147,12 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const selfDamageEffect = card.effects.find((e) => e.type === 'self_damage');
+  const tierClass = card.category === 'madness' ? 'tier-madness' : `tier-${card.tier ?? 1}`;
 
   return (
     <motion.div
       layout={!isStandalone}
-      className={`card-item ${card.category} ${
+      className={`card-item ${card.category} ${tierClass} ${
         isStandalone ? 'standalone' : isPlayable ? 'playable' : 'disabled'
       } ${isDragging ? 'dragging' : ''}`}
       initial={isStandalone ? false : { opacity: 0, y: 120, scale: 0.8 }}

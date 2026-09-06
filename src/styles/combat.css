@@ -617,6 +617,131 @@
   }
 }
 
+/* =========================================================
+   Tier Border Progression (ADR-0017)
+   Maintains category base colors while applying progressive
+   metallic texture and ambient glow per tier.
+   ========================================================= */
+
+/* Tier 1 (Base / Common): Clean, restrained border */
+.card-item.tier-1 {
+  /* Default category styling */
+}
+
+/* Tier 2 (Advanced): Inlaid Steel / Silver dual-line border */
+.card-item.tier-2 {
+  box-shadow: var(--shadow-card),
+              inset 0 0 0 1px rgba(226, 232, 240, 0.35),
+              0 0 10px rgba(148, 163, 184, 0.25);
+}
+.card-item.tier-2::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: calc(var(--radius-md) - 2px);
+  border: 1px dashed rgba(226, 232, 240, 0.22);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Tier 3 (Master / High-Tier): Gilded Gold Relief & Golden Breathing Aura */
+.card-item.tier-3 {
+  box-shadow: var(--shadow-card),
+              inset 0 0 0 1.5px rgba(245, 197, 66, 0.55),
+              0 0 16px rgba(245, 197, 66, 0.35);
+  animation: tier3GoldPulse 4s infinite ease-in-out;
+}
+.card-item.tier-3::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: calc(var(--radius-md) - 2px);
+  border: 1px solid rgba(245, 197, 66, 0.45);
+  pointer-events: none;
+  z-index: 2;
+}
+.card-item.tier-3::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(var(--radius-md) + 1px);
+  border: 1px solid rgba(245, 197, 66, 0.3);
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes tier3GoldPulse {
+  0%, 100% {
+    box-shadow: var(--shadow-card),
+                inset 0 0 0 1.5px rgba(245, 197, 66, 0.5),
+                0 0 14px rgba(245, 197, 66, 0.3);
+  }
+  50% {
+    box-shadow: var(--shadow-card),
+                inset 0 0 0 2px rgba(255, 223, 110, 0.75),
+                0 0 24px rgba(255, 215, 0, 0.5);
+  }
+}
+
+/* Tier 4+ (Boss Exclusive Mythic): Cosmic Prismatic Aura & Eldritch Stellar Shimmer */
+.card-item.tier-4 {
+  box-shadow: var(--shadow-card),
+              inset 0 0 0 2px rgba(255, 235, 160, 0.75),
+              0 0 22px rgba(168, 85, 247, 0.45),
+              0 0 12px rgba(56, 189, 248, 0.55);
+  animation: tier4CosmicPrismatic 5s infinite ease-in-out;
+}
+.card-item.tier-4::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: calc(var(--radius-md) - 2px);
+  border: 1.5px solid rgba(255, 235, 160, 0.55);
+  pointer-events: none;
+  z-index: 2;
+}
+.card-item.tier-4::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(var(--radius-md) + 2px);
+  border: 1px solid rgba(224, 170, 255, 0.5);
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes tier4CosmicPrismatic {
+  0% {
+    box-shadow: var(--shadow-card),
+                inset 0 0 0 2px rgba(255, 235, 160, 0.75),
+                0 0 22px rgba(168, 85, 247, 0.5),
+                0 0 12px rgba(56, 189, 248, 0.6);
+  }
+  33% {
+    box-shadow: var(--shadow-card),
+                inset 0 0 0 2px rgba(125, 211, 252, 0.8),
+                0 0 24px rgba(56, 189, 248, 0.6),
+                0 0 14px rgba(245, 197, 66, 0.55);
+  }
+  66% {
+    box-shadow: var(--shadow-card),
+                inset 0 0 0 2px rgba(244, 114, 182, 0.75),
+                0 0 25px rgba(217, 70, 239, 0.55),
+                0 0 15px rgba(125, 211, 252, 0.5);
+  }
+  100% {
+    box-shadow: var(--shadow-card),
+                inset 0 0 0 2px rgba(255, 235, 160, 0.75),
+                0 0 22px rgba(168, 85, 247, 0.5),
+                0 0 12px rgba(56, 189, 248, 0.6);
+  }
+}
+
+/* Madness is completely exempt from tiers */
+.card-item.tier-madness {
+  /* Retains raw abyss flicker without tier overlay */
+}
+
 .card-item.playable:hover {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.95), 0 0 22px rgba(230, 57, 70, 0.7);
   border-color: #ff4d5a;

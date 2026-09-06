@@ -4,22 +4,22 @@ import { ALL_TIERED_CARDS } from './cardTiers';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
-  it('should register all 28 unique card artworks across all categories', () => {
-    expect(ALL_CARD_ARTWORKS.length).toBe(28);
-    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(28);
+  it('should register all 32 unique card artworks across all categories (28 base + 4 Tier 4+ boss exclusive)', () => {
+    expect(ALL_CARD_ARTWORKS.length).toBe(32);
+    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(32);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
-    expect(categories.filter((c) => c === 'combat').length).toBe(7);
-    expect(categories.filter((c) => c === 'skill').length).toBe(8);
-    expect(categories.filter((c) => c === 'magic').length).toBe(4);
-    expect(categories.filter((c) => c === 'truth').length).toBe(6);
+    expect(categories.filter((c) => c === 'combat').length).toBe(8);
+    expect(categories.filter((c) => c === 'skill').length).toBe(9);
+    expect(categories.filter((c) => c === 'magic').length).toBe(5);
+    expect(categories.filter((c) => c === 'truth').length).toBe(7);
     expect(categories.filter((c) => c === 'madness').length).toBe(3);
   });
 
-  it('should ensure all 28 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
+  it('should ensure all 32 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
     const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
     const imagePaths = Object.keys(cardImages);
-    expect(imagePaths.length).toBeGreaterThanOrEqual(28);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(32);
 
     for (const art of ALL_CARD_ARTWORKS) {
       // art.imageUrl must conform to ADR-0012 (WebP or PNG)
@@ -36,7 +36,7 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     }
   });
 
-  it('should adhere to ADR-0012 and ADR-0013 style naming conventions', () => {
+  it('should adhere to ADR-0012, ADR-0013, and ADR-0017 style naming conventions', () => {
     for (const art of ALL_CARD_ARTWORKS) {
       switch (art.category) {
         case 'combat':
@@ -155,13 +155,22 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     }
   });
 
-  it('should successfully resolve dedicated artworks for all tiered cards (Tier 2, Tier 3, Tier 4+)', () => {
+  it('should resolve dedicated artworks for Tier 4+ cards and map Tier 2/3 to WIP placeholder', () => {
     for (const card of ALL_TIERED_CARDS) {
       const art = getCardArtwork(card);
       expect(art).toBeDefined();
       expect(art.artId).toBeTruthy();
       expect(art.imageUrl).toBeTruthy();
       expect(art.category).toBe(card.category);
+
+      if (card.tier === 4) {
+        // Tier 4+ Exclusive cards have dedicated AI artwork
+        expect(art.imageUrl).not.toContain('card_wip_placeholder.svg');
+        expect(art.imageUrl).toContain('/cards/');
+      } else if (card.tier === 2 || card.tier === 3) {
+        // Tier 2 & Tier 3 cards currently map to the Lovecraftian WIP placeholder
+        expect(art.imageUrl).toBe('/cards/card_wip_placeholder.svg');
+      }
     }
   });
 });
