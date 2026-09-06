@@ -1,6 +1,7 @@
 import type {
   AdventureStats,
   Card,
+  DepthLevel,
   Enemy,
   EnemyIntent,
   GameAction,
@@ -103,29 +104,23 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
   };
 }
 
+const STATIC_ENEMY_TEMPLATES: Record<string, Enemy> = {
+  [INITIAL_DEEP_ONE.id]: INITIAL_DEEP_ONE,
+  [INITIAL_SHOGGOTH.id]: INITIAL_SHOGGOTH,
+  [INITIAL_DAGON_PRIEST.id]: INITIAL_DAGON_PRIEST,
+  [INITIAL_COLOSSAL_SHOGGOTH.id]: INITIAL_COLOSSAL_SHOGGOTH,
+  [INITIAL_STAR_SPAWN.id]: INITIAL_STAR_SPAWN,
+  [INITIAL_GHOUL.id]: INITIAL_GHOUL,
+};
+
 /**
  * 取得敵人初始模板以利於戰鬥重整 (Reset Combat) 重新迎戰原敵人
  */
-export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap, depth: number = 1): Enemy {
+export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap, depth: DepthLevel = 1): Enemy {
   const currentDepth = depth ?? map?.depth ?? 1;
   const enemyId = candidate?.id;
-  if (enemyId === INITIAL_DEEP_ONE.id) {
-    return cloneEnemy(INITIAL_DEEP_ONE);
-  }
-  if (enemyId === INITIAL_SHOGGOTH.id) {
-    return cloneEnemy(INITIAL_SHOGGOTH);
-  }
-  if (enemyId === INITIAL_DAGON_PRIEST.id) {
-    return cloneEnemy(INITIAL_DAGON_PRIEST);
-  }
-  if (enemyId === INITIAL_COLOSSAL_SHOGGOTH.id) {
-    return cloneEnemy(INITIAL_COLOSSAL_SHOGGOTH);
-  }
-  if (enemyId === INITIAL_STAR_SPAWN.id) {
-    return cloneEnemy(INITIAL_STAR_SPAWN);
-  }
-  if (enemyId === INITIAL_GHOUL.id) {
-    return cloneEnemy(INITIAL_GHOUL);
+  if (enemyId && STATIC_ENEMY_TEMPLATES[enemyId]) {
+    return cloneEnemy(STATIC_ENEMY_TEMPLATES[enemyId]);
   }
 
   // If node type from map is available
@@ -828,8 +823,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Advance map if map is present, otherwise remain in combat
       const updatedMap = advanceMapAfterNode(state.map);
+      const currentDepth = state.currentDepth ?? 1;
+      const isFinalBoss = isBossFight && currentDepth >= 4;
       let nextPhase: GameState['phase'] = state.map ? 'map' : 'combat';
-      if (isBossFight && state.map) {
+      if (isBossFight && state.map && !isFinalBoss) {
         nextPhase = 'depth_transition';
       }
 
@@ -855,9 +852,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'depth_transition') return state;
       const currentDepth = state.currentDepth ?? 1;
       if (currentDepth >= 4) {
-        return state;
+        return {
+          ...state,
+          phase: 'map',
+          map: state.map ? { ...state.map, isCompleted: true } : undefined,
+        };
       }
-      const nextDepth = currentDepth + 1;
+      const nextDepth = (currentDepth + 1) as DepthLevel;
       const newMap = generateInvestigationMap({ depth: nextDepth, procedural: true });
       return {
         ...state,

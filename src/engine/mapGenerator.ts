@@ -1,4 +1,4 @@
-import type { InvestigationMap, MapNode, MapNodeType } from '../types/game';
+import type { DepthLevel, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 
 export interface RawNodeConfig {
   id: string;
@@ -147,7 +147,7 @@ export interface MapGenerationOptions {
   seed?: number;
   randomFn?: () => number;
   procedural?: boolean;
-  depth?: number;
+  depth?: DepthLevel;
 }
 
 const DEPTH_METADATA: Record<
@@ -412,7 +412,7 @@ function buildNodesAndLayers(
  * - Depth 4: 生成 8 個緊湊高危終局節點 DAG。
  */
 export function generateProceduralInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
-  const depth = options?.depth ?? 1;
+  const depth: DepthLevel = options?.depth ?? 1;
   const rng = options?.randomFn ?? (options?.seed !== undefined ? createPrng(options.seed) : Math.random);
   const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 
@@ -537,7 +537,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
  * - 若指定 options.procedural 為 true，或請求無靜態基底範本的深層（Depth >= 2），則執行動態程序化生成（Depth 1~3 為 16 節點，Depth 4 為 8 節點）
  */
 export function generateInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
-  const depth = options?.depth ?? 1;
+  const depth: DepthLevel = options?.depth ?? 1;
   const isProcedural = options?.procedural ?? (depth > 1);
 
   if (isProcedural) {

@@ -2483,7 +2483,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('generates 16 nodes across 6 layers for Depths 1, 2, 3 with zero dead ends', () => {
-      for (const depth of [1, 2, 3]) {
+      for (const depth of [1, 2, 3] as const) {
         const map = generateProceduralInvestigationMap({ depth });
         expect(map.depth).toBe(depth);
         expect(map.layers.length).toBe(6);
@@ -2644,7 +2644,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
       // Verify Dagon Priest was loaded
       expect(depth2Combat.currentEnemy.id).toBe(INITIAL_DAGON_PRIEST.id);
-      expect(depth2Combat.currentEnemy.name).toContain('High Priest of Dagon');
+      expect(depth2Combat.currentEnemy.name).toBe('大袞的深淵祭司');
 
       // Win and claim reward
       const victoryState: GameState = { ...depth2Combat, phase: 'victory' };
@@ -2662,16 +2662,62 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(Object.keys(depth3State.map?.nodes ?? {}).length).toBe(16);
     });
 
-    it('guards COMPLETE_DEPTH_TRANSITION against advancing beyond max depth 4', () => {
+    it('guards COMPLETE_DEPTH_TRANSITION against advancing beyond max depth 4 and completes map', () => {
       const stateAtDepth4: GameState = {
         ...createInitialCombatState(),
         phase: 'depth_transition',
         currentDepth: 4,
+        map: generateProceduralInvestigationMap({ depth: 4 }),
       };
 
       const result = gameReducer(stateAtDepth4, { type: 'COMPLETE_DEPTH_TRANSITION' });
       expect(result.currentDepth).toBe(4);
-      expect(result.phase).toBe('depth_transition');
+      expect(result.phase).toBe('map');
+      expect(result.map?.isCompleted).toBe(true);
+    });
+
+    it('completes the entire adventure with map.isCompleted = true and transitions to map (Arkham Gazette victory) upon defeating Depth 4 final boss', () => {
+      const depth4Map = generateProceduralInvestigationMap({ depth: 4 });
+      const bossNodeId = depth4Map.layers[3][0];
+
+      // Navigate to Depth 4 boss
+      const depth4Combat = gameReducer(
+        {
+          ...createInitialCombatState(),
+          phase: 'map',
+          currentDepth: 4,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 15,
+            maxHealth: 25,
+          },
+          map: {
+            ...depth4Map,
+            nodes: {
+              ...depth4Map.nodes,
+              [bossNodeId]: {
+                ...depth4Map.nodes[bossNodeId],
+                status: 'accessible',
+              },
+            },
+          },
+        },
+        { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bossNodeId } }
+      );
+
+      expect(depth4Combat.currentEnemy.id).toBe(INITIAL_STAR_SPAWN.id);
+      expect(depth4Combat.currentEnemy.name).toBe('克蘇魯星之眷族');
+
+      // Win and claim reward
+      const victoryState: GameState = { ...depth4Combat, phase: 'victory' };
+      const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      const finalState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+
+      // Final boss victory must return to phase: 'map' with isCompleted: true for Arkham Gazette ending sequence
+      expect(finalState.phase).toBe('map');
+      expect(finalState.map?.isCompleted).toBe(true);
+      expect(finalState.investigator.health).toBe(25); // Healed to full
+      expect(finalState.battleLog.some((log) => log.includes('首領決戰復甦'))).toBe(true);
     });
 
     it('handles generateInvestigationMap predicate correctly for deterministic vs procedural', () => {

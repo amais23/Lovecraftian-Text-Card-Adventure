@@ -1,4 +1,4 @@
-import type { Card, Enemy, EnemyIntent, MarketItem, MythosEvent } from '../types/game';
+import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent } from '../types/game';
 
 /* =========================================================
    Elite & Boss Enemies
@@ -93,7 +93,7 @@ export const DAGON_PRIEST_INTENTS: EnemyIntent[] = [
 
 export const INITIAL_DAGON_PRIEST: Enemy = {
   id: 'enemy_dagon_priest',
-  name: '大袞的深淵祭司 (High Priest of Dagon)',
+  name: '大袞的深淵祭司',
   title: '深海王廷的主祭',
   health: 85,
   maxHealth: 85,
@@ -126,7 +126,7 @@ export const COLOSSAL_SHOGGOTH_INTENTS: EnemyIntent[] = [
 
 export const INITIAL_COLOSSAL_SHOGGOTH: Enemy = {
   id: 'enemy_colossal_shoggoth',
-  name: '原生巨型修格斯 (Colossal Shoggoth)',
+  name: '原生巨型修格斯',
   title: '太古無底深淵的原形支配者',
   health: 110,
   maxHealth: 110,
@@ -159,7 +159,7 @@ export const STAR_SPAWN_INTENTS: EnemyIntent[] = [
 
 export const INITIAL_STAR_SPAWN: Enemy = {
   id: 'enemy_star_spawn',
-  name: '克蘇魯星之眷族 (Star-Spawn of Cthulhu)',
+  name: '克蘇魯星之眷族',
   title: '拉萊耶沉睡之主的血脈',
   health: 150,
   maxHealth: 150,
@@ -169,7 +169,7 @@ export const INITIAL_STAR_SPAWN: Enemy = {
   currentIntentIndex: 0,
 };
 
-export function getBossByDepth(depth: number = 1): Enemy {
+export function getBossByDepth(depth: DepthLevel = 1): Enemy {
   switch (depth) {
     case 2:
       return INITIAL_DAGON_PRIEST;

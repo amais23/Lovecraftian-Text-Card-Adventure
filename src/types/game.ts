@@ -67,10 +67,12 @@ export interface MapNode {
   status: 'unvisited' | 'current' | 'visited' | 'accessible';
 }
 
+export type DepthLevel = 1 | 2 | 3 | 4;
+
 export interface InvestigationMap {
   id: string;
   name: string;
-  depth?: number;
+  depth?: DepthLevel;
   nodes: Record<string, MapNode>;
   layers: string[][];
   currentNodeId: string | null;
@@ -123,7 +125,7 @@ export interface AdventureStats {
 
 export interface GameState {
   phase: 'title' | 'prologue' | 'occupation_select' | 'departure' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'depth_transition' | 'gameover';
-  currentDepth: number;
+  currentDepth: DepthLevel;
   turn: number;
   investigator: Investigator;
   sanityDeck: Card[]; // 牌庫剩餘數量即等同於當前理智值 (Sanity)
