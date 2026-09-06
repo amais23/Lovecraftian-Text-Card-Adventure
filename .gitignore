@@ -45,4 +45,7 @@ Thumbs.db
 # Agent skills
 .agents/skills/
 
+# Tauri builds
+src-tauri/target/
+
 
