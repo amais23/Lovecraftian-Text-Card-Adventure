@@ -310,10 +310,39 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '超維度萬千幾何星軌正位共振，純銀神性天眼投下貫穿所有維度的終極真理之光。',
     imageUrl: '/cards/truth/card_astral_revelation.png',
   },
+
+  // === TIER 3 MASTER CARDS ===
+  card_tier3_dum_dum: {
+    artId: 'card_tier3_dum_dum',
+    name: '達姆高爆彈連射',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 特製達姆彈',
+    conceptLore: '可愛卡通風的特製達姆高爆彈連鎖齊射，引發連環星芒火花與爆裂衝擊波。',
+    imageUrl: '/cards/combat/card_dum_dum.png',
+  },
+  card_tier3_demolition_pack: {
+    artId: 'card_tier3_demolition_pack',
+    name: '軍用特種炸藥包',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 特種炸藥包',
+    conceptLore: 'Q版軍用高爆炸藥背包燃起引線，爆發出排山倒海的烈焰衝擊波與飛濺碎石。',
+    imageUrl: '/cards/combat/card_demolition_pack.png',
+  },
+  card_tier3_impenetrable_bastion: {
+    artId: 'card_tier3_impenetrable_bastion',
+    name: '不可侵犯之壁',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 鋼鐵堡壘',
+    conceptLore: '真實寫實風格的軍用重裝鋼板防線與沙包工事，在漆黑霧氣與異域風暴中固若金湯。',
+    imageUrl: '/cards/skill/card_impenetrable_bastion.png',
+  },
 };
 
 /**
- * All unique card artworks list for Compendium (28 base cards + 4 Tier 4+ boss exclusive cards)
+ * All unique card artworks list for Compendium (28 base cards + 4 Tier 4+ boss exclusive + 3 Tier 3 completed cards)
  */
 export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);
 
@@ -331,7 +360,7 @@ export const WIP_CARD_ARTWORK: CardArtworkInfo = {
 };
 
 /**
- * Cards currently pending dedicated illustrations (Tier 2 & Tier 3)
+ * Cards currently pending dedicated illustrations (Tier 2 & remaining Tier 3)
  */
 export const WIP_TIERED_CARD_NAMES = new Set<string>([
   // Tier 2 Cards
@@ -344,10 +373,7 @@ export const WIP_TIERED_CARD_NAMES = new Set<string>([
   '禁忌海蝕石板殘卷',
   '銀鑰指引微光',
 
-  // Tier 3 Cards
-  '達姆高爆彈連射',
-  '軍用特種炸藥包',
-  '不可侵犯之壁',
+  // Remaining Tier 3 Cards
   '極限精神錨定',
   '虛空黑洞坍縮',
   '深淵靈能撕裂',

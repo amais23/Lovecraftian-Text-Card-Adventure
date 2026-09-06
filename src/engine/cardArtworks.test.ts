@@ -1,25 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { ALL_CARD_ARTWORKS, getCardArtwork, CARD_ARTWORKS_REGISTRY, CARD_NAME_ALIASES } from './cardArtworks';
+import {
+  ALL_CARD_ARTWORKS,
+  getCardArtwork,
+  CARD_ARTWORKS_REGISTRY,
+  CARD_NAME_ALIASES,
+  WIP_TIERED_CARD_NAMES,
+} from './cardArtworks';
 import { ALL_TIERED_CARDS } from './cardTiers';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
-  it('should register all 32 unique card artworks across all categories (28 base + 4 Tier 4+ boss exclusive)', () => {
-    expect(ALL_CARD_ARTWORKS.length).toBe(32);
-    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(32);
+  it('should register all 35 unique card artworks across all categories (28 base + 4 Tier 4+ boss exclusive + 3 Tier 3)', () => {
+    expect(ALL_CARD_ARTWORKS.length).toBe(35);
+    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(35);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
-    expect(categories.filter((c) => c === 'combat').length).toBe(8);
-    expect(categories.filter((c) => c === 'skill').length).toBe(9);
+    expect(categories.filter((c) => c === 'combat').length).toBe(10);
+    expect(categories.filter((c) => c === 'skill').length).toBe(10);
     expect(categories.filter((c) => c === 'magic').length).toBe(5);
     expect(categories.filter((c) => c === 'truth').length).toBe(7);
     expect(categories.filter((c) => c === 'madness').length).toBe(3);
   });
 
-  it('should ensure all 32 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
+  it('should ensure all 35 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
     const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
     const imagePaths = Object.keys(cardImages);
-    expect(imagePaths.length).toBeGreaterThanOrEqual(32);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(35);
 
     for (const art of ALL_CARD_ARTWORKS) {
       // art.imageUrl must conform to ADR-0012 (WebP or PNG)
@@ -163,12 +169,12 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
       expect(art.imageUrl).toBeTruthy();
       expect(art.category).toBe(card.category);
 
-      if (card.tier === 4) {
-        // Tier 4+ Exclusive cards have dedicated AI artwork
+      if (card.tier === 4 || !WIP_TIERED_CARD_NAMES.has(card.name)) {
+        // Cards with dedicated artwork
         expect(art.imageUrl).not.toContain('card_wip_placeholder.svg');
         expect(art.imageUrl).toContain('/cards/');
-      } else if (card.tier === 2 || card.tier === 3) {
-        // Tier 2 & Tier 3 cards currently map to the Lovecraftian WIP placeholder
+      } else {
+        // Cards currently pending dedicated artwork map to the Lovecraftian WIP placeholder
         expect(art.imageUrl).toBe('/cards/card_wip_placeholder.svg');
       }
     }
