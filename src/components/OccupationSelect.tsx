@@ -14,6 +14,7 @@ import {
 import { OCCUPATIONS } from '../engine/initialData';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
+import { getCardCostDisplay } from '../engine/cardCatalog';
 
 export interface OccupationSelectProps {
   onBackToMenu: () => void;
@@ -114,6 +115,24 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
             <p className="deck-feature-desc">
               配備點38轉輪手槍、重拳壓制、軍刀突刺、就地掩蔽與醫療鎮定劑。擅長以厚重護甲抵禦深淵侵襲。
             </p>
+
+            {/* Complete 12 Cards Inspection List */}
+            <div className="occupation-cards-preview-list" aria-label="愛德華·皮爾斯起始卡牌清單">
+              {investigator.deck.map((card, idx) => {
+                const cost = getCardCostDisplay(card.costType, card.costValue);
+                return (
+                  <div
+                    key={`${card.id}_${idx}`}
+                    className={`occupation-card-chip category-${card.category}`}
+                    title={`${card.name} (${cost.shortText})：${card.description}`}
+                  >
+                    <span className="card-chip-dot" />
+                    <span className="card-chip-name">{card.name}</span>
+                    <span className="card-chip-cost">{cost.shortText}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <button
@@ -174,6 +193,24 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
             <p className="deck-feature-desc">
               配備靈能衝擊、厄運凝視、星界庇護、心靈冥想與銀鑰儀式。可直接自牌庫頂獻祭理智施展高傷秘法。
             </p>
+
+            {/* Complete 12 Cards Inspection List */}
+            <div className="occupation-cards-preview-list" aria-label="艾蓮諾·凡斯起始卡牌清單">
+              {occultist.deck.map((card, idx) => {
+                const cost = getCardCostDisplay(card.costType, card.costValue);
+                return (
+                  <div
+                    key={`${card.id}_${idx}`}
+                    className={`occupation-card-chip category-${card.category}`}
+                    title={`${card.name} (${cost.shortText})：${card.description}`}
+                  >
+                    <span className="card-chip-dot" />
+                    <span className="card-chip-name">{card.name}</span>
+                    <span className="card-chip-cost">{cost.shortText}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <button

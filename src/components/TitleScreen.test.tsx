@@ -31,50 +31,17 @@ describe('TitleScreen & TitleMenu Integration', () => {
     expect(screen.queryByText('艾蓮諾·凡斯 (Eleanor Vance)')).toBeNull();
   });
 
-  it('transitions to character selection on clicking "開啟新調查" and allows returning to Title Menu', () => {
+  it('dispatches START_NEW_INVESTIGATION on clicking "開啟新調查" to initiate onboarding flow', () => {
+    const playClickSpy = vi.spyOn(soundEngine, 'playClick').mockImplementation(() => {});
     render(<TitleScreen dispatch={mockDispatch} />);
 
     // Click "開啟新調查"
     const startBtn = screen.getByRole('button', { name: /開啟新調查/i });
     fireEvent.click(startBtn);
 
-    // Now character selection screen is visible
-    expect(screen.getByText('命運的十字路口 · 選擇你的調查員')).toBeDefined();
-    expect(screen.getByText('愛德華·皮爾斯 (Edward Pierce)')).toBeDefined();
-    expect(screen.getByText('艾蓮諾·凡斯 (Eleanor Vance)')).toBeDefined();
-
-    // Click "返回主選單"
-    const backBtn = screen.getByRole('button', { name: /返回主選單/i });
-    fireEvent.click(backBtn);
-
-    // Returns to classic Title Menu
-    expect(screen.getByText('深淵正凝視著你 · 喚醒沉睡的心智')).toBeDefined();
-    expect(screen.queryByText('命運的十字路口 · 選擇你的調查員')).toBeNull();
-  });
-
-  it('dispatches SELECT_OCCUPATION when choosing an investigator on the selection screen', () => {
-    render(<TitleScreen dispatch={mockDispatch} />);
-
-    // Navigate to selection
-    fireEvent.click(screen.getByRole('button', { name: /開啟新調查/i }));
-
-    // Click choose Edward Pierce
-    const choosePierceBtn = screen.getByRole('button', { name: /啟程調查/i });
-    fireEvent.click(choosePierceBtn);
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'SELECT_OCCUPATION',
-      payload: { occupationId: 'investigator', procedural: true },
-    });
-
-    // Or click Eleanor Vance card
-    const occultistCard = screen.getByText('艾蓮諾·凡斯 (Eleanor Vance)');
-    fireEvent.click(occultistCard);
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'SELECT_OCCUPATION',
-      payload: { occupationId: 'occultist', procedural: true },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'START_NEW_INVESTIGATION' });
+    expect(playClickSpy).toHaveBeenCalled();
+    playClickSpy.mockRestore();
   });
 
   it('opens and interacts with the Investigation Manual modal', () => {

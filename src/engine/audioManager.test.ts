@@ -49,4 +49,19 @@ describe('SoundEngine subscription', () => {
 
     playClickSpy.mockRestore();
   });
+
+  it('safely handles playHeartbeat, playGunCock, playEngineStart, and playAstralHum without throwing in muted and unmuted states', () => {
+    soundEngine.setMuted(true);
+    expect(() => soundEngine.playHeartbeat()).not.toThrow();
+    expect(() => soundEngine.playGunCock()).not.toThrow();
+    expect(() => soundEngine.playEngineStart()).not.toThrow();
+    expect(() => soundEngine.playAstralHum()).not.toThrow();
+
+    soundEngine.setMuted(false);
+    expect(() => soundEngine.playHeartbeat()).not.toThrow();
+    expect(() => soundEngine.playGunCock()).not.toThrow();
+    expect(() => soundEngine.playEngineStart()).not.toThrow();
+    expect(() => soundEngine.playAstralHum()).not.toThrow();
+  });
 });
+
