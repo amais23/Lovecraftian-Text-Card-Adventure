@@ -3,7 +3,7 @@ import type { GameAction } from '../types/game';
 import { soundEngine } from '../engine/audioManager';
 import { TitleMenu } from './TitleMenu';
 import { InvestigationManualModal } from './modals/InvestigationManualModal';
-import { CardCompendiumModal } from './modals/CardCompendiumModal';
+import { CardCompendium } from './CardCompendium';
 import { SettingsModal } from './modals/SettingsModal';
 import { ExitEasterEggModal } from './modals/ExitEasterEggModal';
 
@@ -36,10 +36,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
         isOpen={activeModal === 'manual'}
         onClose={() => setActiveModal(null)}
       />
-      <CardCompendiumModal
-        isOpen={activeModal === 'compendium'}
-        onClose={() => setActiveModal(null)}
-      />
+      {activeModal === 'compendium' && (
+        <CardCompendium onClose={() => setActiveModal(null)} />
+      )}
       <SettingsModal
         isOpen={activeModal === 'settings'}
         onClose={() => setActiveModal(null)}

@@ -161,7 +161,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
             <div>
               <h1 className="compendium-title">卡牌圖鑑 (Card Compendium)</h1>
               <p className="compendium-subtitle">
-                密斯卡託尼克古典典藏研究室 · 五大類別全套專屬插畫收錄 ({ALL_CARD_ARTWORKS.length} 張)
+                密斯卡託尼克古典典藏研究室 · 已收錄 {ALL_CARD_ARTWORKS.length} 張專屬五色手牌 (全套專屬插畫收錄)
               </p>
             </div>
           </div>
@@ -173,6 +173,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               soundEngine.playClick();
               onClose();
             }}
+            aria-label="關閉圖鑑"
             title="返回主選單 (Esc)"
           >
             <X size={22} />
@@ -181,8 +182,10 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
 
         {/* Toolbar: Category Filters and Search Input */}
         <div className="compendium-toolbar">
-          <div className="compendium-filter-tabs">
+          <div className="compendium-filter-tabs" role="tablist" aria-label="卡牌類別篩選">
             <button
+              role="tab"
+              aria-selected={selectedCategory === 'all'}
               className={`compendium-tab-btn ${selectedCategory === 'all' ? 'active' : ''}`}
               onClick={() => handleFilterClick('all')}
             >
@@ -192,6 +195,8 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
             {CATEGORY_TABS.map(({ category, name, sub, icon }) => (
               <button
                 key={category}
+                role="tab"
+                aria-selected={selectedCategory === category}
                 className={`compendium-tab-btn ${category} ${selectedCategory === category ? 'active' : ''}`}
                 onClick={() => handleFilterClick(category)}
               >

@@ -89,8 +89,8 @@ describe('TitleScreen & TitleMenu Integration', () => {
     // Open Compendium
     fireEvent.click(screen.getByRole('button', { name: /卡牌圖鑑/i }));
 
-    expect(screen.getByRole('heading', { name: '卡牌圖鑑' })).toBeDefined();
-    expect(screen.getByText(/已收錄 26 張專屬五色手牌/i)).toBeDefined();
+    expect(screen.getByRole('heading', { name: /卡牌圖鑑/i })).toBeDefined();
+    expect(screen.getByText(/已收錄 28 張專屬五色手牌/i)).toBeDefined();
 
     // Filter by category: combat
     const combatTab = screen.getByRole('tab', { name: /紅色戰鬥/i });
@@ -119,7 +119,7 @@ describe('TitleScreen & TitleMenu Integration', () => {
     // Inspect card details
     const howlCard = screen.getByText('深淵狂嘯');
     fireEvent.click(howlCard);
-    expect(screen.getByText(/非人的狂吼撕裂了喉管/i)).toBeDefined();
+    expect(screen.getAllByText(/非人的狂吼撕裂了喉管/i).length).toBeGreaterThanOrEqual(1);
 
     // Close via close button
     const closeBtn = screen.getByRole('button', { name: '關閉圖鑑' });
