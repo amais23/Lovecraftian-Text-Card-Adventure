@@ -5,7 +5,6 @@ import { BattleLog } from './BattleLog';
 import { InvestigatorStatus } from './InvestigatorStatus';
 import { CardView } from './CardView';
 import { AudioToggle } from './AudioToggle';
-import { generateRewardCards } from '../engine/initialData';
 import { calculateCardFanOut } from '../engine/handMath';
 import { soundEngine } from '../engine/audioManager';
 import { Trophy, Coins, Compass, Sparkles } from 'lucide-react';
@@ -77,11 +76,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
 
   const handleProceedReward = () => {
     soundEngine.playClick();
-    const rewardCards = generateRewardCards(3);
-    dispatch({
-      type: 'PROCEED_TO_REWARD',
-      payload: { rewardCards, rewardObols: 15 },
-    });
+    dispatch({ type: 'PROCEED_TO_REWARD' });
   };
 
   return (

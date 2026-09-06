@@ -8,25 +8,25 @@ import {
 import type { CardCategory } from '../types/game';
 
 describe('cardCatalog', () => {
-  it('returns exactly 26 distinct cards in the comprehensive compendium', () => {
+  it('returns all 46 distinct cards in the comprehensive compendium', () => {
     const catalog = getCardCatalog();
-    expect(catalog).toHaveLength(26);
+    expect(catalog).toHaveLength(46);
 
     const ids = new Set(catalog.map((c) => c.id));
-    expect(ids.size).toBe(26);
+    expect(ids.size).toBe(46);
 
     const names = new Set(catalog.map((c) => c.name));
-    expect(names.size).toBe(26);
+    expect(names.size).toBe(46);
   });
 
   it('correctly maps all 5 categories with expected counts', () => {
     const stats = getCardCatalogStats();
-    expect(stats.combat).toBe(7);
-    expect(stats.skill).toBe(8);
-    expect(stats.magic).toBe(4);
-    expect(stats.truth).toBe(4);
+    expect(stats.combat).toBe(12);
+    expect(stats.skill).toBe(13);
+    expect(stats.magic).toBe(9);
+    expect(stats.truth).toBe(9);
     expect(stats.madness).toBe(3);
-    expect(stats.total).toBe(26);
+    expect(stats.total).toBe(46);
   });
 
   it('filters cards by category accurately', () => {

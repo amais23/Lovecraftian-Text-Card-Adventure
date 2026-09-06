@@ -16,7 +16,6 @@ import {
   INITIAL_GHOUL,
   INITIAL_INVESTIGATOR,
   OCCUPATIONS,
-  generateRewardCards,
   fisherYatesShuffle,
 } from './initialData';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
@@ -29,9 +28,10 @@ import {
   INITIAL_STAR_SPAWN,
   getBossByDepth,
   getMythosEventForNode,
-  generateDefaultMarketItems,
+  generateMarketItemsForDepth,
   TRUTH_CARD_BREAKWATER,
 } from './eventData';
+import { generateRewardCardsForDepth } from './cardTiers';
 
 export const BASELINE_HAND_SIZE = 4;
 
@@ -450,7 +450,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           phase: 'market',
           map: updatedMap,
-          marketItems: generateDefaultMarketItems(),
+          marketItems: generateMarketItemsForDepth(state.currentDepth ?? state.map?.depth ?? 1),
           adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！進入黑市商鋪。`,
@@ -736,8 +736,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'PROCEED_TO_REWARD': {
       if (state.phase !== 'victory') return state;
-      const rewardCards = action.payload?.rewardCards ?? generateRewardCards(3);
-      const rewardObols = action.payload?.rewardObols ?? 15;
+      const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
+      const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
+      const isBoss = currentNode?.type === 'boss';
+      const isElite = currentNode?.type === 'elite';
+      const baseObols = isBoss ? 50 : isElite ? 25 : 15;
+      const rewardObols = action.payload?.rewardObols ?? baseObols;
+      const rewardCards =
+        action.payload?.rewardCards ?? generateRewardCardsForDepth(currentDepth, isBoss);
+
       return {
         ...state,
         phase: 'reward',

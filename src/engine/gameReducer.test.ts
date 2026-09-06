@@ -25,6 +25,7 @@ import {
 import {
   MYTHOS_EVENTS,
   generateDefaultMarketItems,
+  generateMarketItemsForDepth,
   INITIAL_DEEP_ONE,
   INITIAL_SHOGGOTH,
   INITIAL_DAGON_PRIEST,
@@ -32,6 +33,7 @@ import {
   INITIAL_STAR_SPAWN,
   getBossByDepth,
 } from './eventData';
+import { TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
 import type { Card, GameState } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
@@ -2735,6 +2737,189 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       const procMapDepth2 = generateInvestigationMap({ depth: 2 });
       expect(procMapDepth2.depth).toBe(2);
       expect(Object.keys(procMapDepth2.nodes).length).toBe(16);
+    });
+  });
+
+  describe('Tiered Card System & Evolving Market (Issue #20 / ADR-0015)', () => {
+    it('generates Tier 1 reward cards and 15 obols for Depth 1 normal combat', () => {
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 1,
+        map: generateInvestigationMap({ depth: 1 }),
+      };
+
+      const rewardState = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.phase).toBe('reward');
+      expect(rewardState.rewardObols).toBe(15);
+      expect(rewardState.rewardCards).toHaveLength(3);
+      expect(rewardState.rewardCards?.every((c) => c.tier === 1)).toBe(true);
+    });
+
+    it('generates Tier 2 reward cards and 15 obols for Depth 2 normal combat', () => {
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 2,
+        map: generateInvestigationMap({ depth: 2 }),
+      };
+
+      const rewardState = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.phase).toBe('reward');
+      expect(rewardState.rewardObols).toBe(15);
+      expect(rewardState.rewardCards).toHaveLength(3);
+      expect(rewardState.rewardCards?.every((c) => c.tier === 2)).toBe(true);
+    });
+
+    it('generates Tier 3 reward cards and 15 obols for Depth 3 normal combat', () => {
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 3,
+        map: generateInvestigationMap({ depth: 3 }),
+      };
+
+      const rewardState = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.phase).toBe('reward');
+      expect(rewardState.rewardObols).toBe(15);
+      expect(rewardState.rewardCards).toHaveLength(3);
+      expect(rewardState.rewardCards?.every((c) => c.tier === 3)).toBe(true);
+    });
+
+    it('generates 50 obols and Tier 3+ cards (3 選 1) upon defeating Depth 1 Boss', () => {
+      const map = generateInvestigationMap({ depth: 1 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 1,
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      const rewardState = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.rewardObols).toBe(50);
+      expect(rewardState.rewardCards).toHaveLength(3);
+      expect(rewardState.rewardCards?.every((c) => (c.tier ?? 1) >= 3)).toBe(true);
+    });
+
+    it('generates 50 obols and all 4 Tier 4+ Exclusive cards (4 選 1) upon defeating Depth 2 Boss', () => {
+      const map = generateInvestigationMap({ depth: 2 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 2,
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      const rewardState = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.rewardObols).toBe(50);
+      expect(rewardState.rewardCards).toHaveLength(4);
+      expect(rewardState.rewardCards?.every((c) => c.tier === 4)).toBe(true);
+
+      const cardNames = rewardState.rewardCards?.map((c) => c.name);
+      expect(cardNames).toContain('屠神裁決爆轟');
+      expect(cardNames).toContain('舊神庇護之陣');
+      expect(cardNames).toContain('超維虛空湮滅');
+      expect(cardNames).toContain('源初星辰啟示');
+    });
+
+    it('evolves Black Market inventory dynamically across Depth 1, Depth 2, and Depth 3', () => {
+      // Depth 1 Market
+      const depth1Items = generateMarketItemsForDepth(1);
+      expect(depth1Items.some((item) => item.card?.name === '雙管獵槍' && item.card?.tier === 1)).toBe(true);
+      expect(depth1Items.some((item) => item.name === '軍用嗎啡注射劑')).toBe(true);
+
+      // Depth 2 Market
+      const depth2Items = generateMarketItemsForDepth(2);
+      expect(depth2Items.some((item) => item.card?.name === '泵動式散彈槍' && item.card?.tier === 2)).toBe(true);
+      expect(depth2Items.some((item) => item.card?.name === '鋼鐵意志屏障' && item.card?.tier === 2)).toBe(true);
+      expect(depth2Items.some((item) => item.name === '高級戰地醫療箱' && item.healAmount === 12)).toBe(true);
+
+      // Depth 3 Market
+      const depth3Items = generateMarketItemsForDepth(3);
+      expect(depth3Items.some((item) => item.card?.name === '達姆高爆彈連射' && item.card?.tier === 3)).toBe(true);
+      expect(depth3Items.some((item) => item.card?.name === '不可侵犯之壁' && item.card?.tier === 3)).toBe(true);
+      expect(depth3Items.some((item) => item.name === '禁忌復甦針劑' && item.healAmount === 16)).toBe(true);
+    });
+
+    it('claims Tier 4+ card and executes its combat effect accurately', () => {
+      const godSlayerCard = TIER_4_EXCLUSIVE_CARDS.find((c) => c.name === '屠神裁決爆轟')!;
+      expect(godSlayerCard).toBeDefined();
+
+      const combatState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'combat',
+        turn: 1,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          stamina: 3,
+        },
+        currentEnemy: {
+          ...cloneEnemy(INITIAL_GHOUL),
+          health: 50,
+          maxHealth: 50,
+          armor: 0,
+        },
+        hand: [godSlayerCard],
+        sanityDeck: [],
+        discardPile: [],
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: godSlayerCard.id },
+      });
+
+      // 50 - 34 damage = 16 health, 3 - 2 stamina = 1 stamina
+      expect(afterPlay.currentEnemy.health).toBe(16);
+      expect(afterPlay.investigator.stamina).toBe(1);
+      expect(afterPlay.discardPile).toHaveLength(1);
+      expect(afterPlay.discardPile[0].name).toBe('屠神裁決爆轟');
+    });
+
+    it('loads depth-appropriate market inventory when navigating to market node', () => {
+      const mapDepth2 = generateInvestigationMap({ depth: 2 });
+      let marketNodeId = '';
+      for (const [id, node] of Object.entries(mapDepth2.nodes)) {
+        if (node.type === 'market') {
+          marketNodeId = id;
+          break;
+        }
+      }
+
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'map',
+        currentDepth: 2,
+        map: {
+          ...mapDepth2,
+          nodes: {
+            ...mapDepth2.nodes,
+            [marketNodeId]: {
+              ...mapDepth2.nodes[marketNodeId],
+              status: 'accessible',
+            },
+          },
+        },
+      };
+
+      const marketState = gameReducer(state, {
+        type: 'NAVIGATE_TO_NODE',
+        payload: { nodeId: marketNodeId },
+      });
+
+      expect(marketState.phase).toBe('market');
+      expect(marketState.marketItems).toBeDefined();
+      expect(marketState.marketItems?.some((item) => item.name === '泵動式散彈槍')).toBe(true);
     });
   });
 });

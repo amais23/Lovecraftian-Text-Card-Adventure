@@ -5,9 +5,9 @@ import { CardView } from './CardView';
 import { soundEngine } from '../engine/audioManager';
 import { X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame } from 'lucide-react';
 
-// Representative card data mapped from registry for preview in compendium
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
 import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER, generateDefaultMarketItems } from '../engine/eventData';
+import { ALL_TIERED_CARDS } from '../engine/cardTiers';
 
 const CATEGORY_NAMES: Record<CardCategory, string> = {
   combat: '紅色戰鬥卡',
@@ -85,6 +85,9 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
     generateDefaultMarketItems().forEach((item) => {
       if (item.card) registerCard(item.card);
     });
+
+    // Tiered and Boss Exclusive cards
+    ALL_TIERED_CARDS.forEach(registerCard);
 
     return map;
   }, []);
