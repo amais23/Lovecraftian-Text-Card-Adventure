@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "克蘇魯文字卡牌冒險",
+  "productName": "LovecraftianCardAdventure",
   "version": "0.1.0",
   "identifier": "com.lovecraftian.cardadventure",
   "build": {
@@ -28,7 +28,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis", "dmg", "appimage", "deb"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
