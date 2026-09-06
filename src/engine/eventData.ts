@@ -70,6 +70,119 @@ export const INITIAL_SHOGGOTH: Enemy = {
   currentIntentIndex: 0,
 };
 
+export const DAGON_PRIEST_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 14,
+    name: '深淵三叉戟穿刺',
+    description: '大袞的深淵祭司揮動佈滿藤壺的黑鐵三叉戟，預告造成 14 點傷害。',
+  },
+  {
+    type: 'erode',
+    value: 4,
+    name: '海嘯詛咒之禱',
+    description: '祭司向深海低吼非人的祭詞，召來冰冷潮汐，預告侵蝕 4 點理智牌庫。',
+  },
+  {
+    type: 'attack',
+    value: 18,
+    name: '深海溺亡巨浪',
+    description: '沉重的狂暴海水化作巨浪拍擊而至，預告造成 18 點傷害。',
+  },
+];
+
+export const INITIAL_DAGON_PRIEST: Enemy = {
+  id: 'enemy_dagon_priest',
+  name: '大袞的深淵祭司 (High Priest of Dagon)',
+  title: '深海王廷的主祭',
+  health: 85,
+  maxHealth: 85,
+  armor: 8,
+  currentIntent: DAGON_PRIEST_INTENTS[0],
+  intentSequence: DAGON_PRIEST_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const COLOSSAL_SHOGGOTH_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 16,
+    name: '黑泥滔天巨潮',
+    description: '山嶽般的太古黑泥抽打出數十條巨型黏液觸手，預告造成 16 點傷害。',
+  },
+  {
+    type: 'erode',
+    value: 5,
+    name: '太古癲狂長嘯',
+    description: '數以千計的眼球與巨口同時發出笛音尖嘯，預告侵蝕 5 點理智牌庫。',
+  },
+  {
+    type: 'attack',
+    value: 22,
+    name: '毀滅性原形吞噬',
+    description: '泰克利利！龐大軀體如山崩壓頂，預告造成 22 點毀滅性傷害。',
+  },
+];
+
+export const INITIAL_COLOSSAL_SHOGGOTH: Enemy = {
+  id: 'enemy_colossal_shoggoth',
+  name: '原生巨型修格斯 (Colossal Shoggoth)',
+  title: '太古無底深淵的原形支配者',
+  health: 110,
+  maxHealth: 110,
+  armor: 10,
+  currentIntent: COLOSSAL_SHOGGOTH_INTENTS[0],
+  intentSequence: COLOSSAL_SHOGGOTH_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const STAR_SPAWN_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 20,
+    name: '星辰裂解之握',
+    description: '巨型龍翼與章魚巨首的舊日眷族伸出利爪，預告造成 20 點傷害。',
+  },
+  {
+    type: 'erode',
+    value: 6,
+    name: '舊日不朽凝視',
+    description: '源自星辰深處的深淵威壓鎖定你的心智，預告侵蝕 6 點理智牌庫。',
+  },
+  {
+    type: 'attack',
+    value: 26,
+    name: '群星歸位毀滅之震',
+    description: '非歐幾何巨石在虛空中震盪崩裂，預告造成 26 點毀滅打擊。',
+  },
+];
+
+export const INITIAL_STAR_SPAWN: Enemy = {
+  id: 'enemy_star_spawn',
+  name: '克蘇魯星之眷族 (Star-Spawn of Cthulhu)',
+  title: '拉萊耶沉睡之主的血脈',
+  health: 150,
+  maxHealth: 150,
+  armor: 12,
+  currentIntent: STAR_SPAWN_INTENTS[0],
+  intentSequence: STAR_SPAWN_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export function getBossByDepth(depth: number = 1): Enemy {
+  switch (depth) {
+    case 2:
+      return INITIAL_DAGON_PRIEST;
+    case 3:
+      return INITIAL_COLOSSAL_SHOGGOTH;
+    case 4:
+      return INITIAL_STAR_SPAWN;
+    case 1:
+    default:
+      return INITIAL_SHOGGOTH;
+  }
+}
+
 /* =========================================================
    Mythos Events Script Database
    ========================================================= */

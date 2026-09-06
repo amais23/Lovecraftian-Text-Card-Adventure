@@ -506,6 +506,45 @@ export class SoundEngine {
       gainEnd: 0.001,
     });
   }
+
+  /**
+   * 13. 深淵低語與迷霧流動音 (Abyssal Whisper & Fog Flow)
+   */
+  public playWhisper(): void {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain) return;
+
+    const t = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'triangle';
+    osc1.frequency.setValueAtTime(110, t);
+    osc1.frequency.linearRampToValueAtTime(140, t + 0.8);
+    osc2.frequency.setValueAtTime(112, t);
+    osc2.frequency.linearRampToValueAtTime(80, t + 0.8);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(380, t);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.2, t + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 0.9);
+    osc2.stop(t + 0.9);
+  }
 }
 
 export const soundEngine = new SoundEngine();

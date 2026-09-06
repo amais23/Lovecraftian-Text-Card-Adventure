@@ -23,6 +23,10 @@ import { generateInvestigationMap, generateProceduralInvestigationMap } from './
 import {
   INITIAL_DEEP_ONE,
   INITIAL_SHOGGOTH,
+  INITIAL_DAGON_PRIEST,
+  INITIAL_COLOSSAL_SHOGGOTH,
+  INITIAL_STAR_SPAWN,
+  getBossByDepth,
   getMythosEventForNode,
   generateDefaultMarketItems,
   TRUTH_CARD_BREAKWATER,
@@ -102,13 +106,23 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
 /**
  * 取得敵人初始模板以利於戰鬥重整 (Reset Combat) 重新迎戰原敵人
  */
-export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap): Enemy {
+export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap, depth: number = 1): Enemy {
+  const currentDepth = depth ?? map?.depth ?? 1;
   const enemyId = candidate?.id;
   if (enemyId === INITIAL_DEEP_ONE.id) {
     return cloneEnemy(INITIAL_DEEP_ONE);
   }
   if (enemyId === INITIAL_SHOGGOTH.id) {
     return cloneEnemy(INITIAL_SHOGGOTH);
+  }
+  if (enemyId === INITIAL_DAGON_PRIEST.id) {
+    return cloneEnemy(INITIAL_DAGON_PRIEST);
+  }
+  if (enemyId === INITIAL_COLOSSAL_SHOGGOTH.id) {
+    return cloneEnemy(INITIAL_COLOSSAL_SHOGGOTH);
+  }
+  if (enemyId === INITIAL_STAR_SPAWN.id) {
+    return cloneEnemy(INITIAL_STAR_SPAWN);
   }
   if (enemyId === INITIAL_GHOUL.id) {
     return cloneEnemy(INITIAL_GHOUL);
@@ -118,7 +132,7 @@ export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap)
   if (map?.currentNodeId && map.nodes[map.currentNodeId]) {
     const node = map.nodes[map.currentNodeId];
     if (node.type === 'elite') return cloneEnemy(INITIAL_DEEP_ONE);
-    if (node.type === 'boss') return cloneEnemy(INITIAL_SHOGGOTH);
+    if (node.type === 'boss') return cloneEnemy(getBossByDepth(currentDepth));
     if (node.type === 'combat') return cloneEnemy(INITIAL_GHOUL);
   }
 
@@ -236,6 +250,7 @@ export function createInitialCombatState(
 
   return {
     phase: initialPhase,
+    currentDepth: 1,
     turn: 1,
     investigator,
     sanityDeck,
@@ -260,6 +275,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...createInitialGameState(),
         phase: 'prologue',
+        currentDepth: 1,
         battleLog: [
           '【調查啟程 · 序章引導】翻開 1920 年代阿卡姆失蹤懸案剪報與神秘委託密信，深淵的呼喚隱隱傳來……',
         ],
@@ -304,7 +320,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const allCards = occ.deck.map((c) => ({ ...c }));
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
       const enemy = cloneEnemy(INITIAL_GHOUL);
-      const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap() : generateInvestigationMap());
+      const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap({ depth: 1 }) : generateInvestigationMap({ depth: 1 }));
       const defaultPhase = state.phase === 'occupation_select' ? 'departure' : 'map';
       const nextPhase = action.payload.initialPhase ?? defaultPhase;
 
@@ -314,6 +330,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       return {
         phase: nextPhase,
+        currentDepth: 1,
         turn: 1,
         investigator,
         sanityDeck,
@@ -366,7 +383,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           enemy = cloneEnemy(INITIAL_DEEP_ONE);
           logMsg = `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`;
         } else if (targetNode.type === 'boss') {
-          enemy = cloneEnemy(INITIAL_SHOGGOTH);
+          enemy = cloneEnemy(getBossByDepth(state.currentDepth ?? state.map?.depth ?? 1));
           logMsg = `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`;
         } else {
           enemy = cloneEnemy(INITIAL_GHOUL);
@@ -769,9 +786,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         totalObolsCollected: currentStats.totalObolsCollected + addedObols,
       };
 
-      // 2. Persistent health: investigator.health does NOT heal!
+      const isBossFight = state.map?.currentNodeId && state.map.nodes[state.map.currentNodeId]?.type === 'boss';
+
+      // 2. Persistent health: investigator.health does NOT heal normally, EXCEPT on Boss defeat!
+      const isHealingToFull = Boolean(isBossFight);
+      const nextHealth = isHealingToFull ? state.investigator.maxHealth : state.investigator.health;
+
       const updatedInvestigator: Investigator = {
         ...state.investigator,
+        health: nextHealth,
         armor: 0,
         stamina: state.investigator.maxStamina,
         obols: state.investigator.obols + addedObols,
@@ -793,13 +816,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newLogs.push(`跳過卡牌構築獎勵，維持牌庫精簡。`);
       }
       newLogs.push(`獲得古金幣 +${addedObols}（當前擁有: ${updatedInvestigator.obols} 枚）。`);
-      newLogs.push(`【肉體傷勢保留】當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}。`);
+      if (isHealingToFull) {
+        newLogs.push(
+          `【首領決戰復甦】古老宿敵伏誅，威壓短暫退散。調查員身體生命值全額恢復至上限（${updatedInvestigator.maxHealth} / ${updatedInvestigator.maxHealth}）！`
+        );
+      } else {
+        newLogs.push(`【肉體傷勢保留】當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}。`);
+      }
 
       const nextEnemy = cloneEnemy(INITIAL_GHOUL);
 
       // Advance map if map is present, otherwise remain in combat
       const updatedMap = advanceMapAfterNode(state.map);
-      const nextPhase = state.map ? 'map' : 'combat';
+      let nextPhase: GameState['phase'] = state.map ? 'map' : 'combat';
+      if (isBossFight && state.map) {
+        nextPhase = 'depth_transition';
+      }
 
       return {
         ...state,
@@ -816,6 +848,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         map: updatedMap,
         adventureStats: updatedStats,
         battleLog: [...newLogs, ...state.battleLog],
+      };
+    }
+
+    case 'COMPLETE_DEPTH_TRANSITION': {
+      if (state.phase !== 'depth_transition') return state;
+      const nextDepth = (state.currentDepth ?? 1) + 1;
+      const newMap = generateInvestigationMap({ depth: nextDepth, procedural: true });
+      return {
+        ...state,
+        phase: 'map',
+        currentDepth: nextDepth,
+        map: newMap,
+        sanctuaryUsed: false,
+        battleLog: [
+          `【邁向新深淵】調查員整裝深入第 ${nextDepth} 深度：${newMap.name}！`,
+          ...state.battleLog,
+        ],
       };
     }
 
@@ -882,10 +931,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         action.payload?.initialCards
       );
       const candidateEnemy = action.payload?.enemy ?? state.currentEnemy;
-      const enemy = getFreshEnemyTemplate(candidateEnemy, state.map);
+      const currentDepth = state.currentDepth ?? 1;
+      const enemy = getFreshEnemyTemplate(candidateEnemy, state.map, currentDepth);
 
       return {
         phase: 'combat',
+        currentDepth,
         turn: 1,
         investigator,
         sanityDeck,

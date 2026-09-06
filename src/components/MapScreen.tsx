@@ -103,6 +103,27 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
     );
   }
 
+  const currentDepth = state.currentDepth ?? map.depth ?? 1;
+  const depthNames: Record<number, { title: string; subtitle: string }> = {
+    1: {
+      title: '第一深度：阿卡姆封鎖區 · 調查路線圖',
+      subtitle: '選擇連通節點啟程探索，步步逼近修格斯幼體之巢穴',
+    },
+    2: {
+      title: '第二深度：深潛者海蝕迷宮 · 調查路線圖',
+      subtitle: '潮聲轟鳴於淹沒甬道，直面大袞深淵祭司的凝視',
+    },
+    3: {
+      title: '第三深度：無底深淵祭壇 · 調查路線圖',
+      subtitle: '踏入不可名狀原形禁域，挑戰原生巨型修格斯',
+    },
+    4: {
+      title: '第四深度：星辰正位 · 拉萊耶核心 · 終局之圖',
+      subtitle: '群星歸位之刻已至，迎戰克蘇魯星之眷族',
+    },
+  };
+  const depthInfo = depthNames[currentDepth] ?? depthNames[1];
+
   return (
     <div className="map-screen-container">
       <div className="vignette-overlay" />
@@ -121,8 +142,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         </div>
 
         <div className="map-header-center">
-          <h2 className="map-header-title">阿卡姆封鎖區 · 調查路線圖</h2>
-          <span className="map-header-subtitle">選擇連通節點啟程探索，步步逼近未知的深淵祭壇</span>
+          <h2 className="map-header-title">{depthInfo.title}</h2>
+          <span className="map-header-subtitle">{depthInfo.subtitle}</span>
         </div>
 
         <div className="map-header-right">

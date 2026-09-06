@@ -94,7 +94,9 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         <div className="combat-header-title">
           <Compass size={22} color="#cfa866" />
           <h1>克蘇魯文字卡牌冒險</h1>
-          <span className="combat-header-badge">遭遇戰 · 第一章</span>
+          <span className="combat-header-badge">
+            遭遇戰 · 第 {['一', '二', '三', '四'][(state.currentDepth ?? 1) - 1] ?? '一'} 深度
+          </span>
         </div>
 
         <div className="combat-header-right">

@@ -70,6 +70,7 @@ export interface MapNode {
 export interface InvestigationMap {
   id: string;
   name: string;
+  depth?: number;
   nodes: Record<string, MapNode>;
   layers: string[][];
   currentNodeId: string | null;
@@ -121,7 +122,8 @@ export interface AdventureStats {
 }
 
 export interface GameState {
-  phase: 'title' | 'prologue' | 'occupation_select' | 'departure' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'gameover';
+  phase: 'title' | 'prologue' | 'occupation_select' | 'departure' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'depth_transition' | 'gameover';
+  currentDepth: number;
   turn: number;
   investigator: Investigator;
   sanityDeck: Card[]; // 牌庫剩餘數量即等同於當前理智值 (Sanity)
@@ -153,6 +155,7 @@ export type GameAction =
   | { type: 'LEAVE_MARKET' }
   | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number } }
   | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }
+  | { type: 'COMPLETE_DEPTH_TRANSITION' }
   | { type: 'RETURN_TO_TITLE' }
   | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[]; investigator?: Investigator } }
   | { type: 'PLAY_CARD'; payload: { cardId: string } }

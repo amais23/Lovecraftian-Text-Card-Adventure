@@ -1,4 +1,4 @@
-import { useState, useReducer } from 'react';
+import { useState, useReducer, useEffect } from 'react';
 import { gameReducer, createInitialGameState } from './engine/gameReducer';
 import { TitleScreen } from './components/TitleScreen';
 import { PrologueScreen } from './components/PrologueScreen';
@@ -10,10 +10,11 @@ import { SanctuaryScreen } from './components/SanctuaryScreen';
 import { MarketScreen } from './components/MarketScreen';
 import { CombatScreen } from './components/CombatScreen';
 import { RewardScreen } from './components/RewardScreen';
+import { DepthTransitionScreen } from './components/DepthTransitionScreen';
 import { AbyssDeathScreen } from './components/AbyssDeathScreen';
 
 export function App() {
-  const [state, dispatch] = useReducer(gameReducer, undefined, () => createInitialGameState());
+  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialGameState);
   const [isAbyssDead, setIsAbyssDead] = useState<boolean>(() => {
     try {
       return localStorage.getItem('arkham_abyss_dead') === 'true';
@@ -21,6 +22,13 @@ export function App() {
       return false;
     }
   });
+
+  useEffect(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      (window as unknown as { __dispatch: typeof dispatch; __state: typeof state }).__dispatch = dispatch;
+      (window as unknown as { __state: typeof state }).__state = state;
+    }
+  }, [dispatch, state]);
 
   if (isAbyssDead) {
     return <AbyssDeathScreen />;
@@ -70,6 +78,10 @@ export function App() {
 
   if (state.phase === 'reward') {
     return <RewardScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'depth_transition') {
+    return <DepthTransitionScreen state={state} dispatch={dispatch} />;
   }
 
   return <CombatScreen state={state} dispatch={dispatch} />;

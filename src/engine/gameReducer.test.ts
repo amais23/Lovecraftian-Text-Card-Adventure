@@ -27,6 +27,10 @@ import {
   generateDefaultMarketItems,
   INITIAL_DEEP_ONE,
   INITIAL_SHOGGOTH,
+  INITIAL_DAGON_PRIEST,
+  INITIAL_COLOSSAL_SHOGGOTH,
+  INITIAL_STAR_SPAWN,
+  getBossByDepth,
 } from './eventData';
 import type { Card, GameState } from '../types/game';
 
@@ -2047,11 +2051,17 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         phase: 'victory',
       };
       const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
-      const postBossMapState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+      const postBossTransitionState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
 
+      // Boss defeat triggers full-screen depth transition and marks map completed
+      expect(postBossTransitionState.phase).toBe('depth_transition');
+      expect(postBossTransitionState.map?.isCompleted).toBe(true);
+      expect(postBossTransitionState.map?.nodes['node_4_0'].status).toBe('visited');
+
+      // Completing depth transition advances depth and enters new depth map
+      const postBossMapState = gameReducer(postBossTransitionState, { type: 'COMPLETE_DEPTH_TRANSITION' });
       expect(postBossMapState.phase).toBe('map');
-      expect(postBossMapState.map?.isCompleted).toBe(true);
-      expect(postBossMapState.map?.nodes['node_4_0'].status).toBe('visited');
+      expect(postBossMapState.currentDepth).toBe(2);
 
       // Direct test of advanceMapAfterNode on boss node
       const directAdvanced = advanceMapAfterNode(bossCombatState.map);
@@ -2145,10 +2155,11 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('supports procedural map generation with seedable and random variations', () => {
-      // 1. Procedural generation creates valid 5-layer DAG
+      // 1. Procedural generation creates valid 6-layer 16-node DAG
       const procMap = generateProceduralInvestigationMap();
-      expect(procMap.layers.length).toBe(5);
-      expect(procMap.nodes['node_4_0'].type).toBe('boss');
+      expect(procMap.layers.length).toBe(6);
+      expect(procMap.nodes['node_5_0'].type).toBe('boss');
+      expect(Object.keys(procMap.nodes).length).toBe(16);
       expect(procMap.nodes['node_0_0'].status).toBe('accessible');
       expect(procMap.nodes['node_0_1'].status).toBe('accessible');
 
@@ -2366,7 +2377,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(state.phase).toBe('map');
       expect(state.map).toBeDefined();
       expect(state.map?.name).toBe('阿卡姆封鎖區調查圖（隨機生成）');
-      expect(state.map?.layers.length).toBe(5);
+      expect(state.map?.layers.length).toBe(6);
+      expect(Object.keys(state.map?.nodes ?? {}).length).toBe(16);
     });
 
     it('adheres to CONTEXT.md domain standards: zero occurrences of forbidden term 牌組', () => {
@@ -2455,6 +2467,199 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         payload: { occupationId: 'investigator', initialPhase: 'combat' },
       });
       expect(explicitCombatState.phase).toBe('combat');
+    });
+  });
+
+  describe('Multi-Depth Chapters & Boss Recovery (Issue #19 / ADR-0015)', () => {
+    it('initializes currentDepth to 1 upon investigation start and occupation select', () => {
+      const initial = createInitialGameState();
+      expect(initial.currentDepth).toBe(1);
+
+      const selectState = gameReducer(initial, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator' },
+      });
+      expect(selectState.currentDepth).toBe(1);
+    });
+
+    it('generates 16 nodes across 6 layers for Depths 1, 2, 3 with zero dead ends', () => {
+      for (const depth of [1, 2, 3]) {
+        const map = generateProceduralInvestigationMap({ depth });
+        expect(map.depth).toBe(depth);
+        expect(map.layers.length).toBe(6);
+        expect(Object.keys(map.nodes).length).toBe(16);
+
+        // Verify layer node counts: 2 + 3 + 3 + 4 + 3 + 1 = 16
+        expect(map.layers[0].length).toBe(2);
+        expect(map.layers[1].length).toBe(3);
+        expect(map.layers[2].length).toBe(3);
+        expect(map.layers[3].length).toBe(4);
+        expect(map.layers[4].length).toBe(3);
+        expect(map.layers[5].length).toBe(1);
+
+        // Verify boss node is at layer 5
+        const bossNodeId = map.layers[5][0];
+        expect(map.nodes[bossNodeId].type).toBe('boss');
+
+        // Verify reachability: all non-boss nodes must have outgoing edges
+        for (let l = 0; l < 5; l++) {
+          for (const nodeId of map.layers[l]) {
+            const node = map.nodes[nodeId];
+            expect(node.nextNodes.length).toBeGreaterThan(0);
+            // All outgoing edges must target the subsequent layer
+            for (const nextId of node.nextNodes) {
+              expect(map.nodes[nextId].layer).toBe(l + 1);
+            }
+          }
+        }
+      }
+    });
+
+    it('generates 8 nodes across 4 layers for Depth 4', () => {
+      const map = generateProceduralInvestigationMap({ depth: 4 });
+      expect(map.depth).toBe(4);
+      expect(map.layers.length).toBe(4);
+      expect(Object.keys(map.nodes).length).toBe(8);
+
+      // Verify layer node counts: 2 + 2 + 3 + 1 = 8
+      expect(map.layers[0].length).toBe(2);
+      expect(map.layers[1].length).toBe(2);
+      expect(map.layers[2].length).toBe(3);
+      expect(map.layers[3].length).toBe(1);
+
+      const bossNodeId = map.layers[3][0];
+      expect(map.nodes[bossNodeId].type).toBe('boss');
+    });
+
+    it('spawns depth-appropriate bosses: Shoggoth (Depth 1), Dagon Priest (Depth 2), Colossal Shoggoth (Depth 3), Star Spawn (Depth 4)', () => {
+      expect(getBossByDepth(1).id).toBe(INITIAL_SHOGGOTH.id);
+      expect(getBossByDepth(2).id).toBe(INITIAL_DAGON_PRIEST.id);
+      expect(getBossByDepth(3).id).toBe(INITIAL_COLOSSAL_SHOGGOTH.id);
+      expect(getBossByDepth(4).id).toBe(INITIAL_STAR_SPAWN.id);
+    });
+
+    it('heals investigator bodily health to maxHealth (Heal to Full) upon boss victory and transitions to depth_transition', () => {
+      const map = generateInvestigationMap();
+      const bossNode = map.layers[map.layers.length - 1][0];
+
+      // Enter boss node
+      const bossCombat = gameReducer(
+        {
+          ...createInitialCombatState(),
+          phase: 'map',
+          currentDepth: 1,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 8, // Severely damaged
+            maxHealth: 25,
+          },
+          map: {
+            ...map,
+            nodes: {
+              ...map.nodes,
+              [bossNode]: {
+                ...map.nodes[bossNode],
+                status: 'accessible',
+              },
+            },
+          },
+        },
+        { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bossNode } }
+      );
+
+      expect(bossCombat.phase).toBe('combat');
+      expect(bossCombat.currentEnemy.id).toBe(INITIAL_SHOGGOTH.id);
+      expect(bossCombat.investigator.health).toBe(8);
+
+      // Defeat boss and enter reward
+      const victoryState: GameState = { ...bossCombat, phase: 'victory' };
+      const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+
+      // Claim reward -> Should Heal to Full and enter depth_transition
+      const claimState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+      expect(claimState.phase).toBe('depth_transition');
+      expect(claimState.investigator.health).toBe(claimState.investigator.maxHealth);
+      expect(claimState.investigator.health).toBe(25);
+      expect(claimState.battleLog.some((log) => log.includes('首領決戰復甦'))).toBe(true);
+
+      // Complete depth transition -> advances to Depth 2 with new map
+      const depth2State = gameReducer(claimState, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(depth2State.phase).toBe('map');
+      expect(depth2State.currentDepth).toBe(2);
+      expect(depth2State.map?.name).toBe('深潛者海蝕迷宮調查圖');
+      expect(Object.keys(depth2State.map?.nodes ?? {}).length).toBe(16);
+      expect(depth2State.battleLog.some((log) => log.includes('邁向新深淵'))).toBe(true);
+    });
+
+    it('retains persistent health damage without healing when defeating normal enemies', () => {
+      const normalCombat = createInitialCombatState();
+      const woundedCombat: GameState = {
+        ...normalCombat,
+        phase: 'victory',
+        investigator: {
+          ...normalCombat.investigator,
+          health: 12,
+          maxHealth: 25,
+        },
+        map: generateInvestigationMap(),
+      };
+
+      const rewardState = gameReducer(woundedCombat, { type: 'PROCEED_TO_REWARD' });
+      const claimState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+
+      // Normal combat victory should NOT heal health
+      expect(claimState.investigator.health).toBe(12);
+      expect(claimState.battleLog.some((log) => log.includes('肉體傷勢保留'))).toBe(true);
+      expect(claimState.phase).toBe('map');
+    });
+
+    it('correctly advances through Depth 2 boss and enters Depth 3', () => {
+      const depth2Map = generateProceduralInvestigationMap({ depth: 2 });
+      const bossNodeId = depth2Map.layers[5][0];
+
+      // Navigate to Depth 2 boss
+      const depth2Combat = gameReducer(
+        {
+          ...createInitialCombatState(),
+          phase: 'map',
+          currentDepth: 2,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 10,
+            maxHealth: 25,
+          },
+          map: {
+            ...depth2Map,
+            nodes: {
+              ...depth2Map.nodes,
+              [bossNodeId]: {
+                ...depth2Map.nodes[bossNodeId],
+                status: 'accessible',
+              },
+            },
+          },
+        },
+        { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bossNodeId } }
+      );
+
+      // Verify Dagon Priest was loaded
+      expect(depth2Combat.currentEnemy.id).toBe(INITIAL_DAGON_PRIEST.id);
+      expect(depth2Combat.currentEnemy.name).toContain('High Priest of Dagon');
+
+      // Win and claim reward
+      const victoryState: GameState = { ...depth2Combat, phase: 'victory' };
+      const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      const transitionState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+
+      expect(transitionState.phase).toBe('depth_transition');
+      expect(transitionState.investigator.health).toBe(25); // Full heal
+
+      // Advance to Depth 3
+      const depth3State = gameReducer(transitionState, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(depth3State.phase).toBe('map');
+      expect(depth3State.currentDepth).toBe(3);
+      expect(depth3State.map?.name).toBe('無底深淵祭壇調查圖');
+      expect(Object.keys(depth3State.map?.nodes ?? {}).length).toBe(16);
     });
   });
 });

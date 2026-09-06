@@ -1673,6 +1673,177 @@
   opacity: 0.7;
 }
 
+/* =========================================================
+   Depth Transition Cinematic Styles (ADR-0015 / Issue #19)
+   ========================================================= */
+
+.depth-transition-screen-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  background-color: #040508;
+}
+
+.depth-transition-top-bar {
+  position: absolute;
+  top: clamp(10px, 2dvh, 24px);
+  left: clamp(12px, 2vw, 32px);
+  right: clamp(12px, 2vw, 32px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+}
+
+.depth-transition-top-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(14, 18, 25, 0.9);
+  border: 1px solid var(--border-gold);
+  color: var(--text-gold);
+  font-family: var(--font-title);
+  font-size: clamp(0.75rem, 1.2dvh, 0.85rem);
+}
+
+.depth-transition-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 2dvh, 24px);
+  width: 100%;
+  max-width: 820px;
+  z-index: 10;
+}
+
+.depth-transition-card {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(14, 17, 24, 0.96), rgba(6, 8, 12, 0.98));
+  border: 1px solid var(--border-gold);
+  border-radius: 12px;
+  padding: clamp(14px, 2.2dvh, 32px) clamp(16px, 2.5vw, 36px);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95), 0 0 35px rgba(207, 168, 102, 0.2);
+  backdrop-filter: blur(12px);
+  animation: modalFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.4dvh, 18px);
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
+}
+
+.depth-transition-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.5vw, 18px);
+  border-bottom: 1px solid rgba(207, 168, 102, 0.2);
+  padding-bottom: clamp(8px, 1.2dvh, 14px);
+}
+
+.depth-transition-icon-badge {
+  width: clamp(48px, 7dvh, 64px);
+  height: clamp(48px, 7dvh, 64px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(207, 168, 102, 0.2), rgba(10, 14, 20, 0.9));
+  border: 2px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(207, 168, 102, 0.3);
+}
+
+.depth-transition-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.depth-transition-eyebrow {
+  font-family: var(--font-title);
+  font-size: clamp(0.72rem, 1.2dvh, 0.82rem);
+  color: var(--text-gold);
+  letter-spacing: 1px;
+}
+
+.depth-transition-title {
+  font-family: var(--font-title);
+  font-size: clamp(1.15rem, 2.2dvh, 1.55rem);
+  color: #fff;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 10px rgba(207, 168, 102, 0.4);
+}
+
+.depth-transition-recovery-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(230, 57, 70, 0.15);
+  border: 1px solid rgba(230, 57, 70, 0.4);
+  color: #ff9aa2;
+  font-size: clamp(0.68rem, 1.1dvh, 0.76rem);
+  font-weight: 600;
+  width: fit-content;
+}
+
+.depth-transition-body {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: clamp(12px, 2dvh, 24px);
+}
+
+.depth-transition-story-content {
+  max-height: clamp(110px, 28dvh, 280px);
+  overflow-y: auto;
+  font-size: clamp(0.82rem, 1.35dvh, 0.94rem);
+  line-height: 1.8;
+  color: var(--text-parchment);
+  white-space: pre-line;
+}
+
+.depth-transition-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: clamp(2px, 0.6dvh, 8px);
+}
+
+.depth-transition-proceed-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: clamp(9px, 1.4dvh, 13px);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #d4af37, #997b15);
+  border: 1px solid #ffd700;
+  color: #120e03;
+  font-family: var(--font-title);
+  font-size: clamp(0.88rem, 1.4dvh, 1rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.3);
+  transition: all 0.25s ease;
+}
+
+.depth-transition-proceed-btn:hover {
+  background: linear-gradient(180deg, #ffd700, #bfa026);
+  box-shadow: 0 6px 24px rgba(255, 215, 0, 0.5);
+  transform: translateY(-2px);
+}
+
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   .title-menu-card,
