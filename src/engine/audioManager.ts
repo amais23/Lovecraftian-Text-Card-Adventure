@@ -130,6 +130,8 @@ export class SoundEngine {
     duration: number;
     linearRamp?: boolean;
     gainEnd?: number;
+    attackDuration?: number;
+    gainPeak?: number;
   }): void {
     if (this.isMuted) return;
     const ctx = this.initContext();
@@ -147,8 +149,15 @@ export class SoundEngine {
       osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.freqEnd), t + options.duration);
     }
 
-    gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
+    if (options.attackDuration && options.attackDuration > 0) {
+      gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
+      const peak = options.gainPeak ?? options.gainStart;
+      gain.gain.linearRampToValueAtTime(peak, t + options.attackDuration);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
+    } else {
+      gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
+    }
 
     osc.connect(gain);
     gain.connect(this.masterGain);
@@ -429,6 +438,73 @@ export class SoundEngine {
     osc2.start(t);
     osc1.stop(t + 0.35);
     osc2.stop(t + 0.35);
+  }
+
+  /**
+   * 11. 報紙甩拍桌面重音 (Newspaper Table Slam)
+   * 結合深沉木質撞擊低頻與紙張摩擦高頻帶通雜訊
+   */
+  public playNewspaperSlam(): void {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain) return;
+
+    const t = ctx.currentTime;
+
+    // 1. 低頻木桌撞擊振動
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(28, t + 0.26);
+
+    gain.gain.setValueAtTime(0.55, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.26);
+
+    // 2. 厚重油墨紙張摔落沙沙聲 (Paper flutter bandpass)
+    const paperOsc = ctx.createOscillator();
+    const paperFilter = ctx.createBiquadFilter();
+    const paperGain = ctx.createGain();
+
+    paperOsc.type = 'sawtooth';
+    paperOsc.frequency.setValueAtTime(320, t);
+    paperOsc.frequency.exponentialRampToValueAtTime(80, t + 0.16);
+
+    paperFilter.type = 'bandpass';
+    paperFilter.frequency.setValueAtTime(1600, t);
+    paperFilter.Q.setValueAtTime(2.5, t);
+
+    paperGain.gain.setValueAtTime(0.2, t);
+    paperGain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+
+    paperOsc.connect(paperFilter);
+    paperFilter.connect(paperGain);
+    paperGain.connect(this.masterGain);
+
+    paperOsc.start(t);
+    paperOsc.stop(t + 0.16);
+  }
+
+  /**
+   * 12. 結局微鳴神秘低音 (Eerie Ending Ambience)
+   */
+  public playEndingEerieTension(): void {
+    this.playTone({
+      type: 'sine',
+      freqStart: 68,
+      freqEnd: 62,
+      gainStart: 0.001,
+      gainPeak: 0.18,
+      attackDuration: 0.3,
+      duration: 1.2,
+      linearRamp: true,
+      gainEnd: 0.001,
+    });
   }
 }
 

@@ -4,6 +4,7 @@ import { BookOpen, MapPin, ArrowRight, ShieldAlert, Heart, Coins } from 'lucide-
 import { AudioToggle } from './AudioToggle';
 import { TypewriterText } from './TypewriterText';
 import { soundEngine } from '../engine/audioManager';
+import { ArkhamGazette } from './ArkhamGazette';
 
 interface EventScreenProps {
   state: GameState;
@@ -199,6 +200,15 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
           </div>
         )}
       </div>
+
+      {/* Arkham Gazette Ending Sequence on Investigator Death */}
+      {isGameOver && (
+        <ArkhamGazette
+          endingType="death"
+          state={state}
+          dispatch={dispatch}
+        />
+      )}
     </div>
   );
 };

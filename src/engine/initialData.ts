@@ -461,7 +461,7 @@ export function generateRewardCards(count: number = 3, randomFn: () => number = 
 }
 
 // Temporary card factories and templates are defined in cardFactory.ts
-export { MADNESS_CARD_TEMPLATES, createMadnessCards } from './cardFactory';
+export { MADNESS_CARD_TEMPLATES, createMadnessCards, TRUTH_INJECTED_TEMPLATE } from './cardFactory';
 
 export const GHOUL_INTENTS: EnemyIntent[] = [
   {

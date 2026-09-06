@@ -8,7 +8,8 @@ import { AudioToggle } from './AudioToggle';
 import { generateRewardCards } from '../engine/initialData';
 import { calculateCardFanOut } from '../engine/handMath';
 import { soundEngine } from '../engine/audioManager';
-import { Skull, Trophy, Coins, Compass, Sparkles } from 'lucide-react';
+import { Trophy, Coins, Compass, Sparkles } from 'lucide-react';
+import { ArkhamGazette } from './ArkhamGazette';
 
 interface CombatScreenProps {
   state: GameState;
@@ -190,32 +191,14 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         </div>
       )}
 
-      {/* Game Over Modal */}
+      {/* Arkham Gazette Ending Sequence on Investigator Death */}
       {state.phase === 'gameover' && (
-        <div className="combat-modal-overlay">
-          <div className="combat-modal-box gameover">
-            <Skull size={48} color="#ff4d5a" className="modal-hero-icon" />
-            <h2 className="combat-modal-title">調查員殞命</h2>
-            <p className="combat-modal-desc">
-              你的肉體被鋒利的爪牙撕碎，意識沉入冰冷深邃的無底深淵……未知之物將這座墓穴重新掩埋。
-            </p>
-            <div className="combat-modal-actions">
-              <button
-                id="return-title-btn"
-                className="combat-modal-btn"
-                onClick={() => dispatch({ type: 'RETURN_TO_TITLE' })}
-              >
-                返回標題畫面 (Title Screen)
-              </button>
-              <button
-                className="combat-modal-btn secondary"
-                onClick={handleRestart}
-              >
-                原戰鬥重試 (Retry)
-              </button>
-            </div>
-          </div>
-        </div>
+        <ArkhamGazette
+          endingType="death"
+          state={state}
+          dispatch={dispatch}
+          onRetryCombat={handleRestart}
+        />
       )}
     </div>
   );
