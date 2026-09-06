@@ -9,6 +9,14 @@ import { Search, X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
 import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER } from '../engine/eventData';
 
+const CATEGORY_NAMES: Record<CardCategory, string> = {
+  combat: '紅色戰鬥卡',
+  skill: '黃色技能卡',
+  magic: '紫色魔法卡',
+  truth: '白色真相卡',
+  madness: '黑色瘋狂卡',
+};
+
 interface CardCompendiumProps {
   onClose: () => void;
 }
@@ -85,7 +93,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
     setActiveDetailCard(art);
   };
 
-  const getDummyCardForArtwork = (art: CardArtworkInfo): Card => {
+  const resolveCardForArtwork = (art: CardArtworkInfo): Card => {
     if (cardMap[art.name]) {
       return cardMap[art.name];
     }
@@ -143,7 +151,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               onClick={() => handleFilterClick('all')}
             >
               <Filter size={14} />
-              <span>全部 ALL ({ALL_CARD_ARTWORKS.length})</span>
+              <span>全部 ({ALL_CARD_ARTWORKS.length})</span>
             </button>
             <button
               className={`compendium-tab-btn combat ${selectedCategory === 'combat' ? 'active' : ''}`}
@@ -213,7 +221,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
           ) : (
             <div className="compendium-cards-grid">
               {filteredArtworks.map((art) => {
-                const card = getDummyCardForArtwork(art);
+                const card = resolveCardForArtwork(art);
                 return (
                   <div
                     key={art.artId}
@@ -261,7 +269,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               {/* Left Column: Enlarged Card Preview */}
               <div className="detail-modal-left">
                 <CardView
-                  card={getDummyCardForArtwork(activeDetailCard)}
+                  card={resolveCardForArtwork(activeDetailCard)}
                   currentStamina={99}
                   currentSanity={99}
                   isStandalone={true}
@@ -272,7 +280,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               <div className="detail-modal-right">
                 <div className="detail-category-tag-row">
                   <span className={`detail-category-badge ${activeDetailCard.category}`}>
-                    {activeDetailCard.category.toUpperCase()} CARD
+                    {CATEGORY_NAMES[activeDetailCard.category]}
                   </span>
                   <span className="detail-style-badge">
                     {activeDetailCard.styleName}

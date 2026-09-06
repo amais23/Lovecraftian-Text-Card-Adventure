@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 import type { Card, CardCategory } from '../types/game';
 import { Swords, Shield, Sparkles, Wind, Flame, Eye } from 'lucide-react';
@@ -97,7 +97,7 @@ export const CardView: React.FC<CardViewProps> = ({
     ? '理智不足無法打出'
     : '精力不足無法打出';
 
-  const artwork = getCardArtwork(card);
+  const artwork = useMemo(() => getCardArtwork(card), [card]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);

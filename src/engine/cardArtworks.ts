@@ -19,7 +19,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: '圓潤胖嘟嘟的點38左輪槍身，搭配水汪汪萌系大眼與粉紅腮紅，在嚴肅搏殺中展現強烈荒誕黑色幽默。',
-    imageUrl: '/cards/card_revolver.jpg',
+    imageUrl: '/cards/card_revolver.webp',
   },
   card_punch: {
     artId: 'card_punch',
@@ -28,7 +28,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: 'Q版圓滾滾的紅色拳擊大拳套，伴隨漫畫旋轉衝擊速度線與星星撞擊火花。',
-    imageUrl: '/cards/card_punch.jpg',
+    imageUrl: '/cards/card_punch.webp',
   },
   card_bayonet: {
     artId: 'card_bayonet',
@@ -37,7 +37,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: '圓臉小兵手持反差極大的巨型閃亮刺刀奮力向前衝鋒，帶有逗趣的汗珠與爆炸氣流。',
-    imageUrl: '/cards/card_bayonet.jpg',
+    imageUrl: '/cards/card_bayonet.webp',
   },
   card_cane: {
     artId: 'card_cane',
@@ -46,7 +46,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: '優雅的Q版小紳士圓頂黑禮帽，拿著精緻小黑手杖敲擊出眩暈黃金星號與逗趣音符。',
-    imageUrl: '/cards/card_cane.jpg',
+    imageUrl: '/cards/card_cane.webp',
   },
   card_ritual_dagger: {
     artId: 'card_ritual_dagger',
@@ -55,7 +55,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: '銀質短匕首長出一副俏皮可愛微笑，刀刃閃爍著閃亮四角十字星芒。',
-    imageUrl: '/cards/card_ritual_dagger.jpg',
+    imageUrl: '/cards/card_ritual_dagger.webp',
   },
   card_shotgun: {
     artId: 'card_shotgun',
@@ -64,7 +64,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: '粗短誇張的雙管獵槍轟出如爆米花般的大朵煙雲與巨大火球，槍管長出大大的卡通萌眼。',
-    imageUrl: '/cards/card_shotgun.jpg',
+    imageUrl: '/cards/card_shotgun.webp',
   },
   card_quick_draw: {
     artId: 'card_quick_draw',
@@ -73,7 +73,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'cartoon',
     styleName: '可愛卡通風格 (Cute Cartoon)',
     conceptLore: '神速拔槍的Q版柯基牛仔，在金色速度殘影與火花爆發中迅捷射擊。',
-    imageUrl: '/cards/card_quick_draw.jpg',
+    imageUrl: '/cards/card_quick_draw.webp',
   },
 
   // === SKILL CARDS (Realistic Style) ===
@@ -84,7 +84,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'realistic',
     styleName: '真實寫實風格 (Realistic)',
     conceptLore: '1920年代復古金屬雙指推桿玻璃針筒，內部充盈琥珀色透明鎮定藥劑，針尖凝結晶瑩反光藥滴。',
-    imageUrl: '/cards/card_sedative.jpg',
+    imageUrl: '/cards/card_sedative.webp',
   },
   card_cover: {
     artId: 'card_cover',
@@ -93,7 +93,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'realistic',
     styleName: '真實寫實風格 (Realistic)',
     conceptLore: '傾倒的沉重厚木長桌作為防衛掩體，橫斷面木紋層次分明，散落著碎木塊與軍用粗麻沙包。',
-    imageUrl: '/cards/card_cover.jpg',
+    imageUrl: '/cards/card_cover.webp',
   },
   card_breathe: {
     artId: 'card_breathe',
@@ -158,7 +158,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'fantasy',
     styleName: '陽光奇幻風格 (Sunny High Fantasy)',
     conceptLore: '明媚金色日光照耀下的旋轉紫晶法陣爆發，七彩魔導星軌向外擴散，環繞跳動的金色魔力火花。',
-    imageUrl: '/cards/card_magic_blast.jpg',
+    imageUrl: '/cards/card_magic_blast.webp',
   },
   card_magic_gaze: {
     artId: 'card_magic_gaze',
@@ -196,7 +196,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'eldritch',
     styleName: '舊日天啟宇宙恐懼 (Cosmic Horror)',
     conceptLore: '深邃冰冷的多維星空中，漂浮著發光羊皮禁書殘頁，背景若隱若現巨大的星穹神性天眼。',
-    imageUrl: '/cards/card_truth_fragment.jpg',
+    imageUrl: '/cards/card_truth_fragment.webp',
   },
   card_silver_key: {
     artId: 'card_silver_key',
@@ -252,7 +252,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleTag: 'madness',
     styleName: '混亂扭曲血肉異變 (Visceral Abyss)',
     conceptLore: '異化皮肉崩解長出的黑色畸變利爪，撕裂虛空釋放灼熱狂亂血痕，滴落混沌深淵濁血。',
-    imageUrl: '/cards/card_blind_claw.jpg',
+    imageUrl: '/cards/card_blind_claw.webp',
   },
   card_abyssal_howl: {
     artId: 'card_abyssal_howl',
@@ -275,20 +275,43 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
 };
 
 /**
+ * All 28 unique card artworks list for Compendium
+ */
+export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);
+
+// Fast static lookup indexes for O(1) performance
+const ARTWORKS_BY_NAME = new Map<string, CardArtworkInfo>(
+  ALL_CARD_ARTWORKS.map((art) => [art.name, art])
+);
+
+const ARTWORKS_BY_ID_SUBSTRING: [string, CardArtworkInfo][] = Object.entries(CARD_ARTWORKS_REGISTRY).map(
+  ([key, art]) => [key.replace('card_', ''), art]
+);
+
+const CATEGORY_FALLBACKS: Record<CardCategory, CardArtworkInfo> = {
+  combat: CARD_ARTWORKS_REGISTRY.card_revolver,
+  skill: CARD_ARTWORKS_REGISTRY.card_cover,
+  magic: CARD_ARTWORKS_REGISTRY.card_magic_blast,
+  truth: CARD_ARTWORKS_REGISTRY.card_truth_fragment,
+  madness: CARD_ARTWORKS_REGISTRY.card_blind_claw,
+};
+
+/**
  * Helper to get the canonical artwork for any card based on its name or ID.
+ * Optimized with static Map and pre-indexed tokens for O(1) retrieval.
  */
 export function getCardArtwork(card: Card | { name: string; category?: CardCategory; id?: string }): CardArtworkInfo {
-  // First attempt: match by name
-  for (const art of Object.values(CARD_ARTWORKS_REGISTRY)) {
-    if (art.name === card.name) {
-      return art;
-    }
+  // First attempt: match by exact name
+  const byName = ARTWORKS_BY_NAME.get(card.name);
+  if (byName) {
+    return byName;
   }
 
   // Second attempt: match by card id substring
   if (card.id) {
-    for (const [key, art] of Object.entries(CARD_ARTWORKS_REGISTRY)) {
-      if (card.id.includes(key.replace('card_', ''))) {
+    for (let i = 0; i < ARTWORKS_BY_ID_SUBSTRING.length; i++) {
+      const [token, art] = ARTWORKS_BY_ID_SUBSTRING[i];
+      if (card.id.includes(token)) {
         return art;
       }
     }
@@ -296,18 +319,5 @@ export function getCardArtwork(card: Card | { name: string; category?: CardCateg
 
   // Fallback based on category
   const category = card.category ?? 'combat';
-  const categoryFallbacks: Record<CardCategory, string> = {
-    combat: 'card_revolver',
-    skill: 'card_cover',
-    magic: 'card_magic_blast',
-    truth: 'card_truth_fragment',
-    madness: 'card_blind_claw',
-  };
-
-  return CARD_ARTWORKS_REGISTRY[categoryFallbacks[category]] ?? CARD_ARTWORKS_REGISTRY.card_revolver;
+  return CATEGORY_FALLBACKS[category] ?? CARD_ARTWORKS_REGISTRY.card_revolver;
 }
-
-/**
- * All 28 unique card artworks list for Compendium
- */
-export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);

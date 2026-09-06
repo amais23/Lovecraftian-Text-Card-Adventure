@@ -7,6 +7,7 @@ import type { Card } from '../types/game';
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
   it('should register all 28 unique card artworks across all categories', () => {
     expect(ALL_CARD_ARTWORKS.length).toBe(28);
+    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(28);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
     expect(categories.filter((c) => c === 'combat').length).toBe(7);
@@ -16,12 +17,17 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     expect(categories.filter((c) => c === 'madness').length).toBe(3);
   });
 
-  it('should ensure all 28 artwork image files physically exist in public/cards/', () => {
+  it('should ensure all 28 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
     const publicCardsDir = path.resolve(process.cwd(), 'public/cards');
     expect(fs.existsSync(publicCardsDir)).toBe(true);
 
     for (const art of ALL_CARD_ARTWORKS) {
-      // art.imageUrl is like "/cards/card_revolver.jpg"
+      // art.imageUrl must conform to ADR-0012 (WebP or PNG)
+      expect(
+        art.imageUrl.endsWith('.webp') || art.imageUrl.endsWith('.png'),
+        `Image for ${art.name} must be .webp or .png, got: ${art.imageUrl}`
+      ).toBe(true);
+
       const fileName = path.basename(art.imageUrl);
       const filePath = path.join(publicCardsDir, fileName);
       expect(
@@ -62,7 +68,9 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
       id: 'c1',
       name: '左輪射擊',
       category: 'combat',
+      costType: 'stamina',
       costValue: 1,
+      isTemporary: false,
       effects: [{ type: 'damage', value: 8 }],
       description: '造成 8 點傷害',
       flavorText: '防身利器。',
@@ -71,14 +79,16 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     const art = getCardArtwork(revolverCard);
     expect(art.name).toBe('左輪射擊');
     expect(art.category).toBe('combat');
-    expect(art.imageUrl).toContain('card_revolver');
+    expect(art.imageUrl).toContain('card_revolver.webp');
 
     // Fallback test for unknown card
     const unknownCard: Card = {
       id: 'unknown_999',
       name: '神秘遠古符文',
       category: 'magic',
+      costType: 'sanity',
       costValue: 2,
+      isTemporary: false,
       effects: [{ type: 'draw', value: 1 }],
       description: '抽一張牌',
       flavorText: '未知。',
@@ -87,6 +97,6 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     const fallbackArt = getCardArtwork(unknownCard);
     expect(fallbackArt.name).toBe('靈能衝擊');
     expect(fallbackArt.category).toBe('magic');
-    expect(fallbackArt.imageUrl).toBe('/cards/card_magic_blast.jpg');
+    expect(fallbackArt.imageUrl).toBe('/cards/card_magic_blast.webp');
   });
 });
