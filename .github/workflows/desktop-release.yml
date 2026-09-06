@@ -62,23 +62,14 @@ jobs:
           tagName: v__VERSION__
           releaseName: '克蘇魯文字卡牌冒險 v__VERSION__ (Desktop Demo Release)'
           releaseBody: |
-            ### 克蘇魯文字卡牌冒險 (Lovecraftian Text-Card Adventure) v__VERSION__ 獨立桌面發布版 (Demo)
+            ### 克蘇魯文字卡牌冒險 v__VERSION__ (Demo)
 
-            本版本為獨立桌面安裝包（Demo 版），支援各主流作業系統，請依照您的裝置下載對應檔案：
+            跨平台獨立桌面版發布，請依作業系統下載對應檔案：
 
-            #### 📦 各作業系統安裝與執行檔說明：
-            - 🪟 **Windows**：
-              - `LovecraftianCardAdventure___VERSION___x64-setup.exe`：Windows 10 / 11 64 位元專用安裝程式（NSIS 獨立安裝精靈）。
-            - 🎮 **SteamOS / Linux (Steam Deck 首選)**：
-              - `LovecraftianCardAdventure___VERSION___amd64.AppImage`：免安裝單一執行檔。下載後在 Steam Deck 桌面模式設為可執行（`chmod +x`）即可直接啟動，亦可在 Steam 客戶端中點選「新增非 Steam 遊戲」加入遊戲庫暢玩。
-              - `LovecraftianCardAdventure___VERSION___amd64.deb`：Debian / Ubuntu 系統專用安裝套件包。
-            - 🍏 **macOS**：
-              - `LovecraftianCardAdventure___VERSION___aarch64.dmg`：Apple Silicon（M1 / M2 / M3 / M4 系列）Mac 安裝鏡像檔，掛載後拖入「應用程式」即可。
-
-            ---
-            #### 🎮 遊戲特色與視窗設定：
-            - 完美契合 Steam Deck 原生螢幕 **1280 × 800**（16:10）流體自適應視窗。
-            - 獨立桌面運作，包含完整 28 張五色秘術手牌、序章新聞動畫、戰鬥日誌與深淵彩蛋機制。
+            - 🪟 **Windows**：`LovecraftianCardAdventure___VERSION___x64-setup.exe`（安裝檔）
+            - 🎮 **SteamOS / Linux (Steam Deck)**：`LovecraftianCardAdventure___VERSION___amd64.AppImage`（免安裝單檔）
+            - 🐧 **Debian / Ubuntu**：`LovecraftianCardAdventure___VERSION___amd64.deb`
+            - 🍏 **macOS**：`LovecraftianCardAdventure___VERSION___aarch64.dmg`（Apple Silicon M系列）
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
