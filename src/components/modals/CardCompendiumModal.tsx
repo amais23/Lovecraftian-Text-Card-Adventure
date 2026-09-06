@@ -1,7 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Sparkles, X, Swords, Shield, Eye, Flame, Search, Info } from 'lucide-react';
 import type { Card, CardCategory } from '../../types/game';
-import { getCardCatalog, getCardCatalogStats } from '../../engine/cardCatalog';
+import {
+  getCardCatalog,
+  getCardCatalogStats,
+  getCardCostDisplay,
+} from '../../engine/cardCatalog';
 import { soundEngine } from '../../engine/audioManager';
 import { useModalDismiss } from '../../hooks/useModalDismiss';
 
@@ -53,32 +57,6 @@ const CATEGORY_CONFIG: Record<
     color: '#ef4444',
   },
 };
-
-/**
- * 格式化簡短消耗標籤（用於卡牌清單格子）
- */
-function formatCardCostShort(costType: Card['costType'], costValue: number): string {
-  if (costType === 'free') return '免費';
-  if (costType === 'sanity') return `理智 ${costValue}`;
-  if (costValue === 0) return '0 精力 (免費)';
-  return `${costValue} 精力`;
-}
-
-/**
- * 格式化詳細消耗標籤（用於詳情檢視面板）
- */
-function formatCardCostDetail(costType: Card['costType'], costValue: number): { label: string; value: string } {
-  if (costType === 'free') {
-    return { label: '消耗：', value: '免費' };
-  }
-  if (costType === 'sanity') {
-    return { label: '理智消耗：', value: String(costValue) };
-  }
-  if (costValue === 0) {
-    return { label: '精力消耗：', value: '0 (免費)' };
-  }
-  return { label: '精力消耗：', value: String(costValue) };
-}
 
 export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
   isOpen,
@@ -228,7 +206,7 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
                     >
                       <div className="cell-top">
                         <span className={`cell-cost ${card.costType}`}>
-                          {formatCardCostShort(card.costType, card.costValue)}
+                          {getCardCostDisplay(card.costType, card.costValue).shortText}
                         </span>
                         <span className={`cell-cat-pill ${card.category}`}>
                           {cfg.shortLabel}
@@ -250,15 +228,15 @@ export const CardCompendiumModal: React.FC<CardCompendiumModalProps> = ({
                 <div className="frame-glow" />
                 <div className="frame-header">
                   {(() => {
-                    const detailCost = formatCardCostDetail(
+                    const detailCost = getCardCostDisplay(
                       selectedCard.costType,
                       selectedCard.costValue
                     );
                     return (
                       <div className={`frame-cost-badge ${selectedCard.costType}`}>
                         <span>
-                          {detailCost.label}
-                          <strong>{detailCost.value}</strong>
+                          {detailCost.detailLabel}
+                          <strong>{detailCost.detailValue}</strong>
                         </span>
                       </div>
                     );

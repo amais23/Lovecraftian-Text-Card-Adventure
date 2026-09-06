@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getCardCatalog, getCardsByCategory, getCardCatalogStats } from './cardCatalog';
+import {
+  getCardCatalog,
+  getCardsByCategory,
+  getCardCatalogStats,
+  getCardCostDisplay,
+} from './cardCatalog';
 import type { CardCategory } from '../types/game';
 
 describe('cardCatalog', () => {
@@ -43,5 +48,31 @@ describe('cardCatalog', () => {
       expect(card.effects.length).toBeGreaterThan(0);
       expect(['stamina', 'sanity', 'free']).toContain(card.costType);
     }
+  });
+
+  it('correctly formats card cost displays for all cost types', () => {
+    expect(getCardCostDisplay('free', 0)).toEqual({
+      shortText: '免費',
+      detailLabel: '消耗：',
+      detailValue: '免費',
+    });
+
+    expect(getCardCostDisplay('sanity', 3)).toEqual({
+      shortText: '理智 3',
+      detailLabel: '理智消耗：',
+      detailValue: '3',
+    });
+
+    expect(getCardCostDisplay('stamina', 0)).toEqual({
+      shortText: '0 精力 (免費)',
+      detailLabel: '精力消耗：',
+      detailValue: '0 (免費)',
+    });
+
+    expect(getCardCostDisplay('stamina', 2)).toEqual({
+      shortText: '2 精力',
+      detailLabel: '精力消耗：',
+      detailValue: '2',
+    });
   });
 });

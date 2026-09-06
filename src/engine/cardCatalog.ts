@@ -101,3 +101,44 @@ const CARD_COMPENDIUM_STATS: CardCatalogStats = (() => {
 export function getCardCatalogStats(): CardCatalogStats {
   return { ...CARD_COMPENDIUM_STATS };
 }
+
+export interface CardCostDisplay {
+  shortText: string;
+  detailLabel: string;
+  detailValue: string;
+}
+
+/**
+ * 統一格式化卡牌消耗資訊（支援清單簡短標籤與詳情檢視面板）
+ */
+export function getCardCostDisplay(
+  costType: Card['costType'],
+  costValue: number
+): CardCostDisplay {
+  if (costType === 'free') {
+    return {
+      shortText: '免費',
+      detailLabel: '消耗：',
+      detailValue: '免費',
+    };
+  }
+  if (costType === 'sanity') {
+    return {
+      shortText: `理智 ${costValue}`,
+      detailLabel: '理智消耗：',
+      detailValue: String(costValue),
+    };
+  }
+  if (costValue === 0) {
+    return {
+      shortText: '0 精力 (免費)',
+      detailLabel: '精力消耗：',
+      detailValue: '0 (免費)',
+    };
+  }
+  return {
+    shortText: `${costValue} 精力`,
+    detailLabel: '精力消耗：',
+    detailValue: String(costValue),
+  };
+}
