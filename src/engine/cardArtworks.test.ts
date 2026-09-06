@@ -119,4 +119,25 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
       expect(art.artId, `Expected ${mc.name} (${mc.id}) to map to ${mc.expectedArtId}, got ${art.artId}`).toBe(mc.expectedArtId);
     }
   });
+
+  it('should prevent accidental substring collisions on card ID token lookups', () => {
+    // Under naive substring matching, 'card_discover_truth' would match token 'cover' (skill).
+    // With segment boundary matching, it should not match 'cover', falling back to its category default (combat).
+    const falseSubstringCard = {
+      id: 'card_discover_truth',
+      name: '未登記之全新戰技',
+      category: 'combat' as const,
+      costType: 'stamina' as const,
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+
+    const art = getCardArtwork(falseSubstringCard);
+    // Should fall back to combat fallback ('card_revolver'), NOT skill ('card_cover')
+    expect(art.artId).toBe('card_revolver');
+    expect(art.category).toBe('combat');
+  });
 });

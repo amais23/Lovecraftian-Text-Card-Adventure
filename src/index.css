@@ -1,5 +1,6 @@
 @import './styles/theme.css';
 @import './styles/combat.css';
+@import './styles/compendium.css';
 
 #root {
   width: 100%;

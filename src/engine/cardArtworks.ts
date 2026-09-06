@@ -293,14 +293,32 @@ const CARD_NAME_ALIASES: Record<string, string> = {
   '高純度酒精繃帶': '應急急救包',
 };
 
-const ARTWORKS_BY_ID_SUBSTRING: [string, CardArtworkInfo][] = Object.entries(CARD_ARTWORKS_REGISTRY).map(
-  ([key, art]) => [key.replace('card_', ''), art]
+interface TokenArtworkPattern {
+  token: string;
+  pattern: RegExp;
+  artwork: CardArtworkInfo;
+}
+
+/**
+ * Pre-compiled segment boundary regexes for canonical card ID tokens.
+ * Matches identifiers delimited by underscores or hyphens (e.g. 'card_market_shotgun' or 'card_revolver_1'),
+ * preventing accidental substring collisions (e.g. 'cover' matching 'card_discover_clue').
+ */
+const ARTWORKS_BY_ID_TOKENS: TokenArtworkPattern[] = Object.entries(CARD_ARTWORKS_REGISTRY).map(
+  ([key, art]) => {
+    const token = key.replace(/^card_/, '');
+    return {
+      token,
+      pattern: new RegExp(`(?:^|[_-])${token}(?:[_-]|\\d+|$)`, 'i'),
+      artwork: art,
+    };
+  }
 );
 
-const ID_TOKEN_ALIASES: [string, CardArtworkInfo][] = [
-  ['morphine', CARD_ARTWORKS_REGISTRY.card_sedative],
-  ['gauze', CARD_ARTWORKS_REGISTRY.card_first_aid],
-  ['amulet', CARD_ARTWORKS_REGISTRY.card_ancient_amulet],
+const ID_TOKEN_ALIAS_PATTERNS: TokenArtworkPattern[] = [
+  { token: 'morphine', pattern: /(?:^|[_-])morphine(?:[_-]|\d+|$)/i, artwork: CARD_ARTWORKS_REGISTRY.card_sedative },
+  { token: 'gauze', pattern: /(?:^|[_-])gauze(?:[_-]|\d+|$)/i, artwork: CARD_ARTWORKS_REGISTRY.card_first_aid },
+  { token: 'amulet', pattern: /(?:^|[_-])amulet(?:[_-]|\d+|$)/i, artwork: CARD_ARTWORKS_REGISTRY.card_ancient_amulet },
 ];
 
 const CATEGORY_FALLBACKS: Record<CardCategory, CardArtworkInfo> = {
@@ -331,18 +349,16 @@ export function getCardArtwork(card: Card | { name: string; category?: CardCateg
     }
   }
 
-  // Third attempt: match by card id substring
+  // Third attempt: match by card id token with segment boundary protection
   if (card.id) {
-    for (let i = 0; i < ARTWORKS_BY_ID_SUBSTRING.length; i++) {
-      const [token, art] = ARTWORKS_BY_ID_SUBSTRING[i];
-      if (card.id.includes(token)) {
-        return art;
+    for (let i = 0; i < ARTWORKS_BY_ID_TOKENS.length; i++) {
+      if (ARTWORKS_BY_ID_TOKENS[i].pattern.test(card.id)) {
+        return ARTWORKS_BY_ID_TOKENS[i].artwork;
       }
     }
-    for (let i = 0; i < ID_TOKEN_ALIASES.length; i++) {
-      const [token, art] = ID_TOKEN_ALIASES[i];
-      if (card.id.includes(token)) {
-        return art;
+    for (let i = 0; i < ID_TOKEN_ALIAS_PATTERNS.length; i++) {
+      if (ID_TOKEN_ALIAS_PATTERNS[i].pattern.test(card.id)) {
+        return ID_TOKEN_ALIAS_PATTERNS[i].artwork;
       }
     }
   }

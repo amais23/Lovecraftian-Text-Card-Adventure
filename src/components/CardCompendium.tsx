@@ -17,6 +17,21 @@ const CATEGORY_NAMES: Record<CardCategory, string> = {
   madness: '黑色瘋狂卡',
 };
 
+interface CategoryTabConfig {
+  category: CardCategory;
+  name: string;
+  sub: string;
+  icon: React.ReactNode;
+}
+
+const CATEGORY_TABS: CategoryTabConfig[] = [
+  { category: 'combat', name: '紅色戰鬥', sub: 'Q版可愛卡通', icon: <Swords size={14} /> },
+  { category: 'skill', name: '黃色技能', sub: '真實寫實工藝', icon: <Shield size={14} /> },
+  { category: 'magic', name: '紫色魔法', sub: '陽光奇幻魔導', icon: <Sparkles size={14} /> },
+  { category: 'truth', name: '白色真相', sub: '舊日天啟恐懼', icon: <Eye size={14} /> },
+  { category: 'madness', name: '黑色瘋狂', sub: '混亂血肉深淵', icon: <Flame size={14} /> },
+];
+
 interface CardCompendiumProps {
   onClose: () => void;
 }
@@ -88,6 +103,22 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
     });
   }, [selectedCategory, searchQuery]);
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<CardCategory, number> = {
+      combat: 0,
+      skill: 0,
+      magic: 0,
+      truth: 0,
+      madness: 0,
+    };
+    for (const art of ALL_CARD_ARTWORKS) {
+      if (counts[art.category] !== undefined) {
+        counts[art.category]++;
+      }
+    }
+    return counts;
+  }, []);
+
   const handleFilterClick = (cat: CardCategory | 'all') => {
     soundEngine.playClick();
     setSelectedCategory(cat);
@@ -158,41 +189,18 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               <Filter size={14} />
               <span>全部 ({ALL_CARD_ARTWORKS.length})</span>
             </button>
-            <button
-              className={`compendium-tab-btn combat ${selectedCategory === 'combat' ? 'active' : ''}`}
-              onClick={() => handleFilterClick('combat')}
-            >
-              <Swords size={14} />
-              <span>紅色戰鬥 (7 · Q版可愛卡通)</span>
-            </button>
-            <button
-              className={`compendium-tab-btn skill ${selectedCategory === 'skill' ? 'active' : ''}`}
-              onClick={() => handleFilterClick('skill')}
-            >
-              <Shield size={14} />
-              <span>黃色技能 (8 · 真實寫實工藝)</span>
-            </button>
-            <button
-              className={`compendium-tab-btn magic ${selectedCategory === 'magic' ? 'active' : ''}`}
-              onClick={() => handleFilterClick('magic')}
-            >
-              <Sparkles size={14} />
-              <span>紫色魔法 (4 · 陽光奇幻魔導)</span>
-            </button>
-            <button
-              className={`compendium-tab-btn truth ${selectedCategory === 'truth' ? 'active' : ''}`}
-              onClick={() => handleFilterClick('truth')}
-            >
-              <Eye size={14} />
-              <span>白色真相 (6 · 舊日天啟恐懼)</span>
-            </button>
-            <button
-              className={`compendium-tab-btn madness ${selectedCategory === 'madness' ? 'active' : ''}`}
-              onClick={() => handleFilterClick('madness')}
-            >
-              <Flame size={14} />
-              <span>黑色瘋狂 (3 · 混亂血肉深淵)</span>
-            </button>
+            {CATEGORY_TABS.map(({ category, name, sub, icon }) => (
+              <button
+                key={category}
+                className={`compendium-tab-btn ${category} ${selectedCategory === category ? 'active' : ''}`}
+                onClick={() => handleFilterClick(category)}
+              >
+                {icon}
+                <span>
+                  {name} ({categoryCounts[category]} · {sub})
+                </span>
+              </button>
+            ))}
           </div>
 
           {/* Search Box */}
