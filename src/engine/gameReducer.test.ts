@@ -1507,10 +1507,9 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       payload: { optionId: 'shrine_inspect' },
     });
 
-    expect(resolvedState.sanityDeck.length).toBe(1);
-    expect(resolvedState.hand.length).toBe(1);
-    expect(resolvedState.hand[0].name).toBe('深潛者手札');
-    expect(resolvedState.hand[0].category).toBe('truth');
+    expect(resolvedState.sanityDeck.length).toBe(2);
+    expect(resolvedState.sanityDeck.some((c) => c.name === '深潛者手札')).toBe(true);
+    expect(resolvedState.hand.length).toBe(0);
     expect(resolvedState.currentEvent?.selectedOptionId).toBe('shrine_inspect');
     expect(resolvedState.currentEvent?.resolvedOutcomeText?.length).toBeGreaterThan(0);
 
@@ -1655,9 +1654,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     expect(meditatedState.sanctuaryUsed).toBe(true);
-    expect(meditatedState.hand.length).toBe(1);
-    expect(meditatedState.hand[0].name).toBe('心智防波堤');
-    expect(meditatedState.hand[0].category).toBe('truth');
+    expect(meditatedState.sanityDeck.some((c) => c.name === '心智防波堤')).toBe(true);
+    expect(meditatedState.hand.length).toBe(0);
   });
 
   it('Black Market allows purchasing cards and healing supplies with Ancient Obols', () => {
@@ -1692,8 +1690,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     expect(boughtCardState.investigator.obols).toBe(35 - cardItem.price);
-    expect(boughtCardState.hand.length).toBe(1);
-    expect(boughtCardState.hand[0].name).toBe(cardItem.card!.name);
+    expect(boughtCardState.sanityDeck.some((c) => c.name === cardItem.card!.name)).toBe(true);
+    expect(boughtCardState.hand.length).toBe(0);
     const updatedCardItem = boughtCardState.marketItems?.find((i) => i.id === cardItem.id);
     expect(updatedCardItem?.isPurchased).toBe(true);
 
@@ -1780,5 +1778,59 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(item.name).not.toMatch(forbiddenRegex);
       expect(item.description).not.toMatch(forbiddenRegex);
     }
+  });
+
+  it('ensures obtained cards from market, sanctuary, and events are added to deck and not directly into next combat opening hand', () => {
+    const map = generateInvestigationMap();
+    const initialState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        obols: 50,
+      },
+    };
+
+    const initialTotalCards = [...initialState.sanityDeck, ...initialState.hand, ...initialState.discardPile].length;
+    expect(initialTotalCards).toBe(12);
+
+    // 1. Enter Market and buy a card
+    map.nodes['node_1_2'].status = 'accessible';
+    const marketState = gameReducer(initialState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_1_2' },
+    });
+    expect(marketState.phase).toBe('market');
+
+    const cardItem = marketState.marketItems!.find((i) => i.type === 'card')!;
+    const afterBuyState = gameReducer(marketState, {
+      type: 'BUY_MARKET_ITEM',
+      payload: { itemId: cardItem.id },
+    });
+
+    // Acquired card must be in sanityDeck (deck), NOT hand
+    expect(afterBuyState.hand.length).toBe(initialState.hand.length);
+    expect(afterBuyState.sanityDeck.some((c) => c.name === cardItem.card!.name)).toBe(true);
+
+    const leftMarketState = gameReducer(afterBuyState, { type: 'LEAVE_MARKET' });
+    expect(leftMarketState.phase).toBe('map');
+
+    // 2. Now navigate to a combat node
+    leftMarketState.map!.nodes['node_1_1'].status = 'accessible';
+    const combatState = gameReducer(leftMarketState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_1_1' },
+    });
+
+    expect(combatState.phase).toBe('combat');
+    // Opening hand must have exactly BASELINE_HAND_SIZE (4 cards), NOT 5!
+    expect(combatState.hand.length).toBe(4);
+    // Sanity deck has 13 - 4 = 9 cards
+    expect(combatState.sanityDeck.length).toBe(9);
+    // Total permanent cards across battle is 13
+    const totalBattleCards = [...combatState.hand, ...combatState.sanityDeck];
+    expect(totalBattleCards.length).toBe(13);
+    expect(totalBattleCards.some((c) => c.name === cardItem.card!.name)).toBe(true);
   });
 });

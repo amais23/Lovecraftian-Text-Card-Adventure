@@ -252,48 +252,52 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentNodeId: targetNode.id,
       };
 
-      if (targetNode.type === 'combat') {
-        const enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
-        return {
-          ...state,
-          phase: 'combat',
-          map: updatedMap,
-          currentEnemy: enemy,
-          turn: 1,
-          battleLog: [
-            `探索【${targetNode.title}】！遭遇常規敵人：${enemy.name}（${enemy.title}）。`,
-            ...state.battleLog,
-          ],
-        };
-      }
+      if (targetNode.type === 'combat' || targetNode.type === 'elite' || targetNode.type === 'boss') {
+        let enemy: Enemy;
+        let logMsg: string;
 
-      if (targetNode.type === 'elite') {
-        const enemy = JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
-        return {
-          ...state,
-          phase: 'combat',
-          map: updatedMap,
-          currentEnemy: enemy,
-          turn: 1,
-          battleLog: [
-            `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`,
-            ...state.battleLog,
-          ],
-        };
-      }
+        if (targetNode.type === 'elite') {
+          enemy = JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
+          logMsg = `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`;
+        } else if (targetNode.type === 'boss') {
+          enemy = JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+          logMsg = `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`;
+        } else {
+          enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+          logMsg = `探索【${targetNode.title}】！遭遇常規敵人：${enemy.name}（${enemy.title}）。`;
+        }
 
-      if (targetNode.type === 'boss') {
-        const enemy = JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+        // Gather all permanent cards across current deck
+        const currentPermanentCards = [
+          ...state.sanityDeck,
+          ...state.hand,
+          ...state.discardPile,
+        ].filter((c) => !c.isTemporary);
+
+        const occ = OCCUPATIONS[state.investigator.occupationId ?? 'investigator'] ?? OCCUPATIONS.investigator;
+        const allCards = currentPermanentCards.length >= 10
+          ? currentPermanentCards
+          : occ.deck.map((c) => ({ ...c }));
+
+        const shuffledDeck = fisherYatesShuffle(allCards);
+        const { hand, sanityDeck } = splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
+
         return {
           ...state,
           phase: 'combat',
+          turn: 1,
+          investigator: {
+            ...state.investigator,
+            armor: 0,
+            stamina: state.investigator.maxStamina,
+          },
+          sanityDeck,
+          hand,
+          discardPile: [],
+          isMadness: false,
           map: updatedMap,
           currentEnemy: enemy,
-          turn: 1,
-          battleLog: [
-            `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`,
-            ...state.battleLog,
-          ],
+          battleLog: [logMsg, ...state.battleLog],
         };
       }
 
@@ -371,9 +375,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             newSanityDeck = newSanityDeck.slice(burnCount);
           }
         } else if (consequence.type === 'gain_card' && consequence.card) {
-          newHand.push({
+          newSanityDeck.push({
             ...consequence.card,
             id: `${consequence.card.id}_${Date.now()}`,
+            isTemporary: false,
           });
         } else if (consequence.type === 'trigger_combat') {
           triggerCombatEnemy = consequence.enemy ?? INITIAL_GHOUL;
@@ -403,13 +408,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       if (triggerCombatEnemy) {
+        const currentPermanentCards = [
+          ...newSanityDeck,
+          ...newHand,
+          ...state.discardPile,
+        ].filter((c) => !c.isTemporary);
+
+        const shuffledDeck = fisherYatesShuffle(currentPermanentCards);
+        const { hand, sanityDeck } = splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
+
         return {
           ...state,
           phase: 'combat',
           turn: 1,
-          investigator: updatedInvestigator,
-          sanityDeck: newSanityDeck,
-          hand: newHand,
+          investigator: {
+            ...updatedInvestigator,
+            armor: 0,
+            stamina: updatedInvestigator.maxStamina,
+          },
+          sanityDeck,
+          hand,
+          discardPile: [],
+          isMadness: false,
           currentEnemy: JSON.parse(JSON.stringify(triggerCombatEnemy)),
           currentEvent: undefined,
           battleLog: outcomeTexts.concat(state.battleLog),
@@ -442,7 +462,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'sanctuary' || state.sanctuaryUsed) return state;
       const optionId = action.payload.optionId;
       let newHealth = state.investigator.health;
-      const newHand = [...state.hand];
+      const newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
 
       if (optionId === 'bandage') {
@@ -463,7 +483,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           description: '承受 1 點肉體傷害，向理智牌庫注入 3 張真相卡。',
           flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
         };
-        newHand.push(truthCard);
+        newSanityDeck.push(truthCard);
         newLogs.push(`在避難所深層冥想，獲得真相卡【心智防波堤】納入牌組！`);
       }
 
@@ -473,7 +493,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state.investigator,
           health: newHealth,
         },
-        hand: newHand,
+        sanityDeck: newSanityDeck,
+        hand: state.hand,
         sanctuaryUsed: true,
         battleLog: newLogs.concat(state.battleLog),
       };
@@ -504,16 +525,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       let newHealth = state.investigator.health;
-      const newHand = [...state.hand];
+      const newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
 
       if (item.type === 'heal' && item.healAmount) {
         newHealth = Math.min(state.investigator.maxHealth, newHealth + item.healAmount);
         newLogs.push(`在黑市購買【${item.name}】，立即恢復了 ${item.healAmount} 點生命值（當前: ${newHealth} / ${state.investigator.maxHealth}）。`);
       } else if (item.type === 'card' && item.card) {
-        newHand.push({
+        newSanityDeck.push({
           ...item.card,
           id: `${item.card.id}_purchased_${Date.now()}`,
+          isTemporary: false,
         });
         newLogs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入牌組！`);
       }
@@ -529,7 +551,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           health: newHealth,
           obols: state.investigator.obols - item.price,
         },
-        hand: newHand,
+        sanityDeck: newSanityDeck,
+        hand: state.hand,
         marketItems: updatedItems,
         battleLog: newLogs.concat(state.battleLog),
       };
