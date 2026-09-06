@@ -13,9 +13,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(initialState.investigator.stamina).toBe(3);
     expect(initialState.investigator.armor).toBe(0);
 
-    // Initial 10 cards: 4 drawn into hand, 6 remaining in sanityDeck (Sanity = 6)
+    // Initial 11 cards: 4 drawn into hand, 7 remaining in sanityDeck (Sanity = 7)
     expect(initialState.hand.length).toBe(4);
-    expect(initialState.sanityDeck.length).toBe(6);
+    expect(initialState.sanityDeck.length).toBe(7);
     expect(initialState.discardPile.length).toBe(0);
 
     // Enemy
@@ -293,6 +293,195 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(res3.effectiveDamage).toBe(15);
     expect(res3.newHealth).toBe(0);
   });
+
+  it('erodes sanity deck directly when enemy executes mental dread erode intent', () => {
+    const state: GameState = {
+      ...createInitialCombatState(),
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'erode',
+          value: 2,
+          name: '恐懼嘶吼',
+          description: '侵蝕 2 點理智',
+        },
+      },
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 25,
+        armor: 0,
+      },
+    };
+
+    const nextState = gameReducer(state, { type: 'END_TURN' });
+
+    // 2 cards eroded from sanityDeck to discardPile, then cards refilled to hand
+    // Investigator health was unaffected by mental erosion
+    expect(nextState.investigator.health).toBe(25);
+    expect(nextState.battleLog.some((log) => log.includes('侵蝕了你 2 點理智牌庫'))).toBe(true);
+  });
+
+  it('cancels automatic reshuffle when sanity deck is empty and triggers madness state', () => {
+    const discardCard1: Card = {
+      id: 'c1',
+      name: '卡片1',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+    const discardCard2: Card = {
+      id: 'c2',
+      name: '卡片2',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      sanityDeck: [], // Completely empty sanity deck
+      hand: [discardCard1], // Only 1 card in hand (needs 3 to reach 4)
+      discardPile: [discardCard2],
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'attack',
+          value: 0,
+          name: '觀察',
+          description: '無動作',
+        },
+      },
+    };
+
+    const nextState = gameReducer(state, { type: 'END_TURN' });
+
+    // No automatic reshuffle: discardPile remains in discardPile, sanityDeck stays 0
+    expect(nextState.sanityDeck.length).toBe(0);
+    expect(nextState.isMadness).toBe(true);
+    expect(nextState.hand.length).toBe(1); // Could not draw additional cards
+    expect(nextState.discardPile.length).toBe(1);
+    expect(nextState.battleLog.some((log) => log.includes('理智牌庫已抽空'))).toBe(true);
+  });
+
+  it('restores multiple cards with Sedative (restore_sanity: 2) from discard pile', () => {
+    const discard1: Card = {
+      id: 'd1',
+      name: '棄牌1',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+    const discard2: Card = {
+      id: 'd2',
+      name: '棄牌2',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+    const discard3: Card = {
+      id: 'd3',
+      name: '棄牌3',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+
+    const sedativeCard: Card = {
+      id: 'sedative_test',
+      name: '醫療鎮定劑',
+      category: 'skill',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'restore_sanity', value: 2 }],
+      description: '回補 2 點理智',
+      flavorText: '鎮定',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [sedativeCard],
+      discardPile: [discard1, discard2, discard3],
+      sanityDeck: [],
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: sedativeCard.id },
+    });
+
+    // 2 cards restored to sanityDeck
+    expect(nextState.sanityDeck.length).toBe(2);
+    // Discard pile had 3, 2 restored, and sedativeCard was added => 1 + 1 = 2 cards remaining
+    expect(nextState.discardPile.length).toBe(2);
+    expect(nextState.discardPile.some((c) => c.id === 'sedative_test')).toBe(true);
+  });
+
+  it('accumulates armor across multiple turns without resetting to zero', () => {
+    const defenseCard: Card = {
+      id: 'def_test',
+      name: '掩蔽防禦',
+      category: 'skill',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'armor', value: 5 }],
+      description: '護甲 +5',
+      flavorText: '防禦',
+    };
+
+    let state: GameState = {
+      ...createInitialCombatState(),
+      hand: [defenseCard, defenseCard],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        armor: 0,
+        stamina: 3,
+      },
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'erode',
+          value: 1,
+          name: '凝視',
+          description: '不造成物理傷害',
+        },
+      },
+    };
+
+    // Play 1st defense card: armor becomes 5
+    state = gameReducer(state, { type: 'PLAY_CARD', payload: { cardId: defenseCard.id } });
+    expect(state.investigator.armor).toBe(5);
+
+    // End Turn: enemy does erode (no physical damage), armor must NOT reset!
+    state = gameReducer(state, { type: 'END_TURN' });
+    expect(state.investigator.armor).toBe(5);
+
+    // Play 2nd defense card in turn 2: armor becomes 10 (cumulative!)
+    state = gameReducer(state, { type: 'PLAY_CARD', payload: { cardId: defenseCard.id } });
+    expect(state.investigator.armor).toBe(10);
+  });
 });
+
 
 

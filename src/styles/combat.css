@@ -109,6 +109,21 @@
   font-size: 1rem;
 }
 
+.enemy-intent-bubble.erode {
+  border-color: var(--color-sanity-bright);
+  background: rgba(38, 12, 45, 0.94);
+  box-shadow: 0 0 15px rgba(171, 71, 188, 0.4);
+}
+
+.enemy-intent-bubble.erode .intent-icon,
+.enemy-intent-bubble.erode .intent-val {
+  color: var(--color-sanity-bright);
+}
+
+.enemy-intent-bubble.erode .intent-name {
+  color: #e1bee7;
+}
+
 .intent-name {
   font-family: var(--font-title);
   font-size: 0.85rem;

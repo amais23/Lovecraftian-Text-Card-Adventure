@@ -139,12 +139,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           investigatorHealth = Math.min(state.investigator.maxHealth, investigatorHealth + effect.value);
           newLogs.push(`調查員打出【${card.name}】，包紮傷口恢復 ${effect.value} 點生命！`);
         } else if (effect.type === 'restore_sanity') {
-          if (pastDiscardPile.length > 0) {
-            const restored = pastDiscardPile.pop();
-            if (restored) {
-              newSanityDeck.unshift(restored);
-              newLogs.push(`調查員打出【${card.name}】，平復焦躁的心智，將【${restored.name}】洗回理智牌庫！`);
+          const restoreCount = Math.min(pastDiscardPile.length, effect.value);
+          if (restoreCount > 0) {
+            const restoredCards: Card[] = [];
+            for (let i = 0; i < restoreCount; i++) {
+              const cardToRestore = pastDiscardPile.pop();
+              if (cardToRestore) {
+                restoredCards.push(cardToRestore);
+              }
             }
+            newSanityDeck.unshift(...restoredCards);
+            const cardNames = restoredCards.map((c) => `【${c.name}】`).join('、');
+            newLogs.push(`調查員打出【${card.name}】，平復焦躁的心智，將 ${cardNames} 洗回理智牌庫！`);
           } else {
             newLogs.push(`調查員打出【${card.name}】，但棄牌堆中尚無任何已棄卡牌可供洗回！`);
           }
@@ -238,14 +244,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         nextIntent = enemy.intentSequence[nextIntentIndex];
       }
 
-      // Hand retention & refill to BASELINE_HAND_SIZE
+      // Hand retention & refill to BASELINE_HAND_SIZE (Without automatic reshuffle!)
       const currentHand = [...state.hand];
       const cardsNeeded = Math.max(0, BASELINE_HAND_SIZE - currentHand.length);
-      const drawnCards = sanityDeck.slice(0, cardsNeeded);
-      sanityDeck = sanityDeck.slice(cardsNeeded);
+      const cardsToDraw = Math.min(sanityDeck.length, cardsNeeded);
+      const drawnCards = sanityDeck.slice(0, cardsToDraw);
+      sanityDeck = sanityDeck.slice(cardsToDraw);
       const newHand = [...currentHand, ...drawnCards];
 
       const nextTurn = state.turn + 1;
+      if (cardsNeeded > 0 && cardsToDraw < cardsNeeded && sanityDeck.length === 0) {
+        newLogs.push(`【理智告急】理智牌庫已抽空，無法繼續抽牌！根據無自動重洗規則，棄牌堆保持不變。`);
+      }
       newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，自理智牌庫補抽 ${drawnCards.length} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
 
       return {

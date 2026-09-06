@@ -122,6 +122,17 @@ export const INITIAL_DECK: Card[] = [
     description: '將棄牌堆中 1 張卡牌洗回理智牌庫（回補 1 點理智）。',
     flavorText: '「緊閉雙眼，強迫狂亂跳動的心臟放緩節奏。」',
   },
+  {
+    id: 'card_sedative_1',
+    name: '醫療鎮定劑',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'restore_sanity', value: 2 }],
+    description: '將棄牌堆中 2 張卡牌洗回理智牌庫（回補 2 點理智）。',
+    flavorText: '「刺鼻的化學藥劑推入靜脈，混亂的囈語暫時歸於死寂。」',
+  },
 ];
 
 export const GHOUL_INTENTS: EnemyIntent[] = [
@@ -132,16 +143,22 @@ export const GHOUL_INTENTS: EnemyIntent[] = [
     description: '食屍鬼揮舞滴淌著黑血與腐土的利爪，預告造成 6 點傷害。',
   },
   {
+    type: 'erode',
+    value: 2,
+    name: '恐懼嘶吼',
+    description: '食屍鬼發出穿透靈魂的尖嘯，預告侵蝕你 2 點理智牌庫。',
+  },
+  {
     type: 'attack',
     value: 8,
     name: '撕咬猛撲',
     description: '食屍鬼如獵犬般伏地前衝，張開滿嘴銳齒預告造成 8 點傷害。',
   },
   {
-    type: 'attack',
-    value: 5,
-    name: '尖銳咆哮',
-    description: '刺耳的超聲波咆哮震撼耳膜，預告造成 5 點傷害。',
+    type: 'erode',
+    value: 1,
+    name: '狂亂凝視',
+    description: '泛著磷光的盲目雙眼直視你的靈魂，預告侵蝕你 1 點理智牌庫。',
   },
 ];
 

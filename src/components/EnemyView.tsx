@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Enemy } from '../types/game';
-import { Skull, Swords, Shield, AlertTriangle } from 'lucide-react';
+import { Skull, Swords, Shield, Brain } from 'lucide-react';
 
 interface EnemyViewProps {
   enemy: Enemy;
@@ -12,14 +12,16 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
   return (
     <div className="enemy-stage">
       {/* Intent Bubble */}
-      <div className="enemy-intent-bubble" title={enemy.currentIntent.description}>
+      <div className={`enemy-intent-bubble ${enemy.currentIntent.type}`} title={enemy.currentIntent.description}>
         <span className="intent-icon">
           {enemy.currentIntent.type === 'attack' && <Swords size={18} />}
           {enemy.currentIntent.type === 'defend' && <Shield size={18} />}
-          {enemy.currentIntent.type === 'erode' && <AlertTriangle size={18} />}
+          {enemy.currentIntent.type === 'erode' && <Brain size={18} />}
         </span>
         <span className="intent-name">{enemy.currentIntent.name}</span>
-        <span className="intent-val">{enemy.currentIntent.value}</span>
+        <span className="intent-val">
+          {enemy.currentIntent.type === 'erode' ? `侵蝕 ${enemy.currentIntent.value}` : enemy.currentIntent.value}
+        </span>
       </div>
 
       {/* Enemy Visual Avatar */}
