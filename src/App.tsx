@@ -19,7 +19,7 @@ export function App() {
     return <MapScreen state={state} dispatch={dispatch} />;
   }
 
-  if (state.phase === 'event') {
+  if (state.phase === 'event' || (state.phase === 'gameover' && state.currentEvent)) {
     return <EventScreen state={state} dispatch={dispatch} />;
   }
 

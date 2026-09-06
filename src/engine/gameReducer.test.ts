@@ -2074,5 +2074,191 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       const titles3 = Object.values(map3.nodes).map((n) => n.title);
       expect(titles1).not.toEqual(titles3);
     });
+
+    it('preserves trim permanent deck with fewer than 10 cards instead of resetting to starter deck', () => {
+      const customTrimCards: Card[] = [
+        {
+          id: 'card_custom_1',
+          name: '精準點射',
+          category: 'combat',
+          costType: 'stamina',
+          costValue: 1,
+          isTemporary: false,
+          effects: [{ type: 'damage', value: 8 }],
+          description: '精準射擊',
+          flavorText: '「一槍斃命。」',
+        },
+        {
+          id: 'card_custom_2',
+          name: '緊急閃避',
+          category: 'skill',
+          costType: 'stamina',
+          costValue: 1,
+          isTemporary: false,
+          effects: [{ type: 'armor', value: 6 }],
+          description: '閃避攻擊',
+          flavorText: '「千鈞一髮。」',
+        },
+        {
+          id: 'card_custom_3',
+          name: '醫療鎮定劑',
+          category: 'skill',
+          costType: 'stamina',
+          costValue: 1,
+          isTemporary: false,
+          effects: [{ type: 'heal', value: 4 }],
+          description: '恢復生命',
+          flavorText: '「暫緩痛楚。」',
+        },
+        {
+          id: 'card_custom_4',
+          name: '冷靜意志',
+          category: 'truth',
+          costType: 'stamina',
+          costValue: 0,
+          isTemporary: false,
+          effects: [{ type: 'add_to_deck', value: 1 }],
+          description: '回補理智',
+          flavorText: '「清醒的判斷。」',
+        },
+        {
+          id: 'card_custom_5',
+          name: '軍刀突刺',
+          category: 'combat',
+          costType: 'stamina',
+          costValue: 1,
+          isTemporary: false,
+          effects: [{ type: 'damage', value: 6 }],
+          description: '突刺攻擊',
+          flavorText: '「短兵相接。」',
+        },
+        {
+          id: 'card_custom_6',
+          name: '就地掩蔽',
+          category: 'skill',
+          costType: 'stamina',
+          costValue: 1,
+          isTemporary: false,
+          effects: [{ type: 'armor', value: 8 }],
+          description: '尋找掩護',
+          flavorText: '「防範未然。」',
+        },
+      ];
+
+      const { hand, sanityDeck } = setupCombatDeck(
+        customTrimCards,
+        'investigator'
+      );
+
+      expect(hand.length + sanityDeck.length).toBe(6);
+      const allNames = [...hand, ...sanityDeck].map((c) => c.name);
+      expect(allNames).toContain('精準點射');
+      expect(allNames).toContain('冷靜意志');
+      expect(allNames).not.toContain('點38轉輪手槍');
+    });
+
+    it('does not spend obols or sanity cards when using bandage at full health in sanctuary', () => {
+      const stateAtFullHealth: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        investigator: {
+          ...createInitialCombatState().investigator,
+          health: 25,
+          maxHealth: 25,
+          obols: 20,
+        },
+        sanityDeck: [
+          {
+            id: 'sanity_card_1',
+            name: '一般卡1',
+            category: 'skill',
+            costType: 'stamina',
+            costValue: 1,
+            isTemporary: false,
+            effects: [],
+            description: '測試卡',
+            flavorText: '「測試。」',
+          },
+        ],
+        sanctuaryUsed: false,
+      };
+
+      const nextState = gameReducer(stateAtFullHealth, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'bandage' },
+      });
+
+      expect(nextState).toBe(stateAtFullHealth);
+      expect(nextState.investigator.obols).toBe(20);
+      expect(nextState.sanityDeck.length).toBe(1);
+      expect(nextState.sanctuaryUsed).toBeFalsy();
+    });
+
+    it('sets phase to gameover, retains currentEvent on fatal event option, and resets via RETURN_TO_TITLE', () => {
+      const stateInFatalEvent: GameState = {
+        ...createInitialCombatState(),
+        phase: 'event',
+        investigator: {
+          ...createInitialCombatState().investigator,
+          health: 5,
+          maxHealth: 25,
+          obols: 10,
+        },
+        currentEvent: {
+          id: 'test_fatal_event',
+          title: '古老陷阱',
+          location: '廢棄地穴',
+          storyText: ['你踩中了某種符文機關。'],
+          options: [
+            {
+              id: 'opt_touch',
+              text: '觸碰符文',
+              consequences: [
+                {
+                  type: 'health_change',
+                  value: -10,
+                  narrative: '血色符文爆發出致命衝擊！',
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const gameoverState = gameReducer(stateInFatalEvent, {
+        type: 'RESOLVE_EVENT_OPTION',
+        payload: { optionId: 'opt_touch' },
+      });
+
+      expect(gameoverState.phase).toBe('gameover');
+      expect(gameoverState.investigator.health).toBe(0);
+      expect(gameoverState.currentEvent).toBeDefined();
+      expect(gameoverState.currentEvent?.selectedOptionId).toBe('opt_touch');
+      expect(gameoverState.currentEvent?.resolvedOutcomeText).toContain('血色符文爆發出致命衝擊！');
+
+      const titleState = gameReducer(gameoverState, { type: 'RETURN_TO_TITLE' });
+      expect(titleState.phase).toBe('title');
+      expect(titleState.currentEvent).toBeUndefined();
+    });
+
+    it('initializes procedural map when SELECT_OCCUPATION has procedural: true', () => {
+      const state = gameReducer(createInitialCombatState(), {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+
+      expect(state.phase).toBe('map');
+      expect(state.map).toBeDefined();
+      expect(state.map?.name).toBe('阿卡姆封鎖區調查圖（隨機生成）');
+      expect(state.map?.layers.length).toBe(5);
+    });
+
+    it('adheres to CONTEXT.md domain standards: zero occurrences of forbidden term 牌組', () => {
+      const eventJson = JSON.stringify(MYTHOS_EVENTS);
+      expect(eventJson.includes('牌組')).toBe(false);
+
+      const occJson = JSON.stringify(OCCUPATIONS);
+      expect(occJson.includes('牌組')).toBe(false);
+    });
   });
 });

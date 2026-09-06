@@ -122,7 +122,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
           </div>
 
           {/* Sanity Deck Capacity */}
-          <div className="map-status-pill sanity" title="一般卡牌組張數（每場戰鬥理智上限）">
+          <div className="map-status-pill sanity" title="一般卡總數（每場戰鬥理智上限）">
             <ShieldCheck size={18} color="#c77dff" />
             <span>{permanentDeckCapacity} 理智</span>
           </div>
@@ -267,7 +267,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                 <span className="stat-value">{investigator.health} / {investigator.maxHealth}</span>
               </div>
               <div className="map-victory-stat-item">
-                <span className="stat-label">一般卡牌組規模</span>
+                <span className="stat-label">一般卡規模</span>
                 <span className="stat-value">{permanentDeckCapacity} 張（理智上限）</span>
               </div>
               <div className="map-victory-stat-item">

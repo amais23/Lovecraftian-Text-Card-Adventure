@@ -36,7 +36,7 @@ export function cloneEnemy(enemy: Enemy): Enemy {
 }
 
 /**
- * 將完整牌組切分為起始手牌（4張）與理智牌庫（其餘張數）之共用純函式
+ * 將完整卡牌清單切分為起始手牌（4張）與理智牌庫（其餘張數）之共用純函式
  */
 export function splitDeckToHandAndSanity(
   deck: Card[],
@@ -49,7 +49,7 @@ export function splitDeckToHandAndSanity(
 }
 
 /**
- * 戰鬥牌組構建與洗牌純函式（消除重複代碼，支援洗牌覆寫以利確定性測試）
+ * 戰鬥卡牌構建與洗牌純函式（消除重複代碼，支援洗牌覆寫以利確定性測試）
  */
 export function setupCombatDeck(
   cards: Card[],
@@ -61,7 +61,7 @@ export function setupCombatDeck(
   }
   const permanentCards = cards.filter((c) => !c.isTemporary);
   const occ = OCCUPATIONS[occupationId] ?? OCCUPATIONS.investigator;
-  const pool: Card[] = permanentCards.length >= 10
+  const pool: Card[] = permanentCards.length > 0
     ? permanentCards
     : occ.deck.map((c) => ({ ...c }));
   const shuffledDeck = fisherYatesShuffle(pool);
@@ -512,6 +512,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'USE_SANCTUARY': {
       if (state.phase !== 'sanctuary' || state.sanctuaryUsed) return state;
       const optionId = action.payload.optionId;
+      if (optionId === 'bandage' && state.investigator.health >= state.investigator.maxHealth) {
+        return state;
+      }
+
       let newHealth = state.investigator.health;
       let newObols = state.investigator.obols;
       let newSanityDeck = [...state.sanityDeck];
@@ -548,7 +552,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
         };
         newSanityDeck.push(truthCard);
-        newLogs.push(`在避難所深層冥想，獲得真相卡【心智防波堤】納入牌組！`);
+        newLogs.push(`在避難所深層冥想，獲得真相卡【心智防波堤】納入理智牌庫！`);
       }
 
       return {
@@ -602,7 +606,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           id: `${item.card.id}_purchased_${state.sanityDeck.length + 1}`,
           isTemporary: false,
         });
-        newLogs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入牌組！`);
+        newLogs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入理智牌庫！`);
       }
 
       const updatedItems = state.marketItems.map((i) =>
@@ -695,7 +699,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const newLogs: string[] = [];
       newLogs.push(`戰後重整：所有一般卡洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
       if (selectedCard) {
-        newLogs.push(`獲得一般卡【${selectedCard.name}】納入牌組！`);
+        newLogs.push(`獲得一般卡【${selectedCard.name}】納入理智牌庫！`);
       } else {
         newLogs.push(`跳過卡牌構築獎勵，維持牌庫精簡。`);
       }

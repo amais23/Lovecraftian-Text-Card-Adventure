@@ -12,12 +12,12 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
   const isUsed = Boolean(state.sanctuaryUsed);
 
   const handleUseSanctuary = (optionId: 'bandage' | 'meditate') => {
-    if (!isUsed) {
-      dispatch({
-        type: 'USE_SANCTUARY',
-        payload: { optionId },
-      });
-    }
+    if (isUsed) return;
+    if (optionId === 'bandage' && investigator.health >= investigator.maxHealth) return;
+    dispatch({
+      type: 'USE_SANCTUARY',
+      payload: { optionId },
+    });
   };
 
   const handleLeave = () => {
@@ -60,7 +60,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
           {/* Option 1: Bandage Flesh */}
           <div
             id="sanctuary-bandage-card"
-            className={`sanctuary-option-card ${isUsed ? 'disabled' : ''}`}
+            className={`sanctuary-option-card ${isUsed || investigator.health >= investigator.maxHealth ? 'disabled' : ''}`}
             onClick={() => handleUseSanctuary('bandage')}
           >
             <div className="sanctuary-card-icon health">
@@ -94,7 +94,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
             </div>
             <h3 className="sanctuary-card-title">心智冥想與思緒重整</h3>
             <p className="sanctuary-card-desc">
-              凝神端坐，以冷靜的意志平抑腦海中的深淵幻覺。將特殊白色真相卡【心智防波堤】永久納入牌組。
+              凝神端坐，以冷靜的意志平抑腦海中的深淵幻覺。將特殊白色真相卡【心智防波堤】永久納入理智牌庫。
             </p>
             <button
               id="sanctuary-meditate-btn"

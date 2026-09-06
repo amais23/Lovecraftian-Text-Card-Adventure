@@ -12,7 +12,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
   const handleSelect = (occupationId: 'investigator' | 'occultist') => {
     dispatch({
       type: 'SELECT_OCCUPATION',
-      payload: { occupationId },
+      payload: { occupationId, procedural: true },
     });
   };
 
@@ -80,7 +80,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
           <div className="occupation-deck-features">
             <div className="deck-feature-title">
               <Shield size={16} color="#cfa866" />
-              <span>專屬起始牌組（12 張 · 物理生存）</span>
+              <span>專屬起始卡牌（12 張 · 物理生存）</span>
             </div>
             <p className="deck-feature-desc">
               配備點38轉輪手槍、重拳壓制、軍刀突刺、就地掩蔽與醫療鎮定劑。擅長以厚重護甲抵禦深淵侵襲。
@@ -140,7 +140,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch }) => {
           <div className="occupation-deck-features">
             <div className="deck-feature-title">
               <Sparkles size={16} color="#c77dff" />
-              <span>專屬起始牌組（12 張 · 秘術真相）</span>
+              <span>專屬起始卡牌（12 張 · 秘術真相）</span>
             </div>
             <p className="deck-feature-desc">
               配備靈能衝擊、厄運凝視、星界庇護、心靈冥想與銀鑰儀式。可直接自牌庫頂獻祭理智施展高傷秘法。

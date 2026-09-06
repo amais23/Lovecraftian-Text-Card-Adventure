@@ -58,7 +58,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
             <Heart size={16} color="#ff334b" />
             <span>生命值: {investigator.health} / {investigator.maxHealth}</span>
           </div>
-          <span className="market-hint">點選物品花費古金幣採購，購買後直接納入牌組或生效</span>
+          <span className="market-hint">點選物品花費古金幣採購，購買後直接納入理智牌庫或生效</span>
         </div>
 
         {/* Items Shelf */}

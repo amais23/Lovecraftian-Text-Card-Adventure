@@ -1863,6 +1863,38 @@
   box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
 }
 
+.event-outcome-box.gameover {
+  background: rgba(255, 51, 75, 0.08);
+  border: 1px solid rgba(255, 51, 75, 0.6);
+  box-shadow: 0 0 20px rgba(255, 51, 75, 0.2);
+}
+
+.event-outcome-box.gameover .event-outcome-header {
+  color: #ff4d6d;
+}
+
+.event-fatal-message {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 51, 75, 0.3);
+  font-size: 0.9rem;
+  color: #ff8597;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.event-continue-btn.death {
+  background: linear-gradient(180deg, #b3122c, #6d0a1b);
+  border: 1px solid #ff334b;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 51, 75, 0.3);
+}
+
+.event-continue-btn.death:hover {
+  background: linear-gradient(180deg, #d61838, #8a0c22);
+  box-shadow: 0 4px 20px rgba(255, 51, 75, 0.5);
+}
+
 /* =========================================================
    Sanctuary Screen Styles
    ========================================================= */

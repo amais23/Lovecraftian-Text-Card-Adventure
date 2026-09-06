@@ -20,6 +20,7 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
   }
 
   const isResolved = Boolean(event.selectedOptionId);
+  const isGameOver = state.phase === 'gameover' || investigator.health <= 0;
 
   const handleSelectOption = (optionId: string) => {
     dispatch({
@@ -30,6 +31,10 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
 
   const handleCompleteEvent = () => {
     dispatch({ type: 'COMPLETE_EVENT' });
+  };
+
+  const handleReturnToTitle = () => {
+    dispatch({ type: 'RETURN_TO_TITLE' });
   };
 
   return (
@@ -108,10 +113,10 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
         ) : (
           /* Resolved Outcome Box */
           <div className="event-outcome-section">
-            <div className="event-outcome-box">
+            <div className={`event-outcome-box ${isGameOver ? 'gameover' : ''}`}>
               <div className="event-outcome-header">
-                <ShieldAlert size={20} color="#ffd700" />
-                <h4>抉擇後果：</h4>
+                <ShieldAlert size={20} color={isGameOver ? '#ff334b' : '#ffd700'} />
+                <h4>{isGameOver ? '【肉體殞命】致命結局：' : '抉擇後果：'}</h4>
               </div>
 
               {event.resolvedOutcomeText?.map((outcome, idx) => (
@@ -119,16 +124,33 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
                   {outcome}
                 </p>
               ))}
+
+              {isGameOver && (
+                <p className="event-fatal-message">
+                  你在探尋秘識的過程中傷重不治，肉體在古老力量的噬咬下化作枯骨。調查就此終結……
+                </p>
+              )}
             </div>
 
-            <button
-              id="event-continue-btn"
-              className="event-continue-btn"
-              onClick={handleCompleteEvent}
-            >
-              <span>整理行囊，返回調查地圖</span>
-              <ArrowRight size={18} />
-            </button>
+            {isGameOver ? (
+              <button
+                id="event-gameover-btn"
+                className="event-continue-btn death"
+                onClick={handleReturnToTitle}
+              >
+                <span>肉體殞命，返回標題畫面</span>
+                <ArrowRight size={18} />
+              </button>
+            ) : (
+              <button
+                id="event-continue-btn"
+                className="event-continue-btn"
+                onClick={handleCompleteEvent}
+              >
+                <span>整理行囊，返回調查地圖</span>
+                <ArrowRight size={18} />
+              </button>
+            )}
           </div>
         )}
       </div>

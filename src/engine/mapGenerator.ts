@@ -245,18 +245,38 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
     ['boss'],
   ];
 
-  // 連接規則拓撲（保證所有分支連通無死路）
-  const layerConnections: string[][][] = [
+  // 連接規則拓撲（保證所有分支連通無死路，封裝為結構化層級拓撲規則）
+  interface LayerAdjacencyRule {
+    layer: number;
+    outgoingEdgesByCol: string[][];
+  }
+
+  const LAYER_TOPOLOGY_RULES: LayerAdjacencyRule[] = [
     // Layer 0 -> Layer 1
-    [['node_1_0', 'node_1_1'], ['node_1_1', 'node_1_2']],
+    {
+      layer: 0,
+      outgoingEdgesByCol: [['node_1_0', 'node_1_1'], ['node_1_1', 'node_1_2']],
+    },
     // Layer 1 -> Layer 2
-    [['node_2_0', 'node_2_1'], ['node_2_0', 'node_2_1', 'node_2_2'], ['node_2_1', 'node_2_2']],
+    {
+      layer: 1,
+      outgoingEdgesByCol: [['node_2_0', 'node_2_1'], ['node_2_0', 'node_2_1', 'node_2_2'], ['node_2_1', 'node_2_2']],
+    },
     // Layer 2 -> Layer 3
-    [['node_3_0', 'node_3_1'], ['node_3_0', 'node_3_1', 'node_3_2'], ['node_3_1', 'node_3_2']],
+    {
+      layer: 2,
+      outgoingEdgesByCol: [['node_3_0', 'node_3_1'], ['node_3_0', 'node_3_1', 'node_3_2'], ['node_3_1', 'node_3_2']],
+    },
     // Layer 3 -> Layer 4
-    [['node_4_0'], ['node_4_0'], ['node_4_0']],
-    // Layer 4
-    [[]],
+    {
+      layer: 3,
+      outgoingEdgesByCol: [['node_4_0'], ['node_4_0'], ['node_4_0']],
+    },
+    // Layer 4 (Boss node has no outgoing edges)
+    {
+      layer: 4,
+      outgoingEdgesByCol: [[]],
+    },
   ];
 
   const nodes: Record<string, MapNode> = {};
@@ -272,7 +292,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
       const nodeType = layerTypePools[l][c];
       const theme = THEME_POOLS[nodeType];
       const variant = pick(theme.variants);
-      const nextNodes = layerConnections[l][c];
+      const nextNodes = LAYER_TOPOLOGY_RULES[l]?.outgoingEdgesByCol[c] ?? [];
 
       nodes[nodeId] = {
         id: nodeId,
