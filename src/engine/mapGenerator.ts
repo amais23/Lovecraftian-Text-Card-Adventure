@@ -367,6 +367,45 @@ function createPrng(seed: number): () => number {
   };
 }
 
+function buildNodesAndLayers(
+  layerTypePools: MapNodeType[][],
+  outgoingEdges: string[][][],
+  pools: Record<MapNodeType, { label: string; variants: Array<{ title: string; desc: string }> }>,
+  pick: <T>(arr: T[]) => T
+): { nodes: Record<string, MapNode>; layers: string[][] } {
+  const nodes: Record<string, MapNode> = {};
+  const layers: string[][] = [];
+
+  for (let l = 0; l < layerTypePools.length; l++) {
+    const layerNodeIds: string[] = [];
+    const count = layerTypePools[l].length;
+
+    for (let c = 0; c < count; c++) {
+      const nodeId = `node_${l}_${c}`;
+      layerNodeIds.push(nodeId);
+      const nodeType = layerTypePools[l][c];
+      const theme = pools[nodeType];
+      const variant = pick(theme.variants);
+      const nextNodes = outgoingEdges[l]?.[c] ?? [];
+
+      nodes[nodeId] = {
+        id: nodeId,
+        type: nodeType,
+        layer: l,
+        col: c,
+        label: theme.label,
+        title: variant.title,
+        description: variant.desc,
+        nextNodes,
+        status: l === 0 ? 'accessible' : 'unvisited',
+      };
+    }
+    layers.push(layerNodeIds);
+  }
+
+  return { nodes, layers };
+}
+
 /**
  * 隨機程序化生成調查地圖（Procedural DAG Generation）
  * - Depths 1, 2, 3: 生成 16 個節點的多層級隨機連通 DAG（無死路通往該深度守關首領）。
@@ -400,35 +439,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
       [[]],
     ];
 
-    const nodes: Record<string, MapNode> = {};
-    const layers: string[][] = [];
-
-    for (let l = 0; l < layerTypePools.length; l++) {
-      const layerNodeIds: string[] = [];
-      const count = layerTypePools[l].length;
-
-      for (let c = 0; c < count; c++) {
-        const nodeId = `node_${l}_${c}`;
-        layerNodeIds.push(nodeId);
-        const nodeType = layerTypePools[l][c];
-        const theme = pools[nodeType];
-        const variant = pick(theme.variants);
-        const nextNodes = outgoingEdges[l]?.[c] ?? [];
-
-        nodes[nodeId] = {
-          id: nodeId,
-          type: nodeType,
-          layer: l,
-          col: c,
-          label: theme.label,
-          title: variant.title,
-          description: variant.desc,
-          nextNodes,
-          status: l === 0 ? 'accessible' : 'unvisited',
-        };
-      }
-      layers.push(layerNodeIds);
-    }
+    const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick);
 
     return {
       id: `map_depth_${depth}_${Math.floor(rng() * 1000000)}`,
@@ -508,35 +519,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
     [[]],
   ];
 
-  const nodes: Record<string, MapNode> = {};
-  const layers: string[][] = [];
-
-  for (let l = 0; l < layerTypePools.length; l++) {
-    const layerNodeIds: string[] = [];
-    const count = layerTypePools[l].length;
-
-    for (let c = 0; c < count; c++) {
-      const nodeId = `node_${l}_${c}`;
-      layerNodeIds.push(nodeId);
-      const nodeType = layerTypePools[l][c];
-      const theme = pools[nodeType];
-      const variant = pick(theme.variants);
-      const nextNodes = outgoingEdges[l]?.[c] ?? [];
-
-      nodes[nodeId] = {
-        id: nodeId,
-        type: nodeType,
-        layer: l,
-        col: c,
-        label: theme.label,
-        title: variant.title,
-        description: variant.desc,
-        nextNodes,
-        status: l === 0 ? 'accessible' : 'unvisited',
-      };
-    }
-    layers.push(layerNodeIds);
-  }
+  const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick);
 
   return {
     id: `map_depth_${depth}_${Math.floor(rng() * 1000000)}`,
@@ -550,11 +533,14 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
 
 /**
  * 產生調查地圖資料結構
- * - 預設回傳穩定之基底範本（確保測試與單元驗收 100% 重現）
- * - 若指定 options.procedural 為 true，則進行動態隨機程序化生成（Depth 1~3 為 16 節點，Depth 4 為 8 節點）
+ * - 若未指定 options.procedural 且深度為 1（或無參數），回傳確定性基底範本（確保測試與單元驗收 100% 重現）
+ * - 若指定 options.procedural 為 true，或請求無靜態基底範本的深層（Depth >= 2），則執行動態程序化生成（Depth 1~3 為 16 節點，Depth 4 為 8 節點）
  */
 export function generateInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
-  if (options?.procedural || (options?.depth && options.depth > 1)) {
+  const depth = options?.depth ?? 1;
+  const isProcedural = options?.procedural ?? (depth > 1);
+
+  if (isProcedural) {
     return generateProceduralInvestigationMap(options);
   }
 

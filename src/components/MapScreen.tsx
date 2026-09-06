@@ -64,6 +64,25 @@ const NODE_TYPE_CONFIG: Record<
   },
 };
 
+const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = {
+  1: {
+    title: '第一深度：阿卡姆封鎖區 · 調查路線圖',
+    subtitle: '選擇連通節點啟程探索，步步逼近修格斯幼體之巢穴',
+  },
+  2: {
+    title: '第二深度：深潛者海蝕迷宮 · 調查路線圖',
+    subtitle: '潮聲轟鳴於淹沒甬道，直面大袞深淵祭司的凝視',
+  },
+  3: {
+    title: '第三深度：無底深淵祭壇 · 調查路線圖',
+    subtitle: '踏入不可名狀原形禁域，挑戰原生巨型修格斯',
+  },
+  4: {
+    title: '第四深度：星辰正位 · 拉萊耶核心 · 終局之圖',
+    subtitle: '群星歸位之刻已至，迎戰克蘇魯星之眷族',
+  },
+};
+
 /**
  * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標
  */
@@ -104,25 +123,9 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   }
 
   const currentDepth = state.currentDepth ?? map.depth ?? 1;
-  const depthNames: Record<number, { title: string; subtitle: string }> = {
-    1: {
-      title: '第一深度：阿卡姆封鎖區 · 調查路線圖',
-      subtitle: '選擇連通節點啟程探索，步步逼近修格斯幼體之巢穴',
-    },
-    2: {
-      title: '第二深度：深潛者海蝕迷宮 · 調查路線圖',
-      subtitle: '潮聲轟鳴於淹沒甬道，直面大袞深淵祭司的凝視',
-    },
-    3: {
-      title: '第三深度：無底深淵祭壇 · 調查路線圖',
-      subtitle: '踏入不可名狀原形禁域，挑戰原生巨型修格斯',
-    },
-    4: {
-      title: '第四深度：星辰正位 · 拉萊耶核心 · 終局之圖',
-      subtitle: '群星歸位之刻已至，迎戰克蘇魯星之眷族',
-    },
-  };
-  const depthInfo = depthNames[currentDepth] ?? depthNames[1];
+  const depthInfo = DEPTH_DISPLAY_INFO[currentDepth] ?? DEPTH_DISPLAY_INFO[1];
+  const currentLayer = map.currentNodeId ? (map.nodes[map.currentNodeId]?.layer ?? 0) + 1 : 1;
+  const totalLayers = map.layers.length;
 
   return (
     <div className="map-screen-container">
@@ -147,6 +150,15 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         </div>
 
         <div className="map-header-right">
+          {/* Exploration Node Progress */}
+          <div
+            className="map-status-pill progress"
+            title={`調查探索進度：當前位於第 ${currentLayer} / ${totalLayers} 層級`}
+          >
+            <Navigation size={17} color="#64dfdf" />
+            <span>進度 {currentLayer} / {totalLayers} 層</span>
+          </div>
+
           {/* Health Status */}
           <div className="map-status-pill health" title="持久肉體生命值（戰後不自動復原）">
             <Heart size={18} color="#ff334b" />

@@ -1615,6 +1615,12 @@
   background: rgba(255, 215, 0, 0.08);
 }
 
+.map-status-pill.progress {
+  border-color: rgba(100, 223, 223, 0.4);
+  background: rgba(100, 223, 223, 0.08);
+  color: #64dfdf;
+}
+
 .map-viewport {
   flex: 1;
   padding: 30px 20px;

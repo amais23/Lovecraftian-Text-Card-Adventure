@@ -1,4 +1,4 @@
-import { useState, useReducer, useEffect } from 'react';
+import { useState, useReducer } from 'react';
 import { gameReducer, createInitialGameState } from './engine/gameReducer';
 import { TitleScreen } from './components/TitleScreen';
 import { PrologueScreen } from './components/PrologueScreen';
@@ -22,13 +22,6 @@ export function App() {
       return false;
     }
   });
-
-  useEffect(() => {
-    if (import.meta.env.DEV && typeof window !== 'undefined') {
-      (window as unknown as { __dispatch: typeof dispatch; __state: typeof state }).__dispatch = dispatch;
-      (window as unknown as { __state: typeof state }).__state = state;
-    }
-  }, [dispatch, state]);
 
   if (isAbyssDead) {
     return <AbyssDeathScreen />;

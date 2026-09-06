@@ -853,7 +853,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'COMPLETE_DEPTH_TRANSITION': {
       if (state.phase !== 'depth_transition') return state;
-      const nextDepth = (state.currentDepth ?? 1) + 1;
+      const currentDepth = state.currentDepth ?? 1;
+      if (currentDepth >= 4) {
+        return state;
+      }
+      const nextDepth = currentDepth + 1;
       const newMap = generateInvestigationMap({ depth: nextDepth, procedural: true });
       return {
         ...state,

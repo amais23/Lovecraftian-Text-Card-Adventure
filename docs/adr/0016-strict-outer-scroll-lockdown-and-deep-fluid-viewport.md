@@ -13,6 +13,8 @@
      - `CardCompendium`（卡牌圖鑑滾動清單）
      - `ArkhamGazette`（早報頭條內文滾動區）
      - `MapViewport`（若縱向節點畫布高度超出視窗時的羊皮紙地圖平滑滾動區）
+     - `MarketItemsGrid`（黑市商品陳列清單）
+     - `DepthTransitionStory`（深度過渡手記內文）
 
 2. **深層原生響應式伸縮 (Deep Native Fluid Responsive with CSS `clamp()`)**：
    - 拒絕使用全畫面 `transform: scale()`，以避免破壞卡牌向上拖曳判定座標與導致字體模糊。

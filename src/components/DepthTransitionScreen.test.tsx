@@ -33,7 +33,7 @@ describe('DepthTransitionScreen (Issue #19 / ADR-0015)', () => {
     render(<DepthTransitionScreen state={state} dispatch={dispatch} />);
 
     expect(screen.getByText(/第一深度：阿卡姆封鎖區 ➔ 第二深度：深潛者海蝕迷宮/)).toBeDefined();
-    expect(screen.getByText(/修格斯幼體 \(Shoggoth Progeny\) 伏誅/)).toBeDefined();
+    expect(screen.getByText(/修格斯幼體伏誅/)).toBeDefined();
     expect(screen.getByText(/【首領決戰復甦】肉體生命值全額回滿/)).toBeDefined();
     expect(screen.getByText(/邁向第二深度 · 深潛者海蝕迷宮/)).toBeDefined();
   });
@@ -81,7 +81,7 @@ describe('DepthTransitionScreen (Issue #19 / ADR-0015)', () => {
     render(<DepthTransitionScreen state={state} dispatch={dispatch} />);
 
     expect(screen.getByText(/第二深度：深潛者海蝕迷宮 ➔ 第三深度：無底深淵祭壇/)).toBeDefined();
-    expect(screen.getByText(/大袞的深淵祭司 \(High Priest of Dagon\) 伏誅/)).toBeDefined();
+    expect(screen.getByText(/大袞的深淵祭司伏誅/)).toBeDefined();
     expect(screen.getByText(/邁向第三深度 · 無底深淵祭壇/)).toBeDefined();
   });
 });

@@ -2661,6 +2661,35 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(depth3State.map?.name).toBe('無底深淵祭壇調查圖');
       expect(Object.keys(depth3State.map?.nodes ?? {}).length).toBe(16);
     });
+
+    it('guards COMPLETE_DEPTH_TRANSITION against advancing beyond max depth 4', () => {
+      const stateAtDepth4: GameState = {
+        ...createInitialCombatState(),
+        phase: 'depth_transition',
+        currentDepth: 4,
+      };
+
+      const result = gameReducer(stateAtDepth4, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(result.currentDepth).toBe(4);
+      expect(result.phase).toBe('depth_transition');
+    });
+
+    it('handles generateInvestigationMap predicate correctly for deterministic vs procedural', () => {
+      // Default: deterministic base map template
+      const baseMap = generateInvestigationMap();
+      expect(baseMap.depth).toBe(1);
+      expect(Object.keys(baseMap.nodes).length).toBe(12);
+
+      // Explicit procedural: true at depth 1 produces 16 nodes
+      const procMapDepth1 = generateInvestigationMap({ depth: 1, procedural: true });
+      expect(procMapDepth1.depth).toBe(1);
+      expect(Object.keys(procMapDepth1.nodes).length).toBe(16);
+
+      // Depth 2 without explicit procedural flag defaults to procedural 16 nodes
+      const procMapDepth2 = generateInvestigationMap({ depth: 2 });
+      expect(procMapDepth2.depth).toBe(2);
+      expect(Object.keys(procMapDepth2.nodes).length).toBe(16);
+    });
   });
 });
 
