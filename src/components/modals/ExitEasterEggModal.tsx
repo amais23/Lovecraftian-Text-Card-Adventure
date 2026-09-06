@@ -6,21 +6,36 @@ import { useModalDismiss } from '../../hooks/useModalDismiss';
 interface ExitEasterEggModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmitAbyss?: () => void;
+  onStruggle?: () => void;
 }
 
-export const ExitEasterEggModal: React.FC<ExitEasterEggModalProps> = ({ isOpen, onClose }) => {
+export const ExitEasterEggModal: React.FC<ExitEasterEggModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmitAbyss,
+  onStruggle,
+}) => {
   const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
 
   if (!isOpen) return null;
 
   const handleSubmitToAbyss = () => {
-    soundEngine.playCardPlay('madness');
-    onClose();
+    if (onSubmitAbyss) {
+      onSubmitAbyss();
+    } else {
+      soundEngine.playCardPlay('madness');
+      onClose();
+    }
   };
 
   const handleStruggle = () => {
-    soundEngine.playClick();
-    onClose();
+    if (onStruggle) {
+      onStruggle();
+    } else {
+      soundEngine.playClick();
+      onClose();
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useState, useReducer } from 'react';
 import { gameReducer, createInitialGameState } from './engine/gameReducer';
 import { TitleScreen } from './components/TitleScreen';
 import { PrologueScreen } from './components/PrologueScreen';
@@ -10,12 +10,24 @@ import { SanctuaryScreen } from './components/SanctuaryScreen';
 import { MarketScreen } from './components/MarketScreen';
 import { CombatScreen } from './components/CombatScreen';
 import { RewardScreen } from './components/RewardScreen';
+import { AbyssDeathScreen } from './components/AbyssDeathScreen';
 
 export function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, () => createInitialGameState());
+  const [isAbyssDead, setIsAbyssDead] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('arkham_abyss_dead') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  if (isAbyssDead) {
+    return <AbyssDeathScreen />;
+  }
 
   if (state.phase === 'title') {
-    return <TitleScreen dispatch={dispatch} />;
+    return <TitleScreen dispatch={dispatch} onAbyssDeath={() => setIsAbyssDead(true)} />;
   }
 
   if (state.phase === 'prologue') {

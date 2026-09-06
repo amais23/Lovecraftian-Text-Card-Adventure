@@ -1,0 +1,161 @@
+/* ==========================================================================
+   Abyss Curse & Blood Overlay Styles (ADR-0014)
+   ========================================================================== */
+
+/* Fullscreen blood overlay for stages 1 ~ 3 (Pointer events pass through) */
+.abyss-blood-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+  transition: opacity 0.8s ease-out, filter 0.8s ease-out;
+}
+
+/* Stage 1 (2nd click): subtle blood vignette around borders */
+.abyss-blood-overlay.stage-1 {
+  background:
+    radial-gradient(ellipse at center, transparent 65%, rgba(127, 29, 29, 0.45) 88%, rgba(69, 10, 10, 0.85) 100%),
+    radial-gradient(circle at 10% 10%, rgba(153, 27, 27, 0.3) 0%, transparent 35%),
+    radial-gradient(circle at 90% 90%, rgba(153, 27, 27, 0.3) 0%, transparent 35%);
+  box-shadow: inset 0 0 50px rgba(185, 28, 28, 0.4);
+}
+
+/* Stage 2 (3rd click): blood spreading deeper into the screen */
+.abyss-blood-overlay.stage-2 {
+  background:
+    radial-gradient(ellipse at center, transparent 45%, rgba(136, 19, 55, 0.5) 75%, rgba(69, 10, 10, 0.92) 100%),
+    radial-gradient(circle at 15% 15%, rgba(185, 28, 28, 0.55) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(153, 27, 27, 0.5) 0%, transparent 35%),
+    radial-gradient(circle at 80% 85%, rgba(185, 28, 28, 0.6) 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(136, 19, 55, 0.5) 0%, transparent 35%);
+  box-shadow: inset 0 0 90px rgba(220, 38, 38, 0.55);
+  backdrop-filter: contrast(1.1);
+}
+
+/* Stage 3 (4th click): heavy blood curtain with blurred edges */
+.abyss-blood-overlay.stage-3 {
+  background:
+    radial-gradient(ellipse at center, rgba(30, 0, 0, 0.4) 20%, rgba(127, 29, 29, 0.75) 60%, rgba(40, 0, 0, 0.98) 100%),
+    radial-gradient(circle at 25% 30%, rgba(220, 38, 38, 0.5) 0%, transparent 45%),
+    radial-gradient(circle at 75% 70%, rgba(185, 28, 28, 0.5) 0%, transparent 45%),
+    radial-gradient(circle at 50% 10%, rgba(136, 19, 55, 0.65) 0%, transparent 40%);
+  box-shadow: inset 0 0 140px rgba(239, 68, 68, 0.7);
+  backdrop-filter: blur(1.5px) contrast(1.2);
+  animation: abyssCurtainPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes abyssCurtainPulse {
+  0% {
+    filter: brightness(0.9) saturate(1.1);
+  }
+  100% {
+    filter: brightness(0.75) saturate(1.35);
+  }
+}
+
+/* Blood Drip SVG Accents */
+.abyss-blood-svg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Terminal YOU DIED Lockout Screen (5th click & cached permanent state)
+   ========================================================================== */
+.abyss-you-died-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 9999999;
+  background-color: #000000;
+  background-image:
+    radial-gradient(circle at center, rgba(127, 29, 29, 0.25) 0%, #000000 70%),
+    radial-gradient(circle at 20% 80%, rgba(69, 10, 10, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(69, 10, 10, 0.4) 0%, transparent 50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: not-allowed;
+  overflow: hidden;
+  animation: abyssDeathFadeIn 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes abyssDeathFadeIn {
+  0% {
+    opacity: 0;
+    filter: blur(10px) brightness(0.2);
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0) brightness(1);
+    transform: scale(1);
+  }
+}
+
+/* Vignette border on Death screen */
+.abyss-you-died-vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.95), inset 0 0 60px rgba(185, 28, 28, 0.4);
+  pointer-events: none;
+}
+
+/* Classical Soulslike YOU DIED Typography */
+.abyss-you-died-title {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: clamp(3.5rem, 9vw, 7.5rem);
+  font-weight: 900;
+  letter-spacing: clamp(0.35em, 1.8vw, 0.65em);
+  text-indent: clamp(0.35em, 1.8vw, 0.65em); /* balance letter-spacing centering */
+  color: #991b1b;
+  text-shadow:
+    0 0 20px rgba(220, 38, 38, 0.7),
+    0 0 50px rgba(153, 27, 27, 0.9),
+    0 4px 12px rgba(0, 0, 0, 0.9);
+  margin: 0;
+  text-transform: uppercase;
+  animation: youDiedGlow 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes youDiedGlow {
+  0% {
+    color: #881337;
+    text-shadow:
+      0 0 15px rgba(185, 28, 28, 0.6),
+      0 0 35px rgba(136, 19, 55, 0.7);
+  }
+  100% {
+    color: #b91c1c;
+    text-shadow:
+      0 0 28px rgba(239, 68, 68, 0.9),
+      0 0 65px rgba(220, 38, 38, 0.85),
+      0 0 90px rgba(185, 28, 28, 0.5);
+  }
+}
+
+/* Subtle Eldritch Whispers Line below title */
+.abyss-you-died-line {
+  width: min(400px, 70vw);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.7), transparent);
+  margin: 24px 0;
+}
+
+/* Atmospheric Subtext */
+.abyss-you-died-subtext {
+  font-family: 'Noto Serif TC', serif;
+  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+  letter-spacing: 0.25em;
+  color: #71717a;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  opacity: 0.75;
+  margin: 0;
+}
