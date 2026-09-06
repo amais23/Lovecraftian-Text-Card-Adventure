@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ALL_CARD_ARTWORKS, getCardArtwork, CARD_ARTWORKS_REGISTRY } from './cardArtworks';
+import { ALL_CARD_ARTWORKS, getCardArtwork, CARD_ARTWORKS_REGISTRY, CARD_NAME_ALIASES } from './cardArtworks';
+import { ALL_TIERED_CARDS } from './cardTiers';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
@@ -139,5 +140,28 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     // Should fall back to combat fallback ('card_revolver'), NOT skill ('card_cover')
     expect(art.artId).toBe('card_revolver');
     expect(art.category).toBe('combat');
+  });
+
+  it('should ensure all CARD_NAME_ALIASES map to existing registered canonical card names', () => {
+    const validCanonicalNames = new Set(ALL_CARD_ARTWORKS.map((a) => a.name));
+    for (const [alias, canonicalTarget] of Object.entries(CARD_NAME_ALIASES)) {
+      expect(
+        validCanonicalNames.has(canonicalTarget),
+        `Alias '${alias}' points to non-existent artwork name '${canonicalTarget}'`
+      ).toBe(true);
+
+      const art = getCardArtwork({ name: alias });
+      expect(art.name).toBe(canonicalTarget);
+    }
+  });
+
+  it('should successfully resolve dedicated artworks for all tiered cards (Tier 2, Tier 3, Tier 4+)', () => {
+    for (const card of ALL_TIERED_CARDS) {
+      const art = getCardArtwork(card);
+      expect(art).toBeDefined();
+      expect(art.artId).toBeTruthy();
+      expect(art.imageUrl).toBeTruthy();
+      expect(art.category).toBe(card.category);
+    }
   });
 });

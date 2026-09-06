@@ -59,10 +59,10 @@ describe('Tiered Card System (cardTiers - Issue #20 / ADR-0015)', () => {
     expect(rewards.every((c) => c.tier === 3)).toBe(true);
   });
 
-  it('generates Tier 3+ cards for Depth 1 Boss defeat (越階獎勵 3 選 1)', () => {
+  it('generates Tier 3 cards for Depth 1 Boss defeat (越階獎勵 3 選 1，排除 Tier 4+ 專屬卡)', () => {
     const rewards = generateRewardCardsForDepth(1, true, 3);
     expect(rewards).toHaveLength(3);
-    expect(rewards.every((c) => (c.tier ?? 1) >= 3)).toBe(true);
+    expect(rewards.every((c) => c.tier === 3)).toBe(true);
   });
 
   it('generates all 4 Tier 4+ Exclusive cards for Depth 2 Boss defeat (專屬 4 選 1)', () => {

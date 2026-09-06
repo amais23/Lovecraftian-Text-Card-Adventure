@@ -423,8 +423,8 @@ export function generateRewardCardsForDepth(
       return TIER_4_EXCLUSIVE_CARDS.map((c) => ({ ...c }));
     }
     if (depth === 1) {
-      // 第一深度首領：越階抽取 Tier 3+ 高階卡牌（3 選 1）
-      const pool = [...TIER_3_CARDS, ...TIER_4_EXCLUSIVE_CARDS];
+      // 第一深度首領：越階抽取 Tier 3 高階強力卡牌（3 選 1，Tier 4+ 專屬卡限定第二深度首領獨佔）
+      const pool = TIER_3_CARDS;
       const targetCount = count ?? 3;
       const shuffled = fisherYatesShuffle(pool, randomFn);
       return shuffled.slice(0, Math.min(targetCount, shuffled.length)).map((c) => ({ ...c }));

@@ -2786,7 +2786,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(rewardState.rewardCards?.every((c) => c.tier === 3)).toBe(true);
     });
 
-    it('generates 50 obols and Tier 3+ cards (3 選 1) upon defeating Depth 1 Boss', () => {
+    it('generates 50 obols and Tier 3 cards (3 選 1) upon defeating Depth 1 Boss', () => {
       const map = generateInvestigationMap({ depth: 1 });
       const bossNodeId = map.layers[map.layers.length - 1][0];
 
@@ -2803,7 +2803,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       const rewardState = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
       expect(rewardState.rewardObols).toBe(50);
       expect(rewardState.rewardCards).toHaveLength(3);
-      expect(rewardState.rewardCards?.every((c) => (c.tier ?? 1) >= 3)).toBe(true);
+      expect(rewardState.rewardCards?.every((c) => c.tier === 3)).toBe(true);
     });
 
     it('generates 50 obols and all 4 Tier 4+ Exclusive cards (4 選 1) upon defeating Depth 2 Boss', () => {

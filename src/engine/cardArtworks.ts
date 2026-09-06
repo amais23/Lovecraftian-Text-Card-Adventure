@@ -285,7 +285,7 @@ const ARTWORKS_BY_NAME = new Map<string, CardArtworkInfo>(
 );
 
 // Aliases for card variants (e.g. black market goods, tiered cards, and narrative derivatives)
-const CARD_NAME_ALIASES: Record<string, string> = {
+export const CARD_NAME_ALIASES: Record<string, string> = {
   // Market goods
   '戰壕雙管獵槍': '雙管獵槍',
   '遠古青銅護身符': '遠古護身符',
@@ -304,22 +304,22 @@ const CARD_NAME_ALIASES: Record<string, string> = {
   '戰地快速縫合': '應急急救包',
   '深海冰霜之握': '虛空烈焰',
   '心靈震波': '恐懼低語',
-  '禁忌海蝕石板殘卷': '真相碎片',
+  '禁忌海蝕石板殘卷': '舊日殘頁',
   '銀鑰指引微光': '銀鑰儀式',
 
   // Tier 3 Cards
   '達姆高爆彈連射': '左輪射擊',
   '軍用特種炸藥包': '雙管獵槍',
-  '不可侵犯之壁': '星界靈光護壁',
-  '極限精神錨定': '冥想整頓',
+  '不可侵犯之壁': '星界庇護',
+  '極限精神錨定': '心靈冥想',
   '虛空黑洞坍縮': '虛空烈焰',
-  '深淵靈能撕裂': '秘法轟擊',
-  '拉萊耶原典啟示': '深淵真理',
+  '深淵靈能撕裂': '靈能衝擊',
+  '拉萊耶原典啟示': '深潛者手札',
   '超維星辰共鳴': '星界洞察',
 
   // Tier 4+ Exclusive Cards
   '屠神裁決爆轟': '雙管獵槍',
-  '舊神庇護之陣': '星界靈光護壁',
+  '舊神庇護之陣': '星界庇護',
   '超維虛空湮滅': '虛空烈焰',
   '源初星辰啟示': '星界洞察',
 };
