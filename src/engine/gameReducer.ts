@@ -184,13 +184,32 @@ export function applyDamage(
   };
 }
 
-export function ensureAdventureStats(state: Partial<GameState>): AdventureStats {
-  return state.adventureStats ?? {
+export function createInitialAdventureStats(
+  investigator?: Partial<Investigator>,
+  map?: InvestigationMap
+): AdventureStats {
+  return {
     enemiesDefeated: 0,
-    totalObolsCollected: state.investigator?.obols ?? 0,
+    totalObolsCollected: investigator?.obols ?? 0,
     nodesVisited: 0,
-    maxLayer: state.map?.nodes?.[state.map?.currentNodeId ?? '']?.layer ?? 0,
+    maxLayer: map?.nodes?.[map?.currentNodeId ?? '']?.layer ?? 0,
   };
+}
+
+export function ensureAdventureStats(state: Partial<GameState>): AdventureStats {
+  return state.adventureStats ?? createInitialAdventureStats(state.investigator, state.map);
+}
+
+export function getPermanentDeckCount(state: {
+  sanityDeck?: Card[];
+  hand?: Card[];
+  discardPile?: Card[];
+}): number {
+  return [
+    ...(state.sanityDeck ?? []),
+    ...(state.hand ?? []),
+    ...(state.discardPile ?? []),
+  ].filter((c) => !c.isTemporary).length;
 }
 
 export function createInitialCombatState(
@@ -224,12 +243,7 @@ export function createInitialCombatState(
     discardPile: [],
     isMadness: sanityDeck.length === 0,
     currentEnemy: enemy,
-    adventureStats: {
-      enemiesDefeated: 0,
-      totalObolsCollected: investigator.obols ?? 0,
-      nodesVisited: 0,
-      maxLayer: 0,
-    },
+    adventureStats: createInitialAdventureStats(investigator),
     battleLog: [
       `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
     ],
@@ -271,12 +285,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map,
-        adventureStats: {
-          enemiesDefeated: 0,
-          totalObolsCollected: investigator.obols ?? 0,
-          nodesVisited: 0,
-          maxLayer: 0,
-        },
+        adventureStats: createInitialAdventureStats(investigator, map),
         battleLog: [
           `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`,
         ],
@@ -536,6 +545,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: newSanityDeck,
         hand: newHand,
         currentEvent: updatedEvent,
+        adventureStats: updatedStats,
         battleLog: outcomeTexts.concat(state.battleLog),
       };
     }
@@ -849,6 +859,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map: state.map,
+        adventureStats: ensureAdventureStats(state),
         battleLog: [
           `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
         ],

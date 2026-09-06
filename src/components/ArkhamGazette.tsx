@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState, GameAction } from '../types/game';
-import { ensureAdventureStats } from '../engine/gameReducer';
+import { ensureAdventureStats, getPermanentDeckCount } from '../engine/gameReducer';
 import { soundEngine } from '../engine/audioManager';
 import {
   Skull,
@@ -34,14 +34,7 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
   const isDeath = endingType === 'death';
   const { investigator } = state;
   const stats = ensureAdventureStats(state);
-
-  // Compute permanent deck capacity (total cards)
-  const currentPermanentCards = [
-    ...state.sanityDeck,
-    ...state.hand,
-    ...state.discardPile,
-  ].filter((c) => !c.isTemporary);
-  const deckCapacity = currentPermanentCards.length;
+  const deckCapacity = getPermanentDeckCount(state);
 
   useEffect(() => {
     // Play the authentic desk slam impact and ambient eerie drone
@@ -70,6 +63,21 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
     <div className="gazette-overlay" id="arkham-gazette-overlay">
       <div className="vignette-overlay" />
       <div className="fog-layer" />
+
+      {/* Fullscreen Abyss Shatter / Crack Effect on Death */}
+      {isDeath && (
+        <motion.div
+          className="abyss-shatter-layer"
+          id="abyss-shatter-effect"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: [1, 0.85, 0.4, 0] }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
+          aria-hidden="true"
+        >
+          <div className="shatter-cracks" />
+          <div className="shatter-crimson-flash" />
+        </motion.div>
+      )}
 
       <div className="gazette-desk-surface">
         <motion.div

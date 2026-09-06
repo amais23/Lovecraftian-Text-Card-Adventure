@@ -4,6 +4,8 @@ import {
   createInitialGameState,
   createInitialCombatState,
   ensureAdventureStats,
+  createInitialAdventureStats,
+  getPermanentDeckCount,
 } from './gameReducer';
 import type { GameState } from '../types/game';
 import { generateInvestigationMap } from './mapGenerator';
@@ -127,5 +129,102 @@ describe('AdventureStats Tracking in gameReducer', () => {
     });
 
     expect(nextState.adventureStats?.totalObolsCollected).toBe(50);
+  });
+
+  it('preserves adventureStats when RESET_COMBAT is dispatched (Retry Combat)', () => {
+    const deadState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'gameover',
+      adventureStats: {
+        enemiesDefeated: 4,
+        totalObolsCollected: 75,
+        nodesVisited: 6,
+        maxLayer: 3,
+      },
+    };
+
+    const retriedState = gameReducer(deadState, {
+      type: 'RESET_COMBAT',
+    });
+
+    expect(retriedState.phase).toBe('combat');
+    expect(retriedState.adventureStats).toBeDefined();
+    expect(retriedState.adventureStats?.enemiesDefeated).toBe(4);
+    expect(retriedState.adventureStats?.totalObolsCollected).toBe(75);
+    expect(retriedState.adventureStats?.nodesVisited).toBe(6);
+    expect(retriedState.adventureStats?.maxLayer).toBe(3);
+  });
+
+  it('preserves and accumulates totalObolsCollected on peaceful EVENT_CHOICE', () => {
+    const eventState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'event',
+      investigator: {
+        ...createInitialCombatState().investigator,
+        health: 20,
+        obols: 10,
+      },
+      adventureStats: {
+        enemiesDefeated: 1,
+        totalObolsCollected: 25,
+        nodesVisited: 3,
+        maxLayer: 2,
+      },
+      currentEvent: {
+        id: 'test_event',
+        title: '拾獲古金幣',
+        location: '幽暗小徑',
+        storyText: ['在碎石瓦礫中發現一枚古老鑄幣。'],
+        options: [
+          {
+            id: 'take_coin',
+            text: '拾起金幣',
+            consequences: [
+              {
+                type: 'gain_obols',
+                value: 15,
+                narrative: '獲得了 15 枚古金幣！',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const nextState = gameReducer(eventState, {
+      type: 'RESOLVE_EVENT_OPTION',
+      payload: { optionId: 'take_coin' },
+    });
+
+    expect(nextState.phase).toBe('event');
+    expect(nextState.investigator.obols).toBe(25);
+    expect(nextState.adventureStats?.totalObolsCollected).toBe(40);
+  });
+
+  it('initializes default stats properly via createInitialAdventureStats', () => {
+    const stats = createInitialAdventureStats({ obols: 35 });
+    expect(stats.enemiesDefeated).toBe(0);
+    expect(stats.totalObolsCollected).toBe(35);
+    expect(stats.nodesVisited).toBe(0);
+    expect(stats.maxLayer).toBe(0);
+  });
+
+  it('correctly calculates permanent deck capacity ignoring temporary cards via getPermanentDeckCount', () => {
+    const state = {
+      sanityDeck: [
+        { id: 'c1', name: '槍擊', category: 'combat', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+        { id: 'c2', name: '瘋狂', category: 'madness', costType: 'stamina', costValue: 0, isTemporary: true, effects: [], description: '', flavorText: '' },
+      ] as any,
+      hand: [
+        { id: 'c3', name: '格擋', category: 'skill', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+      ] as any,
+      discardPile: [
+        { id: 'c4', name: '秘法', category: 'magic', costType: 'sanity', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+        { id: 'c5', name: '臨時真相', category: 'truth', costType: 'stamina', costValue: 1, isTemporary: true, effects: [], description: '', flavorText: '' },
+      ] as any,
+    };
+
+    const count = getPermanentDeckCount(state);
+    expect(count).toBe(3); // c1, c3, c4
   });
 });

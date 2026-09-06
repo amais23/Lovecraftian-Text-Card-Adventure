@@ -77,6 +77,9 @@ describe('ArkhamGazette Component', () => {
     expect(screen.getByText(/重新開始調查/)).toBeDefined();
     expect(screen.getByText(/原戰鬥重試/)).toBeDefined();
 
+    // Abyss Shatter Effect on Death
+    expect(document.getElementById('abyss-shatter-effect')).not.toBeNull();
+
     // Audio on mount
     expect(soundEngine.playNewspaperSlam).toHaveBeenCalledTimes(1);
   });
@@ -111,6 +114,7 @@ describe('ArkhamGazette Component', () => {
     // Victory Action
     expect(screen.getByText(/凱旋返回主選單/)).toBeDefined();
     expect(screen.queryByText(/原戰鬥重試/)).toBeNull();
+    expect(document.getElementById('abyss-shatter-effect')).toBeNull();
   });
 
   it('dispatches RETURN_TO_TITLE when return button is clicked', () => {

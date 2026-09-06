@@ -98,6 +98,8 @@ export class SoundEngine {
     duration: number;
     linearRamp?: boolean;
     gainEnd?: number;
+    attackDuration?: number;
+    gainPeak?: number;
   }): void {
     if (this.isMuted) return;
     const ctx = this.initContext();
@@ -115,8 +117,15 @@ export class SoundEngine {
       osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.freqEnd), t + options.duration);
     }
 
-    gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
+    if (options.attackDuration && options.attackDuration > 0) {
+      gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
+      const peak = options.gainPeak ?? options.gainStart;
+      gain.gain.linearRampToValueAtTime(peak, t + options.attackDuration);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
+    } else {
+      gain.gain.setValueAtTime(Math.max(0.0001, options.gainStart), t);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, options.gainEnd ?? 0.001), t + options.duration);
+    }
 
     osc.connect(gain);
     gain.connect(this.masterGain);
@@ -329,26 +338,17 @@ export class SoundEngine {
    * 8. 結局微鳴神秘低音 (Eerie Ending Ambience)
    */
   public playEndingEerieTension(): void {
-    if (this.isMuted) return;
-    const ctx = this.initContext();
-    if (!ctx || !this.masterGain) return;
-
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(68, t);
-    osc.frequency.linearRampToValueAtTime(62, t + 1.2);
-
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.linearRampToValueAtTime(0.18, t + 0.3);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start(t);
-    osc.stop(t + 1.2);
+    this.playTone({
+      type: 'sine',
+      freqStart: 68,
+      freqEnd: 62,
+      gainStart: 0.001,
+      gainPeak: 0.18,
+      attackDuration: 0.3,
+      duration: 1.2,
+      linearRamp: true,
+      gainEnd: 0.001,
+    });
   }
 }
 
