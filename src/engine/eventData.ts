@@ -1,4 +1,5 @@
 import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent } from '../types/game';
+import { TIER_2_CARDS, TIER_3_CARDS } from './cardTiers';
 
 /* =========================================================
    Elite & Boss Enemies
@@ -527,6 +528,7 @@ export function generateDefaultMarketItems(): MarketItem[] {
         costType: 'stamina',
         costValue: 2,
         isTemporary: false,
+        tier: 1,
         effects: [{ type: 'damage', value: 14 }],
         description: '造成 14 點物理傷害。',
         flavorText: '「12號口徑鹿彈撕裂腐肉的轟鳴，足以撕裂最深沉的夢魘。」',
@@ -545,6 +547,7 @@ export function generateDefaultMarketItems(): MarketItem[] {
         costType: 'stamina',
         costValue: 1,
         isTemporary: false,
+        tier: 1,
         effects: [{ type: 'armor', value: 8 }],
         description: '激發符石古老力場，獲得 8 點護甲值。',
         flavorText: '「青銅上的深綠包漿散發著阻絕污穢的冰涼氣息。」',
@@ -559,6 +562,7 @@ export function generateDefaultMarketItems(): MarketItem[] {
       card: {
         ...TRUTH_CARD_BREAKWATER,
         id: 'card_market_breakwater',
+        tier: 1,
       },
     },
     {
@@ -579,3 +583,107 @@ export function generateDefaultMarketItems(): MarketItem[] {
     },
   ];
 }
+
+/**
+ * 依據當前探索深度生成黑市商品清單（隨深度動態演進）
+ * - Depth 1: Tier 1 裝備與常規醫療品
+ * - Depth 2: Tier 2 進階裝備與深度防護血清
+ * - Depth 3: Tier 3 大師級秘寶與禁忌復甦針劑
+ */
+export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[] {
+  switch (depth) {
+    case 2:
+      return [
+        {
+          id: 'market_item_pump_shotgun_d2',
+          name: '泵動式散彈槍',
+          type: 'card',
+          price: 28,
+          description: '進階重型火器，造成 20 點猛烈物理傷害。',
+          card: { ...TIER_2_CARDS[0], id: 'card_market_pump_shotgun' },
+        },
+        {
+          id: 'market_item_iron_will_d2',
+          name: '鋼鐵意志屏障',
+          type: 'card',
+          price: 25,
+          description: '凝聚凡人鋼鐵意志，獲得 12 點累積護甲值。',
+          card: { ...TIER_2_CARDS[2], id: 'card_market_iron_will' },
+        },
+        {
+          id: 'market_item_frost_grasp_d2',
+          name: '深海冰霜之握',
+          type: 'card',
+          price: 24,
+          description: '消耗 2 點理智，召喚極寒洋流造成 25 點超自然傷害。',
+          card: { ...TIER_2_CARDS[4], id: 'card_market_frost_grasp' },
+        },
+        {
+          id: 'market_item_surgery_kit_d2',
+          name: '高級戰地醫療箱',
+          type: 'heal',
+          price: 22,
+          healAmount: 12,
+          description: '專業外科縫合工具與抗生素，立即恢復 12 點肉體生命值。',
+        },
+        {
+          id: 'market_item_antidote_serum_d2',
+          name: '深海抗逆血清',
+          type: 'heal',
+          price: 18,
+          healAmount: 8,
+          description: '提取自深潛者分泌物的解毒血清，立即恢復 8 點生命值。',
+        },
+      ];
+
+    case 3:
+    case 4:
+      return [
+        {
+          id: 'market_item_dum_dum_d3',
+          name: '達姆高爆彈連射',
+          type: 'card',
+          price: 38,
+          description: '太古破甲高爆彈，造成 26 點毀滅性傷害。',
+          card: { ...TIER_3_CARDS[0], id: 'card_market_dum_dum' },
+        },
+        {
+          id: 'market_item_impenetrable_bastion_d3',
+          name: '不可侵犯之壁',
+          type: 'card',
+          price: 35,
+          description: '不可摧毀的終極防禦，獲得 22 點超重型累積護甲。',
+          card: { ...TIER_3_CARDS[2], id: 'card_market_bastion' },
+        },
+        {
+          id: 'market_item_void_collapse_d3',
+          name: '虛空黑洞坍縮',
+          type: 'card',
+          price: 36,
+          description: '引發時空引力黑洞，造成 34 點極限超自然傷害。',
+          card: { ...TIER_3_CARDS[4], id: 'card_market_void_collapse' },
+        },
+        {
+          id: 'market_item_revival_injection_d3',
+          name: '禁忌復甦針劑',
+          type: 'heal',
+          price: 30,
+          healAmount: 16,
+          description: '注入強心劑與太古活性液體，瞬間恢復 16 點肉體生命值。',
+        },
+        {
+          id: 'market_item_sanctified_elixir_d3',
+          name: '聖所聖水金樽',
+          type: 'heal',
+          price: 26,
+          healAmount: 10,
+          description: '盛放在純金酒樽中的驅邪聖水，立即恢復 10 點生命值。',
+        },
+      ];
+
+    case 1:
+    default:
+      return generateDefaultMarketItems();
+  }
+}
+

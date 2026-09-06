@@ -5,6 +5,7 @@ import {
   REWARD_CARD_POOL,
 } from './initialData';
 import { MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from './cardFactory';
+import { TIER_2_CARDS, TIER_3_CARDS, TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
 
 /**
  * 完整典藏卡牌清單 (Card Compendium Catalog)
@@ -50,6 +51,17 @@ const CARD_COMPENDIUM_REGISTRY: Card[] = (() => {
     ...TRUTH_INJECTED_TEMPLATE,
     id: 'compendium_truth_glimmer',
   });
+
+  // 6. 分階獎勵與首領專屬卡庫 (Tier 2, Tier 3, Tier 4+ Exclusive)
+  for (const card of TIER_2_CARDS) {
+    addUnique(card);
+  }
+  for (const card of TIER_3_CARDS) {
+    addUnique(card);
+  }
+  for (const card of TIER_4_EXCLUSIVE_CARDS) {
+    addUnique(card);
+  }
 
   return catalog;
 })();
