@@ -63,8 +63,8 @@
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(10px, 1.5vw, 20px);
-  padding: clamp(6px, 1dvh, 12px) 24px;
+  gap: clamp(8px, 1.2vw, 20px);
+  padding: clamp(4px, 0.8dvh, 10px) clamp(10px, 1.5vw, 24px);
   min-height: 0;
   overflow: hidden;
 }
@@ -79,7 +79,7 @@
   background: radial-gradient(circle at center, rgba(35, 18, 24, 0.65) 0%, rgba(12, 14, 18, 0.85) 75%);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: clamp(4px, 0.8dvh, 12px) clamp(8px, 1.2vw, 16px);
   box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.85);
   overflow: hidden;
 }
@@ -87,13 +87,13 @@
 .enemy-intent-bubble {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(4px, 0.8vw, 8px);
   background: rgba(26, 12, 16, 0.92);
   border: 1px solid var(--color-health-bright);
   box-shadow: 0 0 15px rgba(230, 57, 70, 0.35);
-  padding: 6px 14px;
+  padding: clamp(2px, 0.5dvh, 6px) clamp(8px, 1vw, 14px);
   border-radius: 20px;
-  margin-bottom: 8px;
+  margin-bottom: clamp(2px, 0.5dvh, 8px);
   animation: intentPulse 2.5s infinite ease-in-out;
 }
 
@@ -103,14 +103,14 @@
     box-shadow: 0 0 12px rgba(230, 57, 70, 0.25);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 0 20px rgba(230, 57, 70, 0.55);
   }
 }
 
 .intent-icon {
   color: var(--color-health-bright);
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 1.4dvh, 1rem);
 }
 
 .enemy-intent-bubble.erode {
@@ -130,7 +130,7 @@
 
 .intent-name {
   font-family: var(--font-title);
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.85rem);
   font-weight: 700;
   color: #ffadb4;
 }
@@ -139,22 +139,22 @@
   font-family: var(--font-title);
   color: var(--color-health-bright);
   font-weight: 900;
-  font-size: 1.05rem;
+  font-size: clamp(0.85rem, 1.5dvh, 1.05rem);
 }
 
 .enemy-avatar-wrapper {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: clamp(52px, 8dvh, 96px);
+  height: clamp(52px, 8dvh, 96px);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
+  margin-bottom: clamp(2px, 0.4dvh, 6px);
 }
 
 .enemy-avatar-circle {
-  width: 90px;
-  height: 90px;
+  width: clamp(48px, 7.5dvh, 90px);
+  height: clamp(48px, 7.5dvh, 90px);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #421419, #150608);
   border: 2px solid var(--color-health);
@@ -177,15 +177,15 @@
 }
 
 .enemy-avatar-icon {
-  width: 48px;
-  height: 48px;
+  width: clamp(24px, 4dvh, 48px);
+  height: clamp(24px, 4dvh, 48px);
   color: #f7a8b0;
   filter: drop-shadow(0 0 6px rgba(0,0,0,0.8));
 }
 
 .enemy-name {
   font-family: var(--font-title);
-  font-size: 1.15rem;
+  font-size: clamp(0.9rem, 1.6dvh, 1.15rem);
   letter-spacing: 1px;
   color: var(--text-parchment);
   margin-bottom: 2px;
@@ -303,12 +303,10 @@
 
 /* Lower Section: Investigator & Hand */
 .combat-lower-section {
-  flex: 1.1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: clamp(4px, 0.8dvh, 8px);
-  padding: clamp(6px, 1dvh, 10px) 24px clamp(6px, 1.2dvh, 14px) 24px;
+  gap: clamp(2px, 0.5dvh, 6px);
+  padding: clamp(4px, 0.6dvh, 8px) clamp(10px, 1.5vw, 24px) clamp(4px, 0.8dvh, 10px) clamp(10px, 1.5vw, 24px);
   background: linear-gradient(to top, rgba(7, 9, 13, 0.98), rgba(12, 15, 21, 0.85));
   border-top: 1px solid var(--border-gold);
   z-index: 5;
@@ -323,7 +321,7 @@
   background: rgba(15, 18, 25, 0.8);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: clamp(6px, 0.9dvh, 10px) 18px;
+  padding: clamp(3px, 0.6dvh, 8px) clamp(8px, 1.2vw, 18px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
 }
@@ -331,12 +329,12 @@
 .investigator-profile {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: clamp(6px, 1vw, 14px);
 }
 
 .investigator-avatar {
-  width: 44px;
-  height: 44px;
+  width: clamp(30px, 4.5dvh, 44px);
+  height: clamp(30px, 4.5dvh, 44px);
   border-radius: var(--radius-sm);
   background: #19202a;
   border: 1px solid var(--border-gold);
@@ -348,12 +346,12 @@
 
 .investigator-meta h3 {
   font-family: var(--font-title);
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 1.5dvh, 1rem);
   color: var(--text-parchment);
 }
 
 .investigator-meta span {
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1.1dvh, 0.75rem);
   color: var(--text-dim);
 }
 
@@ -361,14 +359,14 @@
 .resource-meters {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: clamp(8px, 1.4vw, 24px);
 }
 
 .resource-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: clamp(4px, 0.6vw, 8px);
+  padding: clamp(3px, 0.5dvh, 6px) clamp(6px, 0.8vw, 12px);
   border-radius: var(--radius-sm);
   background: rgba(8, 10, 14, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -484,7 +482,7 @@
 /* Hand Section */
 .hand-area {
   position: relative;
-  height: clamp(190px, 26dvh, 275px);
+  height: clamp(140px, 22dvh, 275px);
   width: 100%;
   padding: 4px 10px;
   perspective: 1000px;
@@ -497,7 +495,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(26px, 3.4dvh, 34px);
+  height: clamp(20px, 2.8dvh, 32px);
   margin-bottom: 2px;
   border-radius: var(--radius-sm);
   border: 1px dashed rgba(207, 168, 102, 0.2);
@@ -534,7 +532,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-title);
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.85rem);
   font-weight: 600;
   color: var(--text-dim);
   letter-spacing: 0.08em;
@@ -548,14 +546,14 @@
 
 /* Card Visuals */
 .card-item {
-  width: clamp(135px, 17dvh, 185px);
-  height: clamp(190px, 25dvh, 265px);
+  width: clamp(105px, 14.5dvh, 185px);
+  height: clamp(138px, 20.5dvh, 260px);
   border-radius: var(--radius-md);
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(4px, 0.7dvh, 8px) clamp(6px, 0.8dvh, 10px);
+  padding: clamp(3px, 0.5dvh, 8px) clamp(4px, 0.6vw, 10px);
   cursor: grab;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
   box-shadow: var(--shadow-card);
@@ -578,7 +576,7 @@
   position: absolute;
   bottom: 6px;
   left: 50%;
-  margin-left: calc(clamp(135px, 17dvh, 185px) / -2);
+  margin-left: calc(clamp(105px, 14.5dvh, 185px) / -2);
 }
 
 .card-item.dragging {
@@ -861,6 +859,12 @@
   margin-top: 1px;
 }
 
+@media (max-height: 720px) {
+  .card-flavor {
+    display: none;
+  }
+}
+
 /* Play Action Prompt */
 .card-play-prompt {
   font-family: var(--font-title);
@@ -1033,26 +1037,25 @@
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  padding: clamp(14px, 2.5dvh, 40px) 24px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  padding: clamp(8px, 1.6dvh, 32px) clamp(12px, 2vw, 24px);
+  overflow: hidden;
   user-select: none;
 }
 
 .title-screen-header {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: clamp(8px, 1.8dvh, 28px);
   z-index: 10;
 }
 
 .title-icon-badge {
   display: inline-flex;
-  padding: 12px;
+  padding: clamp(6px, 1dvh, 12px);
   border-radius: 50%;
   background: rgba(207, 168, 102, 0.1);
   border: 1px solid var(--border-gold);
   box-shadow: 0 0 24px rgba(207, 168, 102, 0.2);
-  margin-bottom: 12px;
+  margin-bottom: clamp(4px, 0.8dvh, 12px);
   animation: titleIconFloat 3s ease-in-out infinite alternate;
 }
 
@@ -1063,19 +1066,19 @@
 
 .title-screen-title {
   font-family: var(--font-title);
-  font-size: 2.4rem;
-  letter-spacing: 4px;
+  font-size: clamp(1.4rem, 2.8dvh, 2.4rem);
+  letter-spacing: clamp(2px, 0.5vw, 4px);
   color: var(--text-gold);
   text-shadow: 0 0 20px rgba(207, 168, 102, 0.4), 0 4px 8px rgba(0, 0, 0, 0.9);
-  margin-bottom: 6px;
+  margin-bottom: clamp(2px, 0.5dvh, 6px);
 }
 
 .title-screen-subtitle {
   font-family: var(--font-title);
-  font-size: 0.85rem;
-  letter-spacing: 6px;
+  font-size: clamp(0.72rem, 1.2dvh, 0.85rem);
+  letter-spacing: clamp(2px, 0.8vw, 6px);
   color: var(--text-dim);
-  margin-bottom: 18px;
+  margin-bottom: clamp(6px, 1dvh, 16px);
 }
 
 .title-divider {
@@ -1094,7 +1097,7 @@
 }
 
 .title-divider-text {
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 1.2dvh, 0.9rem);
   color: var(--text-parchment);
   letter-spacing: 2px;
   font-style: italic;
@@ -1102,8 +1105,8 @@
 
 .occupation-selection-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 460px));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
+  gap: clamp(12px, 2vw, 28px);
   justify-content: center;
   width: 100%;
   max-width: 1020px;
@@ -1114,7 +1117,7 @@
   background: rgba(14, 18, 25, 0.85);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: 24px 28px;
+  padding: clamp(10px, 1.6dvh, 22px) clamp(12px, 1.8vw, 24px);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1126,7 +1129,7 @@
 }
 
 .occupation-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-4px);
   border-color: var(--border-gold-bright);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(207, 168, 102, 0.3);
 }
@@ -1139,19 +1142,20 @@
 .occupation-card-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: clamp(8px, 1.2vw, 14px);
+  margin-bottom: clamp(6px, 1dvh, 12px);
 }
 
 .occupation-avatar {
-  width: 60px;
-  height: 60px;
+  width: clamp(38px, 5.5dvh, 56px);
+  height: clamp(38px, 5.5dvh, 56px);
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .occupation-avatar.occultist {
@@ -1161,20 +1165,20 @@
 
 .occupation-name {
   font-family: var(--font-title);
-  font-size: 1.35rem;
+  font-size: clamp(1.05rem, 1.8dvh, 1.3rem);
   color: var(--text-parchment);
   letter-spacing: 1px;
 }
 
 .occupation-badge {
   display: inline-block;
-  font-size: 0.72rem;
-  padding: 2px 8px;
+  font-size: clamp(0.62rem, 1dvh, 0.72rem);
+  padding: 2px 6px;
   border-radius: 3px;
   background: rgba(207, 168, 102, 0.15);
   border: 1px solid var(--border-gold);
   color: var(--text-gold);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .occupation-badge.occultist {
@@ -1184,26 +1188,26 @@
 }
 
 .occupation-quote {
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.82rem);
   font-style: italic;
   color: var(--text-gold);
-  line-height: 1.5;
-  margin-bottom: 12px;
+  line-height: 1.4;
+  margin-bottom: clamp(4px, 0.8dvh, 10px);
   border-left: 2px solid var(--border-gold);
-  padding-left: 10px;
+  padding-left: 8px;
 }
 
 .occupation-desc {
-  font-size: 0.82rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.8rem);
   color: #d1ccbe;
-  line-height: 1.6;
-  margin-bottom: 18px;
+  line-height: 1.4;
+  margin-bottom: clamp(6px, 1dvh, 14px);
 }
 
 .occupation-stats-grid {
   display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: clamp(4px, 1vw, 8px);
+  margin-bottom: clamp(6px, 1dvh, 14px);
 }
 
 .occupation-stat-pill {
@@ -1211,12 +1215,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 4px;
+  padding: clamp(3px, 0.6dvh, 6px) clamp(4px, 0.8vw, 8px);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 1.1dvh, 0.75rem);
   font-weight: 600;
 }
 
@@ -1228,24 +1232,24 @@
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 4px;
-  padding: 10px 14px;
-  margin-bottom: 20px;
+  padding: clamp(6px, 0.9dvh, 10px) clamp(8px, 1.2vw, 12px);
+  margin-bottom: clamp(8px, 1.2dvh, 16px);
 }
 
 .deck-feature-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.8rem);
   font-weight: 700;
   color: var(--text-parchment);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .deck-feature-desc {
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 1.1dvh, 0.74rem);
   color: var(--text-dim);
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 .occupation-select-btn {
@@ -1254,9 +1258,9 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 12px;
+  padding: clamp(8px, 1.2dvh, 12px);
   font-family: var(--font-title);
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 1.4dvh, 0.95rem);
   font-weight: 700;
   letter-spacing: 1px;
   border-radius: var(--radius-sm);
@@ -1311,16 +1315,16 @@
   background: rgba(14, 18, 25, 0.94);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: clamp(16px, 2.5dvh, 32px) clamp(16px, 2.5vw, 36px);
+  padding: clamp(10px, 1.8dvh, 26px) clamp(12px, 2vw, 32px);
   max-width: 960px;
-  max-height: calc(100dvh - 32px);
-  overflow-y: auto;
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(207, 168, 102, 0.2);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.5dvh, 20px);
+  gap: clamp(6px, 1.2dvh, 16px);
 }
 
 .reward-header {
@@ -1328,7 +1332,7 @@
 }
 
 .reward-trophy-icon {
-  margin-bottom: 8px;
+  margin-bottom: clamp(2px, 0.4dvh, 8px);
   animation: trophyPulse 2s infinite ease-in-out;
 }
 
@@ -1339,14 +1343,14 @@
 
 .reward-title {
   font-family: var(--font-title);
-  font-size: 1.6rem;
+  font-size: clamp(1.15rem, 2.2dvh, 1.6rem);
   letter-spacing: 2px;
   color: var(--text-gold);
-  margin-bottom: 6px;
+  margin-bottom: clamp(2px, 0.4dvh, 6px);
 }
 
 .reward-subtitle {
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.85rem);
   color: var(--text-dim);
   font-style: italic;
 }
@@ -1354,14 +1358,14 @@
 .reward-summary-row {
   display: grid;
   grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 16px;
+  gap: clamp(6px, 1vw, 16px);
 }
 
 .reward-pill {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: clamp(6px, 0.8vw, 12px);
+  padding: clamp(4px, 0.8dvh, 10px) clamp(8px, 1vw, 16px);
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1388,13 +1392,13 @@
 }
 
 .reward-pill-label {
-  font-size: 0.72rem;
+  font-size: clamp(0.64rem, 1.1dvh, 0.72rem);
   color: var(--text-dim);
 }
 
 .reward-pill-val {
   font-family: var(--font-title);
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 1.4dvh, 0.95rem);
   font-weight: 700;
   color: var(--text-parchment);
 }
@@ -1403,11 +1407,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 16px;
+  padding: clamp(4px, 0.7dvh, 8px) clamp(8px, 1vw, 16px);
   border-radius: 4px;
   background: rgba(183, 28, 28, 0.2);
   border: 1px solid rgba(230, 57, 70, 0.5);
-  font-size: 0.78rem;
+  font-size: clamp(0.68rem, 1.1dvh, 0.78rem);
   color: #ffb4b9;
   line-height: 1.4;
 }
@@ -1416,11 +1420,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: clamp(6px, 1dvh, 14px);
 }
 
 .reward-draft-title {
-  font-size: 0.88rem;
+  font-size: clamp(0.75rem, 1.2dvh, 0.88rem);
   color: var(--text-parchment);
   font-weight: 600;
   text-align: center;
@@ -1429,7 +1433,7 @@
 .reward-cards-grid {
   display: flex;
   justify-content: center;
-  gap: 24px;
+  gap: clamp(8px, 1.5vw, 24px);
   width: 100%;
 }
 
@@ -1437,25 +1441,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: clamp(4px, 0.8dvh, 10px);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
 
 .reward-card-wrapper:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
 }
 
 .reward-card-wrapper .card-item {
   cursor: pointer;
+  width: clamp(105px, 14dvh, 160px);
+  height: clamp(140px, 20dvh, 230px);
 }
 
 .reward-card-choose-btn {
   font-family: var(--font-title);
-  font-size: 0.8rem;
+  font-size: clamp(0.72rem, 1.1dvh, 0.8rem);
   font-weight: 700;
   letter-spacing: 0.5px;
-  padding: 6px 16px;
+  padding: clamp(4px, 0.7dvh, 7px) clamp(8px, 1.2vw, 16px);
   border-radius: var(--radius-sm);
   background: linear-gradient(180deg, #d4af37, #997b15);
   border: 1px solid #ffd700;
@@ -1471,19 +1477,19 @@
 }
 
 .reward-skip-container {
-  margin-top: 10px;
+  margin-top: clamp(2px, 0.6dvh, 8px);
 }
 
 .reward-skip-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 24px;
+  padding: clamp(5px, 0.8dvh, 8px) clamp(12px, 1.6vw, 24px);
   border-radius: var(--radius-sm);
   background: rgba(26, 32, 44, 0.85);
   border: 1px solid var(--border-gold);
   color: var(--text-parchment);
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.85rem);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1825,16 +1831,16 @@
   background: rgba(14, 18, 25, 0.95);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: clamp(18px, 2.5dvh, 36px) clamp(18px, 3vw, 44px);
+  padding: clamp(12px, 2dvh, 30px) clamp(14px, 2.5vw, 40px);
   max-width: 860px;
-  max-height: calc(100dvh - 32px);
-  overflow-y: auto;
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(207, 168, 102, 0.15);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.5dvh, 20px);
+  gap: clamp(8px, 1.4dvh, 18px);
 }
 
 .event-header {
@@ -1845,17 +1851,21 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
-  color: var(--text-dim);
-  margin-bottom: 6px;
+  padding: clamp(2px, 0.4dvh, 4px) clamp(8px, 1vw, 12px);
+  border-radius: var(--radius-sm);
+  background: rgba(207, 168, 102, 0.1);
+  border: 1px solid var(--border-gold);
+  color: var(--text-gold);
+  font-size: clamp(0.68rem, 1.1dvh, 0.78rem);
+  margin-bottom: clamp(4px, 0.6dvh, 8px);
 }
 
 .event-title {
   font-family: var(--font-title);
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 2.4dvh, 1.75rem);
   letter-spacing: 2px;
   color: var(--text-gold);
-  margin-bottom: 12px;
+  text-shadow: 0 0 12px var(--gold-glow);
 }
 
 .event-divider-line {
@@ -1870,8 +1880,10 @@
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-sm);
-  padding: 24px 28px;
-  line-height: 1.8;
+  padding: clamp(10px, 1.8dvh, 24px) clamp(12px, 2vw, 28px);
+  line-height: 1.7;
+  max-height: clamp(120px, 28dvh, 320px);
+  overflow-y: auto;
 }
 
 .event-icon-watermark {
@@ -2082,16 +2094,16 @@
   background: rgba(14, 18, 25, 0.95);
   border: 1px solid #74c69d;
   border-radius: var(--radius-md);
-  padding: clamp(18px, 2.5dvh, 36px) clamp(18px, 3vw, 44px);
+  padding: clamp(12px, 2dvh, 30px) clamp(14px, 2.5vw, 40px);
   max-width: 860px;
-  max-height: calc(100dvh - 32px);
-  overflow-y: auto;
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(116, 198, 157, 0.15);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.5dvh, 20px);
+  gap: clamp(8px, 1.4dvh, 18px);
 }
 
 .sanctuary-header {
@@ -2283,16 +2295,16 @@
   background: rgba(14, 18, 25, 0.95);
   border: 1px solid #ffd700;
   border-radius: var(--radius-md);
-  padding: clamp(18px, 2.5dvh, 36px) clamp(18px, 3vw, 44px);
+  padding: clamp(12px, 2dvh, 28px) clamp(14px, 2.5vw, 36px);
   max-width: 980px;
-  max-height: calc(100dvh - 32px);
-  overflow-y: auto;
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.2);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.5dvh, 20px);
+  gap: clamp(8px, 1.4dvh, 18px);
 }
 
 .market-header {
@@ -2300,18 +2312,18 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-  padding-bottom: 16px;
+  padding-bottom: clamp(6px, 1.2dvh, 14px);
 }
 
 .market-header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: clamp(8px, 1.2vw, 14px);
 }
 
 .market-icon-badge {
-  width: 48px;
-  height: 48px;
+  width: clamp(36px, 5dvh, 48px);
+  height: clamp(36px, 5dvh, 48px);
   border-radius: 50%;
   background: rgba(255, 215, 0, 0.1);
   border: 1px solid rgba(255, 215, 0, 0.3);
@@ -2322,14 +2334,14 @@
 
 .market-title {
   font-family: var(--font-title);
-  font-size: 1.4rem;
+  font-size: clamp(1.15rem, 2.2dvh, 1.4rem);
   letter-spacing: 2px;
   color: #ffd700;
-  margin-bottom: 4px;
+  margin-bottom: clamp(2px, 0.4dvh, 4px);
 }
 
 .market-subtitle {
-  font-size: 0.78rem;
+  font-size: clamp(0.7rem, 1.1dvh, 0.78rem);
   color: var(--text-dim);
   font-style: italic;
 }
@@ -2337,8 +2349,8 @@
 .market-obols-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 18px;
+  gap: clamp(6px, 1vw, 10px);
+  padding: clamp(4px, 0.8dvh, 8px) clamp(8px, 1.2vw, 16px);
   border-radius: 6px;
   background: rgba(255, 215, 0, 0.1);
   border: 1px solid rgba(255, 215, 0, 0.4);
@@ -2350,13 +2362,13 @@
 }
 
 .market-obols-label {
-  font-size: 0.7rem;
+  font-size: clamp(0.64rem, 1dvh, 0.7rem);
   color: var(--text-dim);
 }
 
 .market-obols-val {
   font-family: var(--font-title);
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 1.6dvh, 1.1rem);
   font-weight: 700;
   color: #ffd700;
 }
@@ -2365,7 +2377,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: clamp(0.72rem, 1.2dvh, 0.8rem);
 }
 
 .market-status-pill {
@@ -2383,13 +2395,16 @@
 .market-items-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: clamp(8px, 1.2vw, 16px);
+  max-height: clamp(160px, 45dvh, 400px);
+  overflow-y: auto;
+  padding: 2px;
 }
 
 .market-item-card {
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: clamp(10px, 1.5dvh, 16px);
   border-radius: var(--radius-sm);
   background: rgba(22, 28, 38, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2411,12 +2426,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: clamp(4px, 0.8dvh, 10px);
 }
 
 .market-item-icon {
-  width: 32px;
-  height: 32px;
+  width: clamp(26px, 3.8dvh, 32px);
+  height: clamp(26px, 3.8dvh, 32px);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
@@ -2432,16 +2447,16 @@
 
 .market-item-name {
   font-family: var(--font-title);
-  font-size: 0.92rem;
+  font-size: clamp(0.82rem, 1.3dvh, 0.92rem);
   color: var(--text-parchment);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .market-item-desc {
-  font-size: 0.74rem;
+  font-size: clamp(0.68rem, 1.1dvh, 0.74rem);
   color: var(--text-dim);
-  line-height: 1.45;
-  margin-bottom: 16px;
+  line-height: 1.35;
+  margin-bottom: clamp(6px, 1dvh, 14px);
   flex: 1;
 }
 
@@ -2456,16 +2471,16 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.82rem;
+  font-size: clamp(0.74rem, 1.2dvh, 0.82rem);
   font-weight: 700;
   color: #ffd700;
 }
 
 .market-buy-btn {
   font-family: var(--font-title);
-  font-size: 0.78rem;
+  font-size: clamp(0.7rem, 1.1dvh, 0.78rem);
   font-weight: 700;
-  padding: 6px 14px;
+  padding: clamp(4px, 0.7dvh, 6px) clamp(8px, 1vw, 14px);
   border-radius: 4px;
   background: linear-gradient(180deg, #d4af37, #997b15);
   border: 1px solid #ffd700;
@@ -2496,7 +2511,7 @@
 }
 
 .market-footer {
-  margin-top: 10px;
+  margin-top: clamp(4px, 0.8dvh, 10px);
 }
 
 .market-leave-btn {
@@ -2505,13 +2520,13 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 12px;
+  padding: clamp(8px, 1.2dvh, 12px);
   border-radius: var(--radius-sm);
   background: rgba(26, 32, 44, 0.85);
   border: 1px solid var(--border-gold);
   color: var(--text-parchment);
   font-family: var(--font-title);
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 1.3dvh, 0.95rem);
   cursor: pointer;
   transition: all 0.2s ease;
 }

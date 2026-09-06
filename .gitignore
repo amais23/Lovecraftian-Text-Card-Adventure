@@ -36,6 +36,7 @@ coverage/
 *.sln
 *.sw?
 .scratch/
+scratch/
 
 # OS files
 .DS_Store

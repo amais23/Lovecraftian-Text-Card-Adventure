@@ -29,7 +29,7 @@
   max-width: 620px;
   max-height: calc(100dvh - 24px);
   width: 100%;
-  padding: clamp(20px, 3dvh, 44px) clamp(20px, 3.5vw, 40px) clamp(16px, 2dvh, 32px);
+  padding: clamp(14px, 2.2dvh, 36px) clamp(16px, 3vw, 40px) clamp(12px, 1.8dvh, 28px);
   background: radial-gradient(circle at 50% 0%, rgba(26, 32, 44, 0.95), rgba(12, 14, 18, 0.92));
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-lg);
@@ -39,7 +39,7 @@
     inset 0 1px 1px rgba(255, 215, 0, 0.2);
   backdrop-filter: blur(12px);
   animation: menuFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 @keyframes menuFadeIn {
