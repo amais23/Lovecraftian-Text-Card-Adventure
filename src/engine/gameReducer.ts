@@ -1,4 +1,5 @@
 import type {
+  AdventureStats,
   Card,
   Enemy,
   EnemyIntent,
@@ -183,6 +184,34 @@ export function applyDamage(
   };
 }
 
+export function createInitialAdventureStats(
+  investigator?: Partial<Investigator>,
+  map?: InvestigationMap
+): AdventureStats {
+  return {
+    enemiesDefeated: 0,
+    totalObolsCollected: investigator?.obols ?? 0,
+    nodesVisited: 0,
+    maxLayer: map?.nodes?.[map?.currentNodeId ?? '']?.layer ?? 0,
+  };
+}
+
+export function ensureAdventureStats(state: Partial<GameState>): AdventureStats {
+  return state.adventureStats ?? createInitialAdventureStats(state.investigator, state.map);
+}
+
+export function getPermanentDeckCount(state: {
+  sanityDeck?: Card[];
+  hand?: Card[];
+  discardPile?: Card[];
+}): number {
+  return [
+    ...(state.sanityDeck ?? []),
+    ...(state.hand ?? []),
+    ...(state.discardPile ?? []),
+  ].filter((c) => !c.isTemporary).length;
+}
+
 export function createInitialCombatState(
   customEnemy?: Enemy,
   customDeck?: Card[],
@@ -214,6 +243,7 @@ export function createInitialCombatState(
     discardPile: [],
     isMadness: sanityDeck.length === 0,
     currentEnemy: enemy,
+    adventureStats: createInitialAdventureStats(investigator),
     battleLog: [
       `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
     ],
@@ -226,6 +256,38 @@ export function createInitialGameState(): GameState {
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'START_NEW_INVESTIGATION': {
+      return {
+        ...createInitialGameState(),
+        phase: 'prologue',
+        battleLog: [
+          '【調查啟程 · 序章引導】翻開 1920 年代阿卡姆失蹤懸案剪報與神秘委託密信，深淵的呼喚隱隱傳來……',
+        ],
+      };
+    }
+
+    case 'COMPLETE_PROLOGUE': {
+      return {
+        ...state,
+        phase: 'occupation_select',
+        battleLog: [
+          '【調查員集結】請在命運的十字路口，挑選本次深入阿卡姆的調查員身份。',
+          ...state.battleLog,
+        ],
+      };
+    }
+
+    case 'COMPLETE_DEPARTURE': {
+      return {
+        ...state,
+        phase: 'map',
+        battleLog: [
+          `【啟程赴險】調查員 ${state.investigator.name} 踏入阿卡姆的濃重迷霧，展開調查地圖！`,
+          ...state.battleLog,
+        ],
+      };
+    }
+
     case 'SELECT_OCCUPATION': {
       const occ = OCCUPATIONS[action.payload.occupationId] ?? OCCUPATIONS.investigator;
       const investigator: Investigator = {
@@ -243,7 +305,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
       const enemy = cloneEnemy(INITIAL_GHOUL);
       const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap() : generateInvestigationMap());
-      const nextPhase = action.payload.initialPhase ?? 'map';
+      const defaultPhase = state.phase === 'occupation_select' ? 'departure' : 'map';
+      const nextPhase = action.payload.initialPhase ?? defaultPhase;
+
+      const logMsg = nextPhase === 'departure'
+        ? `【確認身份】調查員 ${investigator.name}（${investigator.occupation}）整裝待發，準備啟程！`
+        : `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`;
 
       return {
         phase: nextPhase,
@@ -255,9 +322,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map,
-        battleLog: [
-          `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`,
-        ],
+        adventureStats: createInitialAdventureStats(investigator, map),
+        battleLog: [logMsg, ...state.battleLog],
       };
     }
 
@@ -283,6 +349,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state.map,
         nodes: updatedNodes,
         currentNodeId: targetNode.id,
+      };
+
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        nodesVisited: currentStats.nodesVisited + 1,
+        maxLayer: Math.max(currentStats.maxLayer, targetNode.layer),
       };
 
       if (targetNode.type === 'combat' || targetNode.type === 'elite' || targetNode.type === 'boss') {
@@ -326,6 +399,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isMadness: false,
           map: updatedMap,
           currentEnemy: enemy,
+          adventureStats: updatedStats,
           battleLog: [logMsg, ...state.battleLog],
         };
       }
@@ -337,6 +411,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'event',
           map: updatedMap,
           currentEvent: event,
+          adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！觸發秘識奇遇【${event.title}】。`,
             ...state.battleLog,
@@ -350,6 +425,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'sanctuary',
           map: updatedMap,
           sanctuaryUsed: false,
+          adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！抵達安全避難所。`,
             ...state.battleLog,
@@ -363,6 +439,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'market',
           map: updatedMap,
           marketItems: generateDefaultMarketItems(),
+          adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！進入黑市商鋪。`,
             ...state.battleLog,
@@ -435,6 +512,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
+      const gainedObols = Math.max(0, newObols - state.investigator.obols);
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + gainedObols,
+      };
+
       const updatedInvestigator: Investigator = {
         ...state.investigator,
         health: newHealth,
@@ -453,6 +537,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'gameover',
           investigator: updatedInvestigator,
           currentEvent: updatedEvent,
+          adventureStats: updatedStats,
           battleLog: [`【肉體殞命】調查員在奇遇事件中傷重不治！`, ...state.battleLog],
         };
       }
@@ -484,6 +569,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isMadness: false,
           currentEnemy: cloneEnemy(triggerCombatEnemy),
           currentEvent: undefined,
+          adventureStats: updatedStats,
           battleLog: outcomeTexts.concat(state.battleLog),
         };
       }
@@ -494,6 +580,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: newSanityDeck,
         hand: newHand,
         currentEvent: updatedEvent,
+        adventureStats: updatedStats,
         battleLog: outcomeTexts.concat(state.battleLog),
       };
     }
@@ -676,6 +763,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         : [...currentPermanentCards];
 
       const addedObols = state.rewardObols ?? 15;
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + addedObols,
+      };
+
       // 2. Persistent health: investigator.health does NOT heal!
       const updatedInvestigator: Investigator = {
         ...state.investigator,
@@ -721,6 +814,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         rewardObols: undefined,
         currentEnemy: nextEnemy,
         map: updatedMap,
+        adventureStats: updatedStats,
         battleLog: [...newLogs, ...state.battleLog],
       };
     }
@@ -800,6 +894,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map: state.map,
+        adventureStats: ensureAdventureStats(state),
         battleLog: [
           `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
         ],
@@ -903,11 +998,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Check Victory / Defeat
       let phase: GameState['phase'] = state.phase;
+      let stats = ensureAdventureStats(state);
       if (investigatorHealth <= 0) {
         phase = 'gameover';
         newLogs.unshift(`【調查員殞命】不可名狀的反噬耗盡了你最後一絲氣息，你倒在血泊中……`);
       } else if (enemyHealth <= 0) {
         phase = 'victory';
+        stats = {
+          ...stats,
+          enemiesDefeated: stats.enemiesDefeated + 1,
+        };
         newLogs.unshift(`【戰鬥勝利】${state.currentEnemy.name} 發出臨死的淒厲悲鳴，化為一灘腥臭的黑水消滅了！`);
       }
 
@@ -929,6 +1029,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           health: enemyHealth,
           armor: enemyArmor,
         },
+        adventureStats: stats,
         battleLog: [...newLogs, ...state.battleLog],
       };
     }
@@ -976,6 +1077,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return {
           ...state,
           phase: 'gameover',
+          adventureStats: ensureAdventureStats(state),
           investigator: {
             ...state.investigator,
             health: 0,

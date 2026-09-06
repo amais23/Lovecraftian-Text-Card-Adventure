@@ -2286,4 +2286,85 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(occJson.includes('牌組')).toBe(false);
     });
   });
+
+  describe('Onboarding Flow & Transition Sequences (Issue #13)', () => {
+    it('transitions from title to prologue via START_NEW_INVESTIGATION', () => {
+      const titleState = createInitialGameState();
+      expect(titleState.phase).toBe('title');
+
+      const nextState = gameReducer(titleState, { type: 'START_NEW_INVESTIGATION' });
+      expect(nextState.phase).toBe('prologue');
+      expect(nextState.battleLog.some((log) => log.includes('序章') || log.includes('剪報') || log.includes('密信'))).toBe(true);
+    });
+
+    it('transitions from prologue to occupation_select via COMPLETE_PROLOGUE', () => {
+      const prologueState: GameState = {
+        ...createInitialGameState(),
+        phase: 'prologue',
+      };
+
+      const nextState = gameReducer(prologueState, { type: 'COMPLETE_PROLOGUE' });
+      expect(nextState.phase).toBe('occupation_select');
+      expect(nextState.battleLog.some((log) => log.includes('調查員'))).toBe(true);
+    });
+
+    it('transitions from occupation_select to departure on SELECT_OCCUPATION without explicit initialPhase', () => {
+      const selectState: GameState = {
+        ...createInitialGameState(),
+        phase: 'occupation_select',
+      };
+
+      const nextState = gameReducer(selectState, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+
+      expect(nextState.phase).toBe('departure');
+      expect(nextState.investigator.name).toContain('Edward Pierce');
+      expect(nextState.map).toBeDefined();
+      expect(nextState.sanityDeck.length).toBe(8);
+      expect(nextState.hand.length).toBe(4);
+    });
+
+    it('transitions from departure to map via COMPLETE_DEPARTURE', () => {
+      const departureState: GameState = {
+        ...createInitialGameState(),
+        phase: 'departure',
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+        },
+      };
+
+      const nextState = gameReducer(departureState, { type: 'COMPLETE_DEPARTURE' });
+      expect(nextState.phase).toBe('map');
+      expect(nextState.battleLog.some((log) => log.includes('阿卡姆') || log.includes('調查地圖'))).toBe(true);
+    });
+
+    it('resets back to title from prologue, occupation_select, and departure via RETURN_TO_TITLE', () => {
+      for (const phase of ['prologue', 'occupation_select', 'departure'] as const) {
+        const state: GameState = {
+          ...createInitialGameState(),
+          phase,
+        };
+        const resetState = gameReducer(state, { type: 'RETURN_TO_TITLE' });
+        expect(resetState.phase).toBe('title');
+      }
+    });
+
+    it('maintains backward compatibility: SELECT_OCCUPATION from title or other phases defaults to map or explicit initialPhase', () => {
+      const titleState = createInitialGameState();
+      const mapDefaultState = gameReducer(titleState, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'occultist' },
+      });
+      expect(mapDefaultState.phase).toBe('map');
+
+      const explicitCombatState = gameReducer(titleState, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', initialPhase: 'combat' },
+      });
+      expect(explicitCombatState.phase).toBe('combat');
+    });
+  });
 });
+

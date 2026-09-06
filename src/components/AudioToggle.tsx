@@ -1,16 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { soundEngine } from '../engine/audioManager';
+import { useSoundMuted } from '../hooks/useSoundMuted';
 
 export const AudioToggle: React.FC = () => {
-  const [isMuted, setIsMuted] = useState<boolean>(() => soundEngine.getMuted());
+  const isMuted = useSoundMuted();
 
   const handleToggle = () => {
-    const nextMuted = soundEngine.toggleMute();
-    setIsMuted(nextMuted);
-    if (!nextMuted) {
-      soundEngine.playClick();
-    }
+    soundEngine.toggleMuteWithFeedback();
   };
 
   return (

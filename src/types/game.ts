@@ -113,8 +113,15 @@ export interface MarketItem {
   isPurchased?: boolean;
 }
 
+export interface AdventureStats {
+  enemiesDefeated: number;
+  totalObolsCollected: number;
+  nodesVisited: number;
+  maxLayer: number;
+}
+
 export interface GameState {
-  phase: 'title' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'gameover';
+  phase: 'title' | 'prologue' | 'occupation_select' | 'departure' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'gameover';
   turn: number;
   investigator: Investigator;
   sanityDeck: Card[]; // 牌庫剩餘數量即等同於當前理智值 (Sanity)
@@ -129,10 +136,14 @@ export interface GameState {
   currentEvent?: MythosEvent;
   sanctuaryUsed?: boolean;
   marketItems?: MarketItem[];
+  adventureStats?: AdventureStats;
 }
 
 export type GameAction =
-  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId; initialPhase?: 'map' | 'combat'; procedural?: boolean; map?: InvestigationMap } }
+  | { type: 'START_NEW_INVESTIGATION' }
+  | { type: 'COMPLETE_PROLOGUE' }
+  | { type: 'COMPLETE_DEPARTURE' }
+  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId; initialPhase?: GameState['phase']; procedural?: boolean; map?: InvestigationMap } }
   | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string; shuffledDeck?: Card[] } }
   | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string; shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_EVENT' }
