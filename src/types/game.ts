@@ -39,9 +39,12 @@ export interface Enemy {
   currentIntentIndex?: number;
 }
 
+export type OccupationId = 'investigator' | 'occultist';
+
 export interface Investigator {
   name: string;
   occupation: string;
+  occupationId?: OccupationId;
   health: number;
   maxHealth: number;
   stamina: number;
@@ -51,7 +54,7 @@ export interface Investigator {
 }
 
 export interface GameState {
-  phase: 'combat' | 'victory' | 'gameover';
+  phase: 'title' | 'combat' | 'victory' | 'reward' | 'gameover';
   turn: number;
   investigator: Investigator;
   sanityDeck: Card[]; // 牌庫剩餘數量即等同於當前理智值 (Sanity)
@@ -60,9 +63,15 @@ export interface GameState {
   isMadness: boolean;
   currentEnemy: Enemy;
   battleLog: string[];
+  rewardCards?: Card[];
+  rewardObols?: number;
 }
 
 export type GameAction =
+  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId } }
+  | { type: 'PROCEED_TO_REWARD' }
+  | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string } }
+  | { type: 'RETURN_TO_TITLE' }
   | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[] } }
   | { type: 'PLAY_CARD'; payload: { cardId: string } }
   | { type: 'END_TURN' }

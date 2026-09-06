@@ -45,6 +45,7 @@ const CATEGORY_META_CONFIG: Record<CardCategory, CategoryMeta> = {
 interface CardViewProps {
   card: Card;
   currentStamina: number;
+  currentSanity?: number;
   onPlay: (cardId: string) => void;
   disabled?: boolean;
   style?: React.CSSProperties;
@@ -53,17 +54,31 @@ interface CardViewProps {
 export const CardView: React.FC<CardViewProps> = ({
   card,
   currentStamina,
+  currentSanity,
   onPlay,
   disabled = false,
   style,
 }) => {
-  const isPlayable = !disabled && card.costType === 'stamina' && currentStamina >= card.costValue;
+  const isPlayable = !disabled && (
+    card.costType === 'sanity'
+      ? (currentSanity !== undefined ? currentSanity >= card.costValue : true)
+      : currentStamina >= card.costValue
+  );
+
   const meta = CATEGORY_META_CONFIG[card.category] ?? {
     label: card.category,
     defaultPrompt: '精力不足',
     playablePrompt: '點擊打出',
     defaultIcon: <Sparkles size={22} color="#cfa866" />,
   };
+
+  const defaultPrompt = card.costType === 'sanity' ? '理智不足' : meta.defaultPrompt;
+  const promptText = isPlayable ? meta.playablePrompt : defaultPrompt;
+  const tooltip = isPlayable
+    ? `點擊打出【${card.name}】`
+    : card.costType === 'sanity'
+      ? '理智不足無法打出'
+      : '精力不足無法打出';
 
   const handleClick = () => {
     if (isPlayable) {
@@ -84,12 +99,15 @@ export const CardView: React.FC<CardViewProps> = ({
     <div
       className={`card-item ${card.category} ${isPlayable ? 'playable' : 'disabled'}`}
       onClick={handleClick}
-      title={isPlayable ? `點擊打出【${card.name}】` : '精力不足無法打出'}
+      title={tooltip}
       style={style}
     >
       {/* Top row: Cost and Category */}
       <div className="card-top-row">
-        <div className="card-cost-orb" title={`消耗 ${card.costValue} 點精力`}>
+        <div
+          className={`card-cost-orb ${card.costType ?? 'stamina'}`}
+          title={card.costType === 'sanity' ? `消耗 ${card.costValue} 點理智` : `消耗 ${card.costValue} 點精力`}
+        >
           {card.costValue}
         </div>
         <div className={`card-category-tag ${card.category}`}>
@@ -119,7 +137,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
       {/* Bottom prompt */}
       <div className="card-play-prompt">
-        {isPlayable ? meta.playablePrompt : meta.defaultPrompt}
+        {promptText}
       </div>
     </div>
   );

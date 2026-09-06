@@ -11,7 +11,7 @@ export const INITIAL_INVESTIGATOR: Investigator = {
   obols: 15,
 };
 
-export const INITIAL_DECK: Card[] = [
+export const INVESTIGATOR_DECK: Card[] = [
   {
     id: 'card_revolver_1',
     name: '左輪射擊',
@@ -148,6 +148,303 @@ export const INITIAL_DECK: Card[] = [
     flavorText: '「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」',
   },
 ];
+
+export const OCCULTIST_DECK: Card[] = [
+  {
+    id: 'card_magic_blast_1',
+    name: '靈能衝擊',
+    category: 'magic',
+    costType: 'sanity',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 9 }],
+    description: '消耗 1 點理智（自牌庫頂棄牌），造成 9 點心靈秘術傷害。',
+    flavorText: '「思維被撕裂的瞬間，無形的衝擊波在空中炸裂出紫色火花。」',
+  },
+  {
+    id: 'card_magic_blast_2',
+    name: '靈能衝擊',
+    category: 'magic',
+    costType: 'sanity',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 9 }],
+    description: '消耗 1 點理智（自牌庫頂棄牌），造成 9 點心靈秘術傷害。',
+    flavorText: '「精神共鳴化為刺痛神經的利箭。」',
+  },
+  {
+    id: 'card_magic_gaze_1',
+    name: '厄運凝視',
+    category: 'magic',
+    costType: 'sanity',
+    costValue: 2,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 16 }],
+    description: '消耗 2 點理智（自牌庫頂棄牌），造成 16 點毀滅秘法傷害。',
+    flavorText: '「直視來自異次元的虛空陰影，受創的怪物皮肉開始崩解腐化。」',
+  },
+  {
+    id: 'card_magic_gaze_2',
+    name: '厄運凝視',
+    category: 'magic',
+    costType: 'sanity',
+    costValue: 2,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 16 }],
+    description: '消耗 2 點理智（自牌庫頂棄牌），造成 16 點毀滅秘法傷害。',
+    flavorText: '「深淵的回響將眼前的邪物撕得支離破碎。」',
+  },
+  {
+    id: 'card_astral_ward_1',
+    name: '星界庇護',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'armor', value: 6 }],
+    description: '召喚星辰微光護盾，獲得 6 點護甲值（跨回合持續累積）。',
+    flavorText: '「在周身勾勒出不可名狀的星軌結界。」',
+  },
+  {
+    id: 'card_astral_ward_2',
+    name: '星界庇護',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'armor', value: 6 }],
+    description: '召喚星辰微光護盾，獲得 6 點護甲值（跨回合持續累積）。',
+    flavorText: '「古老的幾何符號偏轉了怪物的致命撲殺。」',
+  },
+  {
+    id: 'card_meditate_1',
+    name: '心靈冥想',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'restore_sanity', value: 2 }],
+    description: '將棄牌堆中 2 張卡牌洗回理智牌庫（回補 2 點理智）。',
+    flavorText: '「在狂暴的幻覺浪潮中，強行構築一道理性的防波堤。」',
+  },
+  {
+    id: 'card_meditate_2',
+    name: '心靈冥想',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'restore_sanity', value: 2 }],
+    description: '將棄牌堆中 2 張卡牌洗回理智牌庫（回補 2 點理智）。',
+    flavorText: '「重新默誦《玄密七章》的安定真言。」',
+  },
+  {
+    id: 'card_silver_key_1',
+    name: '銀鑰儀式',
+    category: 'truth',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [
+      { type: 'self_damage', value: 1 },
+      { type: 'add_to_deck', value: 2 },
+    ],
+    description: '自身承受 1 點認知傷害，向理智牌庫注入 2 張真相卡牌，解除瘋狂狀態。',
+    flavorText: '「旋轉銀色鑰匙，推開通向終極真相的一絲門縫。」',
+  },
+  {
+    id: 'card_truth_fragment_2',
+    name: '舊日殘頁',
+    category: 'truth',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [
+      { type: 'self_damage', value: 2 },
+      { type: 'add_to_deck', value: 2 },
+    ],
+    description: '自身承受 2 點肉體認知傷害，強行向理智牌庫注入 2 張新卡牌，解除瘋狂狀態。',
+    flavorText: '「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」',
+  },
+  {
+    id: 'card_ritual_dagger_1',
+    name: '防身短刀',
+    category: 'combat',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 5 }],
+    description: '造成 5 點物理傷害。',
+    flavorText: '「刀柄刻滿如尼守護文的銀質短刀，防身亦可用於刻印儀式。」',
+  },
+  {
+    id: 'card_ritual_dagger_2',
+    name: '防身短刀',
+    category: 'combat',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 5 }],
+    description: '造成 5 點物理傷害。',
+    flavorText: '「在近身肉搏中精準刺向敵人的致命關節。」',
+  },
+];
+
+export const INITIAL_DECK: Card[] = INVESTIGATOR_DECK;
+
+export interface OccupationDefinition {
+  id: 'investigator' | 'occultist';
+  name: string;
+  occupation: string;
+  title: string;
+  quote: string;
+  description: string;
+  stats: {
+    health: number;
+    stamina: number;
+    obols: number;
+  };
+  deck: Card[];
+}
+
+export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinition> = {
+  investigator: {
+    id: 'investigator',
+    name: '愛德華·皮爾斯 (Edward Pierce)',
+    occupation: '私家偵探',
+    title: '波士頓老兵 / 私家偵探',
+    quote: '「點38轉輪手槍與頑固的直覺，是我在黑暗中僅有的盟友。」',
+    description: '波士頓街頭與戰火淬鍊的生存專家。偏好物理肉搏、槍械打擊與實用防禦，戰術風格堅韌沉穩。',
+    stats: {
+      health: 25,
+      stamina: 3,
+      obols: 15,
+    },
+    deck: INVESTIGATOR_DECK,
+  },
+  occultist: {
+    id: 'occultist',
+    name: '艾蓮諾·凡斯 (Eleanor Vance)',
+    occupation: '秘術學者',
+    title: '密斯卡託尼克大學古典學家',
+    quote: '「深淵注視著我，但我亦在典籍的殘章中找到了驅使星辰的密語。」',
+    description: '深諳舊日神話與古老儀軌的學者。擅長直接消耗理智牌庫施展高破壞力的紫色魔法卡，並善用白色真相卡在狂亂邊緣扭轉乾坤。',
+    stats: {
+      health: 25,
+      stamina: 3,
+      obols: 20,
+    },
+    deck: OCCULTIST_DECK,
+  },
+};
+
+export const REWARD_CARD_POOL: Card[] = [
+  {
+    id: 'reward_shotgun_1',
+    name: '雙管獵槍',
+    category: 'combat',
+    costType: 'stamina',
+    costValue: 2,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 14 }],
+    description: '消耗 2 點精力，轟出密集的鉛彈，造成 14 點毀滅物理傷害。',
+    flavorText: '「近距離的轟鳴撕裂了陰暗中的任何可怖實體。」',
+  },
+  {
+    id: 'reward_quick_draw_1',
+    name: '快速拔槍',
+    category: 'combat',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 7 }],
+    description: '敏捷射擊，造成 7 點物理傷害。',
+    flavorText: '「肌肉記憶超越了大腦對恐懼的本能遲疑。」',
+  },
+  {
+    id: 'reward_tactical_roll_1',
+    name: '戰術翻滾',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [
+      { type: 'armor', value: 4 },
+      { type: 'draw', value: 1 },
+    ],
+    description: '敏捷閃避獲得 4 點護甲，並立即自理智牌庫抽取 1 張卡牌。',
+    flavorText: '「在碎石堆中翻滾尋找下一個反擊角度。」',
+  },
+  {
+    id: 'reward_ancient_amulet_1',
+    name: '遠古護身符',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'armor', value: 8 }],
+    description: '激發符石古老力場，獲得 8 點累積護甲。',
+    flavorText: '「青銅上的深綠包漿散發著阻絕污穢的冰涼氣息。」',
+  },
+  {
+    id: 'reward_void_fire_1',
+    name: '虛空烈焰',
+    category: 'magic',
+    costType: 'sanity',
+    costValue: 2,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 18 }],
+    description: '消耗 2 點理智（自牌庫頂棄牌），引燃不可熄滅的紫色冷焰，造成 18 點傷害。',
+    flavorText: '「燃燒靈魂碎片釋放的星辰冷火。」',
+  },
+  {
+    id: 'reward_dread_whisper_1',
+    name: '恐懼低語',
+    category: 'magic',
+    costType: 'sanity',
+    costValue: 1,
+    isTemporary: false,
+    effects: [{ type: 'damage', value: 10 }],
+    description: '消耗 1 點理智（自牌庫頂棄牌），將神經震顫轉為 10 點心靈傷害。',
+    flavorText: '「在敵人腦海中回放拉萊耶的潮汐聲。」',
+  },
+  {
+    id: 'reward_astral_insight_1',
+    name: '星界洞察',
+    category: 'truth',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [
+      { type: 'self_damage', value: 2 },
+      { type: 'add_to_deck', value: 3 },
+    ],
+    description: '自身承受 2 點認知傷害，向理智牌庫注入 3 張真相卡牌，解除瘋狂狀態。',
+    flavorText: '「意識升入無垠星穹，心智雖千瘡百孔，卻獲得浩瀚的安寧。」',
+  },
+  {
+    id: 'reward_first_aid_1',
+    name: '應急急救包',
+    category: 'skill',
+    costType: 'stamina',
+    costValue: 1,
+    isTemporary: false,
+    effects: [
+      { type: 'armor', value: 3 },
+      { type: 'restore_sanity', value: 2 },
+    ],
+    description: '獲得 3 點護甲，並將棄牌堆中 2 張卡牌洗回理智牌庫。',
+    flavorText: '「酒精與繃帶能穩固搖搖欲墜的精神防線。」',
+  },
+];
+
+/**
+ * 隨機抽取 count 張不重複的戰後獎勵卡牌
+ */
+export function generateRewardCards(count: number = 3): Card[] {
+  const shuffled = [...REWARD_CARD_POOL].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.min(count, shuffled.length)).map((c) => ({ ...c }));
+}
 
 // Temporary card factories and templates are defined in cardFactory.ts
 export { MADNESS_CARD_TEMPLATES, createMadnessCards } from './cardFactory';

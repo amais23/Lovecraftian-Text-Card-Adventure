@@ -38,6 +38,10 @@
   --card-madness-bg: linear-gradient(145deg, #180507, #080002);
   --card-madness-accent: #ef4444;
   --card-madness-glow: rgba(239, 68, 68, 0.5);
+  --card-magic-border: #7b2cbf;
+  --card-magic-bg: linear-gradient(145deg, #240046, #10002b);
+  --card-magic-accent: #c77dff;
+  --card-magic-glow: rgba(157, 78, 221, 0.5);
 
   /* Typography */
   --text-parchment: #ece6d8;

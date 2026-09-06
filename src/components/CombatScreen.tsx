@@ -94,6 +94,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 key={card.id}
                 card={card}
                 currentStamina={state.investigator.stamina}
+                currentSanity={state.sanityDeck.length}
                 onPlay={handlePlayCard}
                 disabled={isCombatEnded}
                 style={{
@@ -112,11 +113,24 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
             <Trophy size={48} color="#74c69d" style={{ margin: '0 auto 16px' }} />
             <h2 className="combat-modal-title">戰鬥勝利</h2>
             <p className="combat-modal-desc">
-              食屍鬼發出最後的哀嚎倒斃在地，潮濕腥臭的空氣漸漸散去。你的理智在這場驚險的搏殺中經受住了考驗。
+              敵怪發出最後的哀嚎倒斃在地，潮濕腥臭的空氣漸漸散去。你的理智在這場驚險的搏殺中經受住了考驗。
             </p>
-            <button className="combat-modal-btn" onClick={handleRestart}>
-              重新開始冒險 (Restart)
-            </button>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                id="proceed-reward-btn"
+                className="combat-modal-btn"
+                onClick={() => dispatch({ type: 'PROCEED_TO_REWARD' })}
+              >
+                前往戰後結算 (Claim Rewards)
+              </button>
+              <button
+                className="combat-modal-btn secondary"
+                onClick={handleRestart}
+                style={{ background: 'transparent', border: '1px solid var(--border-gold)', color: 'var(--text-parchment)' }}
+              >
+                重置戰鬥 (Reset)
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -130,9 +144,22 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
             <p className="combat-modal-desc">
               你的肉體被鋒利的爪牙撕碎，意識沉入冰冷深邃的無底深淵……未知之物將這座墓穴重新掩埋。
             </p>
-            <button className="combat-modal-btn" onClick={handleRestart}>
-              再次挑戰深淵 (Retry)
-            </button>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                id="return-title-btn"
+                className="combat-modal-btn"
+                onClick={() => dispatch({ type: 'RETURN_TO_TITLE' })}
+              >
+                返回標題畫面 (Title Screen)
+              </button>
+              <button
+                className="combat-modal-btn secondary"
+                onClick={handleRestart}
+                style={{ background: 'transparent', border: '1px solid var(--border-gold)', color: 'var(--text-parchment)' }}
+              >
+                原戰鬥重試 (Retry)
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { gameReducer, createInitialCombatState, applyDamage } from './gameReducer';
+import { gameReducer, createInitialCombatState, createInitialGameState, applyDamage } from './gameReducer';
 import { INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
 import type { Card, GameState } from '../types/game';
 
@@ -737,6 +737,259 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.currentEnemy.health).toBe(0);
     expect(nextState.phase).toBe('victory');
     expect(nextState.isMadness).toBe(true); // Remained in berserk until victory
+  });
+
+  it('initializes Edward Pierce with physical deck and 15 obols upon SELECT_OCCUPATION', () => {
+    const titleState = createInitialGameState();
+    expect(titleState.phase).toBe('title');
+
+    const nextState = gameReducer(titleState, {
+      type: 'SELECT_OCCUPATION',
+      payload: { occupationId: 'investigator' },
+    });
+
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.investigator.name).toContain('Edward Pierce');
+    expect(nextState.investigator.occupation).toBe('私家偵探');
+    expect(nextState.investigator.health).toBe(25);
+    expect(nextState.investigator.obols).toBe(15);
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.sanityDeck.length).toBe(8); // 12 total
+    expect(nextState.hand.some((c) => c.category === 'combat')).toBe(true);
+  });
+
+  it('initializes Eleanor Vance with occultist deck and 20 obols upon SELECT_OCCUPATION', () => {
+    const titleState = createInitialGameState();
+
+    const nextState = gameReducer(titleState, {
+      type: 'SELECT_OCCUPATION',
+      payload: { occupationId: 'occultist' },
+    });
+
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.investigator.name).toContain('Eleanor Vance');
+    expect(nextState.investigator.occupation).toBe('秘術學者');
+    expect(nextState.investigator.health).toBe(25);
+    expect(nextState.investigator.obols).toBe(20);
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.sanityDeck.length).toBe(8); // 12 total
+    // Eleanor's deck contains magic and truth cards
+    const allCards = [...nextState.hand, ...nextState.sanityDeck];
+    expect(allCards.some((c) => c.category === 'magic')).toBe(true);
+    expect(allCards.some((c) => c.category === 'truth')).toBe(true);
+  });
+
+  it('plays purple magic card with costType sanity by discarding from sanity deck', () => {
+    const magicCard: Card = {
+      id: 'test_magic_blast',
+      name: '靈能衝擊',
+      category: 'magic',
+      costType: 'sanity',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'damage', value: 9 }],
+      description: '消耗 1 點理智造成 9 點傷害',
+      flavorText: '秘術',
+    };
+
+    const sanityCard1 = createMockCard({ id: 's1' });
+    const sanityCard2 = createMockCard({ id: 's2' });
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [magicCard],
+      sanityDeck: [sanityCard1, sanityCard2],
+      discardPile: [],
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        health: 30,
+        armor: 0,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: magicCard.id },
+    });
+
+    // 1 card discarded from sanity deck as sanity cost
+    expect(nextState.sanityDeck.length).toBe(1);
+    expect(nextState.currentEnemy.health).toBe(21); // 30 - 9 = 21
+    // Discard pile contains the burned sanity card + the played magic card
+    expect(nextState.discardPile.length).toBe(2);
+    expect(nextState.battleLog.some((log) => log.includes('9 點傷害'))).toBe(true);
+  });
+
+  it('rejects purple magic card if sanity deck has insufficient cards', () => {
+    const heavyMagicCard: Card = {
+      id: 'test_heavy_magic',
+      name: '厄運凝視',
+      category: 'magic',
+      costType: 'sanity',
+      costValue: 3,
+      isTemporary: false,
+      effects: [{ type: 'damage', value: 16 }],
+      description: '消耗 3 點理智造成 16 點傷害',
+      flavorText: '秘術',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [heavyMagicCard],
+      sanityDeck: [createMockCard({ id: 's1' })], // Only 1 card, needs 3
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        health: 30,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: heavyMagicCard.id },
+    });
+
+    // Rejection: state unchanged, enemy unharmed
+    expect(nextState.currentEnemy.health).toBe(30);
+    expect(nextState.sanityDeck.length).toBe(1);
+    expect(nextState.battleLog.some((log) => log.includes('理智不足'))).toBe(true);
+  });
+
+  it('transitions from victory to reward screen via PROCEED_TO_REWARD with 3 reward cards', () => {
+    const victoryState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'victory',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 18,
+      },
+    };
+
+    const nextState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+
+    expect(nextState.phase).toBe('reward');
+    expect(nextState.rewardCards).toBeDefined();
+    expect(nextState.rewardCards?.length).toBe(3);
+    expect(nextState.rewardObols).toBe(15);
+  });
+
+  it('claims card reward: adds card to permanent deck, retains wounded health, resets full sanity, dissolves temporary cards', () => {
+    const tempMadnessCard = createMockCard({
+      id: 'temp_black_card',
+      category: 'madness',
+      isTemporary: true,
+    });
+    const regularCard1 = createMockCard({ id: 'reg_1', isTemporary: false });
+    const regularCard2 = createMockCard({ id: 'reg_2', isTemporary: false });
+    const regularCard3 = createMockCard({ id: 'reg_3', isTemporary: false });
+    const regularCard4 = createMockCard({ id: 'reg_4', isTemporary: false });
+    const regularCard5 = createMockCard({ id: 'reg_5', isTemporary: false });
+
+    const rewardCard: Card = {
+      id: 'drafted_shotgun',
+      name: '雙管獵槍',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 2,
+      isTemporary: false,
+      effects: [{ type: 'damage', value: 14 }],
+      description: '獵槍',
+      flavorText: '威力',
+    };
+
+    const rewardState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'reward',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 16, // Wounded: took 9 damage
+        maxHealth: 25,
+        armor: 8, // Combat armor
+        obols: 15,
+      },
+      sanityDeck: [regularCard1, regularCard2],
+      hand: [regularCard3, tempMadnessCard],
+      discardPile: [regularCard4, regularCard5],
+      rewardCards: [rewardCard],
+      rewardObols: 15,
+    };
+
+    const nextState = gameReducer(rewardState, {
+      type: 'CLAIM_CARD_REWARD',
+      payload: { cardId: rewardCard.id },
+    });
+
+    // 1. Enters combat for next encounter
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.turn).toBe(1);
+
+    // 2. Persistent health damage! 16 remains 16 (does not heal)
+    expect(nextState.investigator.health).toBe(16);
+
+    // 3. Combat armor resets to 0
+    expect(nextState.investigator.armor).toBe(0);
+
+    // 4. Obols accumulated: 15 + 15 = 30
+    expect(nextState.investigator.obols).toBe(30);
+
+    // 5. Total permanent cards: 5 original regular + 1 drafted = 6 cards total
+    // (tempMadnessCard was dissolved and not included!)
+    const allNextCards = [...nextState.hand, ...nextState.sanityDeck, ...nextState.discardPile];
+    expect(allNextCards.length).toBe(6);
+    expect(allNextCards.some((c) => c.id === 'temp_black_card')).toBe(false);
+    expect(allNextCards.some((c) => c.name === '雙管獵槍')).toBe(true);
+
+    // 6. Full sanity reset: hand drawn to 4, sanityDeck has remaining 2
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.sanityDeck.length).toBe(2);
+    expect(nextState.discardPile.length).toBe(0);
+    expect(nextState.isMadness).toBe(false);
+  });
+
+  it('skips card reward: keeps deck size unchanged, awards obols, and retains persistent health damage', () => {
+    const regularCards = Array.from({ length: 12 }, (_, i) =>
+      createMockCard({ id: `reg_${i}`, isTemporary: false })
+    );
+
+    const rewardState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'reward',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 19,
+        obols: 20,
+      },
+      sanityDeck: regularCards.slice(0, 8),
+      hand: regularCards.slice(8, 12),
+      discardPile: [],
+      rewardCards: [createMockCard({ id: 'unwanted_card' })],
+      rewardObols: 15,
+    };
+
+    // Skip reward (no cardId)
+    const nextState = gameReducer(rewardState, {
+      type: 'CLAIM_CARD_REWARD',
+    });
+
+    expect(nextState.phase).toBe('combat');
+    // Deck count stays exactly 12
+    const allCards = [...nextState.hand, ...nextState.sanityDeck];
+    expect(allCards.length).toBe(12);
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.sanityDeck.length).toBe(8);
+    // Persistent health remains 19
+    expect(nextState.investigator.health).toBe(19);
+    // Obols increased by 15: 20 + 15 = 35
+    expect(nextState.investigator.obols).toBe(35);
+  });
+
+  it('returns to title screen from gameover via RETURN_TO_TITLE', () => {
+    const gameoverState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'gameover',
+    };
+
+    const nextState = gameReducer(gameoverState, { type: 'RETURN_TO_TITLE' });
+    expect(nextState.phase).toBe('title');
   });
 });
 

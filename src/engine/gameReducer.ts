@@ -1,5 +1,5 @@
 import type { Card, Enemy, EnemyIntent, GameAction, GameState, Investigator } from '../types/game';
-import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
+import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR, OCCUPATIONS, generateRewardCards } from './initialData';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
 
 export const BASELINE_HAND_SIZE = 4;
@@ -56,7 +56,8 @@ export function applyDamage(
 export function createInitialCombatState(
   customEnemy?: Enemy,
   customDeck?: Card[],
-  customInvestigator?: Investigator
+  customInvestigator?: Investigator,
+  initialPhase: GameState['phase'] = 'combat'
 ): GameState {
   const investigator: Investigator = customInvestigator
     ? { ...customInvestigator }
@@ -75,7 +76,7 @@ export function createInitialCombatState(
   const remainingSanityDeck = allCards.slice(BASELINE_HAND_SIZE);
 
   return {
-    phase: 'combat',
+    phase: initialPhase,
     turn: 1,
     investigator,
     sanityDeck: remainingSanityDeck,
@@ -89,17 +90,147 @@ export function createInitialCombatState(
   };
 }
 
+export function createInitialGameState(): GameState {
+  return createInitialCombatState(undefined, undefined, undefined, 'title');
+}
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'SELECT_OCCUPATION': {
+      const occ = OCCUPATIONS[action.payload.occupationId] ?? OCCUPATIONS.investigator;
+      const investigator: Investigator = {
+        name: occ.name,
+        occupation: occ.occupation,
+        occupationId: occ.id,
+        health: occ.stats.health,
+        maxHealth: occ.stats.health,
+        stamina: occ.stats.stamina,
+        maxStamina: occ.stats.stamina,
+        armor: 0,
+        obols: occ.stats.obols,
+      };
+      const allCards = occ.deck.map((c) => ({ ...c }));
+      const hand = allCards.slice(0, BASELINE_HAND_SIZE);
+      const sanityDeck = allCards.slice(BASELINE_HAND_SIZE);
+      const enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+
+      return {
+        phase: 'combat',
+        turn: 1,
+        investigator,
+        sanityDeck,
+        hand,
+        discardPile: [],
+        isMadness: false,
+        currentEnemy: enemy,
+        battleLog: [
+          `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）啟程調查！`,
+          `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
+        ],
+      };
+    }
+
+    case 'PROCEED_TO_REWARD': {
+      if (state.phase !== 'victory') return state;
+      const rewardCards = generateRewardCards(3);
+      const rewardObols = 15;
+      return {
+        ...state,
+        phase: 'reward',
+        rewardCards,
+        rewardObols,
+        battleLog: [
+          `戰鬥結算：獲得 ${rewardObols} 古金幣！請挑選 1 張卡牌構築獎勵或選擇跳過以精簡牌庫。`,
+          ...state.battleLog,
+        ],
+      };
+    }
+
+    case 'CLAIM_CARD_REWARD': {
+      if (state.phase !== 'reward') return state;
+      const selectedCard = action.payload?.cardId && state.rewardCards
+        ? state.rewardCards.find((c) => c.id === action.payload?.cardId)
+        : undefined;
+
+      // 1. Gather all permanent cards across current battle state (temporary cards discarded)
+      const currentPermanentCards = [
+        ...state.sanityDeck,
+        ...state.hand,
+        ...state.discardPile,
+      ].filter((c) => !c.isTemporary);
+
+      const newPermanentDeck = selectedCard
+        ? [
+            ...currentPermanentCards,
+            {
+              ...selectedCard,
+              id: `${selectedCard.id}_drafted_${currentPermanentCards.length + 1}`,
+              isTemporary: false,
+            },
+          ]
+        : [...currentPermanentCards];
+
+      const addedObols = state.rewardObols ?? 15;
+      // 2. Persistent health: investigator.health does NOT heal!
+      const updatedInvestigator: Investigator = {
+        ...state.investigator,
+        armor: 0,
+        stamina: state.investigator.maxStamina,
+        obols: state.investigator.obols + addedObols,
+      };
+
+      // 3. Reset full sanity deck with all permanent cards (temporary cards dissolved)
+      const resetDeck = newPermanentDeck.map((c) => ({ ...c }));
+      const hand = resetDeck.slice(0, BASELINE_HAND_SIZE);
+      const sanityDeck = resetDeck.slice(BASELINE_HAND_SIZE);
+
+      const newLogs: string[] = [];
+      newLogs.push(`戰後重整：所有常態卡牌洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
+      if (selectedCard) {
+        newLogs.push(`獲得構築卡牌【${selectedCard.name}】加入常態牌組！`);
+      } else {
+        newLogs.push(`跳過卡牌構築獎勵，維持牌庫精簡。`);
+      }
+      newLogs.push(`獲得古金幣 +${addedObols}（當前擁有: ${updatedInvestigator.obols} 枚）。`);
+      newLogs.push(`【肉體傷勢保留】當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}。`);
+
+      const nextEnemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+
+      return {
+        ...state,
+        phase: 'combat',
+        turn: 1,
+        investigator: updatedInvestigator,
+        sanityDeck,
+        hand,
+        discardPile: [],
+        isMadness: false,
+        rewardCards: undefined,
+        rewardObols: undefined,
+        currentEnemy: nextEnemy,
+        battleLog: [...newLogs, ...state.battleLog],
+      };
+    }
+
+    case 'RETURN_TO_TITLE': {
+      return {
+        ...createInitialCombatState(),
+        phase: 'title',
+        battleLog: ['返回標題畫面。請選擇調查員開始新的探險。'],
+      };
+    }
+
     case 'START_COMBAT': {
       return createInitialCombatState(
         action.payload?.enemy,
-        action.payload?.initialCards
+        action.payload?.initialCards,
+        undefined,
+        'combat'
       );
     }
 
     case 'RESET_COMBAT': {
-      return createInitialCombatState();
+      return createInitialCombatState(undefined, undefined, undefined, 'combat');
     }
 
     case 'PLAY_CARD': {
@@ -154,7 +285,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, effect.value);
           enemyHealth = dmg.newHealth;
           enemyArmor = dmg.newArmor;
-          newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點物理傷害！`);
+          newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點傷害！`);
         } else if (effect.type === 'armor') {
           investigatorArmor += effect.value;
           newLogs.push(`調查員打出【${card.name}】，構築掩體獲得 ${effect.value} 點護甲！`);
