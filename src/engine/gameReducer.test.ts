@@ -9,6 +9,13 @@ import {
   REWARD_CARD_POOL,
   fisherYatesShuffle,
 } from './initialData';
+import { generateInvestigationMap, BASE_MAP_TEMPLATE } from './mapGenerator';
+import {
+  MYTHOS_EVENTS,
+  generateDefaultMarketItems,
+  INITIAL_DEEP_ONE,
+  INITIAL_SHOGGOTH,
+} from './eventData';
 import type { Card, GameState } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
@@ -756,7 +763,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
       payload: { occupationId: 'investigator' },
     });
 
-    expect(nextState.phase).toBe('combat');
+    expect(nextState.phase).toBe('map');
+    expect(nextState.map).toBeDefined();
+    expect(nextState.map?.layers.length).toBe(5);
     expect(nextState.investigator.name).toContain('Edward Pierce');
     expect(nextState.investigator.occupation).toBe('私家偵探');
     expect(nextState.investigator.health).toBe(25);
@@ -774,7 +783,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
       payload: { occupationId: 'occultist' },
     });
 
-    expect(nextState.phase).toBe('combat');
+    expect(nextState.phase).toBe('map');
+    expect(nextState.map).toBeDefined();
     expect(nextState.investigator.name).toContain('Eleanor Vance');
     expect(nextState.investigator.occupation).toBe('秘術學者');
     expect(nextState.investigator.health).toBe(25);
@@ -1005,7 +1015,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     const titleState = createInitialGameState();
     const occultistCombat = gameReducer(titleState, {
       type: 'SELECT_OCCUPATION',
-      payload: { occupationId: 'occultist' },
+      payload: { occupationId: 'occultist', initialPhase: 'combat' },
     });
 
     expect(occultistCombat.investigator.occupationId).toBe('occultist');
@@ -1131,6 +1141,565 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
   });
 });
 
+describe('Investigation Map & Mythos Events System (Issue #6)', () => {
+  it('generateInvestigationMap generates a valid 5-layer DAG with accessible entry nodes', () => {
+    const map = generateInvestigationMap();
 
+    expect(map.id).toBe('map_arkham_quarantine_01');
+    expect(map.layers.length).toBe(5);
+    expect(map.currentNodeId).toBeNull();
 
+    const nodeIds = Object.keys(map.nodes);
+    expect(nodeIds.length).toBe(12);
 
+    // Layer 0 nodes must be accessible; all others unvisited
+    for (const nodeId of map.layers[0]) {
+      expect(map.nodes[nodeId].status).toBe('accessible');
+      expect(map.nodes[nodeId].layer).toBe(0);
+    }
+
+    for (let l = 1; l < map.layers.length; l++) {
+      for (const nodeId of map.layers[l]) {
+        expect(map.nodes[nodeId].status).toBe('unvisited');
+        expect(map.nodes[nodeId].layer).toBe(l);
+      }
+    }
+
+    // DAG integrity: nodes point only to the immediately next layer (except boss which has 0 nextNodes)
+    for (const node of Object.values(map.nodes)) {
+      if (node.layer < 4) {
+        expect(node.nextNodes.length).toBeGreaterThan(0);
+        for (const nextId of node.nextNodes) {
+          const nextNode = map.nodes[nextId];
+          expect(nextNode).toBeDefined();
+          expect(nextNode.layer).toBe(node.layer + 1);
+        }
+      } else {
+        expect(node.layer).toBe(4);
+        expect(node.type).toBe('boss');
+        expect(node.nextNodes.length).toBe(0);
+      }
+    }
+  });
+
+  it('SELECT_OCCUPATION initializes map and defaults phase to map', () => {
+    const titleState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'title',
+    };
+
+    const nextState = gameReducer(titleState, {
+      type: 'SELECT_OCCUPATION',
+      payload: {
+        occupationId: 'investigator',
+      },
+    });
+
+    expect(nextState.phase).toBe('map');
+    expect(nextState.map).toBeDefined();
+    expect(nextState.map?.layers.length).toBe(5);
+    expect(nextState.investigator.name).toContain('愛德華·皮爾斯');
+    expect(nextState.investigator.health).toBe(25);
+    expect(nextState.investigator.obols).toBe(15);
+  });
+
+  it('NAVIGATE_TO_NODE ignores invalid or inaccessible nodes', () => {
+    const map = generateInvestigationMap();
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    // Non-existent node
+    const invalidState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'non_existent_node_xyz' },
+    });
+    expect(invalidState).toBe(mapState);
+
+    // Inaccessible layer 2 node
+    const unvisitedState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_2_0' },
+    });
+    expect(unvisitedState.phase).toBe('map');
+    expect(unvisitedState.map?.currentNodeId).toBeNull();
+  });
+
+  it('NAVIGATE_TO_NODE enters combat for normal combat node', () => {
+    const map = generateInvestigationMap();
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    const nextState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_0_0' },
+    });
+
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.map?.currentNodeId).toBe('node_0_0');
+    expect(nextState.map?.nodes['node_0_0'].status).toBe('current');
+    expect(nextState.currentEnemy.name).toContain('食屍鬼');
+    expect(nextState.turn).toBe(1);
+    expect(nextState.hand.length).toBe(4);
+    expect(nextState.battleLog[0]).toContain('陰暗小巷');
+  });
+
+  it('NAVIGATE_TO_NODE enters elite combat with Deep One Elder', () => {
+    const map = generateInvestigationMap();
+    // Force node_2_0 to accessible for test
+    map.nodes['node_2_0'].status = 'accessible';
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    const nextState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_2_0' },
+    });
+
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.currentEnemy.id).toBe(INITIAL_DEEP_ONE.id);
+    expect(nextState.currentEnemy.health).toBe(INITIAL_DEEP_ONE.health);
+    expect(nextState.currentEnemy.armor).toBe(INITIAL_DEEP_ONE.armor);
+    expect(nextState.battleLog[0]).toContain('深潛者長老');
+  });
+
+  it('NAVIGATE_TO_NODE enters boss combat with Shoggoth Progeny', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_4_0'].status = 'accessible';
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    const nextState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_4_0' },
+    });
+
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.currentEnemy.id).toBe(INITIAL_SHOGGOTH.id);
+    expect(nextState.currentEnemy.health).toBe(INITIAL_SHOGGOTH.health);
+    expect(nextState.currentEnemy.armor).toBe(INITIAL_SHOGGOTH.armor);
+    expect(nextState.battleLog[0]).toContain('修格斯幼體');
+  });
+
+  it('NAVIGATE_TO_NODE enters event node and loads Mythos Event', () => {
+    const map = generateInvestigationMap();
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    const nextState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_0_1' },
+    });
+
+    expect(nextState.phase).toBe('event');
+    expect(nextState.currentEvent).toBeDefined();
+    expect(nextState.currentEvent?.title).toBe('迷霧中的傾覆馬車');
+    expect(nextState.currentEvent?.options.length).toBeGreaterThan(0);
+    expect(nextState.map?.currentNodeId).toBe('node_0_1');
+    expect(nextState.map?.nodes['node_0_1'].status).toBe('current');
+  });
+
+  it('NAVIGATE_TO_NODE enters sanctuary node', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_2_1'].status = 'accessible';
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    const nextState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_2_1' },
+    });
+
+    expect(nextState.phase).toBe('sanctuary');
+    expect(nextState.sanctuaryUsed).toBe(false);
+    expect(nextState.battleLog[0]).toContain('安全避難所');
+  });
+
+  it('NAVIGATE_TO_NODE enters market node and initializes market items', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_1_2'].status = 'accessible';
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    const nextState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_1_2' },
+    });
+
+    expect(nextState.phase).toBe('market');
+    expect(nextState.marketItems).toBeDefined();
+    expect(nextState.marketItems?.length).toBe(5);
+    expect(nextState.battleLog[0]).toContain('黑市商鋪');
+  });
+
+  it('executes full Macro Game Loop: map -> combat victory -> claim reward -> return to map with next layer unlocked', () => {
+    const map = generateInvestigationMap();
+    const mapState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'map',
+      map,
+    };
+
+    // 1. Navigate to node_0_0 (combat)
+    const combatState = gameReducer(mapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_0_0' },
+    });
+    expect(combatState.phase).toBe('combat');
+    expect(combatState.map?.currentNodeId).toBe('node_0_0');
+
+    // 2. Victory state and proceed to reward
+    const victoryState: GameState = {
+      ...combatState,
+      phase: 'victory',
+    };
+    const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+    expect(rewardState.phase).toBe('reward');
+
+    // 3. Claim reward to advance map
+    const nextMapState = gameReducer(rewardState, {
+      type: 'CLAIM_CARD_REWARD',
+    });
+
+    expect(nextMapState.phase).toBe('map');
+    expect(nextMapState.map).toBeDefined();
+
+    // Previous node is visited
+    expect(nextMapState.map?.nodes['node_0_0'].status).toBe('visited');
+    // Sibling node_0_1 remains unvisited
+    expect(nextMapState.map?.nodes['node_0_1'].status).toBe('unvisited');
+
+    // Next nodes (node_1_0, node_1_1) connected to node_0_0 are now accessible!
+    expect(nextMapState.map?.nodes['node_1_0'].status).toBe('accessible');
+    expect(nextMapState.map?.nodes['node_1_1'].status).toBe('accessible');
+    // node_1_2 was only connected to node_0_1, so it stays unvisited
+    expect(nextMapState.map?.nodes['node_1_2'].status).toBe('unvisited');
+
+    // Investigator can now seamlessly navigate to newly accessible node_1_0
+    const nextEventState = gameReducer(nextMapState, {
+      type: 'NAVIGATE_TO_NODE',
+      payload: { nodeId: 'node_1_0' },
+    });
+    expect(nextEventState.phase).toBe('event');
+    expect(nextEventState.map?.currentNodeId).toBe('node_1_0');
+  });
+
+  it('Mythos Event resolves sanity change and card reward, then returns to map on completion', () => {
+    const map = generateInvestigationMap();
+    const eventState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'event',
+      map: {
+        ...map,
+        currentNodeId: 'node_0_1',
+      },
+      currentEvent: MYTHOS_EVENTS.event_sunken_shrine,
+      sanityDeck: [
+        createMockCard({ id: 'c1' }),
+        createMockCard({ id: 'c2' }),
+        createMockCard({ id: 'c3' }),
+      ],
+      hand: [],
+    };
+
+    // Option 1: shrine_inspect costs 2 sanity, gives Truth Card
+    const resolvedState = gameReducer(eventState, {
+      type: 'RESOLVE_EVENT_OPTION',
+      payload: { optionId: 'shrine_inspect' },
+    });
+
+    expect(resolvedState.sanityDeck.length).toBe(1);
+    expect(resolvedState.hand.length).toBe(1);
+    expect(resolvedState.hand[0].name).toBe('深潛者手札');
+    expect(resolvedState.hand[0].category).toBe('truth');
+    expect(resolvedState.currentEvent?.selectedOptionId).toBe('shrine_inspect');
+    expect(resolvedState.currentEvent?.resolvedOutcomeText?.length).toBeGreaterThan(0);
+
+    // Complete event to return to map
+    const postEventState = gameReducer(resolvedState, {
+      type: 'COMPLETE_EVENT',
+    });
+
+    expect(postEventState.phase).toBe('map');
+    expect(postEventState.currentEvent).toBeUndefined();
+    expect(postEventState.map?.nodes['node_0_1'].status).toBe('visited');
+    // Children of node_0_1 (node_1_1, node_1_2) are now accessible
+    expect(postEventState.map?.nodes['node_1_1'].status).toBe('accessible');
+    expect(postEventState.map?.nodes['node_1_2'].status).toBe('accessible');
+  });
+
+  it('Mythos Event triggers ambush combat seamlessly', () => {
+    const map = generateInvestigationMap();
+    const eventState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'event',
+      map: {
+        ...map,
+        currentNodeId: 'node_0_1',
+      },
+      currentEvent: MYTHOS_EVENTS.event_sunken_shrine,
+    };
+
+    // Option 3: shrine_disturb triggers ambush
+    const combatState = gameReducer(eventState, {
+      type: 'RESOLVE_EVENT_OPTION',
+      payload: { optionId: 'shrine_disturb' },
+    });
+
+    expect(combatState.phase).toBe('combat');
+    expect(combatState.currentEnemy.name).toContain('食屍鬼');
+    expect(combatState.currentEvent).toBeUndefined();
+    expect(combatState.battleLog[0]).toContain('食屍鬼');
+  });
+
+  it('Mythos Event handles fatal health consequence with game over', () => {
+    const map = generateInvestigationMap();
+    const lethalEventState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'event',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 2,
+      },
+      map,
+      currentEvent: {
+        id: 'fatal_test_event',
+        title: '致命陷阱',
+        location: '深淵裂隙',
+        storyText: ['眼前是深不見底的刀刃機關。'],
+        options: [
+          {
+            id: 'trigger_trap',
+            text: '直接踩上機關',
+            consequences: [
+              {
+                type: 'health_change',
+                value: -10,
+                narrative: '機關貫穿了你的胸膛！',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const gameOverState = gameReducer(lethalEventState, {
+      type: 'RESOLVE_EVENT_OPTION',
+      payload: { optionId: 'trigger_trap' },
+    });
+
+    expect(gameOverState.phase).toBe('gameover');
+    expect(gameOverState.investigator.health).toBe(0);
+    expect(gameOverState.battleLog[0]).toContain('肉體殞命');
+  });
+
+  it('Sanctuary recovers +8 health (capped at 25), prevents double use, and returns to map', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_2_1'].status = 'accessible';
+
+    const sanctuaryState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'sanctuary',
+      sanctuaryUsed: false,
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 12,
+        maxHealth: 25,
+      },
+      map: {
+        ...map,
+        currentNodeId: 'node_2_1',
+      },
+    };
+
+    // Use bandage: +8 HP
+    const healedState = gameReducer(sanctuaryState, {
+      type: 'USE_SANCTUARY',
+      payload: { optionId: 'bandage' },
+    });
+
+    expect(healedState.investigator.health).toBe(20);
+    expect(healedState.sanctuaryUsed).toBe(true);
+
+    // Attempting to bandage again in the same visit is disallowed
+    const doubleHealState = gameReducer(healedState, {
+      type: 'USE_SANCTUARY',
+      payload: { optionId: 'bandage' },
+    });
+    expect(doubleHealState.investigator.health).toBe(20);
+
+    // Leave sanctuary
+    const mapState = gameReducer(healedState, {
+      type: 'LEAVE_SANCTUARY',
+    });
+
+    expect(mapState.phase).toBe('map');
+    expect(mapState.sanctuaryUsed).toBeUndefined();
+    expect(mapState.map?.nodes['node_2_1'].status).toBe('visited');
+    // Next nodes (node_3_0, node_3_1, node_3_2) are now accessible
+    expect(mapState.map?.nodes['node_3_0'].status).toBe('accessible');
+    expect(mapState.map?.nodes['node_3_1'].status).toBe('accessible');
+    expect(mapState.map?.nodes['node_3_2'].status).toBe('accessible');
+  });
+
+  it('Sanctuary meditation grants Truth Card 心智防波堤', () => {
+    const sanctuaryState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'sanctuary',
+      sanctuaryUsed: false,
+      hand: [],
+    };
+
+    const meditatedState = gameReducer(sanctuaryState, {
+      type: 'USE_SANCTUARY',
+      payload: { optionId: 'meditate' },
+    });
+
+    expect(meditatedState.sanctuaryUsed).toBe(true);
+    expect(meditatedState.hand.length).toBe(1);
+    expect(meditatedState.hand[0].name).toBe('心智防波堤');
+    expect(meditatedState.hand[0].category).toBe('truth');
+  });
+
+  it('Black Market allows purchasing cards and healing supplies with Ancient Obols', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_1_2'].status = 'accessible';
+    const defaultItems = generateDefaultMarketItems();
+
+    const marketState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'market',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        health: 15,
+        maxHealth: 25,
+        obols: 35,
+      },
+      map: {
+        ...map,
+        currentNodeId: 'node_1_2',
+      },
+      marketItems: defaultItems,
+      hand: [],
+    };
+
+    const cardItem = defaultItems.find((i) => i.type === 'card' && i.price <= 30)!;
+    expect(cardItem).toBeDefined();
+
+    // 1. Buy card item
+    const boughtCardState = gameReducer(marketState, {
+      type: 'BUY_MARKET_ITEM',
+      payload: { itemId: cardItem.id },
+    });
+
+    expect(boughtCardState.investigator.obols).toBe(35 - cardItem.price);
+    expect(boughtCardState.hand.length).toBe(1);
+    expect(boughtCardState.hand[0].name).toBe(cardItem.card!.name);
+    const updatedCardItem = boughtCardState.marketItems?.find((i) => i.id === cardItem.id);
+    expect(updatedCardItem?.isPurchased).toBe(true);
+
+    // 2. Re-buying already purchased item is rejected
+    const rebuyState = gameReducer(boughtCardState, {
+      type: 'BUY_MARKET_ITEM',
+      payload: { itemId: cardItem.id },
+    });
+    expect(rebuyState.investigator.obols).toBe(boughtCardState.investigator.obols);
+
+    // 3. Buying with insufficient obols is rejected
+    const expensiveItem = rebuyState.marketItems?.find(
+      (i) => !i.isPurchased && i.price > rebuyState.investigator.obols
+    );
+    expect(expensiveItem).toBeDefined();
+    if (expensiveItem) {
+      const failedState = gameReducer(rebuyState, {
+        type: 'BUY_MARKET_ITEM',
+        payload: { itemId: expensiveItem.id },
+      });
+      expect(failedState.investigator.obols).toBe(rebuyState.investigator.obols);
+      expect(failedState.battleLog[0]).toContain('古金幣不足');
+    }
+
+    // 4. Buying healing item heals health
+    const healItem = defaultItems.find((i) => i.type === 'heal' && i.price <= 10)!;
+    const richState: GameState = {
+      ...marketState,
+      investigator: {
+        ...marketState.investigator,
+        health: 15,
+        obols: 50,
+      },
+    };
+    const healedState = gameReducer(richState, {
+      type: 'BUY_MARKET_ITEM',
+      payload: { itemId: healItem.id },
+    });
+    expect(healedState.investigator.health).toBe(15 + (healItem.healAmount ?? 0));
+    expect(healedState.investigator.obols).toBe(50 - healItem.price);
+
+    // 5. Leave market
+    const leaveState = gameReducer(healedState, {
+      type: 'LEAVE_MARKET',
+    });
+    expect(leaveState.phase).toBe('map');
+    expect(leaveState.marketItems).toBeUndefined();
+    expect(leaveState.map?.nodes['node_1_2'].status).toBe('visited');
+  });
+
+  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆) across map, events, and market', () => {
+    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆/;
+
+    // Map template
+    for (const node of BASE_MAP_TEMPLATE) {
+      expect(node.label).not.toMatch(forbiddenRegex);
+      expect(node.title).not.toMatch(forbiddenRegex);
+      expect(node.description).not.toMatch(forbiddenRegex);
+    }
+
+    // Mythos events
+    for (const event of Object.values(MYTHOS_EVENTS)) {
+      expect(event.title).not.toMatch(forbiddenRegex);
+      expect(event.location).not.toMatch(forbiddenRegex);
+      for (const st of event.storyText) {
+        expect(st).not.toMatch(forbiddenRegex);
+      }
+      for (const opt of event.options) {
+        expect(opt.text).not.toMatch(forbiddenRegex);
+        expect(opt.costDescription).not.toMatch(forbiddenRegex);
+        for (const cons of opt.consequences) {
+          expect(cons.narrative).not.toMatch(forbiddenRegex);
+          if (cons.card) {
+            expect(cons.card.name).not.toMatch(forbiddenRegex);
+            expect(cons.card.description).not.toMatch(forbiddenRegex);
+          }
+        }
+      }
+    }
+
+    // Market items
+    const items = generateDefaultMarketItems();
+    for (const item of items) {
+      expect(item.name).not.toMatch(forbiddenRegex);
+      expect(item.description).not.toMatch(forbiddenRegex);
+    }
+  });
+});

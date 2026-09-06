@@ -1,4 +1,14 @@
-import type { Card, Enemy, EnemyIntent, GameAction, GameState, Investigator } from '../types/game';
+import type {
+  Card,
+  Enemy,
+  EnemyIntent,
+  GameAction,
+  GameState,
+  Investigator,
+  InvestigationMap,
+  MapNode,
+  MythosEvent,
+} from '../types/game';
 import {
   INITIAL_GHOUL,
   INITIAL_INVESTIGATOR,
@@ -7,6 +17,13 @@ import {
   fisherYatesShuffle,
 } from './initialData';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
+import { generateInvestigationMap } from './mapGenerator';
+import {
+  INITIAL_DEEP_ONE,
+  INITIAL_SHOGGOTH,
+  getMythosEventForNode,
+  generateDefaultMarketItems,
+} from './eventData';
 
 export const BASELINE_HAND_SIZE = 4;
 
@@ -20,6 +37,31 @@ export function splitDeckToHandAndSanity(
   return {
     hand: deck.slice(0, handSize),
     sanityDeck: deck.slice(handSize),
+  };
+}
+
+/**
+ * 節點結算後推進地圖：將當前節點標記為 visited，將其連通的下一層節點解鎖為 accessible
+ */
+export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | undefined {
+  if (!map || !map.currentNodeId) return map;
+  const currentNode = map.nodes[map.currentNodeId];
+  if (!currentNode) return map;
+
+  const updatedNodes: Record<string, MapNode> = {};
+  for (const [id, node] of Object.entries(map.nodes)) {
+    if (id === currentNode.id) {
+      updatedNodes[id] = { ...node, status: 'visited' };
+    } else if (currentNode.nextNodes.includes(id)) {
+      updatedNodes[id] = { ...node, status: 'accessible' };
+    } else {
+      updatedNodes[id] = { ...node };
+    }
+  }
+
+  return {
+    ...map,
+    nodes: updatedNodes,
   };
 }
 
@@ -131,9 +173,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const allCards = occ.deck.map((c) => ({ ...c }));
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
       const enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+      const map = generateInvestigationMap();
+      const nextPhase = action.payload.initialPhase ?? 'map';
 
       return {
-        phase: 'combat',
+        phase: nextPhase,
         turn: 1,
         investigator,
         sanityDeck,
@@ -141,10 +185,329 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         discardPile: [],
         isMadness: false,
         currentEnemy: enemy,
+        map,
         battleLog: [
-          `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）啟程調查！`,
-          `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
+          `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`,
         ],
+      };
+    }
+
+    case 'NAVIGATE_TO_NODE': {
+      if (!state.map) return state;
+      const targetNode = state.map.nodes[action.payload.nodeId];
+      if (!targetNode || targetNode.status !== 'accessible') return state;
+
+      const updatedNodes: Record<string, MapNode> = {};
+      for (const [id, node] of Object.entries(state.map.nodes)) {
+        if (id === targetNode.id) {
+          updatedNodes[id] = { ...node, status: 'current' };
+        } else if (node.status === 'current') {
+          updatedNodes[id] = { ...node, status: 'visited' };
+        } else if (node.status === 'accessible') {
+          updatedNodes[id] = { ...node, status: 'unvisited' };
+        } else {
+          updatedNodes[id] = { ...node };
+        }
+      }
+
+      const updatedMap: InvestigationMap = {
+        ...state.map,
+        nodes: updatedNodes,
+        currentNodeId: targetNode.id,
+      };
+
+      if (targetNode.type === 'combat') {
+        const enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
+        return {
+          ...state,
+          phase: 'combat',
+          map: updatedMap,
+          currentEnemy: enemy,
+          turn: 1,
+          battleLog: [
+            `探索【${targetNode.title}】！遭遇常規敵人：${enemy.name}（${enemy.title}）。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'elite') {
+        const enemy = JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
+        return {
+          ...state,
+          phase: 'combat',
+          map: updatedMap,
+          currentEnemy: enemy,
+          turn: 1,
+          battleLog: [
+            `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'boss') {
+        const enemy = JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+        return {
+          ...state,
+          phase: 'combat',
+          map: updatedMap,
+          currentEnemy: enemy,
+          turn: 1,
+          battleLog: [
+            `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'event') {
+        const event = getMythosEventForNode(targetNode.id);
+        return {
+          ...state,
+          phase: 'event',
+          map: updatedMap,
+          currentEvent: event,
+          battleLog: [
+            `探索【${targetNode.title}】！觸發秘識奇遇【${event.title}】。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'sanctuary') {
+        return {
+          ...state,
+          phase: 'sanctuary',
+          map: updatedMap,
+          sanctuaryUsed: false,
+          battleLog: [
+            `探索【${targetNode.title}】！抵達安全避難所。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'market') {
+        return {
+          ...state,
+          phase: 'market',
+          map: updatedMap,
+          marketItems: generateDefaultMarketItems(),
+          battleLog: [
+            `探索【${targetNode.title}】！進入黑市商鋪。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      return state;
+    }
+
+    case 'RESOLVE_EVENT_OPTION': {
+      if (state.phase !== 'event' || !state.currentEvent) return state;
+      const option = state.currentEvent.options.find((opt) => opt.id === action.payload.optionId);
+      if (!option) return state;
+
+      if (option.requires?.obols && state.investigator.obols < option.requires.obols) {
+        return {
+          ...state,
+          battleLog: [`古金幣不足！此抉擇需要 ${option.requires.obols} 枚古金幣。`, ...state.battleLog],
+        };
+      }
+
+      let newHealth = state.investigator.health;
+      let newObols = state.investigator.obols;
+      let newSanityDeck = [...state.sanityDeck];
+      const newHand = [...state.hand];
+      let triggerCombatEnemy: Enemy | undefined;
+      const outcomeTexts: string[] = [];
+
+      for (const consequence of option.consequences) {
+        outcomeTexts.push(consequence.narrative);
+        if (consequence.type === 'health_change' && consequence.value !== undefined) {
+          newHealth = Math.max(0, Math.min(state.investigator.maxHealth, newHealth + consequence.value));
+        } else if (consequence.type === 'gain_obols' && consequence.value !== undefined) {
+          newObols = Math.max(0, newObols + consequence.value);
+        } else if (consequence.type === 'sanity_change' && consequence.value !== undefined) {
+          if (consequence.value < 0) {
+            const burnCount = Math.min(newSanityDeck.length, Math.abs(consequence.value));
+            newSanityDeck = newSanityDeck.slice(burnCount);
+          }
+        } else if (consequence.type === 'gain_card' && consequence.card) {
+          newHand.push({
+            ...consequence.card,
+            id: `${consequence.card.id}_${Date.now()}`,
+          });
+        } else if (consequence.type === 'trigger_combat') {
+          triggerCombatEnemy = consequence.enemy ?? INITIAL_GHOUL;
+        }
+      }
+
+      const updatedInvestigator: Investigator = {
+        ...state.investigator,
+        health: newHealth,
+        obols: newObols,
+      };
+
+      const updatedEvent: MythosEvent = {
+        ...state.currentEvent,
+        selectedOptionId: option.id,
+        resolvedOutcomeText: outcomeTexts,
+      };
+
+      if (newHealth <= 0) {
+        return {
+          ...state,
+          phase: 'gameover',
+          investigator: updatedInvestigator,
+          currentEvent: updatedEvent,
+          battleLog: [`【肉體殞命】調查員在奇遇事件中傷重不治！`, ...state.battleLog],
+        };
+      }
+
+      if (triggerCombatEnemy) {
+        return {
+          ...state,
+          phase: 'combat',
+          turn: 1,
+          investigator: updatedInvestigator,
+          sanityDeck: newSanityDeck,
+          hand: newHand,
+          currentEnemy: JSON.parse(JSON.stringify(triggerCombatEnemy)),
+          currentEvent: undefined,
+          battleLog: outcomeTexts.concat(state.battleLog),
+        };
+      }
+
+      return {
+        ...state,
+        investigator: updatedInvestigator,
+        sanityDeck: newSanityDeck,
+        hand: newHand,
+        currentEvent: updatedEvent,
+        battleLog: outcomeTexts.concat(state.battleLog),
+      };
+    }
+
+    case 'COMPLETE_EVENT': {
+      if (state.phase !== 'event') return state;
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        currentEvent: undefined,
+        battleLog: ['秘識奇遇結束，調查員整理行囊重回調查地圖。', ...state.battleLog],
+      };
+    }
+
+    case 'USE_SANCTUARY': {
+      if (state.phase !== 'sanctuary' || state.sanctuaryUsed) return state;
+      const optionId = action.payload.optionId;
+      let newHealth = state.investigator.health;
+      const newHand = [...state.hand];
+      const newLogs: string[] = [];
+
+      if (optionId === 'bandage') {
+        newHealth = Math.min(state.investigator.maxHealth, newHealth + 8);
+        newLogs.push(`在避難所進行深層包紮，恢復了 8 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}）。`);
+      } else if (optionId === 'meditate') {
+        const truthCard: Card = {
+          id: `sanctuary_truth_${Date.now()}`,
+          name: '心智防波堤',
+          category: 'truth',
+          costType: 'stamina',
+          costValue: 1,
+          isTemporary: false,
+          effects: [
+            { type: 'self_damage', value: 1 },
+            { type: 'add_to_deck', value: 3 },
+          ],
+          description: '承受 1 點肉體傷害，向理智牌庫注入 3 張真相卡。',
+          flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
+        };
+        newHand.push(truthCard);
+        newLogs.push(`在避難所深層冥想，獲得真相卡【心智防波堤】納入牌組！`);
+      }
+
+      return {
+        ...state,
+        investigator: {
+          ...state.investigator,
+          health: newHealth,
+        },
+        hand: newHand,
+        sanctuaryUsed: true,
+        battleLog: newLogs.concat(state.battleLog),
+      };
+    }
+
+    case 'LEAVE_SANCTUARY': {
+      if (state.phase !== 'sanctuary') return state;
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        sanctuaryUsed: undefined,
+        battleLog: ['離開安全避難所，繼續踏入阿卡姆的迷霧路線。', ...state.battleLog],
+      };
+    }
+
+    case 'BUY_MARKET_ITEM': {
+      if (state.phase !== 'market' || !state.marketItems) return state;
+      const item = state.marketItems.find((i) => i.id === action.payload.itemId);
+      if (!item || item.isPurchased) return state;
+
+      if (state.investigator.obols < item.price) {
+        return {
+          ...state,
+          battleLog: [`古金幣不足！【${item.name}】需要 ${item.price} 古金幣，目前僅有 ${state.investigator.obols} 枚。`, ...state.battleLog],
+        };
+      }
+
+      let newHealth = state.investigator.health;
+      const newHand = [...state.hand];
+      const newLogs: string[] = [];
+
+      if (item.type === 'heal' && item.healAmount) {
+        newHealth = Math.min(state.investigator.maxHealth, newHealth + item.healAmount);
+        newLogs.push(`在黑市購買【${item.name}】，立即恢復了 ${item.healAmount} 點生命值（當前: ${newHealth} / ${state.investigator.maxHealth}）。`);
+      } else if (item.type === 'card' && item.card) {
+        newHand.push({
+          ...item.card,
+          id: `${item.card.id}_purchased_${Date.now()}`,
+        });
+        newLogs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入牌組！`);
+      }
+
+      const updatedItems = state.marketItems.map((i) =>
+        i.id === item.id ? { ...i, isPurchased: true } : i
+      );
+
+      return {
+        ...state,
+        investigator: {
+          ...state.investigator,
+          health: newHealth,
+          obols: state.investigator.obols - item.price,
+        },
+        hand: newHand,
+        marketItems: updatedItems,
+        battleLog: newLogs.concat(state.battleLog),
+      };
+    }
+
+    case 'LEAVE_MARKET': {
+      if (state.phase !== 'market') return state;
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        marketItems: undefined,
+        battleLog: ['離開黑市暗巷，重新回到調查地圖。', ...state.battleLog],
       };
     }
 
@@ -217,9 +580,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const nextEnemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
 
+      // Advance map if map is present, otherwise remain in combat
+      const updatedMap = advanceMapAfterNode(state.map);
+      const nextPhase = state.map ? 'map' : 'combat';
+
       return {
         ...state,
-        phase: 'combat',
+        phase: nextPhase,
         turn: 1,
         investigator: updatedInvestigator,
         sanityDeck,
@@ -229,6 +596,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         rewardCards: undefined,
         rewardObols: undefined,
         currentEnemy: nextEnemy,
+        map: updatedMap,
         battleLog: [...newLogs, ...state.battleLog],
       };
     }

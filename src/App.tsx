@@ -1,6 +1,10 @@
 import { useReducer } from 'react';
 import { gameReducer, createInitialGameState } from './engine/gameReducer';
 import { TitleScreen } from './components/TitleScreen';
+import { MapScreen } from './components/MapScreen';
+import { EventScreen } from './components/EventScreen';
+import { SanctuaryScreen } from './components/SanctuaryScreen';
+import { MarketScreen } from './components/MarketScreen';
 import { CombatScreen } from './components/CombatScreen';
 import { RewardScreen } from './components/RewardScreen';
 
@@ -9,6 +13,22 @@ export function App() {
 
   if (state.phase === 'title') {
     return <TitleScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'map') {
+    return <MapScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'event') {
+    return <EventScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'sanctuary') {
+    return <SanctuaryScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'market') {
+    return <MarketScreen state={state} dispatch={dispatch} />;
   }
 
   if (state.phase === 'reward') {

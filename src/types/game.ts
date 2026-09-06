@@ -53,8 +53,67 @@ export interface Investigator {
   obols: number;
 }
 
+export type MapNodeType = 'combat' | 'elite' | 'event' | 'sanctuary' | 'market' | 'boss';
+
+export interface MapNode {
+  id: string;
+  type: MapNodeType;
+  layer: number;
+  col: number;
+  label: string;
+  title: string;
+  description: string;
+  nextNodes: string[];
+  status: 'unvisited' | 'current' | 'visited' | 'accessible';
+}
+
+export interface InvestigationMap {
+  id: string;
+  name: string;
+  nodes: Record<string, MapNode>;
+  layers: string[][];
+  currentNodeId: string | null;
+}
+
+export interface MythosEventConsequence {
+  type: 'health_change' | 'sanity_change' | 'gain_obols' | 'gain_card' | 'trigger_combat';
+  value?: number;
+  card?: Card;
+  enemy?: Enemy;
+  narrative: string;
+}
+
+export interface MythosEventOption {
+  id: string;
+  text: string;
+  costDescription?: string;
+  requires?: { obols?: number; health?: number };
+  consequences: MythosEventConsequence[];
+}
+
+export interface MythosEvent {
+  id: string;
+  title: string;
+  location: string;
+  storyText: string[];
+  options: MythosEventOption[];
+  selectedOptionId?: string;
+  resolvedOutcomeText?: string[];
+}
+
+export interface MarketItem {
+  id: string;
+  name: string;
+  type: 'card' | 'heal' | 'max_sanity';
+  price: number;
+  card?: Card;
+  healAmount?: number;
+  description: string;
+  isPurchased?: boolean;
+}
+
 export interface GameState {
-  phase: 'title' | 'combat' | 'victory' | 'reward' | 'gameover';
+  phase: 'title' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'gameover';
   turn: number;
   investigator: Investigator;
   sanityDeck: Card[]; // 牌庫剩餘數量即等同於當前理智值 (Sanity)
@@ -65,10 +124,21 @@ export interface GameState {
   battleLog: string[];
   rewardCards?: Card[];
   rewardObols?: number;
+  map?: InvestigationMap;
+  currentEvent?: MythosEvent;
+  sanctuaryUsed?: boolean;
+  marketItems?: MarketItem[];
 }
 
 export type GameAction =
-  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId } }
+  | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId; initialPhase?: 'map' | 'combat' } }
+  | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string } }
+  | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string } }
+  | { type: 'COMPLETE_EVENT' }
+  | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' } }
+  | { type: 'LEAVE_SANCTUARY' }
+  | { type: 'BUY_MARKET_ITEM'; payload: { itemId: string } }
+  | { type: 'LEAVE_MARKET' }
   | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number } }
   | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }
   | { type: 'RETURN_TO_TITLE' }
@@ -76,4 +146,5 @@ export type GameAction =
   | { type: 'PLAY_CARD'; payload: { cardId: string } }
   | { type: 'END_TURN' }
   | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy } };
+
 
