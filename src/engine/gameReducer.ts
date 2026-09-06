@@ -226,6 +226,38 @@ export function createInitialGameState(): GameState {
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'START_NEW_INVESTIGATION': {
+      return {
+        ...createInitialGameState(),
+        phase: 'prologue',
+        battleLog: [
+          '【調查啟程 · 序章引導】翻開 1920 年代阿卡姆失蹤懸案剪報與神秘委託密信，深淵的呼喚隱隱傳來……',
+        ],
+      };
+    }
+
+    case 'COMPLETE_PROLOGUE': {
+      return {
+        ...state,
+        phase: 'occupation_select',
+        battleLog: [
+          '【調查員集結】請在命運的十字路口，挑選本次深入阿卡姆的調查員身份。',
+          ...state.battleLog,
+        ],
+      };
+    }
+
+    case 'COMPLETE_DEPARTURE': {
+      return {
+        ...state,
+        phase: 'map',
+        battleLog: [
+          `【啟程赴險】調查員 ${state.investigator.name} 踏入阿卡姆的濃重迷霧，展開調查地圖！`,
+          ...state.battleLog,
+        ],
+      };
+    }
+
     case 'SELECT_OCCUPATION': {
       const occ = OCCUPATIONS[action.payload.occupationId] ?? OCCUPATIONS.investigator;
       const investigator: Investigator = {
@@ -243,7 +275,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
       const enemy = cloneEnemy(INITIAL_GHOUL);
       const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap() : generateInvestigationMap());
-      const nextPhase = action.payload.initialPhase ?? 'map';
+      const defaultPhase = state.phase === 'occupation_select' ? 'departure' : 'map';
+      const nextPhase = action.payload.initialPhase ?? defaultPhase;
+
+      const logMsg = nextPhase === 'departure'
+        ? `【確認身份】調查員 ${investigator.name}（${investigator.occupation}）整裝待發，準備啟程！`
+        : `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`;
 
       return {
         phase: nextPhase,
@@ -255,9 +292,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map,
-        battleLog: [
-          `【踏入黑暗】調查員 ${investigator.name}（${investigator.occupation}）抵達阿卡姆封鎖區！請在調查地圖中挑選啟程路線。`,
-        ],
+        battleLog: [logMsg, ...state.battleLog],
       };
     }
 

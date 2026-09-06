@@ -1,0 +1,79 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { OccupationSelect } from './OccupationSelect';
+
+describe('OccupationSelect (Issue #13)', () => {
+  it('renders both investigators with complete 12 starting cards and attributes', () => {
+    const handleBack = vi.fn();
+    const handleSelect = vi.fn();
+
+    render(
+      <OccupationSelect
+        onBackToMenu={handleBack}
+        onSelectOccupation={handleSelect}
+      />
+    );
+
+    // Investigator 1: Edward Pierce
+    expect(screen.getByText('愛德華·皮爾斯 (Edward Pierce)')).toBeDefined();
+    expect(screen.getByText('私家偵探')).toBeDefined();
+    expect(screen.getAllByText('生命值 25').length).toBe(2);
+    expect(screen.getAllByText('精力 3').length).toBe(2);
+    expect(screen.getByText('古金幣 15')).toBeDefined();
+    expect(screen.getByText(/專屬起始卡牌（12 張 · 物理生存）/i)).toBeDefined();
+
+    // 12 cards inspection list for Pierce
+    const pierceDeckSection = screen.getByLabelText('愛德華·皮爾斯起始卡牌清單');
+    expect(pierceDeckSection).toBeDefined();
+    expect(pierceDeckSection.children.length).toBe(12);
+
+    // Investigator 2: Eleanor Vance
+    expect(screen.getByText('艾蓮諾·凡斯 (Eleanor Vance)')).toBeDefined();
+    expect(screen.getByText('秘術學者')).toBeDefined();
+    expect(screen.getByText('古金幣 20')).toBeDefined();
+    expect(screen.getByText(/專屬起始卡牌（12 張 · 秘術真相）/i)).toBeDefined();
+
+    // 12 cards inspection list for Vance
+    const vanceDeckSection = screen.getByLabelText('艾蓮諾·凡斯起始卡牌清單');
+    expect(vanceDeckSection).toBeDefined();
+    expect(vanceDeckSection.children.length).toBe(12);
+  });
+
+  it('triggers onSelectOccupation when selecting Edward Pierce or Eleanor Vance', () => {
+    const handleBack = vi.fn();
+    const handleSelect = vi.fn();
+
+    render(
+      <OccupationSelect
+        onBackToMenu={handleBack}
+        onSelectOccupation={handleSelect}
+      />
+    );
+
+    // Choose Edward Pierce
+    const choosePierceBtn = screen.getByRole('button', { name: /啟程調查/i });
+    fireEvent.click(choosePierceBtn);
+    expect(handleSelect).toHaveBeenCalledWith('investigator');
+
+    // Choose Eleanor Vance
+    const chooseVanceBtn = screen.getByRole('button', { name: /啟動秘儀/i });
+    fireEvent.click(chooseVanceBtn);
+    expect(handleSelect).toHaveBeenCalledWith('occultist');
+  });
+
+  it('triggers onBackToMenu when clicking back button', () => {
+    const handleBack = vi.fn();
+    const handleSelect = vi.fn();
+
+    render(
+      <OccupationSelect
+        onBackToMenu={handleBack}
+        onSelectOccupation={handleSelect}
+      />
+    );
+
+    const backBtn = screen.getByRole('button', { name: /返回主選單/i });
+    fireEvent.click(backBtn);
+    expect(handleBack).toHaveBeenCalledTimes(1);
+  });
+});

@@ -1,0 +1,153 @@
+import React from 'react';
+import {
+  Compass,
+  Play,
+  BookOpen,
+  Sparkles,
+  Settings,
+  Skull,
+  ChevronRight,
+} from 'lucide-react';
+import { AudioToggle } from './AudioToggle';
+import { soundEngine } from '../engine/audioManager';
+
+export interface TitleMenuProps {
+  onStartNewGame: () => void;
+  onOpenManual: () => void;
+  onOpenCompendium: () => void;
+  onOpenSettings: () => void;
+  onOpenExit: () => void;
+}
+
+export const TitleMenu: React.FC<TitleMenuProps> = ({
+  onStartNewGame,
+  onOpenManual,
+  onOpenCompendium,
+  onOpenSettings,
+  onOpenExit,
+}) => {
+  const handleItemClick = (action: () => void) => {
+    soundEngine.playClick();
+    action();
+  };
+
+  return (
+    <div className="title-menu-wrapper">
+      {/* Background Ambience Layers */}
+      <div className="vignette-overlay" />
+      <div className="fog-layer" />
+      <div className="cosmic-particles-bg" />
+
+      {/* Audio Quick Switch in Top Right */}
+      <div className="title-screen-audio-corner">
+        <AudioToggle />
+      </div>
+
+      {/* Main Center Content */}
+      <main className="title-menu-card">
+        {/* Mystic Eldritch Sigil Header */}
+        <header className="title-menu-header">
+          <div className="title-icon-badge" title="阿卡姆舊印指引">
+            <Compass size={40} color="#cfa866" />
+          </div>
+          <h1 className="title-screen-title">克蘇魯文字卡牌冒險</h1>
+          <p className="title-screen-subtitle">LOVECRAFTIAN TEXT-CARD ADVENTURE</p>
+
+          <div className="title-divider">
+            <span className="title-divider-line" />
+            <span className="title-divider-text">深淵正凝視著你 · 喚醒沉睡的心智</span>
+            <span className="title-divider-line" />
+          </div>
+        </header>
+
+        {/* Vertical Classic Menu Items */}
+        <nav className="title-menu-nav" aria-label="經典主選單">
+          {/* 1. Start New Investigation */}
+          <button
+            id="menu-start-btn"
+            className="title-menu-btn primary-start-btn"
+            onClick={() => handleItemClick(onStartNewGame)}
+          >
+            <div className="btn-icon-wrap">
+              <Play size={20} color="#ffd700" fill="#ffd700" />
+            </div>
+            <div className="btn-text-group">
+              <span className="btn-main-text">開啟新調查</span>
+              <span className="btn-sub-text">踏入迷霧 · 選擇調查員啟程</span>
+            </div>
+            <ChevronRight size={18} className="btn-arrow" />
+          </button>
+
+          {/* 2. Investigation Manual */}
+          <button
+            id="menu-manual-btn"
+            className="title-menu-btn"
+            onClick={() => handleItemClick(onOpenManual)}
+          >
+            <div className="btn-icon-wrap">
+              <BookOpen size={20} color="#cfa866" />
+            </div>
+            <div className="btn-text-group">
+              <span className="btn-main-text">調查紀錄手冊</span>
+              <span className="btn-sub-text">調查手記 · 理智牌庫、五色卡牌與瘋狂對弈規則</span>
+            </div>
+            <ChevronRight size={18} className="btn-arrow" />
+          </button>
+
+          {/* 3. Card Compendium */}
+          <button
+            id="menu-compendium-btn"
+            className="title-menu-btn"
+            onClick={() => handleItemClick(onOpenCompendium)}
+          >
+            <div className="btn-icon-wrap">
+              <Sparkles size={20} color="#ab47bc" />
+            </div>
+            <div className="btn-text-group">
+              <span className="btn-main-text">卡牌圖鑑</span>
+              <span className="btn-sub-text">五色手牌典藏 · 26 張秘術卡牌檢視</span>
+            </div>
+            <ChevronRight size={18} className="btn-arrow" />
+          </button>
+
+          {/* 4. Settings */}
+          <button
+            id="menu-settings-btn"
+            className="title-menu-btn"
+            onClick={() => handleItemClick(onOpenSettings)}
+          >
+            <div className="btn-icon-wrap">
+              <Settings size={20} color="#9d9685" />
+            </div>
+            <div className="btn-text-group">
+              <span className="btn-main-text">遊戲設定</span>
+              <span className="btn-sub-text">全域音效 · Web Audio 合成器調試</span>
+            </div>
+            <ChevronRight size={18} className="btn-arrow" />
+          </button>
+
+          {/* 5. Exit Game (Easter Egg) */}
+          <button
+            id="menu-exit-btn"
+            className="title-menu-btn exit-btn"
+            onClick={() => handleItemClick(onOpenExit)}
+          >
+            <div className="btn-icon-wrap">
+              <Skull size={20} color="#ef4444" />
+            </div>
+            <div className="btn-text-group">
+              <span className="btn-main-text">離開遊戲</span>
+              <span className="btn-sub-text">深淵呢喃 · 逃離不可名狀之境</span>
+            </div>
+            <ChevronRight size={18} className="btn-arrow" />
+          </button>
+        </nav>
+
+        {/* Footer info */}
+        <footer className="title-menu-footer">
+          <span>v0.1.0 · ARKHAM INVESTIGATION DIVISION</span>
+        </footer>
+      </main>
+    </div>
+  );
+};
