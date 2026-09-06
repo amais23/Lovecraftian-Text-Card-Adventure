@@ -40,7 +40,7 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs }) => {
         {logs.map((log, index) => (
           <div key={`${index}-${log.slice(0, 10)}`} className={getLogClass(log, index)}>
             {index === 0 ? (
-              <TypewriterText text={log} speed={14} playSound={false} />
+              <TypewriterText key={`log-typewriter-${log.slice(0, 12)}`} text={log} speed={14} playSound={false} />
             ) : (
               log
             )}

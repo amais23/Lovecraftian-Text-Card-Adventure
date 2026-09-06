@@ -31,6 +31,7 @@ export const EventStoryNarrative: React.FC<EventStoryNarrativeProps> = ({ storyT
           <p key={idx} className="event-story-paragraph">
             {isCurrentlyTyping ? (
               <TypewriterText
+                key={`story-para-${idx}-${paragraph.slice(0, 10)}`}
                 text={paragraph}
                 speed={16}
                 playSound={false}

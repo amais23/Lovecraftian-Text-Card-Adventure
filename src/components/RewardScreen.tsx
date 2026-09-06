@@ -1,6 +1,8 @@
 import React from 'react';
 import type { GameAction, GameState } from '../types/game';
 import { CardView } from './CardView';
+import { AudioToggle } from './AudioToggle';
+import { soundEngine } from '../engine/audioManager';
 import { Trophy, Coins, Heart, AlertTriangle, ShieldCheck, FastForward } from 'lucide-react';
 
 interface RewardScreenProps {
@@ -13,6 +15,12 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
   const obolsReward = state.rewardObols ?? 15;
 
   const handleClaimCard = (cardId: string) => {
+    const card = rewardCards.find((c) => c.id === cardId);
+    if (card) {
+      soundEngine.playCardPlay(card.category);
+    } else {
+      soundEngine.playClick();
+    }
     dispatch({
       type: 'CLAIM_CARD_REWARD',
       payload: { cardId },
@@ -20,6 +28,7 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
   };
 
   const handleSkip = () => {
+    soundEngine.playClick();
     dispatch({
       type: 'CLAIM_CARD_REWARD',
     });
@@ -33,8 +42,13 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
       <div className="reward-card-panel">
         {/* Victory Header */}
         <div className="reward-header">
-          <div className="reward-trophy-icon">
-            <Trophy size={42} color="#74c69d" />
+          <div className="reward-header-top">
+            <div className="reward-trophy-icon">
+              <Trophy size={42} color="#74c69d" />
+            </div>
+            <div className="reward-audio-toggle">
+              <AudioToggle />
+            </div>
           </div>
           <h1 className="reward-title">戰鬥勝利 · 戰利品與卡牌構築</h1>
           <p className="reward-subtitle">

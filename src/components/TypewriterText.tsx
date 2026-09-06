@@ -10,7 +10,7 @@ interface TypewriterTextProps {
   onComplete?: () => void;
 }
 
-export const TypewriterText: React.FC<TypewriterTextProps> = ({
+const TypewriterTextInner: React.FC<TypewriterTextProps> = ({
   text,
   speed = 22,
   delay = 0,
@@ -20,16 +20,14 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
 }) => {
   const [displayedLength, setDisplayedLength] = useState<number>(0);
   const [isDone, setIsDone] = useState<boolean>(false);
-  const [prevText, setPrevText] = useState<string>(text);
+
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  });
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  if (prevText !== text) {
-    setPrevText(text);
-    setDisplayedLength(0);
-    setIsDone(false);
-  }
 
   const clearTimers = () => {
     if (timerRef.current !== null) {
@@ -44,6 +42,10 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
 
   useEffect(() => {
     clearTimers();
+    if (text.length === 0) {
+      return;
+    }
+
     let charIndex = 0;
 
     const startTyping = () => {
@@ -61,7 +63,7 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
             intervalRef.current = null;
           }
           setIsDone(true);
-          onComplete?.();
+          onCompleteRef.current?.();
         }
       }, speed);
     };
@@ -75,14 +77,14 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
     return () => {
       clearTimers();
     };
-  }, [text, speed, delay, playSound, onComplete]);
+  }, [text, speed, delay, playSound]);
 
   const handleSkip = () => {
     if (!isDone) {
       clearTimers();
       setDisplayedLength(text.length);
       setIsDone(true);
-      onComplete?.();
+      onCompleteRef.current?.();
     }
   };
 
@@ -96,4 +98,8 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
       {!isDone && <span className="typewriter-cursor">▌</span>}
     </span>
   );
+};
+
+export const TypewriterText: React.FC<TypewriterTextProps> = (props) => {
+  return <TypewriterTextInner key={props.text} {...props} />;
 };

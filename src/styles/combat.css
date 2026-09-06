@@ -2609,4 +2609,19 @@
   display: block;
 }
 
+.reward-header-top {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.reward-audio-toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 
