@@ -10,35 +10,38 @@ import { ALL_TIERED_CARDS } from './cardTiers';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
-  it('should register all 35 unique card artworks across all categories (28 base + 4 Tier 4+ boss exclusive + 3 Tier 3)', () => {
-    expect(ALL_CARD_ARTWORKS.length).toBe(35);
-    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(35);
+  it('should register all 48 unique card artworks across all categories (35 dedicated + 13 WIP placeholders)', () => {
+    expect(ALL_CARD_ARTWORKS.length).toBe(48);
+    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(48);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
-    expect(categories.filter((c) => c === 'combat').length).toBe(10);
-    expect(categories.filter((c) => c === 'skill').length).toBe(10);
-    expect(categories.filter((c) => c === 'magic').length).toBe(5);
-    expect(categories.filter((c) => c === 'truth').length).toBe(7);
+    expect(categories.filter((c) => c === 'combat').length).toBe(12);
+    expect(categories.filter((c) => c === 'skill').length).toBe(13);
+    expect(categories.filter((c) => c === 'magic').length).toBe(9);
+    expect(categories.filter((c) => c === 'truth').length).toBe(11);
     expect(categories.filter((c) => c === 'madness').length).toBe(3);
   });
 
-  it('should ensure all 35 artwork image files physically exist in public/cards/ with valid WebP/PNG formats', () => {
-    const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
+  it('should ensure all 35 dedicated artwork images exist in public/cards/ and 13 WIP cards map to WIP placeholder', () => {
+    const cardImages = import.meta.glob('/public/cards/**/*.{webp,png,svg}');
     const imagePaths = Object.keys(cardImages);
-    expect(imagePaths.length).toBeGreaterThanOrEqual(35);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(36);
 
     for (const art of ALL_CARD_ARTWORKS) {
-      // art.imageUrl must conform to ADR-0012 (WebP or PNG)
-      expect(
-        art.imageUrl.endsWith('.webp') || art.imageUrl.endsWith('.png'),
-        `Image for ${art.name} must be .webp or .png, got: ${art.imageUrl}`
-      ).toBe(true);
+      if (WIP_TIERED_CARD_NAMES.has(art.name)) {
+        expect(art.imageUrl).toBe('/cards/card_wip_placeholder.svg');
+      } else {
+        expect(
+          art.imageUrl.endsWith('.webp') || art.imageUrl.endsWith('.png'),
+          `Image for ${art.name} must be .webp or .png, got: ${art.imageUrl}`
+        ).toBe(true);
 
-      const expectedKey = `/public${art.imageUrl}`;
-      expect(
-        imagePaths.includes(expectedKey),
-        `Artwork image file missing for card "${art.name}": expected ${expectedKey} in ${JSON.stringify(imagePaths)}`
-      ).toBe(true);
+        const expectedKey = `/public${art.imageUrl}`;
+        expect(
+          imagePaths.includes(expectedKey),
+          `Artwork image file missing for card "${art.name}": expected ${expectedKey} in ${JSON.stringify(imagePaths)}`
+        ).toBe(true);
+      }
     }
   });
 

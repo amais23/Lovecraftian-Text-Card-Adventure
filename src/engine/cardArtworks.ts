@@ -339,10 +339,131 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '真實寫實風格的軍用重裝鋼板防線與沙包工事，在漆黑霧氣與異域風暴中固若金湯。',
     imageUrl: '/cards/skill/card_impenetrable_bastion.png',
   },
+
+  // === TIER 2 ADVANCED CARDS (Pending Dedicated Artwork, Using Lovecraftian WIP Placeholder) ===
+  card_tier2_pump_shotgun: {
+    artId: 'card_tier2_pump_shotgun',
+    name: '泵動式散彈槍',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 重型散彈',
+    conceptLore: 'Q版霰彈槍猛烈上膛，近距離射出漫天鉛彈與破甲鋼珠，火力壓制一切異怪。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_silver_dagger: {
+    artId: 'card_tier2_silver_dagger',
+    name: '破魔銀質短刃',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 秘銀短刃',
+    conceptLore: '卡通風格的刻印銀刃，在黑夜中閃爍微光，對污穢血肉造成撕裂與持續流血傷害。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_iron_will: {
+    artId: 'card_tier2_iron_will',
+    name: '鋼鐵意志屏障',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 意志防線',
+    conceptLore: '寫實手法刻畫調查員咬緊牙關抵抗恐懼，以凡人堅定意志築起堅固累積護甲。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_rapid_suture: {
+    artId: 'card_tier2_rapid_suture',
+    name: '戰地快速縫合',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 急救術式',
+    conceptLore: '高清寫實的醫用持針鉗與羊腸線，在戰鬥間隙迅速止血並平復精神震顫。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_frost_grasp: {
+    artId: 'card_tier2_frost_grasp',
+    name: '深海冰霜之握',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法 · 冰霜洋流',
+    conceptLore: '陽光奇幻光彩中召喚出的極寒冰霜之爪，晶瑩剔透的冰晶凍結敵人的深淵肢體。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_mind_blast: {
+    artId: 'card_tier2_mind_blast',
+    name: '心靈震波',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法 · 靈能衝擊波',
+    conceptLore: '絢麗七彩靈能同心圓光環如漣漪般擴散，驅散敵人的狂亂意識與防護。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_sea_tablet: {
+    artId: 'card_tier2_sea_tablet',
+    name: '禁忌海蝕石板殘卷',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 潮汐銘刻',
+    conceptLore: '在海潮侵蝕的玄武岩石板上，泛著磷光的太古蠕行符號若隱若現，揭露深海秩序。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier2_silver_key_guiding: {
+    artId: 'card_tier2_silver_key_guiding',
+    name: '銀鑰指引微光',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 星門微光',
+    conceptLore: '虛空中劃過的一道銀色微光，指引著通往多維度時空節點的神秘門扉。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+
+  // === TIER 3 MASTER CARDS (Pending Dedicated Artwork, Using Lovecraftian WIP Placeholder) ===
+  card_tier3_sanity_anchor: {
+    artId: 'card_tier3_sanity_anchor',
+    name: '極限精神錨定',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 理性之錨',
+    conceptLore: '寫實鐵錨緊鎖於黑曜石基石之上，銘刻舊印的粗重鎖鏈死死拉住狂暴崩潰的心智。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier3_void_collapse: {
+    artId: 'card_tier3_void_collapse',
+    name: '虛空黑洞坍縮',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法 · 引力奇點',
+    conceptLore: '耀眼的高魔星雲旋渦向內塌縮，星光與以太匯聚成吞噬萬物的微型奇點。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier3_psionic_cleave: {
+    artId: 'card_tier3_psionic_cleave',
+    name: '深淵靈能撕裂',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法 · 靈能刀鋒',
+    conceptLore: '耀眼奪目的紫光靈能光刃劃破多維度空間，無堅不摧的以太鋒芒橫掃戰場。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier3_rlyeh_codex: {
+    artId: 'card_tier3_rlyeh_codex',
+    name: '拉萊耶原典啟示',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 太古秘卷',
+    conceptLore: '沉睡海溝深處的拉萊耶原典展開冰冷光芒，太古星辰幾何秩序驅散無盡瘋狂。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
+  card_tier3_star_resonance: {
+    artId: 'card_tier3_star_resonance',
+    name: '超維星辰共鳴',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 多維星軌',
+    conceptLore: '星空深處萬千軌道同時鳴響，崇高的幾何秩序在心靈周圍築起無形護甲屏障。',
+    imageUrl: '/cards/card_wip_placeholder.svg',
+  },
 };
 
 /**
- * All unique card artworks list for Compendium (28 base cards + 4 Tier 4+ boss exclusive + 3 Tier 3 completed cards)
+ * All unique card artworks list for Compendium (All 48 game cards including 35 completed artworks + 13 WIP placeholders)
  */
 export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);
 

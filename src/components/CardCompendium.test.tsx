@@ -12,16 +12,16 @@ vi.mock('../engine/audioManager', () => ({
 }));
 
 describe('CardCompendium Component', () => {
-  it('renders compendium title and all 35 cards by default', () => {
+  it('renders compendium title and all 48 cards by default', () => {
     const onClose = vi.fn();
     const { container } = render(<CardCompendium onClose={onClose} />);
 
     expect(screen.getByRole('heading', { name: '卡牌圖鑑' })).toBeDefined();
-    expect(screen.getByText(/35 張/)).toBeDefined();
+    expect(screen.getByText(/48 張/)).toBeDefined();
 
-    // Check that all 35 card items are rendered and none have playable combat glow
+    // Check that all 48 card items are rendered and none have playable combat glow
     const cardItems = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardItems.length).toBe(35);
+    expect(cardItems.length).toBe(48);
     expect(container.querySelector('.card-item.playable')).toBeNull();
   });
 
@@ -34,14 +34,14 @@ describe('CardCompendium Component', () => {
     fireEvent.click(combatTab);
 
     let cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardWrappers.length).toBe(10);
+    expect(cardWrappers.length).toBe(12);
 
     // Click "黃色技能" tab
     const skillTab = screen.getByText(/黃色技能/);
     fireEvent.click(skillTab);
 
     cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardWrappers.length).toBe(10);
+    expect(cardWrappers.length).toBe(13);
 
     // Click "黑色瘋狂" tab
     const madnessTab = screen.getByText(/黑色瘋狂/);
