@@ -36,7 +36,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
       {/* Health Bar */}
       <div className="enemy-health-container">
         <div className="enemy-health-meta">
-          <span>生命體力</span>
+          <span>生命值</span>
           <span>
             {enemy.health} / {enemy.maxHealth}
             {enemy.armor > 0 && ` (護甲 +${enemy.armor})`}

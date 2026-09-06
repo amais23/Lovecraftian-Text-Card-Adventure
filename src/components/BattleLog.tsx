@@ -27,7 +27,7 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs }) => {
       <div className="battle-log-header">
         <h2>
           <Scroll size={18} color="#cfa866" />
-          調查日誌 (Battle Chronicles)
+          戰鬥日誌 (Battle Log)
         </h2>
         <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Sparkles size={12} color="#cfa866" />

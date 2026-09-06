@@ -1,6 +1,35 @@
 import type { Card, Enemy, EnemyIntent, GameAction, GameState, Investigator } from '../types/game';
 import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
 
+export const BASELINE_HAND_SIZE = 4;
+
+export interface DamageResult {
+  newHealth: number;
+  newArmor: number;
+  absorbed: number;
+  effectiveDamage: number;
+}
+
+/**
+ * 集中計算物理傷害與護甲吸收之共用純函式
+ */
+export function applyDamage(
+  target: { health: number; armor: number },
+  damageAmount: number
+): DamageResult {
+  const absorbed = Math.min(target.armor, damageAmount);
+  const effectiveDamage = damageAmount - absorbed;
+  const newArmor = target.armor - absorbed;
+  const newHealth = Math.max(0, target.health - effectiveDamage);
+
+  return {
+    newHealth,
+    newArmor,
+    absorbed,
+    effectiveDamage,
+  };
+}
+
 export function createInitialCombatState(
   customEnemy?: Enemy,
   customDeck?: Card[],
@@ -18,9 +47,9 @@ export function createInitialCombatState(
     ? [...customDeck]
     : INITIAL_DECK.map((c) => ({ ...c }));
 
-  // Draw 4 cards to hand, remaining cards stay in sanityDeck (representing sanity value)
-  const initialHand = allCards.slice(0, 4);
-  const remainingSanityDeck = allCards.slice(4);
+  // Draw BASELINE_HAND_SIZE cards to hand, remaining cards stay in sanityDeck
+  const initialHand = allCards.slice(0, BASELINE_HAND_SIZE);
+  const remainingSanityDeck = allCards.slice(BASELINE_HAND_SIZE);
 
   return {
     phase: 'combat',
@@ -80,13 +109,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           : state.investigator.stamina;
 
       let newSanityDeck = [...state.sanityDeck];
-      const newDiscardPile = [...state.discardPile, card];
+      // Keep existing discard pile separate to ensure restore_sanity only restores past discards
+      const pastDiscardPile = [...state.discardPile];
       const newHand = state.hand.filter((_, idx) => idx !== cardIndex);
 
       if (card.costType === 'sanity') {
         const burned = newSanityDeck.slice(0, card.costValue);
         newSanityDeck = newSanityDeck.slice(card.costValue);
-        newDiscardPile.push(...burned);
+        pastDiscardPile.push(...burned);
       }
 
       let enemyHealth = state.currentEnemy.health;
@@ -98,13 +128,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // Execute card effects
       for (const effect of card.effects) {
         if (effect.type === 'damage') {
-          let damage = effect.value;
-          if (enemyArmor > 0) {
-            const absorbed = Math.min(enemyArmor, damage);
-            enemyArmor -= absorbed;
-            damage -= absorbed;
-          }
-          enemyHealth = Math.max(0, enemyHealth - damage);
+          const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, effect.value);
+          enemyHealth = dmg.newHealth;
+          enemyArmor = dmg.newArmor;
           newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點物理傷害！`);
         } else if (effect.type === 'armor') {
           investigatorArmor += effect.value;
@@ -113,15 +139,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           investigatorHealth = Math.min(state.investigator.maxHealth, investigatorHealth + effect.value);
           newLogs.push(`調查員打出【${card.name}】，包紮傷口恢復 ${effect.value} 點生命！`);
         } else if (effect.type === 'restore_sanity') {
-          if (newDiscardPile.length > 0) {
-            const restored = newDiscardPile.pop();
+          if (pastDiscardPile.length > 0) {
+            const restored = pastDiscardPile.pop();
             if (restored) {
               newSanityDeck.unshift(restored);
-              newLogs.push(`調查員打出【${card.name}】，平復焦躁的心智，將 1 張卡牌洗回理智牌庫！`);
+              newLogs.push(`調查員打出【${card.name}】，平復焦躁的心智，將【${restored.name}】洗回理智牌庫！`);
             }
+          } else {
+            newLogs.push(`調查員打出【${card.name}】，但棄牌堆中尚無任何已棄卡牌可供洗回！`);
           }
         }
       }
+
+      // Now add the played card itself to the discard pile
+      const finalDiscardPile = [...pastDiscardPile, card];
 
       // Check Victory
       const isVictory = enemyHealth <= 0;
@@ -140,7 +171,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         },
         sanityDeck: newSanityDeck,
         hand: newHand,
-        discardPile: newDiscardPile,
+        discardPile: finalDiscardPile,
         isMadness: newSanityDeck.length === 0,
         currentEnemy: {
           ...state.currentEnemy,
@@ -164,16 +195,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Enemy performs intent action
       if (intent.type === 'attack') {
-        let incomingDamage = intent.value;
-        if (investigatorArmor > 0) {
-          const absorbed = Math.min(investigatorArmor, incomingDamage);
-          investigatorArmor -= absorbed;
-          incomingDamage -= absorbed;
-          newLogs.push(`護甲替你抵擋了 ${absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
+        const dmg = applyDamage({ health: investigatorHealth, armor: investigatorArmor }, intent.value);
+        investigatorHealth = dmg.newHealth;
+        investigatorArmor = dmg.newArmor;
+
+        if (dmg.absorbed > 0) {
+          newLogs.push(`護甲替你抵擋了 ${dmg.absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
         }
-        if (incomingDamage > 0) {
-          investigatorHealth = Math.max(0, investigatorHealth - incomingDamage);
-          newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${incomingDamage} 點肉體傷害！`);
+        if (dmg.effectiveDamage > 0) {
+          newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${dmg.effectiveDamage} 點肉體傷害！`);
         } else {
           newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
         }
@@ -208,15 +238,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         nextIntent = enemy.intentSequence[nextIntentIndex];
       }
 
-      // Hand retention & refill to 4
+      // Hand retention & refill to BASELINE_HAND_SIZE
       const currentHand = [...state.hand];
-      const cardsNeeded = Math.max(0, 4 - currentHand.length);
+      const cardsNeeded = Math.max(0, BASELINE_HAND_SIZE - currentHand.length);
       const drawnCards = sanityDeck.slice(0, cardsNeeded);
       sanityDeck = sanityDeck.slice(cardsNeeded);
       const newHand = [...currentHand, ...drawnCards];
 
       const nextTurn = state.turn + 1;
-      newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，自理智牌庫補抽 ${drawnCards.length} 張卡牌。精力已重置回 3。`);
+      newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，自理智牌庫補抽 ${drawnCards.length} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
 
       return {
         ...state,
@@ -225,7 +255,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state.investigator,
           health: investigatorHealth,
           armor: investigatorArmor,
-          stamina: state.investigator.maxStamina, // Refill stamina to 3
+          stamina: state.investigator.maxStamina,
         },
         sanityDeck,
         hand: newHand,

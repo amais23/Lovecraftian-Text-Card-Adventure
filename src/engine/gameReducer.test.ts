@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { gameReducer, createInitialCombatState } from './gameReducer';
+import { gameReducer, createInitialCombatState, applyDamage } from './gameReducer';
 import { INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
 import type { Card, GameState } from '../types/game';
 
@@ -226,4 +226,73 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.phase).toBe('gameover');
     expect(nextState.battleLog[0]).toContain('倒在血泊中');
   });
+
+  it('restores previous discard without self-cycling the card currently being played', () => {
+    const previousDiscardCard: Card = {
+      id: 'old_revolver',
+      name: '舊左輪',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'damage', value: 6 }],
+      description: '舊卡',
+      flavorText: '舊卡',
+    };
+
+    const breatheCard: Card = {
+      id: 'test_breathe',
+      name: '深呼吸',
+      category: 'skill',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'restore_sanity', value: 1 }],
+      description: '回補理智',
+      flavorText: '心智',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [breatheCard],
+      discardPile: [previousDiscardCard],
+      sanityDeck: [],
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: breatheCard.id },
+    });
+
+    // The restored card in sanityDeck must be old_revolver, NOT the breatheCard itself!
+    expect(nextState.sanityDeck.length).toBe(1);
+    expect(nextState.sanityDeck[0].id).toBe('old_revolver');
+
+    // The breathe card should be in the discard pile
+    expect(nextState.discardPile.length).toBe(1);
+    expect(nextState.discardPile[0].id).toBe('test_breathe');
+  });
+
+  it('correctly calculates damage and armor absorption with applyDamage', () => {
+    // Case 1: Armor absorbs part of damage
+    const res1 = applyDamage({ health: 20, armor: 4 }, 6);
+    expect(res1.absorbed).toBe(4);
+    expect(res1.effectiveDamage).toBe(2);
+    expect(res1.newArmor).toBe(0);
+    expect(res1.newHealth).toBe(18);
+
+    // Case 2: Armor absorbs all damage
+    const res2 = applyDamage({ health: 20, armor: 8 }, 5);
+    expect(res2.absorbed).toBe(5);
+    expect(res2.effectiveDamage).toBe(0);
+    expect(res2.newArmor).toBe(3);
+    expect(res2.newHealth).toBe(20);
+
+    // Case 3: Lethal overkill
+    const res3 = applyDamage({ health: 5, armor: 0 }, 15);
+    expect(res3.effectiveDamage).toBe(15);
+    expect(res3.newHealth).toBe(0);
+  });
 });
+
+

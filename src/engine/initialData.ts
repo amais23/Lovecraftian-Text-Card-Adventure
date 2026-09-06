@@ -1,4 +1,4 @@
-import type { Card, Enemy, Investigator } from '../types/game';
+import type { Card, Enemy, EnemyIntent, Investigator } from '../types/game';
 
 export const INITIAL_INVESTIGATOR: Investigator = {
   name: '愛德華·皮爾斯 (Edward Pierce)',
@@ -124,6 +124,27 @@ export const INITIAL_DECK: Card[] = [
   },
 ];
 
+export const GHOUL_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 6,
+    name: '腐臭爪擊',
+    description: '食屍鬼揮舞滴淌著黑血與腐土的利爪，預告造成 6 點傷害。',
+  },
+  {
+    type: 'attack',
+    value: 8,
+    name: '撕咬猛撲',
+    description: '食屍鬼如獵犬般伏地前衝，張開滿嘴銳齒預告造成 8 點傷害。',
+  },
+  {
+    type: 'attack',
+    value: 5,
+    name: '尖銳咆哮',
+    description: '刺耳的超聲波咆哮震撼耳膜，預告造成 5 點傷害。',
+  },
+];
+
 export const INITIAL_GHOUL: Enemy = {
   id: 'enemy_ghoul_01',
   name: '食屍鬼 (Ghoul)',
@@ -131,31 +152,8 @@ export const INITIAL_GHOUL: Enemy = {
   health: 30,
   maxHealth: 30,
   armor: 0,
-  currentIntent: {
-    type: 'attack',
-    value: 6,
-    name: '腐臭爪擊',
-    description: '食屍鬼揮舞滴淌著黑血與腐土的利爪，預告造成 6 點傷害。',
-  },
-  intentSequence: [
-    {
-      type: 'attack',
-      value: 6,
-      name: '腐臭爪擊',
-      description: '食屍鬼揮舞滴淌著黑血與腐土的利爪，預告造成 6 點傷害。',
-    },
-    {
-      type: 'attack',
-      value: 8,
-      name: '撕咬猛撲',
-      description: '食屍鬼如獵犬般伏地前衝，張開滿嘴銳齒預告造成 8 點傷害。',
-    },
-    {
-      type: 'attack',
-      value: 5,
-      name: '尖銳咆哮',
-      description: '刺耳的超聲波咆哮震撼耳膜，預告造成 5 點傷害。',
-    },
-  ],
+  currentIntent: GHOUL_INTENTS[0],
+  intentSequence: GHOUL_INTENTS,
   currentIntentIndex: 0,
 };
+
