@@ -3,6 +3,21 @@ import { gameReducer, createInitialCombatState, applyDamage } from './gameReduce
 import { INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
 import type { Card, GameState } from '../types/game';
 
+function createMockCard(overrides?: Partial<Card>): Card {
+  return {
+    id: overrides?.id ?? `mock_card_${Math.random().toString(36).substring(2, 9)}`,
+    name: overrides?.name ?? '測試卡牌',
+    category: overrides?.category ?? 'combat',
+    costType: overrides?.costType ?? 'stamina',
+    costValue: overrides?.costValue ?? 1,
+    isTemporary: overrides?.isTemporary ?? false,
+    effects: overrides?.effects ?? [],
+    description: overrides?.description ?? '測試描述',
+    flavorText: overrides?.flavorText ?? '測試短文',
+    ...overrides,
+  };
+}
+
 describe('Game State Reducer (Combat Vertical Slice)', () => {
   it('initializes combat with investigator, ghoul enemy, and 4 drawn cards', () => {
     const initialState = createInitialCombatState();
@@ -295,8 +310,15 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
   });
 
   it('erodes sanity deck directly when enemy executes mental dread erode intent', () => {
+    // Fill hand with 4 cards so that turn end refill does not draw additional cards
+    const initialHand = [createMockCard(), createMockCard(), createMockCard(), createMockCard()];
+    const initialDeck = [createMockCard(), createMockCard(), createMockCard(), createMockCard(), createMockCard()];
+
     const state: GameState = {
       ...createInitialCombatState(),
+      hand: initialHand,
+      sanityDeck: initialDeck,
+      discardPile: [],
       currentEnemy: {
         ...INITIAL_GHOUL,
         currentIntent: {
@@ -315,35 +337,37 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     const nextState = gameReducer(state, { type: 'END_TURN' });
 
-    // 2 cards eroded from sanityDeck to discardPile, then cards refilled to hand
-    // Investigator health was unaffected by mental erosion
+    // Direct assertions on deck and discard pile lengths
+    expect(nextState.sanityDeck.length).toBe(3); // 5 - 2 = 3
+    expect(nextState.discardPile.length).toBe(2); // 0 + 2 = 2
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.battleLog.some((log) => log.includes('侵蝕了你 2 點理智牌庫'))).toBe(true);
   });
 
+  it('handles zero sanity erosion gracefully with breakdown narrative', () => {
+    const state: GameState = {
+      ...createInitialCombatState(),
+      sanityDeck: [],
+      hand: [createMockCard(), createMockCard(), createMockCard(), createMockCard()],
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: {
+          type: 'erode',
+          value: 2,
+          name: '恐懼嘶吼',
+          description: '侵蝕 2 點理智',
+        },
+      },
+    };
+
+    const nextState = gameReducer(state, { type: 'END_TURN' });
+    expect(nextState.sanityDeck.length).toBe(0);
+    expect(nextState.battleLog.some((log) => log.includes('無更多理智可被侵蝕'))).toBe(true);
+  });
+
   it('cancels automatic reshuffle when sanity deck is empty and triggers madness state', () => {
-    const discardCard1: Card = {
-      id: 'c1',
-      name: '卡片1',
-      category: 'combat',
-      costType: 'stamina',
-      costValue: 1,
-      isTemporary: false,
-      effects: [],
-      description: '',
-      flavorText: '',
-    };
-    const discardCard2: Card = {
-      id: 'c2',
-      name: '卡片2',
-      category: 'combat',
-      costType: 'stamina',
-      costValue: 1,
-      isTemporary: false,
-      effects: [],
-      description: '',
-      flavorText: '',
-    };
+    const discardCard1 = createMockCard({ id: 'c1' });
+    const discardCard2 = createMockCard({ id: 'c2' });
 
     const state: GameState = {
       ...createInitialCombatState(),
@@ -372,39 +396,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
   });
 
   it('restores multiple cards with Sedative (restore_sanity: 2) from discard pile', () => {
-    const discard1: Card = {
-      id: 'd1',
-      name: '棄牌1',
-      category: 'combat',
-      costType: 'stamina',
-      costValue: 1,
-      isTemporary: false,
-      effects: [],
-      description: '',
-      flavorText: '',
-    };
-    const discard2: Card = {
-      id: 'd2',
-      name: '棄牌2',
-      category: 'combat',
-      costType: 'stamina',
-      costValue: 1,
-      isTemporary: false,
-      effects: [],
-      description: '',
-      flavorText: '',
-    };
-    const discard3: Card = {
-      id: 'd3',
-      name: '棄牌3',
-      category: 'combat',
-      costType: 'stamina',
-      costValue: 1,
-      isTemporary: false,
-      effects: [],
-      description: '',
-      flavorText: '',
-    };
+    const discard1 = createMockCard({ id: 'd1' });
+    const discard2 = createMockCard({ id: 'd2' });
+    const discard3 = createMockCard({ id: 'd3' });
 
     const sedativeCard: Card = {
       id: 'sedative_test',

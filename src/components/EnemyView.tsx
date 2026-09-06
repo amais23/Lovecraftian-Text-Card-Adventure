@@ -1,6 +1,15 @@
-import React from 'react';
-import type { Enemy } from '../types/game';
+import type { Enemy, EnemyIntent } from '../types/game';
 import { Skull, Swords, Shield, Brain } from 'lucide-react';
+
+export function formatIntentValue(intent: EnemyIntent): string {
+  if (intent.type === 'erode') {
+    return `侵蝕 ${intent.value}`;
+  }
+  if (intent.type === 'defend') {
+    return `護甲 +${intent.value}`;
+  }
+  return `${intent.value}`;
+}
 
 interface EnemyViewProps {
   enemy: Enemy;
@@ -19,9 +28,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
           {enemy.currentIntent.type === 'erode' && <Brain size={18} />}
         </span>
         <span className="intent-name">{enemy.currentIntent.name}</span>
-        <span className="intent-val">
-          {enemy.currentIntent.type === 'erode' ? `侵蝕 ${enemy.currentIntent.value}` : enemy.currentIntent.value}
-        </span>
+        <span className="intent-val">{formatIntentValue(enemy.currentIntent)}</span>
       </div>
 
       {/* Enemy Visual Avatar */}

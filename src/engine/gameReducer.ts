@@ -215,10 +215,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       } else if (intent.type === 'erode') {
         const erodeCount = Math.min(sanityDeck.length, intent.value);
-        const eroded = sanityDeck.slice(0, erodeCount);
-        sanityDeck = sanityDeck.slice(erodeCount);
-        discardPile.push(...eroded);
-        newLogs.push(`${enemy.name} 施展精神恐懼，侵蝕了你 ${erodeCount} 點理智牌庫！`);
+        if (erodeCount > 0) {
+          const eroded = sanityDeck.slice(0, erodeCount);
+          sanityDeck = sanityDeck.slice(erodeCount);
+          discardPile.push(...eroded);
+          newLogs.push(`${enemy.name} 施展精神恐懼，侵蝕了你 ${erodeCount} 點理智牌庫！`);
+        } else {
+          newLogs.push(`${enemy.name} 施展精神恐懼，但你的心智已徹底陷入瘋狂崩潰，無更多理智可被侵蝕！`);
+        }
       }
 
       // Check GameOver
