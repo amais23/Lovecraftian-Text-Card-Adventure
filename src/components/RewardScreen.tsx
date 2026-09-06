@@ -85,7 +85,7 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
         {/* 3-Card Selection Drafting Area */}
         <div className="reward-draft-section">
           <h3 className="reward-draft-title">
-            挑選 1 張新卡牌加入你的常態牌組（增加理智上限，或點擊下方跳過以維持牌庫精煉）
+            挑選 1 張新卡牌加入你的牌組（增加理智上限，或點擊下方跳過以維持牌庫精煉）
           </h3>
 
           <div className="reward-cards-grid" id="reward-cards-grid">

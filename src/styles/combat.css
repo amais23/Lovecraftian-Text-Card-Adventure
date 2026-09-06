@@ -816,6 +816,26 @@
   box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
 }
 
+.combat-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.combat-modal-btn.secondary {
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  color: var(--text-parchment);
+  box-shadow: none;
+}
+
+.combat-modal-btn.secondary:hover {
+  background: rgba(207, 168, 102, 0.15);
+  border-color: var(--border-gold-bright);
+  color: var(--text-gold);
+  box-shadow: 0 4px 14px rgba(207, 168, 102, 0.25);
+}
+
 /* Madness Mode Container & Effects */
 .combat-container.madness-mode {
   animation: madnessVignettePulse 2.5s infinite ease-in-out;

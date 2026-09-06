@@ -1,8 +1,27 @@
 import type { Card, Enemy, EnemyIntent, GameAction, GameState, Investigator } from '../types/game';
-import { INITIAL_DECK, INITIAL_GHOUL, INITIAL_INVESTIGATOR, OCCUPATIONS, generateRewardCards } from './initialData';
+import {
+  INITIAL_GHOUL,
+  INITIAL_INVESTIGATOR,
+  OCCUPATIONS,
+  generateRewardCards,
+  fisherYatesShuffle,
+} from './initialData';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
 
 export const BASELINE_HAND_SIZE = 4;
+
+/**
+ * 將完整牌組切分為起始手牌（4張）與理智牌庫（其餘張數）之共用純函式
+ */
+export function splitDeckToHandAndSanity(
+  deck: Card[],
+  handSize: number = BASELINE_HAND_SIZE
+): { hand: Card[]; sanityDeck: Card[] } {
+  return {
+    hand: deck.slice(0, handSize),
+    sanityDeck: deck.slice(handSize),
+  };
+}
 
 /**
  * 集中評估理智牌庫與瘋狂狀態切換之共用純函式
@@ -59,6 +78,8 @@ export function createInitialCombatState(
   customInvestigator?: Investigator,
   initialPhase: GameState['phase'] = 'combat'
 ): GameState {
+  const occId = customInvestigator?.occupationId ?? 'investigator';
+  const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
   const investigator: Investigator = customInvestigator
     ? { ...customInvestigator }
     : { ...INITIAL_INVESTIGATOR };
@@ -69,20 +90,18 @@ export function createInitialCombatState(
 
   const allCards: Card[] = customDeck
     ? [...customDeck]
-    : INITIAL_DECK.map((c) => ({ ...c }));
+    : occ.deck.map((c) => ({ ...c }));
 
-  // Draw BASELINE_HAND_SIZE cards to hand, remaining cards stay in sanityDeck
-  const initialHand = allCards.slice(0, BASELINE_HAND_SIZE);
-  const remainingSanityDeck = allCards.slice(BASELINE_HAND_SIZE);
+  const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
 
   return {
     phase: initialPhase,
     turn: 1,
     investigator,
-    sanityDeck: remainingSanityDeck,
-    hand: initialHand,
+    sanityDeck,
+    hand,
     discardPile: [],
-    isMadness: remainingSanityDeck.length === 0,
+    isMadness: sanityDeck.length === 0,
     currentEnemy: enemy,
     battleLog: [
       `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
@@ -110,8 +129,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         obols: occ.stats.obols,
       };
       const allCards = occ.deck.map((c) => ({ ...c }));
-      const hand = allCards.slice(0, BASELINE_HAND_SIZE);
-      const sanityDeck = allCards.slice(BASELINE_HAND_SIZE);
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
       const enemy = JSON.parse(JSON.stringify(INITIAL_GHOUL));
 
       return {
@@ -132,8 +150,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'PROCEED_TO_REWARD': {
       if (state.phase !== 'victory') return state;
-      const rewardCards = generateRewardCards(3);
-      const rewardObols = 15;
+      const rewardCards = action.payload?.rewardCards ?? generateRewardCards(3);
+      const rewardObols = action.payload?.rewardObols ?? 15;
       return {
         ...state,
         phase: 'reward',
@@ -179,15 +197,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         obols: state.investigator.obols + addedObols,
       };
 
-      // 3. Reset full sanity deck with all permanent cards (temporary cards dissolved)
-      const resetDeck = newPermanentDeck.map((c) => ({ ...c }));
-      const hand = resetDeck.slice(0, BASELINE_HAND_SIZE);
-      const sanityDeck = resetDeck.slice(BASELINE_HAND_SIZE);
+      // 3. Reset full sanity deck with all permanent cards shuffled (temporary cards dissolved)
+      // Support optional payload.shuffledDeck for 100% deterministic test replay
+      const resetDeck = action.payload?.shuffledDeck
+        ? [...action.payload.shuffledDeck]
+        : fisherYatesShuffle(newPermanentDeck);
+
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
 
       const newLogs: string[] = [];
-      newLogs.push(`戰後重整：所有常態卡牌洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
+      newLogs.push(`戰後重整：所有一般卡洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
       if (selectedCard) {
-        newLogs.push(`獲得構築卡牌【${selectedCard.name}】加入常態牌組！`);
+        newLogs.push(`獲得一般卡【${selectedCard.name}】納入牌組！`);
       } else {
         newLogs.push(`跳過卡牌構築獎勵，維持牌庫精簡。`);
       }
@@ -221,16 +242,65 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'START_COMBAT': {
+      const occId = action.payload?.investigator?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
+      const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
+      const investigator = action.payload?.investigator
+        ? { ...action.payload.investigator }
+        : {
+            name: occ.name,
+            occupation: occ.occupation,
+            occupationId: occ.id,
+            health: occ.stats.health,
+            maxHealth: occ.stats.health,
+            stamina: occ.stats.stamina,
+            maxStamina: occ.stats.stamina,
+            armor: 0,
+            obols: occ.stats.obols,
+          };
+      const initialCards = action.payload?.initialCards
+        ? [...action.payload.initialCards]
+        : occ.deck.map((c) => ({ ...c }));
       return createInitialCombatState(
         action.payload?.enemy,
-        action.payload?.initialCards,
-        undefined,
+        initialCards,
+        investigator,
         'combat'
       );
     }
 
     case 'RESET_COMBAT': {
-      return createInitialCombatState(undefined, undefined, undefined, 'combat');
+      const occId = action.payload?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
+      const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
+      const investigator: Investigator = {
+        name: occ.name,
+        occupation: occ.occupation,
+        occupationId: occ.id,
+        health: occ.stats.health,
+        maxHealth: occ.stats.health,
+        stamina: occ.stats.stamina,
+        maxStamina: occ.stats.stamina,
+        armor: 0,
+        obols: occ.stats.obols,
+      };
+      const allCards = occ.deck.map((c) => ({ ...c }));
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
+      const enemy = action.payload?.enemy
+        ? JSON.parse(JSON.stringify(action.payload.enemy))
+        : JSON.parse(JSON.stringify(INITIAL_GHOUL));
+
+      return {
+        phase: 'combat',
+        turn: 1,
+        investigator,
+        sanityDeck,
+        hand,
+        discardPile: [],
+        isMadness: false,
+        currentEnemy: enemy,
+        battleLog: [
+          `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
+        ],
+      };
     }
 
     case 'PLAY_CARD': {

@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { gameReducer, createInitialCombatState, createInitialGameState, applyDamage } from './gameReducer';
-import { INITIAL_GHOUL, INITIAL_INVESTIGATOR } from './initialData';
+import {
+  INITIAL_GHOUL,
+  INITIAL_INVESTIGATOR,
+  OCCUPATIONS,
+  INVESTIGATOR_DECK,
+  OCCULTIST_DECK,
+  REWARD_CARD_POOL,
+  fisherYatesShuffle,
+} from './initialData';
 import type { Card, GameState } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
@@ -500,7 +508,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.sanityDeck.length).toBe(0);
     expect(nextState.isMadness).toBe(true);
     expect(nextState.phase).toBe('combat'); // Still fighting, not gameover!
-    expect(nextState.battleLog.some((log) => log.includes('瘋狂') || log.includes('狂暴'))).toBe(true);
+    expect(nextState.battleLog.some((log) => log.includes('瘋狂'))).toBe(true);
   });
 
   it('generates temporary black madness cards when drawing in madness state', () => {
@@ -547,7 +555,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
         { type: 'self_damage', value: 2 },
       ],
       description: '造成 10 點傷害，反噬 2 點生命。',
-      flavorText: '狂暴',
+      flavorText: '狂亂',
     };
 
     const state: GameState = {
@@ -990,6 +998,136 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     const nextState = gameReducer(gameoverState, { type: 'RETURN_TO_TITLE' });
     expect(nextState.phase).toBe('title');
+  });
+
+  it('retains chosen occupation (Eleanor Vance / occultist) on RESET_COMBAT without reverting to investigator', () => {
+    // Start game as Occultist
+    const titleState = createInitialGameState();
+    const occultistCombat = gameReducer(titleState, {
+      type: 'SELECT_OCCUPATION',
+      payload: { occupationId: 'occultist' },
+    });
+
+    expect(occultistCombat.investigator.occupationId).toBe('occultist');
+    expect(occultistCombat.investigator.name).toContain('艾蓮諾·凡斯');
+    expect(occultistCombat.investigator.occupation).toBe('秘術學者');
+    expect(occultistCombat.investigator.obols).toBe(20);
+
+    // Simulate taking damage and entering gameover
+    const damagedState: GameState = {
+      ...occultistCombat,
+      investigator: {
+        ...occultistCombat.investigator,
+        health: 12,
+        armor: 4,
+      },
+      phase: 'gameover',
+    };
+
+    // Trigger RESET_COMBAT without explicit payload
+    const resetState = gameReducer(damagedState, { type: 'RESET_COMBAT' });
+
+    // Must preserve Eleanor Vance and occultist starting stats
+    expect(resetState.phase).toBe('combat');
+    expect(resetState.investigator.occupationId).toBe('occultist');
+    expect(resetState.investigator.name).toContain('艾蓮諾·凡斯');
+    expect(resetState.investigator.occupation).toBe('秘術學者');
+    expect(resetState.investigator.health).toBe(25);
+    expect(resetState.investigator.stamina).toBe(3);
+    expect(resetState.investigator.obols).toBe(20);
+
+    // Deck must be Eleanor's 12-card occult deck
+    const allCards = [...resetState.hand, ...resetState.sanityDeck];
+    expect(allCards.length).toBe(12);
+    expect(allCards.some((c) => c.category === 'magic')).toBe(true);
+    expect(allCards.some((c) => c.category === 'truth')).toBe(true);
+  });
+
+  it('allows PROCEED_TO_REWARD with pre-generated payload to guarantee reducer purity', () => {
+    const victoryState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'victory',
+    };
+
+    const mockRewardCards = [
+      createMockCard({ id: 'pure_card_1', name: '確定性卡牌1' }),
+      createMockCard({ id: 'pure_card_2', name: '確定性卡牌2' }),
+      createMockCard({ id: 'pure_card_3', name: '確定性卡牌3' }),
+    ];
+
+    const nextState = gameReducer(victoryState, {
+      type: 'PROCEED_TO_REWARD',
+      payload: {
+        rewardCards: mockRewardCards,
+        rewardObols: 15,
+      },
+    });
+
+    expect(nextState.phase).toBe('reward');
+    expect(nextState.rewardCards).toEqual(mockRewardCards);
+    expect(nextState.rewardObols).toBe(15);
+  });
+
+  it('supports deterministic shuffledDeck in CLAIM_CARD_REWARD for reproducible testing', () => {
+    const cardA = createMockCard({ id: 'deterministic_A', name: 'A' });
+    const cardB = createMockCard({ id: 'deterministic_B', name: 'B' });
+    const cardC = createMockCard({ id: 'deterministic_C', name: 'C' });
+    const cardD = createMockCard({ id: 'deterministic_D', name: 'D' });
+    const cardE = createMockCard({ id: 'deterministic_E', name: 'E' });
+
+    const rewardState: GameState = {
+      ...createInitialCombatState(),
+      phase: 'reward',
+      sanityDeck: [cardA, cardB],
+      hand: [cardC, cardD],
+      discardPile: [cardE],
+      rewardCards: [],
+      rewardObols: 15,
+    };
+
+    // Pass custom shuffledDeck to guarantee hand and sanityDeck order
+    const deterministicOrder = [cardE, cardD, cardC, cardB, cardA];
+    const nextState = gameReducer(rewardState, {
+      type: 'CLAIM_CARD_REWARD',
+      payload: {
+        shuffledDeck: deterministicOrder,
+      },
+    });
+
+    expect(nextState.hand.map((c) => c.id)).toEqual(['deterministic_E', 'deterministic_D', 'deterministic_C', 'deterministic_B']);
+    expect(nextState.sanityDeck.map((c) => c.id)).toEqual(['deterministic_A']);
+  });
+
+  it('fisherYatesShuffle uniformly preserves elements and accepts custom random function', () => {
+    const original = [1, 2, 3, 4, 5];
+    const pseudoRandom = () => 0.42; // Deterministic pseudo-random
+    const shuffled = fisherYatesShuffle(original, pseudoRandom);
+
+    expect(shuffled.length).toBe(original.length);
+    expect(new Set(shuffled)).toEqual(new Set(original));
+  });
+
+  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆) across all cards and occupations', () => {
+    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆/;
+
+    const allCardsToCheck = [
+      ...INVESTIGATOR_DECK,
+      ...OCCULTIST_DECK,
+      ...REWARD_CARD_POOL,
+    ];
+
+    for (const card of allCardsToCheck) {
+      expect(card.name).not.toMatch(forbiddenRegex);
+      expect(card.description).not.toMatch(forbiddenRegex);
+      expect(card.flavorText).not.toMatch(forbiddenRegex);
+    }
+
+    for (const occ of Object.values(OCCUPATIONS)) {
+      expect(occ.name).not.toMatch(forbiddenRegex);
+      expect(occ.occupation).not.toMatch(forbiddenRegex);
+      expect(occ.quote).not.toMatch(forbiddenRegex);
+      expect(occ.description).not.toMatch(forbiddenRegex);
+    }
   });
 });
 

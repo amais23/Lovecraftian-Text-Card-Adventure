@@ -3,6 +3,7 @@ import type { Card, Enemy, EnemyIntent, Investigator } from '../types/game';
 export const INITIAL_INVESTIGATOR: Investigator = {
   name: '愛德華·皮爾斯 (Edward Pierce)',
   occupation: '私家偵探',
+  occupationId: 'investigator',
   health: 25,
   maxHealth: 25,
   stamina: 3,
@@ -202,7 +203,7 @@ export const OCCULTIST_DECK: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'armor', value: 6 }],
-    description: '召喚星辰微光護盾，獲得 6 點護甲值（跨回合持續累積）。',
+    description: '召喚星辰微光防壁，獲得 6 點護甲值（跨回合持續累積）。',
     flavorText: '「在周身勾勒出不可名狀的星軌結界。」',
   },
   {
@@ -213,7 +214,7 @@ export const OCCULTIST_DECK: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'armor', value: 6 }],
-    description: '召喚星辰微光護盾，獲得 6 點護甲值（跨回合持續累積）。',
+    description: '召喚星辰微光防壁，獲得 6 點護甲值（跨回合持續累積）。',
     flavorText: '「古老的幾何符號偏轉了怪物的致命撲殺。」',
   },
   {
@@ -225,7 +226,7 @@ export const OCCULTIST_DECK: Card[] = [
     isTemporary: false,
     effects: [{ type: 'restore_sanity', value: 2 }],
     description: '將棄牌堆中 2 張卡牌洗回理智牌庫（回補 2 點理智）。',
-    flavorText: '「在狂暴的幻覺浪潮中，強行構築一道理性的防波堤。」',
+    flavorText: '「在狂亂的幻覺浪潮中，強行構築一道理性的防波堤。」',
   },
   {
     id: 'card_meditate_2',
@@ -439,10 +440,23 @@ export const REWARD_CARD_POOL: Card[] = [
 ];
 
 /**
- * 隨機抽取 count 張不重複的戰後獎勵卡牌
+ * Fisher-Yates 洗牌演算法（均勻無偏隨機）
+ * 支援注入自訂 randomFn，確保測試與模擬的純度與可重現性
  */
-export function generateRewardCards(count: number = 3): Card[] {
-  const shuffled = [...REWARD_CARD_POOL].sort(() => 0.5 - Math.random());
+export function fisherYatesShuffle<T>(items: readonly T[], randomFn: () => number = Math.random): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(randomFn() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * 隨機抽取 count 張不重複的戰後獎勵卡牌（使用 Fisher-Yates 無偏洗牌）
+ */
+export function generateRewardCards(count: number = 3, randomFn: () => number = Math.random): Card[] {
+  const shuffled = fisherYatesShuffle(REWARD_CARD_POOL, randomFn);
   return shuffled.slice(0, Math.min(count, shuffled.length)).map((c) => ({ ...c }));
 }
 

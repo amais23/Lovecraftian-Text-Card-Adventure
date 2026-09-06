@@ -4,6 +4,7 @@ import { EnemyView } from './EnemyView';
 import { BattleLog } from './BattleLog';
 import { InvestigatorStatus } from './InvestigatorStatus';
 import { CardView } from './CardView';
+import { generateRewardCards } from '../engine/initialData';
 import { Skull, Trophy, Coins, Compass } from 'lucide-react';
 
 interface CombatScreenProps {
@@ -29,7 +30,18 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
   };
 
   const handleRestart = () => {
-    dispatch({ type: 'RESET_COMBAT' });
+    dispatch({
+      type: 'RESET_COMBAT',
+      payload: { occupationId: state.investigator.occupationId },
+    });
+  };
+
+  const handleProceedReward = () => {
+    const rewardCards = generateRewardCards(3);
+    dispatch({
+      type: 'PROCEED_TO_REWARD',
+      payload: { rewardCards, rewardObols: 15 },
+    });
   };
 
   return (
@@ -115,18 +127,17 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
             <p className="combat-modal-desc">
               敵怪發出最後的哀嚎倒斃在地，潮濕腥臭的空氣漸漸散去。你的理智在這場驚險的搏殺中經受住了考驗。
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div className="combat-modal-actions">
               <button
                 id="proceed-reward-btn"
                 className="combat-modal-btn"
-                onClick={() => dispatch({ type: 'PROCEED_TO_REWARD' })}
+                onClick={handleProceedReward}
               >
                 前往戰後結算 (Claim Rewards)
               </button>
               <button
                 className="combat-modal-btn secondary"
                 onClick={handleRestart}
-                style={{ background: 'transparent', border: '1px solid var(--border-gold)', color: 'var(--text-parchment)' }}
               >
                 重置戰鬥 (Reset)
               </button>
@@ -144,7 +155,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
             <p className="combat-modal-desc">
               你的肉體被鋒利的爪牙撕碎，意識沉入冰冷深邃的無底深淵……未知之物將這座墓穴重新掩埋。
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div className="combat-modal-actions">
               <button
                 id="return-title-btn"
                 className="combat-modal-btn"
@@ -155,7 +166,6 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
               <button
                 className="combat-modal-btn secondary"
                 onClick={handleRestart}
-                style={{ background: 'transparent', border: '1px solid var(--border-gold)', color: 'var(--text-parchment)' }}
               >
                 原戰鬥重試 (Retry)
               </button>

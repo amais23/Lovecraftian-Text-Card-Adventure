@@ -69,10 +69,11 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId } }
-  | { type: 'PROCEED_TO_REWARD' }
-  | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string } }
+  | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number } }
+  | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }
   | { type: 'RETURN_TO_TITLE' }
-  | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[] } }
+  | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[]; investigator?: Investigator } }
   | { type: 'PLAY_CARD'; payload: { cardId: string } }
   | { type: 'END_TURN' }
-  | { type: 'RESET_COMBAT' };
+  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy } };
+
