@@ -35,23 +35,23 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     }
   });
 
-  it('should adhere to ADR-0012 style naming conventions', () => {
+  it('should adhere to ADR-0012 and ADR-0013 style naming conventions', () => {
     for (const art of ALL_CARD_ARTWORKS) {
       switch (art.category) {
         case 'combat':
-          expect(art.styleName).toContain('卡通');
+          expect(art.styleName).toContain('實體武器');
           break;
         case 'skill':
-          expect(art.styleName).toContain('寫實');
+          expect(art.styleName).toContain('生存技藝');
           break;
         case 'magic':
-          expect(art.styleName).toContain('陽光');
+          expect(art.styleName).toContain('星空秘法');
           break;
         case 'truth':
-          expect(art.styleName).toContain('舊日天啟');
+          expect(art.styleName).toContain('舊日啟示');
           break;
         case 'madness':
-          expect(art.styleName).toContain('血肉');
+          expect(art.styleName).toContain('深淵異化');
           break;
       }
       expect(art.conceptLore.length).toBeGreaterThan(10);

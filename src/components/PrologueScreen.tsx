@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, FastForward, UserCheck, Newspaper, Mail } from 'lucide-react';
 import type { GameAction } from '../types/game';
-import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { TypewriterText } from './TypewriterText';
 
@@ -10,6 +9,8 @@ export interface PrologueScreenProps {
 }
 
 export const PrologueScreen: React.FC<PrologueScreenProps> = ({ dispatch }) => {
+  const [newspaperFinished, setNewspaperFinished] = useState<boolean>(false);
+
   useEffect(() => {
     // 初次載入時播放低頻心跳聲，並定時維持深淵心跳氛圍
     const initialTimer = setTimeout(() => {
@@ -53,8 +54,8 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ dispatch }) => {
       <div className="fog-layer" />
       <div className="cosmic-particles-bg" />
 
-      {/* Top Bar Navigation */}
-      <div className="title-screen-top-bar">
+      {/* Top Bar Navigation: Back on left edge, Skip on right edge */}
+      <div className="title-screen-top-bar prologue-top-bar">
         <button
           id="prologue-back-btn"
           className="back-to-menu-btn"
@@ -64,20 +65,15 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ dispatch }) => {
           <span>返回主選單</span>
         </button>
 
-        <div className="title-screen-top-right-group">
-          <button
-            id="prologue-skip-btn"
-            className="prologue-skip-btn"
-            onClick={handleSkip}
-            title="跳過序章引導"
-          >
-            <FastForward size={16} />
-            <span>跳過序章</span>
-          </button>
-          <div className="title-screen-audio-corner">
-            <AudioToggle />
-          </div>
-        </div>
+        <button
+          id="prologue-skip-btn"
+          className="prologue-skip-btn"
+          onClick={handleSkip}
+          title="跳過序章引導"
+        >
+          <FastForward size={16} />
+          <span>跳過序章</span>
+        </button>
       </div>
 
       {/* Main Narrative Area */}
@@ -106,12 +102,13 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ dispatch }) => {
                   speed={16}
                   delay={200}
                   playSound={true}
+                  onComplete={() => setNewspaperFinished(true)}
                 />
               </p>
             </div>
           </article>
 
-          {/* Commissioner's Confidential Letter */}
+          {/* Commissioner's Confidential Letter: runs after newspaper finishes */}
           <section className="prologue-letter-card">
             <div className="letter-seal-badge">
               <Mail size={18} />
@@ -119,12 +116,22 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ dispatch }) => {
             </div>
             <div className="letter-body">
               <p className="letter-paragraph">
-                <TypewriterText
-                  text={letterText}
-                  speed={18}
-                  delay={800}
-                  playSound={true}
-                />
+                {newspaperFinished ? (
+                  <TypewriterText
+                    text={letterText}
+                    speed={18}
+                    delay={350}
+                    playSound={true}
+                  />
+                ) : (
+                  <span
+                    className="letter-waiting-hint"
+                    onClick={() => setNewspaperFinished(true)}
+                    title="點擊略過等待"
+                  >
+                    （閱畢上方早報後開啟調查委託密信……）
+                  </span>
+                )}
               </p>
             </div>
           </section>

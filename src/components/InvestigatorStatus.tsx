@@ -92,7 +92,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
           )}
           <div className="res-content">
             <span className="res-label">
-              {isMadness ? '理智牌庫 (瘋狂狀態)' : '理智牌庫 (SAN)'}
+              {isMadness ? '理智牌庫 · 瘋狂' : '理智牌庫'}
             </span>
             <span className="res-value">
               {sanityCount} / {totalDeckCapacity}
@@ -109,7 +109,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
         disabled={isCombatEnded}
         title="結束當前回合，保留手牌並補抽至 4 張，承受敵人反擊"
       >
-        結束回合 (第 {turn} 回合)
+        結束回合 · 第 {turn} 回合
       </button>
     </div>
   );

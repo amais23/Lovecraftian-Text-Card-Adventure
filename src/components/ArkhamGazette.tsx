@@ -181,7 +181,7 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
               <div className="dossier-header-bar">
                 <h3 className="dossier-title">
                   {isDeath ? <Skull size={15} color="#e63946" /> : <Award size={15} color="#ffd700" />}
-                  <span>{isDeath ? '殉職調查員案卷 (Case Dossier)' : '倖存調查員功勳 (Expedition Record)'}</span>
+                  <span>{isDeath ? '殉職調查員案卷' : '倖存調查員功勳'}</span>
                 </h3>
                 <span className="dossier-case-id">NO. 1926-ARK-{stats.nodesVisited}</span>
               </div>
@@ -203,13 +203,13 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
                       <Heart size={13} color="#e63946" /> 終局狀態
                     </span>
                     <span className={`dossier-status-pill ${isDeath ? 'dead' : 'victory'}`}>
-                      {isDeath ? '肉體殞命 (Deceased)' : '生還平息 (Survived)'}
+                      {isDeath ? '肉體殞命' : '生還平息'}
                     </span>
                   </div>
 
                   <div className="dossier-metric-row">
                     <span className="dossier-metric-label">
-                      <Swords size={13} color="#f4a261" /> 斬除異端 (殺敵數)
+                      <Swords size={13} color="#f4a261" /> 斬除異端
                     </span>
                     <span className="dossier-metric-value">{stats.enemiesDefeated} 隻</span>
                   </div>
@@ -235,7 +235,7 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
                       <Layers size={13} color="#48cae4" /> 最深探索深度
                     </span>
                     <span className="dossier-metric-value">
-                      {isDeath ? `第 ${stats.maxLayer + 1} 層` : '封鎖區全層貫通 (宿敵潰散)'}
+                      {isDeath ? `第 ${stats.maxLayer + 1} 層` : '封鎖區全層貫通 · 宿敵潰散'}
                     </span>
                   </div>
 
@@ -258,7 +258,7 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
               onClick={handleReturnToTitle}
             >
               <ArrowLeft size={16} />
-              <span>{isDeath ? '重新開始調查 (Title Menu)' : '凱旋返回主選單 (Title Menu)'}</span>
+              <span>{isDeath ? '重新開始調查' : '凱旋返回主選單'}</span>
             </button>
 
             {isDeath && onRetryCombat && (
@@ -268,7 +268,7 @@ export const ArkhamGazette: React.FC<ArkhamGazetteProps> = ({
                 onClick={handleRetry}
               >
                 <RotateCcw size={16} />
-                <span>原戰鬥重試 (Retry Combat)</span>
+                <span>原戰鬥重新調查</span>
               </button>
             )}
           </footer>

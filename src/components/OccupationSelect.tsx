@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Compass,
   UserCheck,
@@ -10,11 +10,13 @@ import {
   Shield,
   ArrowRight,
   ArrowLeft,
+  X,
 } from 'lucide-react';
 import { OCCUPATIONS } from '../engine/initialData';
-import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { getCardCostDisplay } from '../engine/cardCatalog';
+import { CardView } from './CardView';
+import type { Card } from '../types/game';
 
 export interface OccupationSelectProps {
   onBackToMenu: () => void;
@@ -25,6 +27,18 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
   onBackToMenu,
   onSelectOccupation,
 }) => {
+  const [inspectedCard, setInspectedCard] = useState<Card | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && inspectedCard) {
+        setInspectedCard(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [inspectedCard]);
+
   const investigator = OCCUPATIONS.investigator;
   const occultist = OCCUPATIONS.occultist;
 
@@ -39,8 +53,8 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
       <div className="fog-layer" />
       <div className="cosmic-particles-bg" />
 
-      {/* Top navigation row with back button and audio toggle */}
-      <div className="title-screen-top-bar">
+      {/* Top navigation row with back button */}
+      <div className="title-screen-top-bar occupation-top-bar">
         <button
           id="back-to-menu-btn"
           className="back-to-menu-btn"
@@ -49,9 +63,6 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
           <ArrowLeft size={18} />
           <span>返回主選單</span>
         </button>
-        <div className="title-screen-audio-corner">
-          <AudioToggle />
-        </div>
       </div>
 
       {/* Main Title Header */}
@@ -124,7 +135,12 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
                   <div
                     key={`${card.id}_${idx}`}
                     className={`occupation-card-chip category-${card.category}`}
-                    title={`${card.name} (${cost.shortText})：${card.description}`}
+                    title={`點擊檢視【${card.name}】卡牌詳情`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      soundEngine.playClick();
+                      setInspectedCard(card);
+                    }}
                   >
                     <span className="card-chip-dot" />
                     <span className="card-chip-name">{card.name}</span>
@@ -202,7 +218,12 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
                   <div
                     key={`${card.id}_${idx}`}
                     className={`occupation-card-chip category-${card.category}`}
-                    title={`${card.name} (${cost.shortText})：${card.description}`}
+                    title={`點擊檢視【${card.name}】卡牌詳情`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      soundEngine.playClick();
+                      setInspectedCard(card);
+                    }}
                   >
                     <span className="card-chip-dot" />
                     <span className="card-chip-name">{card.name}</span>
@@ -226,6 +247,83 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
           </button>
         </div>
       </main>
+
+      {/* Inspected Card Detail Modal */}
+      {inspectedCard && (
+        <div
+          className="compendium-detail-modal-overlay"
+          onClick={() => setInspectedCard(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="inspected-card-title"
+        >
+          <div
+            className="compendium-detail-modal-box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="detail-modal-close-btn"
+              onClick={() => setInspectedCard(null)}
+              aria-label="關閉卡牌詳情"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="detail-modal-split">
+              <div className="detail-modal-left">
+                <CardView
+                  card={inspectedCard}
+                  currentStamina={99}
+                  currentSanity={99}
+                  isStandalone={true}
+                />
+              </div>
+
+              <div className="detail-modal-right">
+                <div className="detail-category-tag-row">
+                  <span className={`detail-category-badge ${inspectedCard.category}`}>
+                    {inspectedCard.category === 'combat'
+                      ? '紅色戰鬥卡'
+                      : inspectedCard.category === 'skill'
+                      ? '黃色技能卡'
+                      : inspectedCard.category === 'magic'
+                      ? '紫色魔法卡'
+                      : inspectedCard.category === 'truth'
+                      ? '白色真相卡'
+                      : '黑色瘋狂卡'}
+                  </span>
+                  <span className="detail-style-badge">
+                    {inspectedCard.costType === 'sanity'
+                      ? `消耗 ${inspectedCard.costValue} 點理智`
+                      : `消耗 ${inspectedCard.costValue} 點精力`}
+                  </span>
+                </div>
+
+                <h2 id="inspected-card-title" className="detail-card-name">
+                  {inspectedCard.name}
+                </h2>
+
+                <div className="detail-section">
+                  <h4 className="detail-section-title">
+                    <BookOpen size={16} /> 戰鬥對弈效果
+                  </h4>
+                  <p className="detail-effect-text">{inspectedCard.description}</p>
+                  {inspectedCard.flavorText && (
+                    <p className="detail-flavor-text">{inspectedCard.flavorText}</p>
+                  )}
+                </div>
+
+                <div className="detail-spec-box">
+                  <span className="spec-label">調查員起始武裝：</span>
+                  <p className="spec-text">
+                    本卡牌為調查員啟程時的專屬初始手牌。在後續調查中，可透過戰後結算或黑市購入更多卡牌擴充理智牌庫。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

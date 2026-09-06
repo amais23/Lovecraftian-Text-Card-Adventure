@@ -128,7 +128,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         <div className={`drag-drop-target-bar ${isDraggingCard ? 'active' : ''}`}>
           <div className="drop-target-glow" />
           <span className="drop-target-label">
-            <Sparkles size={16} /> 向上拖曳至此引導打出 (Drag Up to Cast)
+            <Sparkles size={16} /> 點擊或向上拖曳以打出卡牌
           </span>
         </div>
 
@@ -178,13 +178,13 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 className="combat-modal-btn"
                 onClick={handleProceedReward}
               >
-                前往戰後結算 (Claim Rewards)
+                前往戰後結算
               </button>
               <button
                 className="combat-modal-btn secondary"
                 onClick={handleRestart}
               >
-                重置戰鬥 (Reset)
+                重試本場戰鬥
               </button>
             </div>
           </div>

@@ -933,7 +933,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newSanityDeck = [...state.sanityDeck];
       // Keep existing discard pile separate to ensure restore_sanity only restores past discards
       const pastDiscardPile = [...state.discardPile];
-      const newHand = state.hand.filter((_, idx) => idx !== cardIndex);
+      let newHand = state.hand.filter((_, idx) => idx !== cardIndex);
 
       if (card.costType === 'sanity') {
         const burned = newSanityDeck.slice(0, card.costValue);
@@ -957,6 +957,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         } else if (effect.type === 'armor') {
           investigatorArmor += effect.value;
           newLogs.push(`調查員打出【${card.name}】，構築掩體獲得 ${effect.value} 點護甲！`);
+        } else if (effect.type === 'draw') {
+          const cardsNeeded = effect.value;
+          if (cardsNeeded > 0) {
+            if (state.isMadness || newSanityDeck.length === 0) {
+              const madnessCards = createMadnessCards(cardsNeeded, state.turn, newHand.length);
+              newHand = [...newHand, ...madnessCards];
+              newLogs.push(`調查員打出【${card.name}】，在瘋狂狀態中自深淵攫取了 ${cardsNeeded} 張臨時黑色瘋狂卡！`);
+            } else {
+              const cardsToDraw = Math.min(newSanityDeck.length, cardsNeeded);
+              const drawnCards = newSanityDeck.slice(0, cardsToDraw);
+              newSanityDeck = newSanityDeck.slice(cardsToDraw);
+              newHand = [...newHand, ...drawnCards];
+              const cardNames = drawnCards.map((c) => `【${c.name}】`).join('、');
+              newLogs.push(`調查員打出【${card.name}】，敏銳抽牌獲得 ${cardNames}！`);
+
+              if (cardsToDraw < cardsNeeded && newSanityDeck.length === 0) {
+                const deficit = cardsNeeded - cardsToDraw;
+                const madnessCards = createMadnessCards(deficit, state.turn, newHand.length);
+                newHand = [...newHand, ...madnessCards];
+                newLogs.push(`【理智抽乾】抽牌庫見底！手牌缺額補入 ${deficit} 張臨時黑色瘋狂卡！`);
+              }
+            }
+          }
         } else if (effect.type === 'heal') {
           investigatorHealth = Math.min(state.investigator.maxHealth, investigatorHealth + effect.value);
           newLogs.push(`調查員打出【${card.name}】，包紮傷口恢復 ${effect.value} 點生命！`);
@@ -975,6 +998,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             newLogs.push(`調查員打出【${card.name}】，平復焦躁的心智，將 ${cardNames} 洗回理智牌庫！`);
           } else {
             newLogs.push(`調查員打出【${card.name}】，但棄牌堆中尚無任何已棄卡牌可供洗回！`);
+          }
+        } else if (effect.type === 'erode_sanity') {
+          const erodeCount = Math.min(newSanityDeck.length, effect.value);
+          if (erodeCount > 0) {
+            const eroded = newSanityDeck.slice(0, erodeCount);
+            newSanityDeck = newSanityDeck.slice(erodeCount);
+            pastDiscardPile.push(...eroded);
+            newLogs.push(`受到理智侵蝕，自牌庫頂棄置了 ${erodeCount} 張卡牌！`);
           }
         } else if (effect.type === 'self_damage') {
           investigatorHealth = Math.max(0, investigatorHealth - effect.value);

@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { FastForward, MapPin, Compass, Sparkles } from 'lucide-react';
 import type { GameAction, GameState } from '../types/game';
-import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { TypewriterText } from './TypewriterText';
 
@@ -61,27 +60,22 @@ export const DepartureScreen: React.FC<DepartureScreenProps> = ({ state, dispatc
       <div className="cosmic-particles-bg" />
       {isPierce ? <div className="rain-effect-layer" /> : <div className="astral-rune-layer" />}
 
-      {/* Top Bar Navigation */}
-      <div className="title-screen-top-bar">
+      {/* Top Bar Navigation: Badge on left edge, Skip on right edge */}
+      <div className="title-screen-top-bar departure-top-bar">
         <div className="departure-top-badge">
           <Compass size={18} color="#cfa866" />
-          <span>調查員啟程過場 · DEPARTURE</span>
+          <span>調查員啟程過場</span>
         </div>
 
-        <div className="title-screen-top-right-group">
-          <button
-            id="departure-skip-btn"
-            className="prologue-skip-btn"
-            onClick={handleSkip}
-            title="跳過過場動畫"
-          >
-            <FastForward size={16} />
-            <span>跳過過場</span>
-          </button>
-          <div className="title-screen-audio-corner">
-            <AudioToggle />
-          </div>
-        </div>
+        <button
+          id="departure-skip-btn"
+          className="prologue-skip-btn"
+          onClick={handleSkip}
+          title="跳過過場動畫"
+        >
+          <FastForward size={16} />
+          <span>跳過過場</span>
+        </button>
       </div>
 
       {/* Cinematic Showcase Card */}

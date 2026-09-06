@@ -884,6 +884,97 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.battleLog.some((log) => log.includes('理智不足'))).toBe(true);
   });
 
+  it('executes draw card effect (Tactical Roll): gains armor and draws card from sanity deck into hand', () => {
+    const tacticalRollCard: Card = {
+      id: 'reward_tactical_roll_1',
+      name: '戰術翻滾',
+      category: 'skill',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [
+        { type: 'armor', value: 4 },
+        { type: 'draw', value: 1 },
+      ],
+      description: '敏捷閃避獲得 4 點護甲，並立即自理智牌庫抽取 1 張卡牌。',
+      flavorText: '「在碎石堆中翻滾尋找下一個反擊角度。」',
+    };
+
+    const cardInSanityDeck = createMockCard({ id: 's_deck_1', name: '左輪射擊' });
+    const cardInSanityDeck2 = createMockCard({ id: 's_deck_2', name: '軍刀突刺' });
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      hand: [tacticalRollCard],
+      sanityDeck: [cardInSanityDeck, cardInSanityDeck2],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        stamina: 3,
+        armor: 0,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: tacticalRollCard.id },
+    });
+
+    // Gains 4 armor
+    expect(nextState.investigator.armor).toBe(4);
+    // Consumed 1 stamina
+    expect(nextState.investigator.stamina).toBe(2);
+    // Hand now contains the drawn card
+    expect(nextState.hand.length).toBe(1);
+    expect(nextState.hand[0].id).toBe('s_deck_1');
+    expect(nextState.hand[0].name).toBe('左輪射擊');
+    // Sanity deck decreased by 1
+    expect(nextState.sanityDeck.length).toBe(1);
+    expect(nextState.sanityDeck[0].id).toBe('s_deck_2');
+    // Discard pile contains Tactical Roll
+    expect(nextState.discardPile.length).toBe(1);
+    expect(nextState.discardPile[0].id).toBe('reward_tactical_roll_1');
+    // Logs verify both armor and draw messages
+    expect(nextState.battleLog.some((log) => log.includes('獲得 4 點護甲'))).toBe(true);
+    expect(nextState.battleLog.some((log) => log.includes('敏銳抽牌獲得 【左輪射擊】'))).toBe(true);
+  });
+
+  it('executes draw card effect during madness state: draws temporary black madness cards', () => {
+    const drawCard: Card = {
+      id: 'test_draw_card',
+      name: '戰術抽牌',
+      category: 'skill',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'draw', value: 1 }],
+      description: '抽 1 張卡牌',
+      flavorText: '抽牌',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      isMadness: true,
+      hand: [drawCard],
+      sanityDeck: [],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        stamina: 3,
+      },
+    };
+
+    const nextState = gameReducer(state, {
+      type: 'PLAY_CARD',
+      payload: { cardId: drawCard.id },
+    });
+
+    // Hand now contains 1 generated temporary black madness card
+    expect(nextState.hand.length).toBe(1);
+    expect(nextState.hand[0].category).toBe('madness');
+    expect(nextState.hand[0].isTemporary).toBe(true);
+    expect(nextState.isMadness).toBe(true);
+    expect(nextState.battleLog.some((log) => log.includes('自深淵攫取了 1 張臨時黑色瘋狂卡'))).toBe(true);
+  });
+
   it('transitions from victory to reward screen via PROCEED_TO_REWARD with 3 reward cards', () => {
     const victoryState: GameState = {
       ...createInitialCombatState(),

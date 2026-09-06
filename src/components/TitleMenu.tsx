@@ -121,7 +121,7 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">遊戲設定</span>
-              <span className="btn-sub-text">全域音效 · Web Audio 合成器調試</span>
+              <span className="btn-sub-text">全域音效 · 感官感知與聲效調節</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>

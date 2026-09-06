@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
@@ -16,10 +19,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
+  padding: clamp(6px, 1dvh, 12px) 24px;
   background: linear-gradient(to bottom, rgba(14, 18, 25, 0.95), rgba(10, 12, 16, 0.7));
   border-bottom: 1px solid var(--border-gold);
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .combat-header-title {
@@ -30,7 +34,7 @@
 
 .combat-header-title h1 {
   font-family: var(--font-title);
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 1.5dvh, 1.25rem);
   letter-spacing: 2px;
   color: var(--text-gold);
   text-shadow: 0 0 10px var(--gold-glow);
@@ -56,11 +60,11 @@
 
 /* Upper Section: Enemy & Battle Log */
 .combat-upper-section {
-  flex: 1.15;
+  flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  padding: 14px 24px;
+  gap: clamp(10px, 1.5vw, 20px);
+  padding: clamp(6px, 1dvh, 12px) 24px;
   min-height: 0;
   overflow: hidden;
 }
@@ -299,14 +303,16 @@
 
 /* Lower Section: Investigator & Hand */
 .combat-lower-section {
-  flex: 1.4;
+  flex: 1.1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 12px 24px 20px 24px;
+  justify-content: flex-end;
+  gap: clamp(4px, 0.8dvh, 8px);
+  padding: clamp(6px, 1dvh, 10px) 24px clamp(6px, 1.2dvh, 14px) 24px;
   background: linear-gradient(to top, rgba(7, 9, 13, 0.98), rgba(12, 15, 21, 0.85));
   border-top: 1px solid var(--border-gold);
   z-index: 5;
+  min-height: 0;
 }
 
 /* Investigator Panel */
@@ -317,8 +323,9 @@
   background: rgba(15, 18, 25, 0.8);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: 10px 20px;
+  padding: clamp(6px, 0.9dvh, 10px) 18px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
 }
 
 .investigator-profile {
@@ -477,11 +484,12 @@
 /* Hand Section */
 .hand-area {
   position: relative;
-  height: 290px;
+  height: clamp(190px, 26dvh, 275px);
   width: 100%;
-  padding: 10px;
+  padding: 4px 10px;
   perspective: 1000px;
   overflow: visible;
+  flex-shrink: 0;
 }
 
 /* Drag & Drop Guidance Bar */
@@ -489,8 +497,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  margin-bottom: 6px;
+  height: clamp(26px, 3.4dvh, 34px);
+  margin-bottom: 2px;
   border-radius: var(--radius-sm);
   border: 1px dashed rgba(207, 168, 102, 0.2);
   background: rgba(18, 22, 30, 0.4);
@@ -498,6 +506,7 @@
   transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .drag-drop-target-bar.active {
@@ -539,14 +548,14 @@
 
 /* Card Visuals */
 .card-item {
-  width: 185px;
-  height: 265px;
+  width: clamp(135px, 17dvh, 185px);
+  height: clamp(190px, 25dvh, 265px);
   border-radius: var(--radius-md);
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 8px 10px 8px 10px;
+  padding: clamp(4px, 0.7dvh, 8px) clamp(6px, 0.8dvh, 10px);
   cursor: grab;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
   box-shadow: var(--shadow-card);
@@ -567,9 +576,9 @@
 /* Fan-out Center Anchoring inside Hand Area */
 .hand-area .card-item {
   position: absolute;
-  bottom: 12px;
+  bottom: 6px;
   left: 50%;
-  margin-left: -92.5px;
+  margin-left: calc(clamp(135px, 17dvh, 185px) / -2);
 }
 
 .card-item.dragging {
@@ -597,16 +606,16 @@
 .card-item.madness {
   background: var(--card-madness-bg);
   border: 2px solid var(--card-madness-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 14px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.95), 0 0 12px rgba(39, 39, 42, 0.6);
   animation: madnessCardFlicker 3s infinite ease-in-out;
 }
 
 @keyframes madnessCardFlicker {
   0%, 100% {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 10px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.95), 0 0 8px rgba(39, 39, 42, 0.5);
   }
   50% {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 18px rgba(239, 68, 68, 0.65);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.95), 0 0 16px rgba(82, 82, 91, 0.7);
   }
 }
 
@@ -637,8 +646,8 @@
 }
 
 .card-item.madness.playable:hover {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.95), 0 0 28px var(--card-madness-glow);
-  border-color: #ff334b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.98), 0 0 24px rgba(255, 255, 255, 0.25);
+  border-color: #71717a;
 }
 
 .card-item.disabled {
@@ -715,9 +724,9 @@
 }
 
 .card-category-tag.madness {
-  background: rgba(127, 29, 29, 0.75);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.75);
+  background: #18181b;
+  color: #f4f4f5;
+  border: 1px solid #52525b;
 }
 
 .card-category-tag.magic {
@@ -730,14 +739,15 @@
 .card-illustration-frame {
   position: relative;
   width: 100%;
-  height: 96px;
+  height: clamp(55px, 8.5dvh, 96px);
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #080a0e;
   border: 1.5px solid rgba(255, 255, 255, 0.15);
-  margin: 3px 0 3px 0;
+  margin: 2px 0;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85);
   transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
 .card-illustration-img {
@@ -781,8 +791,8 @@
 }
 
 .card-illustration-frame.frame-madness {
-  border-color: rgba(239, 68, 68, 0.8);
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.45), inset 0 0 8px rgba(0, 0, 0, 0.85);
+  border-color: #3f3f46;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.9), inset 0 0 8px rgba(0, 0, 0, 0.95);
 }
 
 /* Title Banner */
@@ -1014,14 +1024,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  padding: 40px 24px;
+  padding: clamp(14px, 2.5dvh, 40px) 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   user-select: none;
 }
 
@@ -1279,14 +1293,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  padding: 24px;
-  overflow-y: auto;
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
   user-select: none;
 }
 
@@ -1294,14 +1311,16 @@
   background: rgba(14, 18, 25, 0.94);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: 32px 36px;
+  padding: clamp(16px, 2.5dvh, 32px) clamp(16px, 2.5vw, 36px);
   max-width: 960px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(207, 168, 102, 0.2);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(10px, 1.5dvh, 20px);
 }
 
 .reward-header {
@@ -1482,13 +1501,16 @@
 .map-screen-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  overflow-x: hidden;
+  overflow: hidden;
   user-select: none;
 }
 
@@ -1785,13 +1807,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  padding: 24px;
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
   user-select: none;
 }
 
@@ -1799,14 +1825,16 @@
   background: rgba(14, 18, 25, 0.95);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
-  padding: 36px 44px;
+  padding: clamp(18px, 2.5dvh, 36px) clamp(18px, 3vw, 44px);
   max-width: 860px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(207, 168, 102, 0.15);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(10px, 1.5dvh, 20px);
 }
 
 .event-header {
@@ -2036,13 +2064,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  padding: 24px;
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
   user-select: none;
 }
 
@@ -2050,14 +2082,16 @@
   background: rgba(14, 18, 25, 0.95);
   border: 1px solid #74c69d;
   border-radius: var(--radius-md);
-  padding: 36px 44px;
+  padding: clamp(18px, 2.5dvh, 36px) clamp(18px, 3vw, 44px);
   max-width: 860px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   width: 100%;
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(116, 198, 157, 0.2);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(116, 198, 157, 0.15);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(10px, 1.5dvh, 20px);
 }
 
 .sanctuary-header {
@@ -2231,13 +2265,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
   max-width: 1600px;
   margin: 0 auto;
   position: relative;
   background-color: var(--bg-deep);
-  padding: 24px;
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
   user-select: none;
 }
 
@@ -2245,14 +2283,16 @@
   background: rgba(14, 18, 25, 0.95);
   border: 1px solid #ffd700;
   border-radius: var(--radius-md);
-  padding: 36px 44px;
+  padding: clamp(18px, 2.5dvh, 36px) clamp(18px, 3vw, 44px);
   max-width: 980px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   width: 100%;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.2);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(10px, 1.5dvh, 20px);
 }
 
 .market-header {

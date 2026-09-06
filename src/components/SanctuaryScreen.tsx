@@ -89,10 +89,10 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
               {investigator.health >= investigator.maxHealth
                 ? '生命值已滿'
                 : !canAffordBandage
-                ? '代價不足 (需 5 古金幣或 1 理智)'
+                ? '代價不足 · 需 5 古金幣或 1 理智'
                 : investigator.obols >= 5
-                ? '執行包紮 (耗 5 古金幣)'
-                : '強行包紮 (耗 1 理智)'}
+                ? '執行包紮 · 耗 5 古金幣'
+                : '強行包紮 · 耗 1 理智'}
             </button>
           </div>
 
@@ -114,7 +114,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
               className="sanctuary-action-btn"
               disabled={isUsed}
             >
-              {isUsed ? '已完成冥想' : '進行冥想 (獲真相卡)'}
+              {isUsed ? '已完成冥想' : '進行冥想 · 納入真相卡'}
             </button>
           </div>
         </div>

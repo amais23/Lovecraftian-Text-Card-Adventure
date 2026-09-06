@@ -36,7 +36,7 @@ const CATEGORY_META_CONFIG: Record<CardCategory, CategoryMeta> = {
     label: '瘋狂',
     defaultPrompt: '精力不足',
     playablePrompt: '發動狂擊',
-    defaultIcon: <Flame size={16} color="#ef4444" />,
+    defaultIcon: <Flame size={16} color="#a1a1aa" />,
   },
   magic: {
     label: '魔法',
@@ -151,9 +151,9 @@ export const CardView: React.FC<CardViewProps> = ({
   return (
     <motion.div
       layout={!isStandalone}
-      className={`card-item ${card.category} ${isPlayable ? 'playable' : 'disabled'} ${
-        isDragging ? 'dragging' : ''
-      } ${isStandalone ? 'standalone' : ''}`}
+      className={`card-item ${card.category} ${
+        isStandalone ? 'standalone' : isPlayable ? 'playable' : 'disabled'
+      } ${isDragging ? 'dragging' : ''}`}
       initial={isStandalone ? false : { opacity: 0, y: 120, scale: 0.8 }}
       animate={
         isStandalone
@@ -211,7 +211,7 @@ export const CardView: React.FC<CardViewProps> = ({
           className="card-illustration-img"
           loading="lazy"
         />
-        <div className="card-illustration-vignette" />
+        {!isStandalone && <div className="card-illustration-vignette" />}
       </div>
 
       {/* Title Banner */}

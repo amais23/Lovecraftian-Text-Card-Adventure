@@ -3,7 +3,7 @@ import type { CardCategory, Card } from '../types/game';
 import { ALL_CARD_ARTWORKS, type CardArtworkInfo } from '../engine/cardArtworks';
 import { CardView } from './CardView';
 import { soundEngine } from '../engine/audioManager';
-import { Search, X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame } from 'lucide-react';
+import { X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame } from 'lucide-react';
 
 // Representative card data mapped from registry for preview in compendium
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
@@ -25,11 +25,11 @@ interface CategoryTabConfig {
 }
 
 const CATEGORY_TABS: CategoryTabConfig[] = [
-  { category: 'combat', name: '紅色戰鬥', sub: 'Q版可愛卡通', icon: <Swords size={14} /> },
-  { category: 'skill', name: '黃色技能', sub: '真實寫實工藝', icon: <Shield size={14} /> },
-  { category: 'magic', name: '紫色魔法', sub: '陽光奇幻魔導', icon: <Sparkles size={14} /> },
-  { category: 'truth', name: '白色真相', sub: '舊日天啟恐懼', icon: <Eye size={14} /> },
-  { category: 'madness', name: '黑色瘋狂', sub: '混亂血肉深淵', icon: <Flame size={14} /> },
+  { category: 'combat', name: '紅色戰鬥', sub: '實體武器', icon: <Swords size={14} /> },
+  { category: 'skill', name: '黃色技能', sub: '生存技藝', icon: <Shield size={14} /> },
+  { category: 'magic', name: '紫色魔法', sub: '星空秘法', icon: <Sparkles size={14} /> },
+  { category: 'truth', name: '白色真相', sub: '舊日啟示', icon: <Eye size={14} /> },
+  { category: 'madness', name: '黑色瘋狂', sub: '深淵異化', icon: <Flame size={14} /> },
 ];
 
 interface CardCompendiumProps {
@@ -38,7 +38,6 @@ interface CardCompendiumProps {
 
 export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
   const [selectedCategory, setSelectedCategory] = useState<CardCategory | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeDetailCard, setActiveDetailCard] = useState<CardArtworkInfo | null>(null);
 
   // Keyboard Escape support to close modal
@@ -91,17 +90,9 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
   }, []);
 
   const filteredArtworks = useMemo(() => {
-    return ALL_CARD_ARTWORKS.filter((art) => {
-      const matchCat = selectedCategory === 'all' || art.category === selectedCategory;
-      const query = searchQuery.trim().toLowerCase();
-      const matchQuery =
-        !query ||
-        art.name.toLowerCase().includes(query) ||
-        art.conceptLore.toLowerCase().includes(query) ||
-        art.styleName.toLowerCase().includes(query);
-      return matchCat && matchQuery;
-    });
-  }, [selectedCategory, searchQuery]);
+    if (selectedCategory === 'all') return ALL_CARD_ARTWORKS;
+    return ALL_CARD_ARTWORKS.filter((art) => art.category === selectedCategory);
+  }, [selectedCategory]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<CardCategory, number> = {
@@ -159,9 +150,9 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               <BookOpen size={24} color="#ffd700" />
             </div>
             <div>
-              <h1 className="compendium-title">卡牌圖鑑 (Card Compendium)</h1>
+              <h1 className="compendium-title">卡牌圖鑑</h1>
               <p className="compendium-subtitle">
-                密斯卡託尼克古典典藏研究室 · 已收錄 {ALL_CARD_ARTWORKS.length} 張專屬五色手牌 (全套專屬插畫收錄)
+                密斯卡托尼克特藏手記 · 已收錄 {ALL_CARD_ARTWORKS.length} 張專屬五色卡牌
               </p>
             </div>
           </div>
@@ -174,13 +165,13 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               onClose();
             }}
             aria-label="關閉圖鑑"
-            title="返回主選單 (Esc)"
+            title="返回主選單"
           >
             <X size={22} />
           </button>
         </header>
 
-        {/* Toolbar: Category Filters and Search Input */}
+        {/* Toolbar: Category Filters */}
         <div className="compendium-toolbar">
           <div className="compendium-filter-tabs" role="tablist" aria-label="卡牌類別篩選">
             <button
@@ -207,26 +198,6 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
               </button>
             ))}
           </div>
-
-          {/* Search Box */}
-          <div className="compendium-search-box">
-            <Search size={16} className="search-icon" />
-            <input
-              type="text"
-              className="compendium-search-input"
-              placeholder="搜尋卡牌名稱、效果或典故..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                className="search-clear-btn"
-                onClick={() => setSearchQuery('')}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
         </div>
 
         {/* Card Grid Area */}
@@ -234,7 +205,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
           {filteredArtworks.length === 0 ? (
             <div className="compendium-empty-state">
               <Info size={36} color="#ca8a04" />
-              <p>未找到符合搜尋條件的卡牌，請嘗試更換關鍵字或類別標籤。</p>
+              <p>該類別暫無收錄卡牌。</p>
             </div>
           ) : (
             <div className="compendium-cards-grid">
@@ -330,11 +301,11 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
                   </div>
                 )}
 
-                {/* ADR-0012 Style Specification Notes */}
+                {/* Card Compendium Archive Notes */}
                 <div className="detail-spec-box">
-                  <span className="spec-label">ADR-0012 規範對應：</span>
+                  <span className="spec-label">手記典藏考證：</span>
                   <p className="spec-text">
-                    本卡牌精確體現 ADR-0012 所規範之「{activeDetailCard.styleName}」，具備專屬插畫資產、類別特色窗框與光效。
+                    本卡牌已完整收錄於阿卡姆調查手記，具備專屬考證繪卷、類別特色窗框與秘術光效。
                   </p>
                 </div>
               </div>

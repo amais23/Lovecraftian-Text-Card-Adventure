@@ -130,3 +130,10 @@ _Avoid_: 死亡彈窗, 通關評分, 結算框
 位於主選單的手記典藏系統，收錄並展示五大類別全部專屬插圖、背景敘事與數值效果。
 _Avoid_: 卡冊, 牌組庫, 畫廊
 
+---
+
+### 介面文字規範與去技術化 (UI Presentation & De-technologization)
+
+**Pure Narrative Presentation (純粹敘事沉浸原則)**:
+所有面向玩家的介面標籤、按鈕指示、數值說明與結算彈窗，全面禁止包含開發用英文附註（如 `(Battle Log)`、`(Claim Rewards)`、`(Drag Up to Cast)`、`(Deceased)`）、程式語言技術名詞（如 `Web Audio API`、`Vite`、`React`、`UI Click`、`Sandbox`）以及 AI 繪圖提示殘留風格詞（如「Q版可愛卡通」、「可愛卡通風格 (Cute Cartoon)」、「陽光奇幻魔導」）。所有提示皆須維持 1920 年代克蘇魯神話調查手記之莊嚴、沉浸、純中文文學語境。
+_Avoid_: (Claim Rewards), (Reset), (Battle Log), (SAN), (Drag Up to Cast), Web Audio, UI Click, Q版可愛卡通, Cute Cartoon

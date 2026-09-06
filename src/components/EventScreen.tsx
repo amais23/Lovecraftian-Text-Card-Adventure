@@ -51,7 +51,7 @@ export const EventStoryNarrative: React.FC<EventStoryNarrativeProps> = ({ storyT
           onClick={() => setActiveParagraphIdx(storyText.length)}
           title="略過打字直接顯示全部故事內文"
         >
-          略過打字 (Skip All)
+          略過打字
         </button>
       )}
     </div>
@@ -185,7 +185,7 @@ export const EventScreen: React.FC<EventScreenProps> = ({ state, dispatch }) => 
                 className="event-continue-btn death"
                 onClick={handleReturnToTitle}
               >
-                <span>肉體殞命，返回標題畫面</span>
+                <span>肉體殞命，返回主選單</span>
                 <ArrowRight size={18} />
               </button>
             ) : (

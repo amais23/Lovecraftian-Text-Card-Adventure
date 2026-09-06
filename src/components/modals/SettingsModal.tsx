@@ -38,7 +38,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               遊戲設定
             </h2>
             <p className="eldritch-modal-subtitle">
-              SETTINGS & AUDIO SYNTHESIS · 系統與音頻控制
+              感官調節 · 聲音反饋與手記記載
             </p>
           </div>
           <button
@@ -57,7 +57,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <div className="settings-section-header">
               <div className="section-title-wrap">
                 {isMuted ? <VolumeX size={20} color="#9d9685" /> : <Volume2 size={20} color="#ffd700" />}
-                <h3>全域音效 (Global Sound Effects)</h3>
+                <h3>全域氛圍音效</h3>
               </div>
               <button
                 id="settings-mute-toggle-btn"
@@ -70,7 +70,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </button>
             </div>
             <p className="settings-hint">
-              採用 Web Audio API 零延遲程序化音效合成器，隨時提供真實手感，無須下載外部音檔。
+              程序化氛圍音頻即時生成，提供沉浸身歷其境的感官反饋。
             </p>
           </section>
 
@@ -78,7 +78,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <section className="settings-section">
             <h3 className="section-title-sub">
               <Sparkles size={16} color="#cfa866" />
-              <span>音效試聽面板 (Audio Synthesizer Sandbox)</span>
+              <span>聲效感官試聽</span>
             </h3>
             <div className="sound-test-grid">
               <button
@@ -87,7 +87,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <span>羊皮紙點擊</span>
-                <span className="sound-cue-tag">UI Click</span>
+                <span className="sound-cue-tag">點擊</span>
               </button>
 
               <button
@@ -96,7 +96,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <span>抽牌滑動聲</span>
-                <span className="sound-cue-tag">Card Draw</span>
+                <span className="sound-cue-tag">抽牌</span>
               </button>
 
               <button
@@ -106,7 +106,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <Activity size={14} color="#ff334b" />
                 <span>肉體受創撕咬</span>
-                <span className="sound-cue-tag">Damage Hit</span>
+                <span className="sound-cue-tag">受創</span>
               </button>
 
               <button
@@ -116,7 +116,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <Keyboard size={14} color="#cfa866" />
                 <span>打字機敲擊聲</span>
-                <span className="sound-cue-tag">Typewriter</span>
+                <span className="sound-cue-tag">打字</span>
               </button>
 
               <button
@@ -125,7 +125,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <Swords size={14} color="#e63946" />
-                <span>紅卡 (戰鬥打擊)</span>
+                <span>紅色戰鬥卡 · 物理打擊</span>
               </button>
 
               <button
@@ -134,7 +134,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <Shield size={14} color="#f4a261" />
-                <span>黃卡 (戰術護甲)</span>
+                <span>黃色技能卡 · 生存護甲</span>
               </button>
 
               <button
@@ -143,7 +143,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <Sparkles size={14} color="#c77dff" />
-                <span>紫卡 (秘術冷焰)</span>
+                <span>紫色魔法卡 · 秘術冷焰</span>
               </button>
 
               <button
@@ -152,7 +152,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <Sparkles size={14} color="#f8fafc" />
-                <span>白卡 (星界真相)</span>
+                <span>白色真相卡 · 星界啟示</span>
               </button>
 
               <button
@@ -161,14 +161,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 disabled={isMuted}
               >
                 <Flame size={14} color="#ef4444" />
-                <span>黑卡 (狂亂深淵)</span>
+                <span>黑色瘋狂卡 · 狂亂深淵</span>
               </button>
             </div>
           </section>
 
           {/* Section 3: About & Version */}
           <section className="settings-section about-section">
-            <h3 className="section-title-sub">關於作品 (About)</h3>
+            <h3 className="section-title-sub">關於本調查手記</h3>
             <div className="about-details">
               <p>
                 <strong>《克蘇魯文字卡牌冒險》</strong> v0.1.0
@@ -177,7 +177,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 基於 H.P. 洛夫克拉夫特宇宙恐懼神話體系打造的文字冒險與卡牌對弈遊戲。
               </p>
               <p className="about-legal">
-                純前端 Vite + React 19 + TypeScript 架構 · 免費開放源碼專案
+                洛夫克拉夫特宇宙恐懼神話對弈體驗 · 調查員手記
               </p>
             </div>
           </section>

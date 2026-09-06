@@ -204,59 +204,10 @@
 }
 
 .compendium-tab-btn.madness.active {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
-}
-
-/* Search Box */
-.compendium-search-box {
-  display: flex;
-  align-items: center;
-  position: relative;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  width: 280px;
-}
-
-.compendium-search-box:focus-within {
-  border-color: var(--border-gold);
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
-}
-
-.compendium-search-box .search-icon {
-  color: var(--text-dim);
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-.compendium-search-input {
-  background: transparent;
-  border: none;
-  color: var(--text-parchment);
-  font-size: 0.8rem;
-  width: 100%;
-  outline: none;
-}
-
-.compendium-search-input::placeholder {
-  color: var(--text-dim);
-}
-
-.search-clear-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-}
-
-.search-clear-btn:hover {
-  color: var(--text-parchment);
+  border-color: #71717a;
+  background: rgba(24, 24, 27, 0.95);
+  color: #f4f4f5;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 /* Compendium Grid Container */
@@ -323,8 +274,9 @@
 }
 
 .compendium-style-badge.madness {
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
+  border-color: #3f3f46;
+  color: #e4e4e7;
+  background: #18181b;
 }
 
 .compendium-empty-state {
@@ -448,9 +400,32 @@
 }
 
 .detail-category-badge.madness {
-  background: rgba(239, 68, 68, 0.25);
-  border: 1px solid #ef4444;
-  color: #fca5a5;
+  background: #18181b;
+  border: 1px solid #52525b;
+  color: #f4f4f5;
+}
+
+/* True Color Artwork Preservation (Card Compendium & Standalone Cards) */
+.compendium-cards-grid .card-item,
+.detail-modal-left .card-item,
+.card-item.standalone {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.compendium-cards-grid .card-illustration-img,
+.detail-modal-left .card-illustration-img,
+.card-item.standalone .card-illustration-img {
+  filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+.compendium-cards-grid .card-illustration-vignette,
+.detail-modal-left .card-illustration-vignette,
+.card-item.standalone .card-illustration-vignette,
+.compendium-window .card-illustration-vignette {
+  display: none !important;
 }
 
 .detail-style-badge {
@@ -543,10 +518,6 @@
     align-items: stretch;
     gap: 12px;
     padding: 12px 16px;
-  }
-
-  .compendium-search-box {
-    width: 100%;
   }
 
   .compendium-detail-modal-box {

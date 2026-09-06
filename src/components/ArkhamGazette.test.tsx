@@ -75,7 +75,7 @@ describe('ArkhamGazette Component', () => {
 
     // Buttons
     expect(screen.getByText(/重新開始調查/)).toBeDefined();
-    expect(screen.getByText(/原戰鬥重試/)).toBeDefined();
+    expect(screen.getByText(/原戰鬥重新調查/)).toBeDefined();
 
     // Abyss Shatter Effect on Death
     expect(document.getElementById('abyss-shatter-effect')).not.toBeNull();
@@ -113,7 +113,7 @@ describe('ArkhamGazette Component', () => {
 
     // Victory Action
     expect(screen.getByText(/凱旋返回主選單/)).toBeDefined();
-    expect(screen.queryByText(/原戰鬥重試/)).toBeNull();
+    expect(screen.queryByText(/原戰鬥重新調查/)).toBeNull();
     expect(document.getElementById('abyss-shatter-effect')).toBeNull();
   });
 
@@ -147,7 +147,7 @@ describe('ArkhamGazette Component', () => {
       />
     );
 
-    const retryBtn = screen.getByText(/原戰鬥重試/);
+    const retryBtn = screen.getByText(/原戰鬥重新調查/);
     fireEvent.click(retryBtn);
 
     expect(soundEngine.playClick).toHaveBeenCalled();

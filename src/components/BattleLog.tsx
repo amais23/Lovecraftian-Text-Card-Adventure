@@ -28,7 +28,7 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs }) => {
       <div className="battle-log-header">
         <h2>
           <Scroll size={18} color="#cfa866" />
-          戰鬥日誌 (Battle Log)
+          戰鬥日誌
         </h2>
         <span className="battle-log-badge">
           <Sparkles size={12} color="#cfa866" />

@@ -34,10 +34,10 @@
   --card-truth-bg: linear-gradient(145deg, #1e2530, #0f141c);
   --card-truth-accent: #f8fafc;
   --card-truth-glow: rgba(241, 245, 249, 0.45);
-  --card-madness-border: #7f1d1d;
-  --card-madness-bg: linear-gradient(145deg, #180507, #080002);
-  --card-madness-accent: #ef4444;
-  --card-madness-glow: rgba(239, 68, 68, 0.5);
+  --card-madness-border: #3f3f46;
+  --card-madness-bg: linear-gradient(145deg, #18181b, #09090b);
+  --card-madness-accent: #71717a;
+  --card-madness-glow: rgba(0, 0, 0, 0.85);
   --card-magic-border: #7b2cbf;
   --card-magic-bg: linear-gradient(145deg, #240046, #10002b);
   --card-magic-accent: #c77dff;
@@ -68,14 +68,29 @@ body {
   font-family: var(--font-body);
   background-color: var(--bg-deep);
   color: var(--text-parchment);
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  overscroll-behavior: none;
   line-height: 1.6;
+  user-select: none;
+  -webkit-user-select: none;
   background-image:
     radial-gradient(circle at 50% 10%, rgba(20, 26, 40, 0.5) 0%, transparent 70%),
     radial-gradient(circle at 10% 90%, rgba(35, 10, 15, 0.35) 0%, transparent 60%),
     radial-gradient(circle at 90% 90%, rgba(20, 10, 35, 0.35) 0%, transparent 60%);
   background-attachment: fixed;
+}
+
+img,
+svg,
+button,
+.card-item {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 /* Custom Scrollbar for Lovecraftian aesthetic */

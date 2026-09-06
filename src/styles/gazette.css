@@ -12,8 +12,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: clamp(10px, 2dvh, 24px);
   overflow-y: auto;
+  overscroll-behavior: none;
   perspective: 1200px;
 }
 
@@ -86,8 +87,9 @@
     0 25px 70px rgba(0, 0, 0, 0.9),
     0 10px 30px rgba(0, 0, 0, 0.7),
     inset 0 0 80px rgba(160, 120, 70, 0.22);
-  padding: 32px 36px;
-  overflow: hidden;
+  padding: clamp(20px, 2.5dvh, 32px) clamp(20px, 3vw, 36px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
   font-family: var(--font-body);
 }
 

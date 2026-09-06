@@ -76,4 +76,32 @@ describe('OccupationSelect (Issue #13)', () => {
     fireEvent.click(backBtn);
     expect(handleBack).toHaveBeenCalledTimes(1);
   });
+
+  it('opens card detail modal when clicking on a starting card chip without selecting occupation', () => {
+    const handleBack = vi.fn();
+    const handleSelect = vi.fn();
+
+    render(
+      <OccupationSelect
+        onBackToMenu={handleBack}
+        onSelectOccupation={handleSelect}
+      />
+    );
+
+    // Find and click a starting card chip
+    const cardChips = screen.getAllByText('左輪射擊');
+    fireEvent.click(cardChips[0]);
+
+    // onSelectOccupation must NOT have been called
+    expect(handleSelect).not.toHaveBeenCalled();
+
+    // Modal should be displayed with card details
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.getByText('調查員起始武裝：')).toBeDefined();
+
+    // Close the modal
+    const closeBtn = screen.getByLabelText('關閉卡牌詳情');
+    fireEvent.click(closeBtn);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 });

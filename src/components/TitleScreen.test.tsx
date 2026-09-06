@@ -51,18 +51,18 @@ describe('TitleScreen & TitleMenu Integration', () => {
     fireEvent.click(screen.getByRole('button', { name: /調查紀錄手冊/i }));
 
     expect(screen.getByRole('heading', { name: '調查紀錄手冊' })).toBeDefined();
-    expect(screen.getByText(/Sanity Deck · 心智與抽牌庫的絕對等同/i)).toBeDefined();
+    expect(screen.getByText('心智與抽牌庫的絕對等同')).toBeDefined();
 
     // Check CONTEXT.md key rule: sanity deck
     expect(screen.getByText(/剩餘卡牌數量等同於當前理智值/i)).toBeDefined();
 
     // Switch to "五色卡牌體系" tab
     fireEvent.click(screen.getByRole('button', { name: /五色卡牌體系/i }));
-    expect(screen.getByText(/紅色戰鬥卡 \(Combat Card\)/i)).toBeDefined();
-    expect(screen.getByText(/黃色技能卡 \(Skill Card\)/i)).toBeDefined();
-    expect(screen.getByText(/紫色魔法卡 \(Magic Card\)/i)).toBeDefined();
-    expect(screen.getByText(/白色真相卡 \(Truth Card\)/i)).toBeDefined();
-    expect(screen.getByText(/黑色瘋狂卡 \(Madness Card\)/i)).toBeDefined();
+    expect(screen.getByRole('heading', { level: 4, name: '紅色戰鬥卡' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 4, name: '黃色技能卡' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 4, name: '紫色魔法卡' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 4, name: '白色真相卡' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 4, name: '黑色瘋狂卡' })).toBeDefined();
 
     // Switch to "精力與護甲" tab
     fireEvent.click(screen.getByRole('button', { name: /精力與護甲/i }));
@@ -70,11 +70,11 @@ describe('TitleScreen & TitleMenu Integration', () => {
 
     // Switch to "手牌保留機制" tab
     fireEvent.click(screen.getByRole('button', { name: /手牌保留機制/i }));
-    expect(screen.getByText(/手牌保留機制 \(Hand Retention\)/i)).toBeDefined();
+    expect(screen.getByRole('heading', { level: 3, name: '手牌保留機制' })).toBeDefined();
 
     // Switch to "瘋狂極限狀態" tab
     fireEvent.click(screen.getByRole('button', { name: /瘋狂極限狀態/i }));
-    expect(screen.getAllByText(/瘋狂極限狀態 \(Madness State\)/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('heading', { level: 3, name: '瘋狂極限狀態' })).toBeDefined();
 
     // Close via close button
     const closeBtn = screen.getByRole('button', { name: '關閉手冊' });
@@ -90,7 +90,7 @@ describe('TitleScreen & TitleMenu Integration', () => {
     fireEvent.click(screen.getByRole('button', { name: /卡牌圖鑑/i }));
 
     expect(screen.getByRole('heading', { name: /卡牌圖鑑/i })).toBeDefined();
-    expect(screen.getByText(/已收錄 28 張專屬五色手牌/i)).toBeDefined();
+    expect(screen.getByText(/已收錄 28 張專屬五色卡牌/i)).toBeDefined();
 
     // Filter by category: combat
     const combatTab = screen.getByRole('tab', { name: /紅色戰鬥/i });
