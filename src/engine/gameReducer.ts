@@ -66,6 +66,42 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
 }
 
 /**
+ * 取得敵人初始模板以利於戰鬥重整 (Reset Combat) 重新迎戰原敵人
+ */
+export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap): Enemy {
+  const enemyId = candidate?.id;
+  if (enemyId === INITIAL_DEEP_ONE.id) {
+    return JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
+  }
+  if (enemyId === INITIAL_SHOGGOTH.id) {
+    return JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+  }
+  if (enemyId === INITIAL_GHOUL.id) {
+    return JSON.parse(JSON.stringify(INITIAL_GHOUL));
+  }
+
+  // If node type from map is available
+  if (map?.currentNodeId && map.nodes[map.currentNodeId]) {
+    const node = map.nodes[map.currentNodeId];
+    if (node.type === 'elite') return JSON.parse(JSON.stringify(INITIAL_DEEP_ONE));
+    if (node.type === 'boss') return JSON.parse(JSON.stringify(INITIAL_SHOGGOTH));
+    if (node.type === 'combat') return JSON.parse(JSON.stringify(INITIAL_GHOUL));
+  }
+
+  if (candidate) {
+    return {
+      ...candidate,
+      health: candidate.maxHealth,
+      armor: candidate.armor,
+      currentIntentIndex: 0,
+      currentIntent: candidate.intentSequence?.[0] ?? candidate.currentIntent,
+    };
+  }
+
+  return JSON.parse(JSON.stringify(INITIAL_GHOUL));
+}
+
+/**
  * 集中評估理智牌庫與瘋狂狀態切換之共用純函式
  */
 export function evaluateMadnessTransition(
@@ -643,18 +679,30 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         name: occ.name,
         occupation: occ.occupation,
         occupationId: occ.id,
-        health: occ.stats.health,
-        maxHealth: occ.stats.health,
-        stamina: occ.stats.stamina,
-        maxStamina: occ.stats.stamina,
+        health: state.investigator?.maxHealth ?? occ.stats.health,
+        maxHealth: state.investigator?.maxHealth ?? occ.stats.health,
+        stamina: state.investigator?.maxStamina ?? occ.stats.stamina,
+        maxStamina: state.investigator?.maxStamina ?? occ.stats.stamina,
         armor: 0,
-        obols: occ.stats.obols,
+        obols: state.investigator?.obols ?? occ.stats.obols,
       };
-      const allCards = occ.deck.map((c) => ({ ...c }));
+
+      // Gather permanent cards to preserve crafted deck upon retrying
+      const currentPermanentCards = [
+        ...state.sanityDeck,
+        ...state.hand,
+        ...state.discardPile,
+      ].filter((c) => !c.isTemporary);
+
+      const allCards = action.payload?.initialCards
+        ? [...action.payload.initialCards]
+        : currentPermanentCards.length >= 10
+        ? currentPermanentCards
+        : occ.deck.map((c) => ({ ...c }));
+
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
-      const enemy = action.payload?.enemy
-        ? JSON.parse(JSON.stringify(action.payload.enemy))
-        : JSON.parse(JSON.stringify(INITIAL_GHOUL));
+      const candidateEnemy = action.payload?.enemy ?? state.currentEnemy;
+      const enemy = getFreshEnemyTemplate(candidateEnemy, state.map);
 
       return {
         phase: 'combat',
@@ -665,6 +713,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         discardPile: [],
         isMadness: false,
         currentEnemy: enemy,
+        map: state.map,
         battleLog: [
           `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
         ],

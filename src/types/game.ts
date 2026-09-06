@@ -145,6 +145,6 @@ export type GameAction =
   | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[]; investigator?: Investigator } }
   | { type: 'PLAY_CARD'; payload: { cardId: string } }
   | { type: 'END_TURN' }
-  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy } };
+  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } };
 
 

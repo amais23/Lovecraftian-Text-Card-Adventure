@@ -32,7 +32,10 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
   const handleRestart = () => {
     dispatch({
       type: 'RESET_COMBAT',
-      payload: { occupationId: state.investigator.occupationId },
+      payload: {
+        occupationId: state.investigator.occupationId,
+        enemy: state.currentEnemy,
+      },
     });
   };
 

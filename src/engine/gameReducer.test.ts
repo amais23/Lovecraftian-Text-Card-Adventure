@@ -1053,6 +1053,85 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(allCards.some((c) => c.category === 'truth')).toBe(true);
   });
 
+  it('retains original elite enemy (Deep One Elder) on RESET_COMBAT without reverting to ghoul', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_2_0'].status = 'accessible';
+
+    const eliteCombatState = gameReducer(
+      { ...createInitialCombatState(), phase: 'map', map },
+      { type: 'NAVIGATE_TO_NODE', payload: { nodeId: 'node_2_0' } }
+    );
+
+    expect(eliteCombatState.currentEnemy.id).toBe(INITIAL_DEEP_ONE.id);
+    expect(eliteCombatState.currentEnemy.name).toContain('深潛者長老');
+
+    // Simulate taking fatal damage from Deep One Elder
+    const gameOverState: GameState = {
+      ...eliteCombatState,
+      phase: 'gameover',
+      investigator: {
+        ...eliteCombatState.investigator,
+        health: 0,
+      },
+      currentEnemy: {
+        ...eliteCombatState.currentEnemy,
+        health: 15, // damaged Deep One
+        armor: 0,
+      },
+    };
+
+    // Retry combat without explicit payload
+    const resetState = gameReducer(gameOverState, { type: 'RESET_COMBAT' });
+
+    expect(resetState.phase).toBe('combat');
+    // Must NOT revert to Ghoul!
+    expect(resetState.currentEnemy.id).toBe(INITIAL_DEEP_ONE.id);
+    expect(resetState.currentEnemy.name).toContain('深潛者長老');
+    expect(resetState.currentEnemy.health).toBe(INITIAL_DEEP_ONE.health);
+    expect(resetState.currentEnemy.armor).toBe(INITIAL_DEEP_ONE.armor);
+    expect(resetState.map).toBeDefined();
+    expect(resetState.map?.currentNodeId).toBe('node_2_0');
+  });
+
+  it('retains original boss enemy (Shoggoth Progeny) on RESET_COMBAT without reverting to ghoul', () => {
+    const map = generateInvestigationMap();
+    map.nodes['node_4_0'].status = 'accessible';
+
+    const bossCombatState = gameReducer(
+      { ...createInitialCombatState(), phase: 'map', map },
+      { type: 'NAVIGATE_TO_NODE', payload: { nodeId: 'node_4_0' } }
+    );
+
+    expect(bossCombatState.currentEnemy.id).toBe(INITIAL_SHOGGOTH.id);
+    expect(bossCombatState.currentEnemy.name).toContain('修格斯幼體');
+
+    // Simulate game over
+    const gameOverState: GameState = {
+      ...bossCombatState,
+      phase: 'gameover',
+      investigator: {
+        ...bossCombatState.investigator,
+        health: 0,
+      },
+    };
+
+    // Retry combat passing payload with enemy
+    const resetState = gameReducer(gameOverState, {
+      type: 'RESET_COMBAT',
+      payload: {
+        occupationId: bossCombatState.investigator.occupationId,
+        enemy: bossCombatState.currentEnemy,
+      },
+    });
+
+    expect(resetState.phase).toBe('combat');
+    expect(resetState.currentEnemy.id).toBe(INITIAL_SHOGGOTH.id);
+    expect(resetState.currentEnemy.name).toContain('修格斯幼體');
+    expect(resetState.currentEnemy.health).toBe(INITIAL_SHOGGOTH.health);
+    expect(resetState.currentEnemy.armor).toBe(INITIAL_SHOGGOTH.armor);
+    expect(resetState.map?.currentNodeId).toBe('node_4_0');
+  });
+
   it('allows PROCEED_TO_REWARD with pre-generated payload to guarantee reducer purity', () => {
     const victoryState: GameState = {
       ...createInitialCombatState(),
