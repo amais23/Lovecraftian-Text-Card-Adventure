@@ -4,6 +4,7 @@ import {
   gameReducer,
   DEFAULT_HAND_CAPACITY,
   setupCombatDeck,
+  executeCardDiscardAndAdvanceTurn,
 } from './gameReducer';
 import type { GameState, Investigator } from '../types/game';
 import { INITIAL_INVESTIGATOR, INVESTIGATOR_DECK, OCCUPATIONS } from './initialData';
@@ -265,4 +266,63 @@ describe('Hand Capacity, Fixed Draw & Discard Flow (Issue #27 & ADR-0018)', () =
     expect(hand[0].id).toBe(COMPLETE_ANCIENT_SEAL.id);
     expect(sanityDeck.length).toBe(cards.length - 2);
   });
+
+  describe('executeCardDiscardAndAdvanceTurn helper function', () => {
+    it('returns unmodified state when discard count or invalid card ids are passed', () => {
+      const state = createInitialCombatState();
+      // Needs 1 discard, but passes 2 ids
+      const invalidCountState = executeCardDiscardAndAdvanceTurn(state, ['non_existent_1', 'non_existent_2'], 1);
+      expect(invalidCountState).toBe(state);
+
+      // Count is 1, but id is not in hand
+      const nonExistentCardState = executeCardDiscardAndAdvanceTurn(state, ['non_existent_1'], 1);
+      expect(nonExistentCardState).toBe(state);
+    });
+
+    it('successfully processes valid discard and updates discard pile and turn', () => {
+      const state = createInitialCombatState();
+      const cardToDiscard = state.hand[0];
+      const nextState = executeCardDiscardAndAdvanceTurn(state, [cardToDiscard.id], 1);
+
+      expect(nextState.turn).toBe(2);
+      expect(nextState.discardPile.some((c) => c.id === cardToDiscard.id)).toBe(true);
+      expect(nextState.battleLog[0]).toContain(`【主動棄牌】調查員棄置了 【${cardToDiscard.name}】`);
+    });
+  });
+
+  describe('Narrative & Domain Vocabulary Compliance', () => {
+    it('ensures zero forbidden domain terms in battle log when investigator perishes or discards', () => {
+      const state: GameState = {
+        ...createInitialCombatState(),
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 1,
+          armor: 0,
+        },
+        currentEnemy: {
+          ...INITIAL_INVESTIGATOR,
+          id: 'test_ghoul',
+          name: '嗜血食屍鬼',
+          title: '食腐者',
+          health: 10,
+          maxHealth: 10,
+          armor: 0,
+          currentIntent: {
+            type: 'attack',
+            name: '利爪撕裂',
+            value: 10,
+          },
+        },
+      };
+
+      const gameOverState = gameReducer(state, { type: 'END_TURN' });
+      expect(gameOverState.phase).toBe('gameover');
+
+      const forbiddenRegex = /氣力|費用|能量|法力|血量|體力|護盾|招架|格擋|抽牌上限|棄手牌|殘留手牌|抽牌堆/;
+      for (const log of gameOverState.battleLog) {
+        expect(log).not.toMatch(forbiddenRegex);
+      }
+    });
+  });
 });
+

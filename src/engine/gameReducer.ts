@@ -46,7 +46,6 @@ import {
 } from './abyssalSeals';
 
 export const DEFAULT_HAND_CAPACITY = 2;
-export const BASELINE_HAND_SIZE = 2;
 
 /**
  * 敵怪物件深拷貝純函式，避免可變狀態污染
@@ -328,7 +327,7 @@ export function resolveTurnEndAndFixedDraw(
 
   // Check GameOver
   if (investigatorHealth <= 0) {
-    newLogs.unshift(`【調查員殞命】你的視線被血污模糊，氣力散盡倒在血泊中……未知之物將你吞噬。`);
+    newLogs.unshift(`【調查員殞命】你的視線被血污模糊，神識散盡倒在血泊中……未知之物將你吞噬。`);
     return {
       ...state,
       phase: 'gameover',
@@ -417,6 +416,41 @@ export function resolveTurnEndAndFixedDraw(
     },
     battleLog: [...newLogs, ...state.battleLog],
   };
+}
+
+/**
+ * 執行手牌棄置並推進回合結算之共用純函式（消除重複代碼）
+ */
+export function executeCardDiscardAndAdvanceTurn(
+  state: GameState,
+  cardIdsToDiscard: string[],
+  requiredDiscardCount: number
+): GameState {
+  if (cardIdsToDiscard.length !== requiredDiscardCount) {
+    return state;
+  }
+
+  const validDiscardCards = state.hand.filter((c) => cardIdsToDiscard.includes(c.id));
+  if (validDiscardCards.length !== requiredDiscardCount) {
+    return state;
+  }
+
+  const remainingHand = state.hand.filter((c) => !cardIdsToDiscard.includes(c.id));
+  const newDiscardPile = [
+    ...state.discardPile,
+    ...validDiscardCards.filter((c) => !c.isTemporary),
+  ];
+
+  const discardLog =
+    requiredDiscardCount > 0
+      ? `【主動棄牌】調查員棄置了 ${validDiscardCards.map((c) => `【${c.name}】`).join('、')}。剩餘 ${remainingHand.length} 張手牌予以保留。`
+      : undefined;
+
+  return resolveTurnEndAndFixedDraw(
+    { ...state, discardPile: newDiscardPile, discardPhase: undefined },
+    remainingHand,
+    discardLog ? [discardLog] : []
+  );
 }
 
 export function createInitialGameState(): GameState {
@@ -1539,28 +1573,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
       const requiredDiscardCount = state.hand.length - capacity;
 
-      if (cardIdsToDiscard.length !== requiredDiscardCount) {
-        return state;
-      }
-
-      const validDiscardCards = state.hand.filter((c) => cardIdsToDiscard.includes(c.id));
-      if (validDiscardCards.length !== requiredDiscardCount) {
-        return state;
-      }
-
-      const remainingHand = state.hand.filter((c) => !cardIdsToDiscard.includes(c.id));
-      const newDiscardPile = [
-        ...state.discardPile,
-        ...validDiscardCards.filter((c) => !c.isTemporary),
-      ];
-
-      const discardLog = `【主動棄牌】調查員棄置了 ${validDiscardCards.map((c) => `【${c.name}】`).join('、')}。剩餘 ${remainingHand.length} 張手牌予以保留。`;
-
-      return resolveTurnEndAndFixedDraw(
-        { ...state, discardPile: newDiscardPile, discardPhase: undefined },
-        remainingHand,
-        [discardLog]
-      );
+      return executeCardDiscardAndAdvanceTurn(state, cardIdsToDiscard, requiredDiscardCount);
     }
 
     case 'DISCARD_CARDS_TO_LIMIT': {
@@ -1569,30 +1582,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
       const requiredDiscardCount = Math.max(0, state.hand.length - capacity);
 
-      if (cardIdsToDiscard.length !== requiredDiscardCount) {
-        return state;
-      }
-
-      const validDiscardCards = state.hand.filter((c) => cardIdsToDiscard.includes(c.id));
-      if (validDiscardCards.length !== requiredDiscardCount) {
-        return state;
-      }
-
-      const remainingHand = state.hand.filter((c) => !cardIdsToDiscard.includes(c.id));
-      const newDiscardPile = [
-        ...state.discardPile,
-        ...validDiscardCards.filter((c) => !c.isTemporary),
-      ];
-
-      const discardLog = requiredDiscardCount > 0
-        ? `【主動棄牌】調查員棄置了 ${validDiscardCards.map((c) => `【${c.name}】`).join('、')}。剩餘 ${remainingHand.length} 張手牌予以保留。`
-        : undefined;
-
-      return resolveTurnEndAndFixedDraw(
-        { ...state, discardPile: newDiscardPile, discardPhase: undefined },
-        remainingHand,
-        discardLog ? [discardLog] : []
-      );
+      return executeCardDiscardAndAdvanceTurn(state, cardIdsToDiscard, requiredDiscardCount);
     }
 
     default:
