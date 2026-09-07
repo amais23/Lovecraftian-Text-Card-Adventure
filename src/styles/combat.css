@@ -545,9 +545,9 @@
 .card-item {
   container-type: inline-size;
   container-name: card;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: var(--card-aspect-ratio, 5 / 7);
   height: clamp(165px, 22.5dvh, 265px);
-  width: calc(clamp(165px, 22.5dvh, 265px) * 5 / 7);
+  width: calc(clamp(165px, 22.5dvh, 265px) * var(--card-ratio-multiplier, 5 / 7));
   box-sizing: border-box;
   overflow: hidden;
   border-radius: var(--radius-md);
@@ -572,7 +572,7 @@
   margin-left: 0;
   cursor: pointer;
   height: clamp(230px, 30dvh, 290px);
-  width: calc(clamp(230px, 30dvh, 290px) * 5 / 7);
+  width: calc(clamp(230px, 30dvh, 290px) * var(--card-ratio-multiplier, 5 / 7));
 }
 
 /* Fan-out Center Anchoring inside Hand Area */
@@ -580,7 +580,7 @@
   position: absolute;
   bottom: 6px;
   left: 50%;
-  margin-left: calc(clamp(165px, 22.5dvh, 265px) * 5 / 7 / -2);
+  margin-left: calc(clamp(165px, 22.5dvh, 265px) * var(--card-ratio-multiplier, 5 / 7) / -2);
 }
 
 .card-item.dragging {
@@ -1684,9 +1684,9 @@
 
 .reward-card-wrapper .card-item {
   cursor: pointer;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: var(--card-aspect-ratio, 5 / 7);
   height: clamp(170px, 23dvh, 240px);
-  width: calc(clamp(170px, 23dvh, 240px) * 5 / 7);
+  width: calc(clamp(170px, 23dvh, 240px) * var(--card-ratio-multiplier, 5 / 7));
 }
 
 .reward-card-choose-btn {

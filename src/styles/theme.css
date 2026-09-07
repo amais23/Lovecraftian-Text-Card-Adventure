@@ -56,6 +56,10 @@
   --shadow-gothic: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 20px rgba(0, 0, 0, 0.9);
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(0, 0, 0, 0.5);
   --shadow-card-hover: 0 16px 36px rgba(0, 0, 0, 0.9), 0 0 20px var(--gold-glow);
+
+  /* Card Layout Dimensions (ADR-0017 / Issue #24) */
+  --card-aspect-ratio: 5 / 7;
+  --card-ratio-multiplier: calc(5 / 7);
 }
 
 * {

@@ -359,7 +359,7 @@ export const REWARD_CARD_POOL: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'damage', value: 7 }],
-    description: '敏捷射擊，造成 7 點物理傷害。',
+    description: '造成 7 點物理傷害。',
     flavorText: '「肌肉記憶超越了大腦對恐懼的本能遲疑。」',
   },
   {

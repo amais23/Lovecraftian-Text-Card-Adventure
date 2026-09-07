@@ -616,7 +616,7 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[]
           name: '深海冰霜之握',
           type: 'card',
           price: 24,
-          description: '召喚深海極寒洋流，造成 25 點超自然傷害。',
+          description: '召喚深海極寒洋流，造成 25 點秘術傷害。',
           card: { ...TIER_2_CARDS[4], id: 'card_market_frost_grasp' },
         },
         {
@@ -645,7 +645,7 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[]
           name: '達姆高爆彈連射',
           type: 'card',
           price: 38,
-          description: '太古破甲高爆彈，造成 26 點毀滅性傷害。',
+          description: '太古破甲高爆彈，造成 26 點物理傷害。',
           card: { ...TIER_3_CARDS[0], id: 'card_market_dum_dum' },
         },
         {
@@ -653,7 +653,7 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[]
           name: '不可侵犯之壁',
           type: 'card',
           price: 35,
-          description: '不可摧毀的終極防禦，獲得 22 點超重型累積護甲。',
+          description: '不可摧毀的終極防禦，獲得 22 點護甲。',
           card: { ...TIER_3_CARDS[2], id: 'card_market_bastion' },
         },
         {
@@ -661,7 +661,7 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[]
           name: '虛空黑洞坍縮',
           type: 'card',
           price: 36,
-          description: '引發時空引力黑洞，造成 34 點極限超自然傷害。',
+          description: '引發時空引力黑洞，造成 34 點秘術傷害。',
           card: { ...TIER_3_CARDS[4], id: 'card_market_void_collapse' },
         },
         {

@@ -96,8 +96,8 @@ describe('cardCatalog', () => {
       for (const card of catalog) {
         const damageEffect = card.effects.find((e) => e.type === 'damage');
         if (damageEffect && !card.isUnplayable) {
-          expect(card.description, `Card "${card.name}" missing standardized damage phrasing`).toContain(
-            `造成 ${damageEffect.value} 點`
+          expect(card.description, `Card "${card.name}" missing standardized damage phrasing`).toMatch(
+            new RegExp(`^造成 ${damageEffect.value} 點`)
           );
           expect(card.description, `Card "${card.name}" missing 傷害 suffix`).toContain('傷害');
         }
