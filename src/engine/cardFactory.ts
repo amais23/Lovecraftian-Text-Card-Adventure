@@ -53,26 +53,49 @@ export const TRUTH_INJECTED_TEMPLATE: Omit<Card, 'id'> = {
   flavorText: '「瘋狂漸漸褪去，但未知的印記已深深烙印在靈魂之中。」',
 };
 
-let tempCardCounter = 0;
-
-export function resetTempCardCounter(): void {
-  tempCardCounter = 0;
+/**
+ * 確保卡牌陣列中所有 ID 唯一之純函式
+ * 若檢測到重複的 card.id，為後續複本追加確定性的 _copy_${count} 後綴，
+ * 並透過 usedIds 集合防禦已存在的衝突後綴，確保 100% 唯一性。
+ */
+export function ensureUniqueCardIds(cards: Card[]): Card[] {
+  const usedIds = new Set<string>();
+  return cards.map((card) => {
+    if (!usedIds.has(card.id)) {
+      usedIds.add(card.id);
+      return card;
+    }
+    let count = 1;
+    let candidateId = `${card.id}_copy_${count}`;
+    while (usedIds.has(candidateId)) {
+      count++;
+      candidateId = `${card.id}_copy_${count}`;
+    }
+    usedIds.add(candidateId);
+    return {
+      ...card,
+      id: candidateId,
+    };
+  });
 }
 
 /**
- * Pure factory to generate temporary black madness cards.
- * Uses turn, index, and an auto-incrementing counter to guarantee global ID uniqueness
- * across multiple card generation calls within the same turn.
+ * Pure, deterministic factory to generate temporary black madness cards.
+ * Uses turn and index/offset to guarantee state determinism without relying on Date.now() or mutable state.
  */
-export function createMadnessCards(count: number, turn: number, offset: number = 0): Card[] {
+export function createMadnessCards(
+  count: number,
+  turn: number,
+  offsetOrExisting: number | Card[] = 0
+): Card[] {
+  const offset = typeof offsetOrExisting === 'number' ? offsetOrExisting : offsetOrExisting.length;
   const cards: Card[] = [];
   for (let i = 0; i < count; i++) {
-    tempCardCounter += 1;
     const templateIndex = (offset + i) % MADNESS_CARD_TEMPLATES.length;
     const template = MADNESS_CARD_TEMPLATES[templateIndex];
     cards.push({
       ...template,
-      id: `temp_madness_t${turn}_${offset + i}_${tempCardCounter}`,
+      id: `temp_madness_t${turn}_${offset + i}`,
       isTemporary: true,
     });
   }
@@ -80,17 +103,20 @@ export function createMadnessCards(count: number, turn: number, offset: number =
 }
 
 /**
- * Pure factory to generate temporary white truth cards injected into the sanity deck.
- * Uses turn, index, and an auto-incrementing counter to guarantee global ID uniqueness
- * across multiple card generation calls within the same turn.
+ * Pure, deterministic factory to generate temporary white truth cards injected into the sanity deck.
+ * Uses turn and index/offset to guarantee state determinism without relying on Date.now() or mutable state.
  */
-export function createTruthInjectedCards(count: number, turn: number, offset: number = 0): Card[] {
+export function createTruthInjectedCards(
+  count: number,
+  turn: number,
+  offsetOrExisting: number | Card[] = 0
+): Card[] {
+  const offset = typeof offsetOrExisting === 'number' ? offsetOrExisting : offsetOrExisting.length;
   const cards: Card[] = [];
   for (let i = 0; i < count; i++) {
-    tempCardCounter += 1;
     cards.push({
       ...TRUTH_INJECTED_TEMPLATE,
-      id: `temp_truth_t${turn}_${offset + i}_${tempCardCounter}`,
+      id: `temp_truth_t${turn}_${offset + i}`,
       isTemporary: true,
     });
   }

@@ -24,7 +24,11 @@ import {
   getEnemyTemplateById,
   getBossByDepth,
 } from './enemyCatalog';
-import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
+import {
+  createMadnessCards,
+  createTruthInjectedCards,
+  ensureUniqueCardIds,
+} from './cardFactory';
 import { generateInvestigationMap, generateProceduralInvestigationMap } from './mapGenerator';
 import {
   getMythosEventForNode,
@@ -38,7 +42,6 @@ import {
   ABYSSAL_FRAGMENT_3,
   hasBothAbyssalFragments,
   fuseAbyssalFragments,
-  ensureUniqueCardIds,
   getAllPermanentCards,
   isAbyssalFragment,
   isCompleteAncientSeal,
@@ -468,7 +471,12 @@ export function resolveTurnEndAndFixedDraw(
 
   if (isMadnessNow) {
     // In madness state, drawn cards are transformed into temporary black madness cards!
-    const madnessCards = createMadnessCards(capacity, nextTurn, 0);
+    const existingTurnMadnessCount = [
+      ...remainingHand,
+      ...sanityDeck,
+      ...discardPile,
+    ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
+    const madnessCards = createMadnessCards(capacity, nextTurn, existingTurnMadnessCount);
     newHand = [...remainingHand, ...madnessCards];
     drawnCardsCount = capacity;
     newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵力量轉化為 ${capacity} 張臨時黑色瘋狂卡！`);
@@ -482,7 +490,12 @@ export function resolveTurnEndAndFixedDraw(
     if (cardsToDraw < capacity && sanityDeck.length === 0) {
       isMadnessNow = true;
       const deficit = capacity - cardsToDraw;
-      const madnessCards = createMadnessCards(deficit, nextTurn, 0);
+      const existingTurnMadnessCount = [
+        ...newHand,
+        ...sanityDeck,
+        ...discardPile,
+      ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
+      const madnessCards = createMadnessCards(deficit, nextTurn, existingTurnMadnessCount);
       newHand = [...newHand, ...madnessCards];
       drawnCardsCount += deficit;
       newLogs.push(
@@ -1652,7 +1665,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const cardsNeeded = effect.value;
           if (cardsNeeded > 0) {
             if (state.isMadness || newSanityDeck.length === 0) {
-              const madnessCards = createMadnessCards(cardsNeeded, state.turn, newHand.length);
+              const existingTurnMadnessCount = [
+                ...newHand,
+                ...newSanityDeck,
+                ...pastDiscardPile,
+              ].filter((c) => c.id.startsWith(`temp_madness_t${state.turn}_`)).length;
+              const madnessCards = createMadnessCards(cardsNeeded, state.turn, existingTurnMadnessCount);
               newHand = [...newHand, ...madnessCards];
               newLogs.push(`調查員打出【${card.name}】，在瘋狂狀態中自深淵攫取了 ${cardsNeeded} 張臨時黑色瘋狂卡！`);
             } else {
@@ -1665,7 +1683,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
               if (cardsToDraw < cardsNeeded && newSanityDeck.length === 0) {
                 const deficit = cardsNeeded - cardsToDraw;
-                const madnessCards = createMadnessCards(deficit, state.turn, newHand.length);
+                const existingTurnMadnessCount = [
+                  ...newHand,
+                  ...newSanityDeck,
+                  ...pastDiscardPile,
+                ].filter((c) => c.id.startsWith(`temp_madness_t${state.turn}_`)).length;
+                const madnessCards = createMadnessCards(deficit, state.turn, existingTurnMadnessCount);
                 newHand = [...newHand, ...madnessCards];
                 newLogs.push(`【理智抽乾】抽牌庫見底！手牌缺額補入 ${deficit} 張臨時黑色瘋狂卡！`);
               }
@@ -1702,7 +1725,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           investigatorHealth = Math.max(0, investigatorHealth - effect.value);
           newLogs.push(`受到不可名狀的反噬傷害，自身損失 ${effect.value} 點肉體生命！`);
         } else if (effect.type === 'add_to_deck') {
-          const injectedCards = createTruthInjectedCards(effect.value, state.turn);
+          const existingTurnTruthCount = [
+            ...newSanityDeck,
+            ...newHand,
+            ...pastDiscardPile,
+          ].filter((c) => c.id.startsWith(`temp_truth_t${state.turn}_`)).length;
+          const injectedCards = createTruthInjectedCards(effect.value, state.turn, existingTurnTruthCount);
           newSanityDeck.unshift(...injectedCards);
           newLogs.push(`調查員打出【${card.name}】，向理智牌庫注入了 ${effect.value} 張深淵真相卡牌！`);
         }
