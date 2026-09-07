@@ -1,7 +1,7 @@
 import type { Card, Enemy, EnemyIntent, Investigator } from '../types/game';
 
 export const INITIAL_INVESTIGATOR: Investigator = {
-  name: '愛德華·皮爾斯 (Edward Pierce)',
+  name: '愛德華·皮爾斯',
   occupation: '私家偵探',
   occupationId: 'investigator',
   health: 25,
@@ -313,7 +313,7 @@ export interface OccupationDefinition {
 export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinition> = {
   investigator: {
     id: 'investigator',
-    name: '愛德華·皮爾斯 (Edward Pierce)',
+    name: '愛德華·皮爾斯',
     occupation: '私家偵探',
     title: '波士頓老兵 / 私家偵探',
     quote: '「點38轉輪手槍與頑固的直覺，是我在黑暗中僅有的盟友。」',
@@ -328,7 +328,7 @@ export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinit
   },
   occultist: {
     id: 'occultist',
-    name: '艾蓮諾·凡斯 (Eleanor Vance)',
+    name: '艾蓮諾·凡斯',
     occupation: '秘術學者',
     title: '密斯卡託尼克大學古典學家',
     quote: '「深淵注視著我，但我亦在典籍的殘章中找到了驅使星辰的密語。」',

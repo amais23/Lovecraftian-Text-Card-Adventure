@@ -810,7 +810,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.phase).toBe('map');
     expect(nextState.map).toBeDefined();
     expect(nextState.map?.layers.length).toBe(6);
-    expect(nextState.investigator.name).toContain('Edward Pierce');
+    expect(nextState.investigator.name).toBe('愛德華·皮爾斯');
     expect(nextState.investigator.occupation).toBe('私家偵探');
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.investigator.obols).toBe(15);
@@ -829,7 +829,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     expect(nextState.phase).toBe('map');
     expect(nextState.map).toBeDefined();
-    expect(nextState.investigator.name).toContain('Eleanor Vance');
+    expect(nextState.investigator.name).toBe('艾蓮諾·凡斯');
     expect(nextState.investigator.occupation).toBe('秘術學者');
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.investigator.obols).toBe(20);
@@ -2454,7 +2454,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       });
 
       expect(nextState.phase).toBe('departure');
-      expect(nextState.investigator.name).toContain('Edward Pierce');
+      expect(nextState.investigator.name).toBe('愛德華·皮爾斯');
       expect(nextState.map).toBeDefined();
       expect(nextState.sanityDeck.length).toBe(10);
       expect(nextState.hand.length).toBe(2);

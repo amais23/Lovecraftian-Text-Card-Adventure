@@ -27,8 +27,8 @@ describe('TitleScreen & TitleMenu Integration', () => {
 
     // Investigator selection cards are NOT visible initially
     expect(screen.queryByText('命運的十字路口 · 選擇你的調查員')).toBeNull();
-    expect(screen.queryByText('愛德華·皮爾斯 (Edward Pierce)')).toBeNull();
-    expect(screen.queryByText('艾蓮諾·凡斯 (Eleanor Vance)')).toBeNull();
+    expect(screen.queryByText('愛德華·皮爾斯')).toBeNull();
+    expect(screen.queryByText('艾蓮諾·凡斯')).toBeNull();
   });
 
   it('dispatches START_NEW_INVESTIGATION on clicking "開啟新調查" to initiate onboarding flow', () => {

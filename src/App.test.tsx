@@ -29,8 +29,8 @@ describe('App Onboarding Flow Integration (Issue #13)', () => {
 
     // Phase 3: Occupation Select Screen
     expect(screen.getByText('命運的十字路口 · 選擇你的調查員')).toBeDefined();
-    expect(screen.getByText('愛德華·皮爾斯 (Edward Pierce)')).toBeDefined();
-    expect(screen.getByText('艾蓮諾·凡斯 (Eleanor Vance)')).toBeDefined();
+    expect(screen.getByText('愛德華·皮爾斯')).toBeDefined();
+    expect(screen.getByText('艾蓮諾·凡斯')).toBeDefined();
 
     // Select Edward Pierce
     const choosePierceBtn = screen.getByRole('button', { name: /啟程調查/i });
