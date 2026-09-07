@@ -939,7 +939,7 @@
 
 /* Madness is completely exempt from tiers */
 .card-item.tier-madness {
-  position: relative;
+  /* Retains raw abyss flicker without tier overlay */
 }
 
 .card-item.playable:hover {

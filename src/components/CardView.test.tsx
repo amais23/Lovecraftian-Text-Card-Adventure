@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { CardView } from './CardView';
 import { ABYSSAL_FRAGMENT_1, COMPLETE_ANCIENT_SEAL } from '../engine/abyssalSeals';
 import type { Card } from '../types/game';
+import combatCss from '../styles/combat.css?raw';
 
 describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
   const mockPlayableCard: Card = {
@@ -179,6 +180,38 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     const cardElement = screen.getByText('精準斬擊').closest('.card-item');
     expect(cardElement?.classList.contains('standalone')).toBe(true);
     expect(cardElement?.querySelector('.card-play-prompt')).toBeNull();
+  });
+
+  it('renders madness cards with tier-madness class and verifies combat.css does not override position to relative', async () => {
+    const mockMadnessCard: Card = {
+      id: 'mock_madness_claw',
+      name: '盲目爪擊',
+      category: 'madness',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: true,
+      effects: [
+        { type: 'damage', value: 10 },
+        { type: 'self_damage', value: 2 },
+      ],
+      description: '造成 10 點物理傷害，自身承受 2 點反噬傷害。',
+      flavorText: '「指甲翻開、血肉模糊，但你已感覺不到痛楚。」',
+    };
+
+    render(
+      <CardView
+        card={mockMadnessCard}
+        currentStamina={2}
+      />
+    );
+
+    const cardElement = screen.getByText('盲目爪擊').closest('.card-item');
+    expect(cardElement?.classList.contains('tier-madness')).toBe(true);
+    expect(cardElement?.classList.contains('madness')).toBe(true);
+
+    // CSS regression guard: .card-item.tier-madness must NOT specify position: relative,
+    // which previously overrode .hand-area .card-item absolute positioning and pushed cards downwards
+    expect(combatCss).not.toMatch(/\.card-item\.tier-madness\s*\{[^}]*position:\s*relative/);
   });
 });
 
