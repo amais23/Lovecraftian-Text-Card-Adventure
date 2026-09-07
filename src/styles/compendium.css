@@ -421,13 +421,6 @@
   mix-blend-mode: normal !important;
 }
 
-.compendium-cards-grid .card-illustration-vignette,
-.detail-modal-left .card-illustration-vignette,
-.card-item.standalone .card-illustration-vignette,
-.compendium-window .card-illustration-vignette {
-  display: none !important;
-}
-
 .detail-style-badge {
   font-size: 0.72rem;
   color: var(--text-dim);

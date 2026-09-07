@@ -742,8 +742,8 @@
   container-type: inline-size;
   container-name: card;
   aspect-ratio: var(--card-aspect-ratio, 3 / 5);
-  height: clamp(290px, 38dvh, 380px);
-  width: calc(clamp(290px, 38dvh, 380px) * var(--card-ratio-multiplier, 3 / 5));
+  height: var(--card-height, clamp(290px, 38dvh, 380px));
+  width: var(--card-width, calc(clamp(290px, 38dvh, 380px) * var(--card-ratio-multiplier, 3 / 5)));
   box-sizing: border-box;
   overflow: hidden;
   border-radius: var(--radius-md);
@@ -767,8 +767,8 @@
   bottom: auto;
   margin-left: 0;
   cursor: pointer;
-  height: clamp(290px, 38dvh, 380px);
-  width: calc(clamp(290px, 38dvh, 380px) * var(--card-ratio-multiplier, 3 / 5));
+  height: var(--card-height, clamp(290px, 38dvh, 380px));
+  width: var(--card-width, calc(clamp(290px, 38dvh, 380px) * var(--card-ratio-multiplier, 3 / 5)));
 }
 
 /* Fan-out Center Anchoring inside Hand Area */
@@ -776,7 +776,7 @@
   position: absolute;
   bottom: 6px;
   left: 50%;
-  margin-left: calc(clamp(290px, 38dvh, 380px) * var(--card-ratio-multiplier, 3 / 5) / -2);
+  margin-left: calc(var(--card-width, calc(clamp(290px, 38dvh, 380px) * var(--card-ratio-multiplier, 3 / 5))) * -0.5);
 }
 
 .card-item.dragging {
@@ -1181,13 +1181,6 @@
   transform: scale(1.06);
 }
 
-.card-illustration-vignette {
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.65);
-  pointer-events: none;
-}
-
 /* Category Frame Borders & Accents */
 .card-illustration-frame.frame-combat {
   border-color: rgba(230, 57, 70, 0.65);
@@ -1292,9 +1285,9 @@
 
 /* Rule Effect Description (ADR-0019: Enlarged Typography & Elongated 5-Line Capacity) */
 .card-effect-desc {
-  font-size: clamp(0.78rem, 7.8cqw, 1.05rem);
+  font-size: clamp(0.82rem, 8.2cqw, 1.12rem);
   color: #f3ecdb;
-  line-height: 1.26;
+  line-height: 1.35;
   padding: clamp(2px, 1.6cqw, 4px) clamp(3px, 2.2cqw, 6px);
   background: rgba(0, 0, 0, 0.55);
   border-radius: var(--radius-sm);
@@ -1315,11 +1308,11 @@
   font-size: clamp(0.62rem, 6.2cqw, 0.76rem);
   color: var(--text-dim);
   font-style: italic;
-  line-height: 1.22;
+  line-height: 1.25;
   text-align: center;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-top: 1px;
@@ -1339,12 +1332,6 @@
 @container card (max-width: 115px) {
   .card-top-row {
     height: 18px;
-  }
-}
-
-@media (max-height: 720px) {
-  .card-flavor {
-    display: none;
   }
 }
 

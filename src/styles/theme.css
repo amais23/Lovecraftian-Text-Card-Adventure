@@ -60,6 +60,8 @@
   /* Card Layout Dimensions (ADR-0019 Gothic Elongated 3:5 Standard) */
   --card-aspect-ratio: 3 / 5;
   --card-ratio-multiplier: calc(3 / 5);
+  --card-height: clamp(290px, 38dvh, 380px);
+  --card-width: calc(var(--card-height) * var(--card-ratio-multiplier));
 }
 
 * {
