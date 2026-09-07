@@ -5,7 +5,12 @@ import { Swords, Shield, Sparkles, Wind, Flame, Eye } from 'lucide-react';
 import { soundEngine } from '../engine/audioManager';
 import type { HandFanOutTransform } from '../engine/handMath';
 import { getCardArtwork } from '../engine/cardArtworks';
-import { isAbyssalFragment, isCompleteAncientSeal } from '../engine/abyssalSeals';
+import {
+  isAbyssalFragment,
+  isAncientSealLocked,
+  isAncientSealUnlocked,
+  type DivineEnemyTarget,
+} from '../engine/abyssalSeals';
 
 interface CategoryMeta {
   label: string;
@@ -58,6 +63,7 @@ export interface CardViewProps {
   onDragStateChange?: (isDragging: boolean) => void;
   isStandalone?: boolean;
   onClick?: () => void;
+  enemy?: DivineEnemyTarget;
   enemyHealth?: number;
   enemyDivineImmortality?: boolean;
 }
@@ -73,19 +79,21 @@ export const CardView: React.FC<CardViewProps> = ({
   onDragStateChange,
   isStandalone = false,
   onClick,
+  enemy,
   enemyHealth,
   enemyDivineImmortality,
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  const isAncientSeal = isCompleteAncientSeal(card);
-  const isSealLocked = Boolean(
-    isAncientSeal && enemyDivineImmortality && enemyHealth !== undefined && enemyHealth > 1
+  const targetEnemy: DivineEnemyTarget | undefined = enemy ?? (
+    enemyHealth !== undefined
+      ? { health: enemyHealth, divineImmortality: enemyDivineImmortality }
+      : undefined
   );
-  const isSealUnlocked = Boolean(
-    isAncientSeal && enemyDivineImmortality && enemyHealth !== undefined && enemyHealth <= 1
-  );
+
+  const isSealLocked = isAncientSealLocked(card, targetEnemy);
+  const isSealUnlocked = isAncientSealUnlocked(card, targetEnemy);
 
   const isPlayable =
     !disabled &&

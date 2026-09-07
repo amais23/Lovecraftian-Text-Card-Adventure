@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import type { GameAction, GameState } from '../types/game';
 import { EnemyView } from './EnemyView';
 import { BattleLog } from './BattleLog';
@@ -9,7 +10,7 @@ import { calculateCardFanOut } from '../engine/handMath';
 import { soundEngine } from '../engine/audioManager';
 import { Trophy, Coins, Compass, Sparkles } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
-import { isCompleteAncientSeal } from '../engine/abyssalSeals';
+import { isAncientSealUnlocked } from '../engine/abyssalSeals';
 
 interface CombatScreenProps {
   state: GameState;
@@ -18,6 +19,7 @@ interface CombatScreenProps {
 
 export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) => {
   const [isDraggingCard, setIsDraggingCard] = useState<boolean>(false);
+  const [isBanishmentVfxActive, setIsBanishmentVfxActive] = useState<boolean>(false);
   const isCombatEnded = state.phase !== 'combat';
 
   const prevPlayerHealthRef = useRef(state.investigator.health);
@@ -57,13 +59,12 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
 
   const handlePlayCard = (cardId: string) => {
     const playedCard = state.hand.find((c) => c.id === cardId);
-    if (
-      playedCard &&
-      isCompleteAncientSeal(playedCard) &&
-      state.currentEnemy.divineImmortality &&
-      state.currentEnemy.health <= 1
-    ) {
+    if (playedCard && isAncientSealUnlocked(playedCard, state.currentEnemy)) {
       soundEngine.playCosmicBanishment();
+      setIsBanishmentVfxActive(true);
+      setTimeout(() => {
+        setIsBanishmentVfxActive(false);
+      }, 2200);
     }
     dispatch({ type: 'PLAY_CARD', payload: { cardId } });
   };
@@ -164,6 +165,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 disabled={isCombatEnded}
                 fanTransform={fan}
                 onDragStateChange={setIsDraggingCard}
+                enemy={state.currentEnemy}
                 enemyHealth={state.currentEnemy.health}
                 enemyDivineImmortality={state.currentEnemy.divineImmortality}
               />
@@ -200,8 +202,35 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         </div>
       )}
 
+      {/* Cosmic Banishment Fatal Strike VFX Overlay */}
+      {isBanishmentVfxActive && (
+        <motion.div
+          className="cosmic-banishment-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setIsBanishmentVfxActive(false)}
+        >
+          <div className="cosmic-rift-beam" />
+          <div className="cosmic-shatter-burst" />
+          <motion.div
+            className="cosmic-seal-sigil-container"
+            initial={{ scale: 0.5, rotate: -30, opacity: 0 }}
+            animate={{ scale: [0.5, 1.2, 1], rotate: [-30, 10, 0], opacity: 1 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+          >
+            <Sparkles size={80} color="#ffd700" className="cosmic-sigil-icon" />
+            <h2 className="cosmic-banishment-title">【太古星辰封滅 · 舊神放逐】</h2>
+            <p className="cosmic-banishment-desc">
+              崇高熾白的星穹真理光芒撕裂深淵，克蘇魯星之眷族崩解湮滅……
+            </p>
+            <span className="cosmic-banishment-skip">點擊任意處揭開《阿卡姆早報》真結局</span>
+          </motion.div>
+        </motion.div>
+      )}
+
       {/* True Ending Gazette Sequence directly on Cosmic Banishment */}
-      {state.phase === 'victory' && state.isTrueEnding && (
+      {state.phase === 'victory' && state.isTrueEnding && !isBanishmentVfxActive && (
         <ArkhamGazette
           endingType="true_ending"
           state={state}

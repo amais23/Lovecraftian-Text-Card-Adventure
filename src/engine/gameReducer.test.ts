@@ -3173,7 +3173,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       flavorText: '「全力一擊。」',
     };
 
-    it('locks enemy health at minimum 1 HP against normal card attacks when enemy has divineImmortality', () => {
+    it('locks enemy health at minimum 1 health against normal card attacks when enemy has divineImmortality', () => {
       const divineEnemy: Enemy = {
         ...INITIAL_STAR_SPAWN,
         health: 50,
@@ -3244,7 +3244,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(afterPlay.battleLog[0]).toContain('生命值尚未削弱至 1 點極限');
     });
 
-    it('executes divine boss to 0 HP, wins combat, and sets isTrueEnding = true when playing COMPLETE_ANCIENT_SEAL at 1 HP', () => {
+    it('executes divine boss to 0 health, wins combat, and sets isTrueEnding = true when playing COMPLETE_ANCIENT_SEAL at 1 health', () => {
       const divineEnemy: Enemy = {
         ...INITIAL_STAR_SPAWN,
         health: 1,

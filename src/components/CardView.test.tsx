@@ -122,5 +122,21 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     fireEvent.click(cardElement!);
     expect(onPlay).toHaveBeenCalledWith(COMPLETE_ANCIENT_SEAL.id);
   });
+
+  it('supports passing enemy object directly instead of separate health/divine props', () => {
+    const onPlay = vi.fn();
+    render(
+      <CardView
+        card={COMPLETE_ANCIENT_SEAL}
+        currentStamina={5}
+        enemy={{ health: 1, divineImmortality: true }}
+        onPlay={onPlay}
+      />
+    );
+
+    const cardElement = screen.getByText(COMPLETE_ANCIENT_SEAL.name).closest('.card-item');
+    expect(cardElement?.classList.contains('ancient-seal-unlocked')).toBe(true);
+    expect(screen.getByText('終極斬殺')).toBeDefined();
+  });
 });
 

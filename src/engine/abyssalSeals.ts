@@ -146,6 +146,35 @@ export function isCompleteAncientSeal(card: Card | { name?: string; id?: string 
   return false;
 }
 
+export interface DivineEnemyTarget {
+  health: number;
+  divineImmortality?: boolean;
+}
+
+/**
+ * 判斷「完整的深淵古印」是否處於神性威壓封印中無法打出（首領生命值 > 1 點）
+ */
+export function isAncientSealLocked(
+  card: Card | { name?: string; id?: string },
+  enemy?: DivineEnemyTarget
+): boolean {
+  if (!isCompleteAncientSeal(card)) return false;
+  if (!enemy || !enemy.divineImmortality) return false;
+  return enemy.health > 1;
+}
+
+/**
+ * 判斷「完整的深淵古印」是否已破除神性封印、可引發終極處決（首領生命值 <= 1 點）
+ */
+export function isAncientSealUnlocked(
+  card: Card | { name?: string; id?: string },
+  enemy?: DivineEnemyTarget
+): boolean {
+  if (!isCompleteAncientSeal(card)) return false;
+  if (!enemy || !enemy.divineImmortality) return false;
+  return enemy.health <= 1;
+}
+
 export function hasCompleteAncientSeal(
   cardsOrState: Card[] | GameState
 ): boolean {

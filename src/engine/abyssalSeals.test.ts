@@ -10,6 +10,8 @@ import {
   hasBothAbyssalFragments,
   hasCompleteAncientSeal,
   isCompleteAncientSeal,
+  isAncientSealLocked,
+  isAncientSealUnlocked,
   fuseAbyssalFragments,
 } from './abyssalSeals';
 import type { Card } from '../types/game';
@@ -162,5 +164,76 @@ describe('Abyssal Seals Module (Issue #21 / ADR-0015)', () => {
       flavorText: '',
     };
     expect(isCompleteAncientSeal(normalCard)).toBe(false);
+  });
+
+  it('evaluates isAncientSealLocked correctly for divine enemy based on health', () => {
+    // Sealed when enemy has divineImmortality and health > 1
+    expect(
+      isAncientSealLocked(COMPLETE_ANCIENT_SEAL, { health: 100, divineImmortality: true })
+    ).toBe(true);
+    expect(
+      isAncientSealLocked(COMPLETE_ANCIENT_SEAL, { health: 2, divineImmortality: true })
+    ).toBe(true);
+
+    // Not locked when health <= 1
+    expect(
+      isAncientSealLocked(COMPLETE_ANCIENT_SEAL, { health: 1, divineImmortality: true })
+    ).toBe(false);
+    expect(
+      isAncientSealLocked(COMPLETE_ANCIENT_SEAL, { health: 0, divineImmortality: true })
+    ).toBe(false);
+
+    // Not locked for non-divine enemies
+    expect(
+      isAncientSealLocked(COMPLETE_ANCIENT_SEAL, { health: 50, divineImmortality: false })
+    ).toBe(false);
+
+    // Not locked for normal cards
+    const normalCard: Card = {
+      id: 'mock_card',
+      name: '一般攻擊',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+    expect(isAncientSealLocked(normalCard, { health: 50, divineImmortality: true })).toBe(false);
+  });
+
+  it('evaluates isAncientSealUnlocked correctly when divine enemy health is 1 or below', () => {
+    // Unlocked when enemy has divineImmortality and health <= 1
+    expect(
+      isAncientSealUnlocked(COMPLETE_ANCIENT_SEAL, { health: 1, divineImmortality: true })
+    ).toBe(true);
+    expect(
+      isAncientSealUnlocked(COMPLETE_ANCIENT_SEAL, { health: 0, divineImmortality: true })
+    ).toBe(true);
+
+    // Locked when health > 1
+    expect(
+      isAncientSealUnlocked(COMPLETE_ANCIENT_SEAL, { health: 2, divineImmortality: true })
+    ).toBe(false);
+
+    // Not unlocked for non-divine enemies
+    expect(
+      isAncientSealUnlocked(COMPLETE_ANCIENT_SEAL, { health: 1, divineImmortality: false })
+    ).toBe(false);
+
+    // Not unlocked for normal cards
+    const normalCard: Card = {
+      id: 'mock_card',
+      name: '一般攻擊',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+    expect(isAncientSealUnlocked(normalCard, { health: 1, divineImmortality: true })).toBe(false);
   });
 });

@@ -36,12 +36,13 @@ import {
   ABYSSAL_FRAGMENT_1,
   ABYSSAL_FRAGMENT_2,
   ABYSSAL_FRAGMENT_3,
-  COMPLETE_ANCIENT_SEAL,
   hasBothAbyssalFragments,
   fuseAbyssalFragments,
   getAllPermanentCards,
   isAbyssalFragment,
   isCompleteAncientSeal,
+  isAncientSealLocked,
+  isAncientSealUnlocked,
 } from './abyssalSeals';
 
 export const BASELINE_HAND_SIZE = 4;
@@ -85,9 +86,7 @@ export function setupCombatDeck(
   const shuffledDeck = fisherYatesShuffle(pool);
 
   // ADR-0015: 固有抽牌 - 身為真相卡的「完整的深淵古印」必定為第一張起手手牌
-  const sealIdx = shuffledDeck.findIndex(
-    (c) => c.name === COMPLETE_ANCIENT_SEAL.name || c.id === COMPLETE_ANCIENT_SEAL.id
-  );
+  const sealIdx = shuffledDeck.findIndex(isCompleteAncientSeal);
   if (sealIdx > 0) {
     const [sealCard] = shuffledDeck.splice(sealIdx, 1);
     shuffledDeck.unshift(sealCard);
@@ -762,8 +761,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const isBossFight = currentNode?.type === 'boss';
       const isElite = currentNode?.type === 'elite';
 
-
-
       // ADR-0015: 第三深度首領戰勝分歧
       if (isBossFight && currentDepth === 3) {
         if (!hasBothAbyssalFragments(state)) {
@@ -1132,7 +1129,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // Guard COMPLETE_ANCIENT_SEAL when enemy has divine immortality and health > 1
-      if (isAncientSeal && isDivineEnemy && state.currentEnemy.health > 1) {
+      if (isAncientSealLocked(card, state.currentEnemy)) {
         return {
           ...state,
           battleLog: [
@@ -1180,8 +1177,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let investigatorArmor = state.investigator.armor;
       const newLogs: string[] = [];
 
-      // Divine Execution: Ancient Seal strikes enemy with divine immortality at 1 HP
-      if (isAncientSeal && isDivineEnemy && state.currentEnemy.health <= 1) {
+      // Divine Execution: Ancient Seal strikes enemy with divine immortality at 1 health
+      if (isAncientSealUnlocked(card, state.currentEnemy)) {
         enemyHealth = 0;
         enemyArmor = 0;
         newLogs.push(
@@ -1193,19 +1190,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       for (const effect of card.effects) {
         if (effect.type === 'damage') {
           const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, effect.value);
-          if (isDivineEnemy && !isAncientSeal) {
+          if (isDivineEnemy && !isAncientSeal && dmg.newHealth < 1) {
             // Divine Immortality locks health at minimum 1
-            if (dmg.newHealth < 1) {
-              enemyHealth = 1;
-              enemyArmor = dmg.newArmor;
-              newLogs.push(
-                `調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成打擊！但【神性不朽】抵禦了致命傷，生命值被鎖定在 1 點！唯有【完整的深淵古印】方能將其終極封滅！`
-              );
-            } else {
-              enemyHealth = dmg.newHealth;
-              enemyArmor = dmg.newArmor;
-              newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點傷害！`);
-            }
+            enemyHealth = 1;
+            enemyArmor = dmg.newArmor;
+            newLogs.push(
+              `調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成打擊！但【神性不朽】抵禦了致命傷，生命值被鎖定在 1 點！唯有【完整的深淵古印】方能將其終極封滅！`
+            );
           } else {
             enemyHealth = dmg.newHealth;
             enemyArmor = dmg.newArmor;

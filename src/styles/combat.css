@@ -3019,3 +3019,145 @@
   right: 0;
   top: 0;
 }
+
+/* ==========================================================================
+   Cosmic Banishment Fatal Strike VFX Overlay (Issue #22 & ADR-0015)
+   ========================================================================== */
+.cosmic-banishment-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: radial-gradient(circle at 50% 50%, rgba(10, 15, 30, 0.96) 0%, rgba(2, 4, 10, 0.99) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cosmic-rift-beam {
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  width: 140px;
+  height: 200%;
+  transform: translateX(-50%) rotate(18deg);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 235, 150, 0.25) 20%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 215, 0, 0.8) 80%,
+    transparent 100%
+  );
+  filter: blur(12px);
+  animation: cosmic-beam-pulse 1.6s infinite ease-in-out alternate;
+  pointer-events: none;
+}
+
+@keyframes cosmic-beam-pulse {
+  0% {
+    opacity: 0.6;
+    transform: translateX(-50%) rotate(15deg) scaleX(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) rotate(22deg) scaleX(1.3);
+  }
+}
+
+.cosmic-shatter-burst {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 240, 180, 0.4) 0%,
+    rgba(255, 215, 0, 0.25) 40%,
+    rgba(147, 51, 234, 0.2) 65%,
+    transparent 75%
+  );
+  filter: blur(25px);
+  animation: cosmic-burst-expand 2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes cosmic-burst-expand {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0.1;
+  }
+}
+
+.cosmic-seal-sigil-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px;
+  max-width: 640px;
+}
+
+.cosmic-sigil-icon {
+  filter: drop-shadow(0 0 25px #ffd700) drop-shadow(0 0 50px rgba(255, 215, 0, 0.8));
+  animation: sigil-spin-glow 3s infinite ease-in-out alternate;
+  margin-bottom: 20px;
+}
+
+@keyframes sigil-spin-glow {
+  0% {
+    transform: rotate(-10deg) scale(1);
+    filter: drop-shadow(0 0 20px #ffd700);
+  }
+  100% {
+    transform: rotate(10deg) scale(1.12);
+    filter: drop-shadow(0 0 45px #fff) drop-shadow(0 0 70px #ffd700);
+  }
+}
+
+.cosmic-banishment-title {
+  font-family: var(--font-title, 'Cinzel', serif);
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #fff9e6;
+  text-shadow:
+    0 0 15px rgba(255, 215, 0, 0.9),
+    0 0 35px rgba(255, 215, 0, 0.7),
+    0 0 60px rgba(184, 134, 11, 0.9);
+  margin-bottom: 14px;
+}
+
+.cosmic-banishment-desc {
+  font-family: var(--font-serif, 'Noto Serif TC', serif);
+  font-size: 1.05rem;
+  color: #e2d9c8;
+  line-height: 1.65;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  margin-bottom: 24px;
+}
+
+.cosmic-banishment-skip {
+  font-size: 0.82rem;
+  letter-spacing: 1.5px;
+  color: rgba(255, 215, 0, 0.75);
+  animation: cosmic-skip-blink 1.4s infinite ease-in-out;
+}
+
+@keyframes cosmic-skip-blink {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.95; }
+}
