@@ -274,7 +274,6 @@ export const CardView: React.FC<CardViewProps> = ({
           className="card-illustration-img"
           loading="lazy"
         />
-        {!isStandalone && <div className="card-illustration-vignette" />}
       </div>
 
       {/* Title Banner */}
