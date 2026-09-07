@@ -20,6 +20,29 @@
   overflow: hidden;
 }
 
+/* Background Image Layer (ADR-0020) */
+.title-screen-bg-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/backgrounds/bg_title_menu.webp');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(1.02);
+  transition: transform 12s ease-out;
+}
+
+/* Deep Cinematic Blend & Dark Vignette (ADR-0020) */
+.title-screen-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(8, 11, 18, 0.65) 0%, rgba(3, 5, 8, 0.88) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
 .title-menu-card {
   position: relative;
   z-index: 10;

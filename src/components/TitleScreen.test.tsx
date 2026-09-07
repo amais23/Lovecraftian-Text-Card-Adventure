@@ -205,4 +205,10 @@ describe('TitleScreen & TitleMenu Integration', () => {
     fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
     expect(screen.queryByRole('heading', { name: '調查紀錄手冊' })).toBeNull();
   });
+
+  it('renders the cinematic title screen background layer (ADR-0020)', () => {
+    render(<TitleScreen dispatch={mockDispatch} />);
+    const bgImage = screen.getByTestId('title-screen-bg-image');
+    expect(bgImage).toBeDefined();
+  });
 });

@@ -33,7 +33,9 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
 
   return (
     <div className="title-menu-wrapper">
-      {/* Background Ambience Layers */}
+      {/* Background Ambience Layers (ADR-0020) */}
+      <div className="title-screen-bg-image" data-testid="title-screen-bg-image" />
+      <div className="title-screen-bg-overlay" />
       <div className="vignette-overlay" />
       <div className="fog-layer" />
       <div className="cosmic-particles-bg" />
