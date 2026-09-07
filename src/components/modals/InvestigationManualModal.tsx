@@ -32,15 +32,15 @@ const MANUAL_SECTIONS: ManualSection[] = [
   },
   {
     key: 'resources',
-    title: '精力與護甲',
+    title: '精力、護甲與遺物',
     icon: <Shield size={20} color="#68b2e3" />,
-    subtitle: '行動資源與累積防線',
+    subtitle: '行動資源、防線與被動珍寶',
   },
   {
     key: 'retention',
-    title: '手牌保留機制',
+    title: '手牌保留與超額棄牌',
     icon: <Award size={20} color="#cfa866" />,
-    subtitle: '戰術手牌不強制棄置',
+    subtitle: '抽2留2與自主超額棄牌',
   },
   {
     key: 'madness',
@@ -52,7 +52,7 @@ const MANUAL_SECTIONS: ManualSection[] = [
     key: 'map',
     title: '調查地圖與探索',
     icon: <Map size={20} color="#2a9d8f" />,
-    subtitle: '節點分支與凡人肉魄',
+    subtitle: '多分支節點與深淵封印',
   },
 ];
 
@@ -139,13 +139,13 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
                   </p>
                   <ul className="article-bullet-list">
                     <li>
-                      <strong>理智消耗與侵蝕</strong>：每抽取一張卡牌，或是打出紫色魔法卡、遭受敵人的精神侵蝕恐懼攻擊時，都會自牌庫頂棄置卡牌，使理智存量直接降低。
+                      <strong>理智消耗與侵蝕</strong>：每抽取一張卡牌，或是打出紫色魔法卡、遭受敵人的精神恐懼與侵蝕攻擊時，都會自牌庫頂棄置卡牌，使理智存量直接降低。
                     </li>
                     <li>
-                      <strong>不自動洗牌機制</strong>：抽牌庫抽空時<strong>不會自動洗牌</strong>。若任由思維被抽乾，心智將瞬間滑入無底深淵。
+                      <strong>不自動洗牌機制</strong>：抽牌庫抽空時<strong>不會自動洗牌</strong>。若任由思維被抽乾，心智將瞬間滑入瘋狂極限狀態。
                     </li>
                     <li>
-                      <strong>心智重整洗牌</strong>：玩家必須主動打出具備鎮定效果的黃色技能卡（如「深呼吸」或「醫療鎮定劑」），將棄牌堆中的卡牌洗回牌庫以回補理智。
+                      <strong>心智重整洗牌</strong>：調查員可主動打出具備鎮定效果的黃色技能卡（如「深呼吸」或「醫療鎮定劑」），將棄牌堆中的卡牌洗回牌庫以回補理智存量。
                     </li>
                     <li>
                       <strong>戰後理智歸位</strong>：每場戰鬥勝利後，所有一般卡完整洗回理智牌庫，理智自動重置回牌組全額狀態。
@@ -190,7 +190,7 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
                         <h4>紫色魔法卡</h4>
                       </div>
                       <p>
-                        直接自理智牌庫頂端棄牌（消耗理智）施展的強大舊日秘術與超自然咒語。威力駭人，但頻繁施展將使心智迅速逼近瘋狂邊緣。
+                        直接自理智牌庫頂端棄牌（消耗理智）施展的強大舊日秘術與超自然咒語。威力駭人且不消耗精力，但頻繁施展將使心智迅速逼近瘋狂邊緣。
                       </p>
                     </div>
 
@@ -210,7 +210,7 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
                         <h4>黑色瘋狂卡</h4>
                       </div>
                       <p>
-                        平時伴隨負面減益；在理智歸零（觸發瘋狂狀態）時，所有抽取卡牌皆化身為毀滅性威力但伴隨肉體反噬傷害的臨時黑色瘋狂卡。
+                        不設階級之分的深淵卡牌。平時作為心智受創的負面減益牌；在理智歸零（瘋狂極限狀態）時，所有抽取卡牌皆化身為毀滅性威力但伴隨肉體反噬傷害的臨時黑色瘋狂卡。
                       </p>
                     </div>
                   </div>
@@ -221,9 +221,9 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
             {activeKey === 'resources' && (
               <article className="manual-article">
                 <header className="article-header">
-                  <span className="article-tag resources">防守與節奏</span>
-                  <h3 className="article-title">精力點數與護甲值</h3>
-                  <p className="article-meta">凡人行動節奏與物理生存防禦</p>
+                  <span className="article-tag resources">防守、節奏與珍寶</span>
+                  <h3 className="article-title">精力、護甲與舊日遺物</h3>
+                  <p className="article-meta">凡人行動節奏、防禦防線與冒險珍寶</p>
                 </header>
                 <div className="article-body">
                   <ul className="article-bullet-list">
@@ -237,7 +237,10 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
                       <strong>傷害抵扣優先級</strong>：當遭受敵人的物理打擊時，護甲值優先替肉體生命值承受傷害，直至護甲耗盡才扣除生命。
                     </li>
                     <li>
-                      <strong>古金幣</strong>：在冒險、事件與戰鬥獲勝時獲得的神祕金幣，可用於在黑市購買稀有卡牌與急救用品。
+                      <strong>古金幣</strong>：在冒險、事件抉擇與戰鬥獲勝時獲得的神祕貨幣，可用於在黑市購買稀有卡牌與急救用品。
+                    </li>
+                    <li>
+                      <strong>舊日遺物</strong>：於黑市採購、擊敗精英、探索密閣或奇遇獲取的神秘寶物。放置於行囊中跨戰鬥永久生效，提供屬性修正或特殊被動機制。
                     </li>
                   </ul>
                 </div>
@@ -248,22 +251,25 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
               <article className="manual-article">
                 <header className="article-header">
                   <span className="article-tag retention">戰術掌控</span>
-                  <h3 className="article-title">手牌保留機制</h3>
-                  <p className="article-meta">未打出的關鍵卡牌完整留存</p>
+                  <h3 className="article-title">手牌保留與超額棄牌</h3>
+                  <p className="article-meta">開局抽2留2與回合結束自主棄牌</p>
                 </header>
                 <div className="article-body">
                   <p>
-                    傳統卡牌遊戲常在回合結束時強制清空手牌，而在《克蘇魯文字卡牌冒險》中：
+                    傳統卡牌遊戲常在回合結束時強制清空所有手牌，而在《克蘇魯文字卡牌冒險》中：
                   </p>
                   <ul className="article-bullet-list">
                     <li>
-                      <strong>不強制棄牌</strong>：回合結束時，手中尚未打出的手牌<strong>予以完整保留</strong>在手中。
+                      <strong>起始抽牌與保留基準</strong>：開局抽牌數與手牌保留數基準皆為 <strong>2 張</strong>（非固定抽至手牌上限）。此數值可因特殊節點或舊日遺物增減。
                     </li>
                     <li>
-                      <strong>補抽至基準張數</strong>：新回合開始時，系統僅會從理智牌庫補抽卡牌至手牌基準張數（預設補至 4 張）。
+                      <strong>回合固定補牌</strong>：新回合開始時，系統固定從理智牌庫抽取等同於當前抽牌數的卡牌（預設 2 張），未打出的手牌在保留數額度內予以留存。
                     </li>
                     <li>
-                      <strong>蓄牌與時機</strong>：這允許調查員提前囤積高傷戰術卡或緊急鎮定劑，在敵人預告強力攻勢時打出關鍵連擊。
+                      <strong>超額手牌棄牌階段</strong>：回合結束時，若手中剩餘手牌數量超過當前手牌保留數，將強制觸發<strong>「棄牌階段」</strong>，由調查員自主抉擇棄置多餘卡牌，直至手牌數量符合保留上限。
+                    </li>
+                    <li>
+                      <strong>蓄牌與戰術抉擇</strong>：這允許調查員提前囤積關鍵戰術牌或救命鎮定劑，但也考驗每回合的打牌節奏，避免被迫在回合末割捨強力資源。
                     </li>
                   </ul>
                 </div>
@@ -286,10 +292,10 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
                       <strong>狂暴黑卡生成</strong>：處於瘋狂狀態時，每次抽牌都會動態生成具有毀滅性殺傷力的臨時黑色瘋狂卡（如盲目爪擊、深淵狂嘯、狂亂血刃）。
                     </li>
                     <li>
-                      <strong>肉體致命反噬</strong>：打出這些黑色瘋狂卡雖能造成遠超凡人極限的高額傷害，但每次打出都會直接扣除調查員寶貴的肉體生命值。
+                      <strong>肉體致命反噬</strong>：黑色瘋狂卡不消耗精力或理智，但每次打出都會直接扣除調查員寶貴的肉體生命值。
                     </li>
                     <li>
-                      <strong>解除狂亂</strong>：打出白色真相卡（向牌庫注入新卡牌），使理智牌庫數量大於 0 時，瘋狂狀態立即解除。
+                      <strong>解除狂亂</strong>：打出白色真相卡（向牌庫注入新卡牌），使理智牌庫數量重新大於 0 時，瘋狂狀態立即解除。
                     </li>
                     <li>
                       <strong>狂戰到底</strong>：若無法回補牌庫，調查員可持續保持狂暴對攻，直至徹底撕碎眼前的怪物或肉體生命歸零。
@@ -303,22 +309,29 @@ export const InvestigationManualModal: React.FC<InvestigationManualModalProps> =
               <article className="manual-article">
                 <header className="article-header">
                   <span className="article-tag map">長途涉險</span>
-                  <h3 className="article-title">調查地圖與探索</h3>
-                  <p className="article-meta">多分支節點與不可逆的凡人傷痕</p>
+                  <h3 className="article-title">調查地圖與深淵探索</h3>
+                  <p className="article-meta">多分支探索節點、首領復甦與第四深度</p>
                 </header>
                 <div className="article-body">
                   <ul className="article-bullet-list">
                     <li>
-                      <strong>肉體傷勢不自動恢復</strong>：調查員初始具備 25 點凡人生命值。戰鬥勝利後<strong>肉體傷勢不會自動復原</strong>，生命值跨節點累積傳遞。
+                      <strong>凡人肉魄與首領決戰復甦</strong>：調查員初始具備 25 點生命值。常態戰鬥勝利後<strong>肉體傷勢不會自動復原</strong>，生命值跨節點累積傳遞；但當你歷經死鬥<strong>成功擊敗當前深度的守關舊日首領後，身體生命值將全額回滿</strong>，以備迎接下一深度的恐怖。
                     </li>
                     <li>
-                      <strong>避難所</strong>：地圖上的安全節點，可供調查員暫時喘息，選擇包紮傷口或沉思冥想。
+                      <strong>豐富多樣的調查節點</strong>：
+                        <ul className="article-sub-bullet-list" style={{ marginTop: '6px', paddingLeft: '18px', lineHeight: '1.7' }}>
+                          <li><strong>常規遭遇與舊日精英</strong>：直面阿卡姆異教徒與深淵怪物，獲取古金幣、戰利品與卡牌獎勵。</li>
+                          <li><strong>安全避難所</strong>：可進行肉體治療（恢復生命值）或心智冥想（鎮定心智）。</li>
+                          <li><strong>黑市商人</strong>：消耗古金幣購買高階卡牌、強大遺物或醫療用品。</li>
+                          <li><strong>遺物秘閣</strong>：深入密室探尋三選一的珍稀舊日遺物。</li>
+                          <li><strong>血之祭壇</strong>：藉由古老血契儀式，永久燒毀牌組中的 2 張卡牌以精簡牌庫。</li>
+                          <li><strong>禁忌祭壇</strong>：承受肉體或心智代價，換取最大生命值、抽牌手牌數提升等特殊恩賜。</li>
+                          <li><strong>屍骨遺骸</strong>：在前次冒險身亡殉職處悼念前人，繼承前世的卡牌或古金幣。</li>
+                          <li><strong>秘識奇遇</strong>：以文字描述展開的超自然遭遇，依照理智與抉擇獲取線索或承受代價。</li>
+                        </ul>
                     </li>
                     <li>
-                      <strong>秘識奇遇</strong>：遭遇文字描繪的不可名狀超自然事件，依照理智與抉擇獲取線索或承受代價。
-                    </li>
-                    <li>
-                      <strong>黑市</strong>：與暗中商人進行交易，消耗古金幣添購武器、護符或醫療用品。
+                      <strong>深淵封印與第四深度真結局</strong>：在首領戰利品中捨棄常規獎勵以蒐集三枚「深淵封印殘片」，將在第三深度首領戰後共鳴融合為「完整的深淵古印」，開啟通往「第四深度 · 拉萊耶核心」的隱藏通道，迎向弒神的真結局！
                     </li>
                   </ul>
                 </div>

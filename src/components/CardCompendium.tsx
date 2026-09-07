@@ -18,6 +18,14 @@ const CATEGORY_NAMES: Record<CardCategory, string> = {
   madness: '黑色瘋狂卡',
 };
 
+const CATEGORY_ORDER: Record<CardCategory, number> = {
+  combat: 1, // 紅色戰鬥卡
+  skill: 2,  // 黃色技能卡
+  magic: 3,  // 紫色魔法卡
+  truth: 4,  // 白色真相卡
+  madness: 5, // 黑色瘋狂卡
+};
+
 interface CategoryTabConfig {
   category: CardCategory;
   name: string;
@@ -94,10 +102,25 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
     return map;
   }, []);
 
+  // Sort artworks: Category (Red -> Yellow -> Purple -> White -> Black), then Tier (Tier 1 -> 4).
+  // In same tier, stable sort preserves original registration order.
+  const sortedArtworks = useMemo(() => {
+    return ALL_CARD_ARTWORKS.map((art, index) => ({ art, index }))
+      .sort((a, b) => {
+        const catDiff = CATEGORY_ORDER[a.art.category] - CATEGORY_ORDER[b.art.category];
+        if (catDiff !== 0) return catDiff;
+        const tierA = cardMap[a.art.name]?.tier ?? 1;
+        const tierB = cardMap[b.art.name]?.tier ?? 1;
+        if (tierA !== tierB) return tierA - tierB;
+        return a.index - b.index;
+      })
+      .map((item) => item.art);
+  }, [cardMap]);
+
   const filteredArtworks = useMemo(() => {
-    if (selectedCategory === 'all') return ALL_CARD_ARTWORKS;
-    return ALL_CARD_ARTWORKS.filter((art) => art.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return sortedArtworks;
+    return sortedArtworks.filter((art) => art.category === selectedCategory);
+  }, [selectedCategory, sortedArtworks]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<CardCategory, number> = {

@@ -142,7 +142,7 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
 
         {/* Footer info */}
         <footer className="title-menu-footer">
-          <span>v0.1.0 · ARKHAM INVESTIGATION DIVISION</span>
+          <span>v0.2.0 · ARKHAM INVESTIGATION DIVISION</span>
         </footer>
       </main>
     </div>

@@ -64,13 +64,13 @@ describe('TitleScreen & TitleMenu Integration', () => {
     expect(screen.getByRole('heading', { level: 4, name: '白色真相卡' })).toBeDefined();
     expect(screen.getByRole('heading', { level: 4, name: '黑色瘋狂卡' })).toBeDefined();
 
-    // Switch to "精力與護甲" tab
-    fireEvent.click(screen.getByRole('button', { name: /精力與護甲/i }));
+    // Switch to "精力、護甲與遺物" tab
+    fireEvent.click(screen.getByRole('button', { name: /精力、護甲與遺物/i }));
     expect(screen.getByText(/護甲跨回合持續累積/i)).toBeDefined();
 
-    // Switch to "手牌保留機制" tab
-    fireEvent.click(screen.getByRole('button', { name: /手牌保留機制/i }));
-    expect(screen.getByRole('heading', { level: 3, name: '手牌保留機制' })).toBeDefined();
+    // Switch to "手牌保留與超額棄牌" tab
+    fireEvent.click(screen.getByRole('button', { name: /手牌保留與超額棄牌/i }));
+    expect(screen.getByRole('heading', { level: 3, name: '手牌保留與超額棄牌' })).toBeDefined();
 
     // Switch to "瘋狂極限狀態" tab
     fireEvent.click(screen.getByRole('button', { name: /瘋狂極限狀態/i }));

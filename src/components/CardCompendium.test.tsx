@@ -25,6 +25,42 @@ describe('CardCompendium Component', () => {
     expect(container.querySelector('.card-item.playable')).toBeNull();
   });
 
+  it('orders cards by category (Red -> Yellow -> Purple -> White -> Black) and then by Tier', () => {
+    const onClose = vi.fn();
+    const { container } = render(<CardCompendium onClose={onClose} />);
+
+    const cardItems = Array.from(container.querySelectorAll('.compendium-card-wrapper .card-item'));
+    expect(cardItems.length).toBe(52);
+
+    // Extract categories in rendered sequence
+    const categories = cardItems.map((el) => {
+      if (el.classList.contains('combat')) return 'combat';
+      if (el.classList.contains('skill')) return 'skill';
+      if (el.classList.contains('magic')) return 'magic';
+      if (el.classList.contains('truth')) return 'truth';
+      if (el.classList.contains('madness')) return 'madness';
+      return 'unknown';
+    });
+
+    // Verify ordering sequence: all combat come first, then skill, then magic, then truth, then madness
+    const orderRank = { combat: 1, skill: 2, magic: 3, truth: 4, madness: 5 };
+    for (let i = 0; i < categories.length - 1; i++) {
+      const currentRank = orderRank[categories[i] as keyof typeof orderRank];
+      const nextRank = orderRank[categories[i + 1] as keyof typeof orderRank];
+      expect(currentRank).toBeLessThanOrEqual(nextRank);
+    }
+
+    // Verify tier ordering within combat cards
+    const combatCards = cardItems.filter((el) => el.classList.contains('combat'));
+    const combatTiers = combatCards.map((el) => {
+      const match = el.className.match(/tier-(\d+)/);
+      return match ? parseInt(match[1], 10) : 1;
+    });
+    for (let i = 0; i < combatTiers.length - 1; i++) {
+      expect(combatTiers[i]).toBeLessThanOrEqual(combatTiers[i + 1]);
+    }
+  });
+
   it('filters cards when category tabs are clicked', () => {
     const onClose = vi.fn();
     const { container } = render(<CardCompendium onClose={onClose} />);
