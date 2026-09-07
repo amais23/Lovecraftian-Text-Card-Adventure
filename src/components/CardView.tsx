@@ -66,6 +66,9 @@ export interface CardViewProps {
   enemy?: DivineEnemyTarget;
   enemyHealth?: number;
   enemyDivineImmortality?: boolean;
+  isDiscardMode?: boolean;
+  isSelectedForDiscard?: boolean;
+  onToggleDiscard?: (cardId: string) => void;
 }
 
 export const CardView: React.FC<CardViewProps> = ({
@@ -82,6 +85,9 @@ export const CardView: React.FC<CardViewProps> = ({
   enemy,
   enemyHealth,
   enemyDivineImmortality,
+  isDiscardMode = false,
+  isSelectedForDiscard = false,
+  onToggleDiscard,
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -96,6 +102,7 @@ export const CardView: React.FC<CardViewProps> = ({
   const isSealUnlocked = isAncientSealUnlocked(card, targetEnemy);
 
   const isPlayable =
+    !isDiscardMode &&
     !disabled &&
     !isStandalone &&
     !card.isUnplayable &&
@@ -122,9 +129,19 @@ export const CardView: React.FC<CardViewProps> = ({
     : meta.defaultPrompt;
 
   const playablePromptText = isSealUnlocked ? '引動終極封滅！' : meta.playablePrompt;
-  const promptText = isPlayable ? playablePromptText : defaultPrompt;
+  const promptText = isDiscardMode
+    ? isSelectedForDiscard
+      ? '✓ 已選取待棄置'
+      : '點擊選取棄牌'
+    : isPlayable
+    ? playablePromptText
+    : defaultPrompt;
 
-  const tooltip = isSealLocked
+  const tooltip = isDiscardMode
+    ? isSelectedForDiscard
+      ? `【${card.name}】已選取待棄置，再次點擊取消選取`
+      : `點擊選取【${card.name}】以移至棄牌堆`
+    : isSealLocked
     ? `【${card.name}】封印中：舊日神性威壓依然籠罩，須將其生命值削弱至 1 點方可引動！`
     : isSealUnlocked
     ? `【神性破除】點擊或向上拖曳打出【${card.name}】，引發星穹天火終極斬殺！`
@@ -152,14 +169,14 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const handleDragStart = () => {
-    if (isStandalone || card.isUnplayable || isSealLocked) return;
+    if (isDiscardMode || isStandalone || card.isUnplayable || isSealLocked) return;
     setIsDragging(true);
     onDragStateChange?.(true);
     soundEngine.playCardHover();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (isStandalone || card.isUnplayable || isSealLocked) return;
+    if (isDiscardMode || isStandalone || card.isUnplayable || isSealLocked) return;
     setIsDragging(false);
     onDragStateChange?.(false);
     if (info.offset.y < -85 && isPlayable) {
@@ -169,6 +186,11 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const handleClick = () => {
+    if (isDiscardMode) {
+      soundEngine.playClick();
+      onToggleDiscard?.(card.id);
+      return;
+    }
     if (onClick) {
       onClick();
       return;
@@ -197,6 +219,8 @@ export const CardView: React.FC<CardViewProps> = ({
         isStandalone ? 'standalone' : isPlayable ? 'playable' : 'disabled'
       } ${isDragging ? 'dragging' : ''} ${isSealLocked ? 'seal-locked' : ''} ${
         isSealUnlocked ? 'ancient-seal-unlocked' : ''
+      } ${isDiscardMode ? 'discard-mode' : ''} ${
+        isSelectedForDiscard ? 'discard-selected' : ''
       }`}
       initial={isStandalone ? false : { opacity: 0, y: 120, scale: 0.8 }}
       animate={
@@ -229,6 +253,18 @@ export const CardView: React.FC<CardViewProps> = ({
       title={isStandalone ? card.name : tooltip}
       style={style}
     >
+      {/* Active Discard Mode Overlay Badge */}
+      {isDiscardMode && (
+        <div className={`card-discard-overlay ${isSelectedForDiscard ? 'selected' : ''}`}>
+          <div className="card-discard-checkbox">
+            {isSelectedForDiscard ? '✓' : ''}
+          </div>
+          <span className="card-discard-label">
+            {isSelectedForDiscard ? '待棄置' : '點擊棄牌'}
+          </span>
+        </div>
+      )}
+
       {/* Top row: Cost Orb and Category Pill */}
       <div className="card-top-row">
         <div

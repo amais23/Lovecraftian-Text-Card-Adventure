@@ -55,6 +55,7 @@ export interface Investigator {
   maxStamina: number;
   armor: number;
   obols: number;
+  handCapacity?: number; // 可變動手牌容量（開局基準值 2，抽牌數 = 手牌保留數）
 }
 
 export type MapNodeType = 'combat' | 'elite' | 'event' | 'sanctuary' | 'market' | 'boss';
@@ -147,6 +148,10 @@ export interface GameState {
   adventureStats?: AdventureStats;
   abyssalSealFused?: boolean;
   isTrueEnding?: boolean;
+  discardPhase?: {
+    requiredDiscardCount: number;
+    selectedDiscardIds: string[];
+  };
 }
 
 export type GameAction =
@@ -169,4 +174,8 @@ export type GameAction =
   | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[]; investigator?: Investigator } }
   | { type: 'PLAY_CARD'; payload: { cardId: string } }
   | { type: 'END_TURN' }
+  | { type: 'TOGGLE_DISCARD_CARD'; payload: { cardId: string } }
+  | { type: 'CONFIRM_DISCARD'; payload?: { cardIds?: string[] } }
+  | { type: 'CANCEL_DISCARD' }
+  | { type: 'DISCARD_CARDS_TO_LIMIT'; payload: { cardIds: string[] } }
   | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } };

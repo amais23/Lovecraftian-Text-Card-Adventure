@@ -10,6 +10,7 @@ export const INITIAL_INVESTIGATOR: Investigator = {
   maxStamina: 3,
   armor: 0,
   obols: 15,
+  handCapacity: 2,
 };
 
 export const INVESTIGATOR_DECK: Card[] = [
@@ -304,6 +305,7 @@ export interface OccupationDefinition {
     health: number;
     stamina: number;
     obols: number;
+    handCapacity: number;
   };
   deck: Card[];
 }
@@ -320,6 +322,7 @@ export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinit
       health: 25,
       stamina: 3,
       obols: 15,
+      handCapacity: 2,
     },
     deck: INVESTIGATOR_DECK,
   },
@@ -334,6 +337,7 @@ export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinit
       health: 25,
       stamina: 3,
       obols: 20,
+      handCapacity: 2,
     },
     deck: OCCULTIST_DECK,
   },

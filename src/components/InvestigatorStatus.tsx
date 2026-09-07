@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Investigator } from '../types/game';
-import { Heart, Zap, Shield, BookOpen, UserCheck, Flame } from 'lucide-react';
+import { Heart, Zap, Shield, BookOpen, UserCheck, Flame, Layers } from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
 
 interface InvestigatorStatusProps {
@@ -11,6 +11,7 @@ interface InvestigatorStatusProps {
   onEndTurn: () => void;
   isCombatEnded: boolean;
   isMadness?: boolean;
+  isDiscardMode?: boolean;
 }
 
 export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
@@ -21,9 +22,11 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
   onEndTurn,
   isCombatEnded,
   isMadness = false,
+  isDiscardMode = false,
 }) => {
   const { isShaking: isHealthShaking, shakeKey: healthShakeKey } = useTraumaShake(investigator.health);
   const { isShaking: isSanityShaking, shakeKey: sanityShakeKey } = useTraumaShake(sanityCount);
+  const handCapacity = investigator.handCapacity ?? 2;
 
   return (
     <div className="investigator-panel">
@@ -99,17 +102,33 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Hand Capacity */}
+        <div
+          className="resource-badge hand-capacity"
+          title={`手牌容量（每回合固定抽取 ${handCapacity} 張，回合結束保留上限 ${handCapacity} 張）`}
+        >
+          <Layers size={20} className="res-icon" />
+          <div className="res-content">
+            <span className="res-label">手牌容量</span>
+            <span className="res-value">{handCapacity}</span>
+          </div>
+        </div>
       </div>
 
       {/* End Turn Button */}
       <button
         id="end-turn-btn"
-        className="end-turn-btn"
+        className={`end-turn-btn ${isDiscardMode ? 'discarding' : ''}`}
         onClick={onEndTurn}
-        disabled={isCombatEnded}
-        title="結束當前回合，保留手牌並補抽至 4 張，承受敵人反擊"
+        disabled={isCombatEnded || isDiscardMode}
+        title={
+          isDiscardMode
+            ? `正在進行主動棄牌選擇，請挑選多餘手牌確認棄置`
+            : `結束當前回合，保留至多 ${handCapacity} 張手牌並固定抽取新卡牌，承受敵人反擊`
+        }
       >
-        結束回合 · 第 {turn} 回合
+        {isDiscardMode ? '棄牌階段中……' : `結束回合 · 第 ${turn} 回合`}
       </button>
     </div>
   );

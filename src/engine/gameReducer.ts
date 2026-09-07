@@ -45,7 +45,8 @@ import {
   isAncientSealUnlocked,
 } from './abyssalSeals';
 
-export const BASELINE_HAND_SIZE = 4;
+export const DEFAULT_HAND_CAPACITY = 2;
+export const BASELINE_HAND_SIZE = 2;
 
 /**
  * 敵怪物件深拷貝純函式，避免可變狀態污染
@@ -55,11 +56,11 @@ export function cloneEnemy(enemy: Enemy): Enemy {
 }
 
 /**
- * 將完整卡牌清單切分為起始手牌（4張）與理智牌庫（其餘張數）之共用純函式
+ * 將完整卡牌清單切分為起始手牌（預設 2 張）與理智牌庫（其餘張數）之共用純函式
  */
 export function splitDeckToHandAndSanity(
   deck: Card[],
-  handSize: number = BASELINE_HAND_SIZE
+  handSize: number = DEFAULT_HAND_CAPACITY
 ): { hand: Card[]; sanityDeck: Card[] } {
   return {
     hand: deck.slice(0, handSize),
@@ -73,10 +74,11 @@ export function splitDeckToHandAndSanity(
 export function setupCombatDeck(
   cards: Card[],
   occupationId: OccupationId = 'investigator',
-  overrideDeck?: Card[]
+  overrideDeck?: Card[],
+  handCapacity: number = DEFAULT_HAND_CAPACITY
 ): { hand: Card[]; sanityDeck: Card[] } {
   if (overrideDeck && overrideDeck.length > 0) {
-    return splitDeckToHandAndSanity(overrideDeck, BASELINE_HAND_SIZE);
+    return splitDeckToHandAndSanity(overrideDeck, handCapacity);
   }
   const permanentCards = cards.filter((c) => !c.isTemporary);
   const occ = OCCUPATIONS[occupationId] ?? OCCUPATIONS.investigator;
@@ -92,7 +94,7 @@ export function setupCombatDeck(
     shuffledDeck.unshift(sealCard);
   }
 
-  return splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
+  return splitDeckToHandAndSanity(shuffledDeck, handCapacity);
 }
 
 /**
@@ -249,9 +251,10 @@ export function createInitialCombatState(
 ): GameState {
   const occId = customInvestigator?.occupationId ?? 'investigator';
   const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
+  const handCapacity = customInvestigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
   const investigator: Investigator = customInvestigator
-    ? { ...customInvestigator }
-    : { ...INITIAL_INVESTIGATOR };
+    ? { ...customInvestigator, handCapacity }
+    : { ...INITIAL_INVESTIGATOR, handCapacity };
 
   const enemy: Enemy = customEnemy
     ? cloneEnemy(customEnemy)
@@ -261,7 +264,7 @@ export function createInitialCombatState(
     ? [...customDeck]
     : occ.deck.map((c) => ({ ...c }));
 
-  const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
+  const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, handCapacity);
 
   return {
     phase: initialPhase,
@@ -277,6 +280,142 @@ export function createInitialCombatState(
     battleLog: [
       `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
     ],
+  };
+}
+
+/**
+ * 戰鬥回合結束結算純函式：結算敵怪意圖、狂亂狀態、回合計數、精力重置，並依據手牌容量固定抽取卡牌
+ */
+export function resolveTurnEndAndFixedDraw(
+  state: GameState,
+  remainingHand: Card[],
+  initialLogs: string[] = []
+): GameState {
+  const enemy = state.currentEnemy;
+  const intent = enemy.currentIntent;
+  let investigatorHealth = state.investigator.health;
+  let investigatorArmor = state.investigator.armor;
+  let enemyArmor = enemy.armor;
+  let sanityDeck = [...state.sanityDeck];
+  const discardPile = [...state.discardPile];
+  const newLogs: string[] = [...initialLogs];
+
+  // Enemy performs intent action
+  if (intent.type === 'attack') {
+    const dmg = applyDamage({ health: investigatorHealth, armor: investigatorArmor }, intent.value);
+    investigatorHealth = dmg.newHealth;
+    investigatorArmor = dmg.newArmor;
+
+    if (dmg.absorbed > 0) {
+      newLogs.push(`護甲替你抵擋了 ${dmg.absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
+    }
+    if (dmg.effectiveDamage > 0) {
+      newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${dmg.effectiveDamage} 點肉體傷害！`);
+    } else {
+      newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
+    }
+  } else if (intent.type === 'erode') {
+    const erodeCount = Math.min(sanityDeck.length, intent.value);
+    if (erodeCount > 0) {
+      const eroded = sanityDeck.slice(0, erodeCount);
+      sanityDeck = sanityDeck.slice(erodeCount);
+      discardPile.push(...eroded);
+      newLogs.push(`${enemy.name} 施展精神恐懼，侵蝕了你 ${erodeCount} 點理智牌庫！`);
+    } else {
+      newLogs.push(`${enemy.name} 施展精神恐懼，但你的心智已徹底陷入瘋狂崩潰，無更多理智可被侵蝕！`);
+    }
+  }
+
+  // Check GameOver
+  if (investigatorHealth <= 0) {
+    newLogs.unshift(`【調查員殞命】你的視線被血污模糊，氣力散盡倒在血泊中……未知之物將你吞噬。`);
+    return {
+      ...state,
+      phase: 'gameover',
+      discardPhase: undefined,
+      adventureStats: ensureAdventureStats(state),
+      investigator: {
+        ...state.investigator,
+        health: 0,
+        armor: investigatorArmor,
+      },
+      battleLog: [...newLogs, ...state.battleLog],
+    };
+  }
+
+  // Check madness state transition
+  const madnessEval = evaluateMadnessTransition(state.isMadness, sanityDeck.length);
+  let isMadnessNow = madnessEval.isMadness;
+  if (madnessEval.logMessage) {
+    newLogs.push(madnessEval.logMessage);
+  }
+
+  // Advance enemy intent sequence
+  let nextIntentIndex = 0;
+  let nextIntent: EnemyIntent = intent;
+  if (enemy.intentSequence && enemy.intentSequence.length > 0) {
+    nextIntentIndex = ((enemy.currentIntentIndex ?? 0) + 1) % enemy.intentSequence.length;
+    nextIntent = enemy.intentSequence[nextIntentIndex];
+  }
+
+  const nextTurn = state.turn + 1;
+  const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+
+  // Fixed draw of capacity cards
+  let newHand = [...remainingHand];
+  let drawnCardsCount = 0;
+
+  if (isMadnessNow) {
+    // In madness state, drawn cards are transformed into temporary black madness cards!
+    const madnessCards = createMadnessCards(capacity, nextTurn, 0);
+    newHand = [...remainingHand, ...madnessCards];
+    drawnCardsCount = capacity;
+    newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵力量轉化為 ${capacity} 張臨時黑色瘋狂卡！`);
+  } else {
+    const cardsToDraw = Math.min(sanityDeck.length, capacity);
+    const drawnCards = sanityDeck.slice(0, cardsToDraw);
+    sanityDeck = sanityDeck.slice(cardsToDraw);
+    newHand = [...remainingHand, ...drawnCards];
+    drawnCardsCount = cardsToDraw;
+
+    if (cardsToDraw < capacity && sanityDeck.length === 0) {
+      isMadnessNow = true;
+      const deficit = capacity - cardsToDraw;
+      const madnessCards = createMadnessCards(deficit, nextTurn, 0);
+      newHand = [...newHand, ...madnessCards];
+      drawnCardsCount += deficit;
+      newLogs.push(
+        `【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」，手牌缺額立即補入 ${deficit} 張臨時黑色瘋狂卡！`
+      );
+    } else if (sanityDeck.length === 0 && !isMadnessNow) {
+      isMadnessNow = true;
+      newLogs.push(`【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」！`);
+    }
+  }
+
+  newLogs.push(`回合結束。未打出的 ${remainingHand.length} 張手牌予以保留，固定抽取 ${drawnCardsCount} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
+
+  return {
+    ...state,
+    turn: nextTurn,
+    discardPhase: undefined,
+    investigator: {
+      ...state.investigator,
+      health: investigatorHealth,
+      armor: investigatorArmor,
+      stamina: state.investigator.maxStamina,
+    },
+    sanityDeck,
+    hand: newHand,
+    discardPile,
+    isMadness: isMadnessNow,
+    currentEnemy: {
+      ...enemy,
+      armor: enemyArmor,
+      currentIntent: nextIntent,
+      currentIntentIndex: nextIntentIndex,
+    },
+    battleLog: [...newLogs, ...state.battleLog],
   };
 }
 
@@ -331,9 +470,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         maxStamina: occ.stats.stamina,
         armor: 0,
         obols: occ.stats.obols,
+        handCapacity: occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY,
       };
       const allCards = occ.deck.map((c) => ({ ...c }));
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, BASELINE_HAND_SIZE);
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, investigator.handCapacity);
       const enemy = cloneEnemy(INITIAL_GHOUL);
       const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap({ depth: 1 }) : generateInvestigationMap({ depth: 1 }));
       const defaultPhase = state.phase === 'occupation_select' ? 'departure' : 'map';
@@ -410,10 +550,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state.hand,
           ...state.discardPile,
         ];
+        const handCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
         const { hand, sanityDeck } = setupCombatDeck(
           currentCards,
           state.investigator.occupationId ?? 'investigator',
-          action.payload.shuffledDeck
+          action.payload.shuffledDeck,
+          handCapacity
         );
 
         return {
@@ -580,10 +722,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...newHand,
           ...state.discardPile,
         ];
+        const handCapacity = updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
         const { hand, sanityDeck } = setupCombatDeck(
           currentCards,
           state.investigator.occupationId ?? 'investigator',
-          action.payload.shuffledDeck
+          action.payload.shuffledDeck,
+          handCapacity
         );
 
         return {
@@ -770,7 +914,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const resetDeck = action.payload?.shuffledDeck
             ? [...action.payload.shuffledDeck]
             : fisherYatesShuffle(currentPermanentCards);
-          const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
+          const handCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+          const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, handCapacity);
           return {
             ...state,
             phase: 'map',
@@ -882,7 +1027,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ? [...action.payload.shuffledDeck]
         : fisherYatesShuffle(newPermanentDeck);
 
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY);
 
       const newLogs: string[] = [];
       newLogs.push(`戰後重整：所有一般卡洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
@@ -968,7 +1113,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ? [...action.payload.shuffledDeck]
         : fisherYatesShuffle(newPermanentDeck);
 
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY);
       const updatedMap = advanceMapAfterNode(state.map);
 
       const newLogs: string[] = [
@@ -1031,8 +1176,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'START_COMBAT': {
       const occId = action.payload?.investigator?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
       const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
+      const handCapacity = action.payload?.investigator?.handCapacity ?? state.investigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
       const investigator = action.payload?.investigator
-        ? { ...action.payload.investigator }
+        ? { ...action.payload.investigator, handCapacity }
         : {
             name: occ.name,
             occupation: occ.occupation,
@@ -1043,6 +1189,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             maxStamina: occ.stats.stamina,
             armor: 0,
             obols: occ.stats.obols,
+            handCapacity,
           };
       const initialCards = action.payload?.initialCards
         ? [...action.payload.initialCards]
@@ -1058,6 +1205,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'RESET_COMBAT': {
       const occId = action.payload?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
       const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
+      const handCapacity = state.investigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
       const investigator: Investigator = {
         name: occ.name,
         occupation: occ.occupation,
@@ -1068,6 +1216,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         maxStamina: state.investigator?.maxStamina ?? occ.stats.stamina,
         armor: 0,
         obols: state.investigator?.obols ?? occ.stats.obols,
+        handCapacity,
       };
 
       // Gather permanent cards to preserve crafted deck upon retrying
@@ -1080,7 +1229,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const { hand, sanityDeck } = setupCombatDeck(
         currentPermanentCards,
         occ.id,
-        action.payload?.initialCards
+        action.payload?.initialCards,
+        handCapacity
       );
       const candidateEnemy = action.payload?.enemy ?? state.currentEnemy;
       const currentDepth = state.currentDepth ?? 1;
@@ -1105,7 +1255,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'PLAY_CARD': {
-      if (state.phase !== 'combat') return state;
+      if (state.phase !== 'combat' || Boolean(state.discardPhase)) return state;
 
       const cardIndex = state.hand.findIndex((c) => c.id === action.payload.cardId);
       if (cardIndex === -1) return state;
@@ -1321,132 +1471,128 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'END_TURN': {
-      if (state.phase !== 'combat') return state;
+      if (state.phase !== 'combat' || Boolean(state.discardPhase)) return state;
 
-      const enemy = state.currentEnemy;
-      const intent = enemy.currentIntent;
-      let investigatorHealth = state.investigator.health;
-      let investigatorArmor = state.investigator.armor;
-      let sanityDeck = [...state.sanityDeck];
-      const discardPile = [...state.discardPile];
-      const newLogs: string[] = [];
+      const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
 
-      // Enemy performs intent action
-      if (intent.type === 'attack') {
-        const dmg = applyDamage({ health: investigatorHealth, armor: investigatorArmor }, intent.value);
-        investigatorHealth = dmg.newHealth;
-        investigatorArmor = dmg.newArmor;
-
-        if (dmg.absorbed > 0) {
-          newLogs.push(`護甲替你抵擋了 ${dmg.absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
-        }
-        if (dmg.effectiveDamage > 0) {
-          newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${dmg.effectiveDamage} 點肉體傷害！`);
-        } else {
-          newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
-        }
-      } else if (intent.type === 'erode') {
-        const erodeCount = Math.min(sanityDeck.length, intent.value);
-        if (erodeCount > 0) {
-          const eroded = sanityDeck.slice(0, erodeCount);
-          sanityDeck = sanityDeck.slice(erodeCount);
-          discardPile.push(...eroded);
-          newLogs.push(`${enemy.name} 施展精神恐懼，侵蝕了你 ${erodeCount} 點理智牌庫！`);
-        } else {
-          newLogs.push(`${enemy.name} 施展精神恐懼，但你的心智已徹底陷入瘋狂崩潰，無更多理智可被侵蝕！`);
-        }
-      }
-
-      // Check GameOver
-      if (investigatorHealth <= 0) {
-        newLogs.unshift(`【調查員殞命】你的視線被血污模糊，氣力散盡倒在血泊中……未知之物將你吞噬。`);
+      // 若未打出手牌數量大於手牌容量上限，切換至主動棄牌階段
+      if (state.hand.length > capacity) {
+        const requiredDiscardCount = state.hand.length - capacity;
         return {
           ...state,
-          phase: 'gameover',
-          adventureStats: ensureAdventureStats(state),
-          investigator: {
-            ...state.investigator,
-            health: 0,
-            armor: investigatorArmor,
+          discardPhase: {
+            requiredDiscardCount,
+            selectedDiscardIds: [],
           },
-          battleLog: [...newLogs, ...state.battleLog],
+          battleLog: [
+            `【手牌超出容量】未打出手牌（${state.hand.length} 張）超出容量上限（${capacity} 張），請挑選並棄置 ${requiredDiscardCount} 張卡牌。`,
+            ...state.battleLog,
+          ],
         };
       }
 
-      // Check madness state transition
-      // Check madness state transition
-      const madnessEval = evaluateMadnessTransition(state.isMadness, sanityDeck.length);
-      let isMadnessNow = madnessEval.isMadness;
-      if (madnessEval.logMessage) {
-        newLogs.push(madnessEval.logMessage);
-      }
+      // 手牌未超量：全額保留未打出手牌，直接進入敵怪行動並固定抽取 capacity 張卡牌
+      return resolveTurnEndAndFixedDraw(state, state.hand, []);
+    }
 
-      // Advance enemy intent sequence
-      let nextIntentIndex = 0;
-      let nextIntent: EnemyIntent = intent;
-      if (enemy.intentSequence && enemy.intentSequence.length > 0) {
-        nextIntentIndex = ((enemy.currentIntentIndex ?? 0) + 1) % enemy.intentSequence.length;
-        nextIntent = enemy.intentSequence[nextIntentIndex];
-      }
+    case 'TOGGLE_DISCARD_CARD': {
+      if (state.phase !== 'combat' || !state.discardPhase) return state;
+      const { cardId } = action.payload;
+      const { requiredDiscardCount, selectedDiscardIds } = state.discardPhase;
 
-      const nextTurn = state.turn + 1;
+      if (!state.hand.some((c) => c.id === cardId)) return state;
 
-      // Hand retention & refill to BASELINE_HAND_SIZE
-      const currentHand = [...state.hand];
-      const cardsNeeded = Math.max(0, BASELINE_HAND_SIZE - currentHand.length);
-      let newHand = [...currentHand];
-      let drawnCardsCount = 0;
-
-      if (isMadnessNow && cardsNeeded > 0) {
-        // In madness state, drawn cards are transformed into temporary black madness cards!
-        const madnessCards = createMadnessCards(cardsNeeded, nextTurn, 0);
-        newHand = [...currentHand, ...madnessCards];
-        drawnCardsCount = cardsNeeded;
-        newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵力量轉化為 ${cardsNeeded} 張臨時黑色瘋狂卡！`);
-      } else if (cardsNeeded > 0) {
-        const cardsToDraw = Math.min(sanityDeck.length, cardsNeeded);
-        const drawnCards = sanityDeck.slice(0, cardsToDraw);
-        sanityDeck = sanityDeck.slice(cardsToDraw);
-        newHand = [...currentHand, ...drawnCards];
-        drawnCardsCount = cardsToDraw;
-
-        if (cardsToDraw < cardsNeeded && sanityDeck.length === 0) {
-          isMadnessNow = true;
-          const deficit = cardsNeeded - cardsToDraw;
-          const madnessCards = createMadnessCards(deficit, nextTurn, 0);
-          newHand = [...newHand, ...madnessCards];
-          drawnCardsCount += deficit;
-          newLogs.push(
-            `【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」，手牌缺額立即補入 ${deficit} 張臨時黑色瘋狂卡！`
-          );
-        } else if (sanityDeck.length === 0 && !isMadnessNow) {
-          isMadnessNow = true;
-          newLogs.push(`【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」！`);
+      let nextSelected: string[];
+      if (selectedDiscardIds.includes(cardId)) {
+        nextSelected = selectedDiscardIds.filter((id) => id !== cardId);
+      } else {
+        if (selectedDiscardIds.length >= requiredDiscardCount) {
+          return state;
         }
+        nextSelected = [...selectedDiscardIds, cardId];
       }
-
-      newLogs.push(`回合結束。未打出的 ${currentHand.length} 張手牌予以保留，補抽 ${drawnCardsCount} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
 
       return {
         ...state,
-        turn: nextTurn,
-        investigator: {
-          ...state.investigator,
-          health: investigatorHealth,
-          armor: investigatorArmor,
-          stamina: state.investigator.maxStamina,
+        discardPhase: {
+          ...state.discardPhase,
+          selectedDiscardIds: nextSelected,
         },
-        sanityDeck,
-        hand: newHand,
-        discardPile,
-        isMadness: isMadnessNow,
-        currentEnemy: {
-          ...enemy,
-          currentIntent: nextIntent,
-          currentIntentIndex: nextIntentIndex,
-        },
-        battleLog: [...newLogs, ...state.battleLog],
       };
+    }
+
+    case 'CANCEL_DISCARD': {
+      if (state.phase !== 'combat' || !state.discardPhase) return state;
+      return {
+        ...state,
+        discardPhase: undefined,
+        battleLog: [
+          '取消主動棄牌，返回戰鬥出牌階段。',
+          ...state.battleLog,
+        ],
+      };
+    }
+
+    case 'CONFIRM_DISCARD': {
+      if (state.phase !== 'combat' || !state.discardPhase) return state;
+      const cardIdsToDiscard = action.payload?.cardIds ?? state.discardPhase.selectedDiscardIds;
+      const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+      const requiredDiscardCount = state.hand.length - capacity;
+
+      if (cardIdsToDiscard.length !== requiredDiscardCount) {
+        return state;
+      }
+
+      const validDiscardCards = state.hand.filter((c) => cardIdsToDiscard.includes(c.id));
+      if (validDiscardCards.length !== requiredDiscardCount) {
+        return state;
+      }
+
+      const remainingHand = state.hand.filter((c) => !cardIdsToDiscard.includes(c.id));
+      const newDiscardPile = [
+        ...state.discardPile,
+        ...validDiscardCards.filter((c) => !c.isTemporary),
+      ];
+
+      const discardLog = `【主動棄牌】調查員棄置了 ${validDiscardCards.map((c) => `【${c.name}】`).join('、')}。剩餘 ${remainingHand.length} 張手牌予以保留。`;
+
+      return resolveTurnEndAndFixedDraw(
+        { ...state, discardPile: newDiscardPile, discardPhase: undefined },
+        remainingHand,
+        [discardLog]
+      );
+    }
+
+    case 'DISCARD_CARDS_TO_LIMIT': {
+      if (state.phase !== 'combat') return state;
+      const cardIdsToDiscard = action.payload.cardIds;
+      const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+      const requiredDiscardCount = Math.max(0, state.hand.length - capacity);
+
+      if (cardIdsToDiscard.length !== requiredDiscardCount) {
+        return state;
+      }
+
+      const validDiscardCards = state.hand.filter((c) => cardIdsToDiscard.includes(c.id));
+      if (validDiscardCards.length !== requiredDiscardCount) {
+        return state;
+      }
+
+      const remainingHand = state.hand.filter((c) => !cardIdsToDiscard.includes(c.id));
+      const newDiscardPile = [
+        ...state.discardPile,
+        ...validDiscardCards.filter((c) => !c.isTemporary),
+      ];
+
+      const discardLog = requiredDiscardCount > 0
+        ? `【主動棄牌】調查員棄置了 ${validDiscardCards.map((c) => `【${c.name}】`).join('、')}。剩餘 ${remainingHand.length} 張手牌予以保留。`
+        : undefined;
+
+      return resolveTurnEndAndFixedDraw(
+        { ...state, discardPile: newDiscardPile, discardPhase: undefined },
+        remainingHand,
+        discardLog ? [discardLog] : []
+      );
     }
 
     default:

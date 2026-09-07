@@ -68,9 +68,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(initialState.investigator.stamina).toBe(3);
     expect(initialState.investigator.armor).toBe(0);
 
-    // Initial 12 cards: 4 drawn into hand, 8 remaining in sanityDeck (ADR-0007: 10~12 cards)
-    expect(initialState.hand.length).toBe(4);
-    expect(initialState.sanityDeck.length).toBe(8);
+    // Initial 12 cards: 2 drawn into hand (handCapacity), 10 remaining in sanityDeck (ADR-0018)
+    expect(initialState.hand.length).toBe(2);
+    expect(initialState.sanityDeck.length).toBe(10);
     expect(initialState.discardPile.length).toBe(0);
 
     // Enemy
@@ -200,28 +200,28 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.battleLog[0]).toContain('消滅');
   });
 
-  it('preserves unplayed cards (Hand Retention) and refills up to 4 on turn end', () => {
+  it('preserves unplayed cards (Hand Retention) and fixed draws handCapacity on turn end', () => {
     const state = createInitialCombatState();
-    // Play 1 card, leaving 3 in hand
+    // Play 1 card, leaving 1 in hand
     const cardToPlay = state.hand[0];
     const stateAfterPlay = gameReducer(state, {
       type: 'PLAY_CARD',
       payload: { cardId: cardToPlay.id },
     });
-    expect(stateAfterPlay.hand.length).toBe(3);
+    expect(stateAfterPlay.hand.length).toBe(1);
 
     const retainedCardIds = stateAfterPlay.hand.map((c) => c.id);
 
     // End turn
     const stateAfterTurn = gameReducer(stateAfterPlay, { type: 'END_TURN' });
 
-    // The 3 retained cards should still be in hand
+    // The 1 retained card should still be in hand
     retainedCardIds.forEach((id) => {
       expect(stateAfterTurn.hand.some((c) => c.id === id)).toBe(true);
     });
 
-    // Refilled to 4 cards total (3 retained + 1 drawn)
-    expect(stateAfterTurn.hand.length).toBe(4);
+    // Fixed draw of 2 cards (1 retained + 2 drawn = 3 total)
+    expect(stateAfterTurn.hand.length).toBe(3);
 
     // Investigator stamina refreshed to max (3)
     expect(stateAfterTurn.investigator.stamina).toBe(3);
@@ -350,8 +350,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
   });
 
   it('erodes sanity deck directly when enemy executes mental dread erode intent', () => {
-    // Fill hand with 4 cards so that turn end refill does not draw additional cards
-    const initialHand = [createMockCard(), createMockCard(), createMockCard(), createMockCard()];
+    // 2 cards in hand (at handCapacity)
+    const initialHand = [createMockCard(), createMockCard()];
     const initialDeck = [createMockCard(), createMockCard(), createMockCard(), createMockCard(), createMockCard()];
 
     const state: GameState = {
@@ -377,9 +377,10 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     const nextState = gameReducer(state, { type: 'END_TURN' });
 
-    // Direct assertions on deck and discard pile lengths
-    expect(nextState.sanityDeck.length).toBe(3); // 5 - 2 = 3
-    expect(nextState.discardPile.length).toBe(2); // 0 + 2 = 2
+    // Enemy erodes 2 cards (5 - 2 = 3), then fixed draws 2 cards (3 - 2 = 1)
+    expect(nextState.sanityDeck.length).toBe(1);
+    expect(nextState.discardPile.length).toBe(2);
+    expect(nextState.hand.length).toBe(4); // 2 retained + 2 drawn
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.battleLog.some((log) => log.includes('侵蝕了你 2 點理智牌庫'))).toBe(true);
   });
@@ -388,7 +389,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     const state: GameState = {
       ...createInitialCombatState(),
       sanityDeck: [],
-      hand: [createMockCard(), createMockCard(), createMockCard(), createMockCard()],
+      hand: [createMockCard(), createMockCard()],
       currentEnemy: {
         ...INITIAL_GHOUL,
         currentIntent: {
@@ -430,9 +431,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     // No automatic reshuffle: discardPile remains in discardPile, sanityDeck stays 0
     expect(nextState.sanityDeck.length).toBe(0);
     expect(nextState.isMadness).toBe(true);
-    // In madness state, hand refills to 4 using temporary black madness cards
-    expect(nextState.hand.length).toBe(4);
-    expect(nextState.hand.filter((c) => c.category === 'madness').length).toBe(3);
+    // In madness state, fixed draws handCapacity (2) temporary black madness cards (1 retained + 2 madness = 3)
+    expect(nextState.hand.length).toBe(3);
+    expect(nextState.hand.filter((c) => c.category === 'madness').length).toBe(2);
     expect(nextState.discardPile.length).toBe(1);
     expect(nextState.battleLog.some((log) => log.includes('瘋狂'))).toBe(true);
   });
@@ -522,7 +523,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     const state: GameState = {
       ...createInitialCombatState(),
       sanityDeck: [createMockCard()], // 1 card left in sanityDeck
-      hand: [createMockCard(), createMockCard(), createMockCard(), createMockCard()],
+      hand: [createMockCard(), createMockCard()],
       isMadness: false,
       currentEnemy: {
         ...INITIAL_GHOUL,
@@ -562,11 +563,11 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     const nextState = gameReducer(state, { type: 'END_TURN' });
 
-    // Refilled to 4 cards total
-    expect(nextState.hand.length).toBe(4);
-    // 3 new cards must all be temporary black madness cards
+    // Fixed draws handCapacity (2) cards (1 retained + 2 madness = 3)
+    expect(nextState.hand.length).toBe(3);
+    // 2 new cards must all be temporary black madness cards
     const newlyDrawnCards = nextState.hand.filter((c) => c.id !== 'retained_1');
-    expect(newlyDrawnCards.length).toBe(3);
+    expect(newlyDrawnCards.length).toBe(2);
     newlyDrawnCards.forEach((c) => {
       expect(c.category).toBe('madness');
       expect(c.isTemporary).toBe(true);
@@ -727,14 +728,14 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.sanityDeck.length).toBe(0);
     // Madness state entered
     expect(nextState.isMadness).toBe(true);
-    // Hand replenished to baseline 4: 1 kept + 1 normal from deck + 2 temporary black madness cards
-    expect(nextState.hand.length).toBe(4);
+    // Hand replenished with fixed draw 2: 1 kept + 1 normal from deck + 1 temporary black madness card = 3
+    expect(nextState.hand.length).toBe(3);
     expect(nextState.hand[0].id).toBe('kept_card_1');
     expect(nextState.hand[1].id).toBe('last_deck_card');
     const madnessCards = nextState.hand.filter((c) => c.category === 'madness');
-    expect(madnessCards.length).toBe(2);
+    expect(madnessCards.length).toBe(1);
     expect(madnessCards.every((c) => c.isTemporary)).toBe(true);
-    expect(nextState.battleLog.some((log) => log.includes('手牌缺額立即補入 2 張臨時黑色瘋狂卡'))).toBe(true);
+    expect(nextState.battleLog.some((log) => log.includes('手牌缺額立即補入 1 張臨時黑色瘋狂卡'))).toBe(true);
   });
 
   it('allows investigator in madness state to achieve victory by eliminating the enemy', () => {
@@ -795,8 +796,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.investigator.occupation).toBe('私家偵探');
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.investigator.obols).toBe(15);
-    expect(nextState.hand.length).toBe(4);
-    expect(nextState.sanityDeck.length).toBe(8); // 12 total
+    expect(nextState.hand.length).toBe(2);
+    expect(nextState.sanityDeck.length).toBe(10); // 12 total
     expect(nextState.hand.some((c) => c.category === 'combat')).toBe(true);
   });
 
@@ -814,8 +815,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(nextState.investigator.occupation).toBe('秘術學者');
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.investigator.obols).toBe(20);
-    expect(nextState.hand.length).toBe(4);
-    expect(nextState.sanityDeck.length).toBe(8); // 12 total
+    expect(nextState.hand.length).toBe(2);
+    expect(nextState.sanityDeck.length).toBe(10); // 12 total
     // Eleanor's deck contains magic and truth cards
     const allCards = [...nextState.hand, ...nextState.sanityDeck];
     expect(allCards.some((c) => c.category === 'magic')).toBe(true);
@@ -1072,9 +1073,9 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(allNextCards.some((c) => c.id === 'temp_black_card')).toBe(false);
     expect(allNextCards.some((c) => c.name === '雙管獵槍')).toBe(true);
 
-    // 6. Full sanity reset: hand drawn to 4, sanityDeck has remaining 2
-    expect(nextState.hand.length).toBe(4);
-    expect(nextState.sanityDeck.length).toBe(2);
+    // 6. Full sanity reset: hand drawn to 2, sanityDeck has remaining 4
+    expect(nextState.hand.length).toBe(2);
+    expect(nextState.sanityDeck.length).toBe(4);
     expect(nextState.discardPile.length).toBe(0);
     expect(nextState.isMadness).toBe(false);
   });
@@ -1108,8 +1109,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     // Deck count stays exactly 12
     const allCards = [...nextState.hand, ...nextState.sanityDeck];
     expect(allCards.length).toBe(12);
-    expect(nextState.hand.length).toBe(4);
-    expect(nextState.sanityDeck.length).toBe(8);
+    expect(nextState.hand.length).toBe(2);
+    expect(nextState.sanityDeck.length).toBe(10);
     // Persistent health remains 19
     expect(nextState.investigator.health).toBe(19);
     // Obols increased by 15: 20 + 15 = 35
@@ -1300,8 +1301,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
       },
     });
 
-    expect(nextState.hand.map((c) => c.id)).toEqual(['deterministic_E', 'deterministic_D', 'deterministic_C', 'deterministic_B']);
-    expect(nextState.sanityDeck.map((c) => c.id)).toEqual(['deterministic_A']);
+    expect(nextState.hand.map((c) => c.id)).toEqual(['deterministic_E', 'deterministic_D']);
+    expect(nextState.sanityDeck.map((c) => c.id)).toEqual(['deterministic_C', 'deterministic_B', 'deterministic_A']);
   });
 
   it('fisherYatesShuffle uniformly preserves elements and accepts custom random function', () => {
@@ -1441,7 +1442,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     expect(nextState.map?.nodes['node_0_0'].status).toBe('current');
     expect(nextState.currentEnemy.name).toContain('食屍鬼');
     expect(nextState.turn).toBe(1);
-    expect(nextState.hand.length).toBe(4);
+    expect(nextState.hand.length).toBe(2);
     expect(nextState.battleLog[0]).toContain('陰暗小巷');
   });
 
@@ -1942,10 +1943,10 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     expect(combatState.phase).toBe('combat');
-    // Opening hand must have exactly BASELINE_HAND_SIZE (4 cards), NOT 5!
-    expect(combatState.hand.length).toBe(4);
-    // Sanity deck has 13 - 4 = 9 cards
-    expect(combatState.sanityDeck.length).toBe(9);
+    // Opening hand must have exactly handCapacity (2 cards), NOT 5!
+    expect(combatState.hand.length).toBe(2);
+    // Sanity deck has 13 - 2 = 11 cards
+    expect(combatState.sanityDeck.length).toBe(11);
     // Total permanent cards across battle is 13
     const totalBattleCards = [...combatState.hand, ...combatState.sanityDeck];
     expect(totalBattleCards.length).toBe(13);
@@ -2022,9 +2023,9 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         payload: { nodeId: 'node_0_0', shuffledDeck: deterministicDeck },
       });
 
-      // Opening hand should precisely match first 4 cards of deterministicDeck
-      expect(combatState.hand.map((c) => c.id)).toEqual(deterministicDeck.slice(0, 4).map((c) => c.id));
-      expect(combatState.sanityDeck.map((c) => c.id)).toEqual(deterministicDeck.slice(4).map((c) => c.id));
+      // Opening hand should precisely match first 2 cards of deterministicDeck
+      expect(combatState.hand.map((c) => c.id)).toEqual(deterministicDeck.slice(0, 2).map((c) => c.id));
+      expect(combatState.sanityDeck.map((c) => c.id)).toEqual(deterministicDeck.slice(2).map((c) => c.id));
     });
 
     it('deduplicates helper functions: cloneEnemy and setupCombatDeck preserve pure state invariants', () => {
@@ -2034,8 +2035,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
       const cards = INVESTIGATOR_DECK.map((c) => ({ ...c }));
       const { hand, sanityDeck } = setupCombatDeck(cards, 'investigator');
-      expect(hand.length).toBe(4);
-      expect(sanityDeck.length).toBe(cards.length - 4);
+      expect(hand.length).toBe(2);
+      expect(sanityDeck.length).toBe(cards.length - 2);
     });
 
     it('marks map.isCompleted = true upon boss node defeat in CLAIM_CARD_REWARD', () => {
@@ -2437,8 +2438,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(nextState.phase).toBe('departure');
       expect(nextState.investigator.name).toContain('Edward Pierce');
       expect(nextState.map).toBeDefined();
-      expect(nextState.sanityDeck.length).toBe(8);
-      expect(nextState.hand.length).toBe(4);
+      expect(nextState.sanityDeck.length).toBe(10);
+      expect(nextState.hand.length).toBe(2);
     });
 
     it('transitions from departure to map via COMPLETE_DEPARTURE', () => {
@@ -3166,7 +3167,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       ];
 
       const { hand, sanityDeck } = setupCombatDeck(cards, 'investigator');
-      expect(hand).toHaveLength(4);
+      expect(hand).toHaveLength(2);
       expect(hand[0].name).toBe(COMPLETE_ANCIENT_SEAL.name);
       expect(sanityDeck.some((c) => c.name === COMPLETE_ANCIENT_SEAL.name)).toBe(false);
     });

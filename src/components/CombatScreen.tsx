@@ -8,7 +8,7 @@ import { CardView } from './CardView';
 import { AudioToggle } from './AudioToggle';
 import { calculateCardFanOut } from '../engine/handMath';
 import { soundEngine } from '../engine/audioManager';
-import { Trophy, Coins, Compass, Sparkles } from 'lucide-react';
+import { Trophy, Coins, Compass, Sparkles, AlertTriangle, Trash2, X } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
 import { isAncientSealUnlocked } from '../engine/abyssalSeals';
 
@@ -132,13 +132,50 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
 
       {/* Lower Split-Screen: Investigator Dashboard & Hand */}
       <section className="combat-lower-section">
-        {/* Drag & Drop Guidance Bar */}
-        <div className={`drag-drop-target-bar ${isDraggingCard ? 'active' : ''}`}>
-          <div className="drop-target-glow" />
-          <span className="drop-target-label">
-            <Sparkles size={16} /> 點擊或向上拖曳以打出卡牌
-          </span>
-        </div>
+        {/* Discard Phase Bar or Drag Guidance Bar */}
+        {state.discardPhase ? (
+          <div className="discard-phase-bar" id="discard-phase-bar">
+            <div className="discard-phase-info">
+              <AlertTriangle size={18} className="discard-alert-icon" />
+              <div className="discard-phase-text">
+                <span className="discard-phase-heading">【手牌超出容量】</span>
+                <span className="discard-phase-desc">
+                  手牌（{state.hand.length} 張）超出容量上限（{state.investigator.handCapacity ?? 2} 張）。請在下方選取 <strong>{state.discardPhase.requiredDiscardCount}</strong> 張卡牌棄置（已選 {state.discardPhase.selectedDiscardIds.length}/{state.discardPhase.requiredDiscardCount}）。
+                </span>
+              </div>
+            </div>
+            <div className="discard-phase-btns">
+              <button
+                id="confirm-discard-btn"
+                className="discard-action-btn confirm"
+                disabled={state.discardPhase.selectedDiscardIds.length !== state.discardPhase.requiredDiscardCount}
+                onClick={() => {
+                  soundEngine.playClick();
+                  dispatch({ type: 'CONFIRM_DISCARD' });
+                }}
+              >
+                <Trash2 size={15} /> 確認棄牌（{state.discardPhase.selectedDiscardIds.length}/{state.discardPhase.requiredDiscardCount}）
+              </button>
+              <button
+                id="cancel-discard-btn"
+                className="discard-action-btn cancel"
+                onClick={() => {
+                  soundEngine.playClick();
+                  dispatch({ type: 'CANCEL_DISCARD' });
+                }}
+              >
+                <X size={15} /> 取消
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className={`drag-drop-target-bar ${isDraggingCard ? 'active' : ''}`}>
+            <div className="drop-target-glow" />
+            <span className="drop-target-label">
+              <Sparkles size={16} /> 點擊或向上拖曳以打出卡牌
+            </span>
+          </div>
+        )}
 
         <InvestigatorStatus
           investigator={state.investigator}
@@ -148,10 +185,11 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
           onEndTurn={handleEndTurn}
           isCombatEnded={isCombatEnded}
           isMadness={state.isMadness}
+          isDiscardMode={Boolean(state.discardPhase)}
         />
 
         {/* Dynamic Hand Cards with Fan-Out Layout */}
-        <div className="hand-area" id="player-hand">
+        <div className={`hand-area ${state.discardPhase ? 'discard-phase-active' : ''}`} id="player-hand">
           {state.hand.map((card, index) => {
             const fan = calculateCardFanOut(index, state.hand.length);
 
@@ -168,6 +206,11 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 enemy={state.currentEnemy}
                 enemyHealth={state.currentEnemy.health}
                 enemyDivineImmortality={state.currentEnemy.divineImmortality}
+                isDiscardMode={Boolean(state.discardPhase)}
+                isSelectedForDiscard={state.discardPhase?.selectedDiscardIds.includes(card.id)}
+                onToggleDiscard={(cardId) =>
+                  dispatch({ type: 'TOGGLE_DISCARD_CARD', payload: { cardId } })
+                }
               />
             );
           })}
