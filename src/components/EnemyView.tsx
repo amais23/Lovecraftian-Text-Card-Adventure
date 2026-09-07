@@ -1,7 +1,8 @@
 import React from 'react';
 import type { Enemy, EnemyIntent } from '../types/game';
-import { Skull, Swords, Shield, Brain, AlertCircle, Droplets, Ghost } from 'lucide-react';
+import { Skull, Swords, Shield, Brain, AlertCircle } from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
+import { StatusEffectBadge } from './StatusEffectBadge';
 
 function formatIntentValue(intent: EnemyIntent): string {
   if (intent.type === 'erode') {
@@ -57,19 +58,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
       {statusEffects.length > 0 && (
         <div className="status-effects-list enemy-statuses" data-testid="enemy-status-effects">
           {statusEffects.map((status) => (
-            <div
-              key={status.type}
-              className={`status-effect-badge status-${status.type}`}
-              title={`【${status.name}】${status.stacks} 層\n${status.description}`}
-            >
-              {status.type === 'might' && <Swords size={12} />}
-              {status.type === 'resilience' && <Shield size={12} />}
-              {status.type === 'vulnerable' && <AlertCircle size={12} />}
-              {status.type === 'bleed' && <Droplets size={12} />}
-              {status.type === 'horror' && <Ghost size={12} />}
-              <span className="status-name">{status.name}</span>
-              <span className="status-stacks">{status.stacks}</span>
-            </div>
+            <StatusEffectBadge key={status.type} status={status} iconSize={12} />
           ))}
         </div>
       )}

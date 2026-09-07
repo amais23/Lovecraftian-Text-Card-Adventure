@@ -3548,6 +3548,31 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(afterTurn.investigator.relics?.[0].id).toBe('pocket_watch');
     });
 
+    it('END_TURN clamps divine enemy health to 1 on bleed damage and does not trigger victory (ADR-0015)', () => {
+      const baseState = createInitialCombatState();
+      const stateWithDivineEnemy: GameState = {
+        ...baseState,
+        currentDepth: 4,
+        currentEnemy: {
+          ...baseState.currentEnemy,
+          id: 'divine_avatar',
+          name: '克蘇魯星之眷族',
+          health: 3,
+          armor: 0,
+          divineImmortality: true,
+          statusEffects: [createStatusEffect('bleed', 10)],
+          currentIntent: { type: 'defend', value: 0, name: '深淵神性凝視', description: '' },
+        },
+      };
+
+      const afterTurn = gameReducer(stateWithDivineEnemy, { type: 'END_TURN' });
+
+      // Bleed of 10 would kill a normal enemy, but divineImmortality clamps health to 1
+      expect(afterTurn.currentEnemy.health).toBe(1);
+      // Phase must remain in combat, not victory
+      expect(afterTurn.phase).toBe('combat');
+    });
+
     it('RESET_COMBAT preserves investigator relics and re-applies relic bonuses', () => {
       const baseState = createInitialCombatState();
       const stateWithRelics: GameState = {

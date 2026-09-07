@@ -9,12 +9,9 @@ import {
   Flame,
   Layers,
   Sparkles,
-  Swords,
-  AlertCircle,
-  Droplets,
-  Ghost,
 } from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
+import { StatusEffectBadge } from './StatusEffectBadge';
 
 interface InvestigatorStatusProps {
   investigator: Investigator;
@@ -75,19 +72,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
         {statusEffects.length > 0 && (
           <div className="status-effects-list investigator-statuses" data-testid="investigator-status-effects">
             {statusEffects.map((status) => (
-              <div
-                key={status.type}
-                className={`status-effect-badge status-${status.type}`}
-                title={`【${status.name}】${status.stacks} 層\n${status.description}`}
-              >
-                {status.type === 'might' && <Swords size={13} />}
-                {status.type === 'resilience' && <Shield size={13} />}
-                {status.type === 'vulnerable' && <AlertCircle size={13} />}
-                {status.type === 'bleed' && <Droplets size={13} />}
-                {status.type === 'horror' && <Ghost size={13} />}
-                <span className="status-name">{status.name}</span>
-                <span className="status-stacks">{status.stacks}</span>
-              </div>
+              <StatusEffectBadge key={status.type} status={status} iconSize={13} />
             ))}
           </div>
         )}

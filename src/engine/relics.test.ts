@@ -5,6 +5,7 @@ import {
   calculateRelicModifiers,
   applyRelicToInvestigator,
   getRelicCombatBonus,
+  applyRelicCombatStart,
   ELDER_SIGN_AMULET,
   POCKET_WATCH,
   VITALITY_ELIXIR,
@@ -12,7 +13,7 @@ import {
   DREAD_TALISMAN,
   ELDRITCH_LANTERN,
 } from './relics';
-import type { Investigator } from '../types/game';
+import type { Investigator, Relic } from '../types/game';
 
 describe('Relics System (ADR-0018)', () => {
   const dummyInvestigator: Investigator = {
@@ -101,6 +102,46 @@ describe('Relics System (ADR-0018)', () => {
       expect(bonus.startingStatusEffects).toHaveLength(2);
       expect(bonus.startingStatusEffects.find((e) => e.type === 'resilience')?.stacks).toBe(2);
       expect(bonus.startingStatusEffects.find((e) => e.type === 'might')?.stacks).toBe(1);
+    });
+
+    it('supports schema-driven startingStatusEffects in custom relics', () => {
+      const customRelic: Relic = {
+        id: 'custom_curse_amulet',
+        name: '詛咒骨符',
+        description: '賦予流血與恐慌。',
+        flavorText: '散發惡臭。',
+        rarity: 'rare',
+        modifiers: {
+          startingStatusEffects: [
+            { type: 'bleed', stacks: 3 },
+            { type: 'horror', stacks: 1 },
+          ],
+        },
+      };
+
+      const bonus = getRelicCombatBonus([customRelic]);
+      expect(bonus.startingStatusEffects).toHaveLength(2);
+      expect(bonus.startingStatusEffects.find((e) => e.type === 'bleed')?.stacks).toBe(3);
+      expect(bonus.startingStatusEffects.find((e) => e.type === 'horror')?.stacks).toBe(1);
+    });
+  });
+
+  describe('applyRelicCombatStart', () => {
+    it('computes initial armor, stamina, status effects, and logs in one helper', () => {
+      const investigatorWithRelics: Investigator = {
+        ...dummyInvestigator,
+        relics: [ELDER_SIGN_AMULET, OBSIDIAN_MIRROR, ELDRITCH_LANTERN],
+      };
+
+      const result = applyRelicCombatStart(investigatorWithRelics);
+      expect(result.armor).toBe(5);
+      expect(result.stamina).toBe(4); // 3 base + 1 lantern
+      expect(result.statusEffects).toHaveLength(1);
+      expect(result.statusEffects[0].type).toBe('resilience');
+      expect(result.statusEffects[0].stacks).toBe(2);
+      expect(result.logs.length).toBe(2);
+      expect(result.logs[0]).toContain('【舊日遺物護佑】');
+      expect(result.logs[1]).toContain('【舊日遺物共鳴】');
     });
   });
 });

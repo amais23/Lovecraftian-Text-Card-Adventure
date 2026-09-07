@@ -45,7 +45,7 @@ export const OBSIDIAN_MIRROR: Relic = {
   rarity: 'rare',
   icon: 'Disc',
   modifiers: {
-    // 戰鬥開始時獲得堅韌
+    startingStatusEffects: [{ type: 'resilience', stacks: 2 }],
   },
 };
 
@@ -57,7 +57,7 @@ export const DREAD_TALISMAN: Relic = {
   rarity: 'rare',
   icon: 'Skull',
   modifiers: {
-    // 戰鬥開始時獲得力量
+    startingStatusEffects: [{ type: 'might', stacks: 1 }],
   },
 };
 
@@ -92,8 +92,8 @@ export function getRelicById(id: string): Relic | undefined {
 /**
  * 累加計算複數遺物的所有靜態屬性修飾器
  */
-export function calculateRelicModifiers(relics?: Relic[]): Required<RelicModifier> {
-  const result: Required<RelicModifier> = {
+export function calculateRelicModifiers(relics?: Relic[]): Required<Omit<RelicModifier, 'startingStatusEffects'>> {
+  const result: Required<Omit<RelicModifier, 'startingStatusEffects'>> = {
     maxHealth: 0,
     handCapacity: 0,
     startingArmor: 0,
@@ -158,10 +158,10 @@ export function getRelicCombatBonus(relics?: Relic[]): RelicCombatBonus {
 
   if (relics) {
     for (const relic of relics) {
-      if (relic.id === 'obsidian_mirror') {
-        startingStatusEffects.push(createStatusEffect('resilience', 2));
-      } else if (relic.id === 'dread_talisman') {
-        startingStatusEffects.push(createStatusEffect('might', 1));
+      if (relic.modifiers?.startingStatusEffects) {
+        for (const eff of relic.modifiers.startingStatusEffects) {
+          startingStatusEffects.push(createStatusEffect(eff.type, eff.stacks));
+        }
       }
     }
   }
@@ -170,5 +170,53 @@ export function getRelicCombatBonus(relics?: Relic[]): RelicCombatBonus {
     startingArmor: mods.startingArmor,
     startingStaminaBonus: mods.startingStamina,
     startingStatusEffects,
+  };
+}
+
+export interface RelicCombatStartResult {
+  armor: number;
+  stamina: number;
+  statusEffects: StatusEffect[];
+  logs: string[];
+}
+
+/**
+ * 戰鬥開始或重整時，統整計算遺物賦予的起始屬性、狀態印記與對應戰鬥手記
+ */
+export function applyRelicCombatStart(
+  investigator: {
+    armor?: number;
+    stamina?: number;
+    maxStamina?: number;
+    statusEffects?: StatusEffect[];
+    relics?: Relic[];
+  },
+  baseStamina?: number
+): RelicCombatStartResult {
+  const relicBonus = getRelicCombatBonus(investigator.relics);
+  const startingArmor = (investigator.armor ?? 0) + relicBonus.startingArmor;
+  const currentStamina = baseStamina ?? investigator.stamina ?? investigator.maxStamina ?? 3;
+  const startingStamina = currentStamina + relicBonus.startingStaminaBonus;
+  const startingStatusEffects =
+    investigator.statusEffects && investigator.statusEffects.length > 0
+      ? [...investigator.statusEffects]
+      : [...relicBonus.startingStatusEffects];
+
+  const logs: string[] = [];
+  if (relicBonus.startingArmor > 0) {
+    logs.push(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
+  }
+  if (relicBonus.startingStatusEffects.length > 0) {
+    const names = relicBonus.startingStatusEffects
+      .map((e) => `【${e.name}】${e.stacks}層`)
+      .join('、');
+    logs.push(`【舊日遺物共鳴】遺物為你賦予了 ${names} 印記！`);
+  }
+
+  return {
+    armor: startingArmor,
+    stamina: startingStamina,
+    statusEffects: startingStatusEffects,
+    logs,
   };
 }

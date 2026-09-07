@@ -44,7 +44,7 @@ import {
   isAncientSealLocked,
   isAncientSealUnlocked,
 } from './abyssalSeals';
-import { applyRelicToInvestigator, getRelicCombatBonus } from './relics';
+import { applyRelicCombatStart, applyRelicToInvestigator } from './relics';
 import {
   addStatusEffect,
   calculateArmorGain,
@@ -260,30 +260,19 @@ export function createInitialCombatState(
   const occId = customInvestigator?.occupationId ?? 'investigator';
   const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
   const handCapacity = customInvestigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
-  const relicBonus = getRelicCombatBonus(customInvestigator?.relics);
-  const startingArmor = (customInvestigator?.armor ?? 0) + relicBonus.startingArmor;
-  const startingStamina = (customInvestigator?.stamina ?? occ.stats.stamina) + relicBonus.startingStaminaBonus;
-  const startingStatusEffects = customInvestigator?.statusEffects
-    ? [...customInvestigator.statusEffects]
-    : [...relicBonus.startingStatusEffects];
-
-  const investigator: Investigator = customInvestigator
-    ? {
-        ...customInvestigator,
-        handCapacity,
-        armor: startingArmor,
-        stamina: startingStamina,
-        statusEffects: startingStatusEffects,
-        relics: customInvestigator.relics ? [...customInvestigator.relics] : [],
-      }
-    : {
-        ...INITIAL_INVESTIGATOR,
-        handCapacity,
-        armor: startingArmor,
-        stamina: startingStamina,
-        statusEffects: startingStatusEffects,
-        relics: [],
-      };
+  const baseInvestigator = customInvestigator ?? {
+    ...INITIAL_INVESTIGATOR,
+    handCapacity,
+  };
+  const relicStart = applyRelicCombatStart(baseInvestigator, customInvestigator?.stamina ?? occ.stats.stamina);
+  const investigator: Investigator = {
+    ...baseInvestigator,
+    handCapacity,
+    armor: relicStart.armor,
+    stamina: relicStart.stamina,
+    statusEffects: relicStart.statusEffects,
+    relics: baseInvestigator.relics ? [...baseInvestigator.relics] : [],
+  };
 
   const enemy: Enemy = customEnemy
     ? cloneEnemy(customEnemy)
@@ -299,17 +288,9 @@ export function createInitialCombatState(
   const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, handCapacity);
 
   const initialLogs = [
+    ...relicStart.logs,
     `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
   ];
-  if (relicBonus.startingArmor > 0) {
-    initialLogs.unshift(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
-  }
-  if (relicBonus.startingStatusEffects.length > 0) {
-    const effectNames = relicBonus.startingStatusEffects
-      .map((e) => `【${e.name}】${e.stacks}層`)
-      .join('、');
-    initialLogs.unshift(`【舊日遺物共鳴】遺物為你賦予了 ${effectNames} 印記！`);
-  }
 
   return {
     phase: initialPhase,
@@ -400,6 +381,10 @@ export function resolveTurnEndAndFixedDraw(
     enemy.name
   );
   enemyHealth = enemyStatusRes.newHealth;
+  const isDivineEnemy = Boolean(enemy.divineImmortality);
+  if (isDivineEnemy && enemyHealth < 1) {
+    enemyHealth = 1;
+  }
   enemyStatusEffects = enemyStatusRes.decayedEffects;
   newLogs.push(...enemyStatusRes.logs);
 
@@ -701,21 +686,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           handCapacity
         );
 
-        const relicBonus = getRelicCombatBonus(state.investigator.relics);
-        const startingArmor = relicBonus.startingArmor;
-        const startingStamina = state.investigator.maxStamina + relicBonus.startingStaminaBonus;
-        const startingStatusEffects = [...relicBonus.startingStatusEffects];
-
-        const combatLogs = [logMsg];
-        if (relicBonus.startingArmor > 0) {
-          combatLogs.push(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
-        }
-        if (relicBonus.startingStatusEffects.length > 0) {
-          const names = relicBonus.startingStatusEffects
-            .map((e) => `【${e.name}】${e.stacks}層`)
-            .join('、');
-          combatLogs.push(`【舊日遺物共鳴】遺物為你賦予了 ${names} 印記！`);
-        }
+        const relicStart = applyRelicCombatStart({
+          armor: 0,
+          relics: state.investigator.relics,
+          maxStamina: state.investigator.maxStamina,
+        });
 
         return {
           ...state,
@@ -723,9 +698,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           turn: 1,
           investigator: {
             ...state.investigator,
-            armor: startingArmor,
-            stamina: startingStamina,
-            statusEffects: startingStatusEffects,
+            armor: relicStart.armor,
+            stamina: relicStart.stamina,
+            statusEffects: relicStart.statusEffects,
           },
           sanityDeck,
           hand,
@@ -737,7 +712,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             statusEffects: [],
           },
           adventureStats: updatedStats,
-          battleLog: [...combatLogs, ...state.battleLog],
+          battleLog: [logMsg, ...relicStart.logs, ...state.battleLog],
         };
       }
 
@@ -1376,10 +1351,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const occId = action.payload?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
       const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
       const handCapacity = state.investigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
-      const relicBonus = getRelicCombatBonus(state.investigator?.relics);
-      const startingArmor = relicBonus.startingArmor;
-      const startingStamina = (state.investigator?.maxStamina ?? occ.stats.stamina) + relicBonus.startingStaminaBonus;
-      const startingStatusEffects = [...relicBonus.startingStatusEffects];
+      const baseInvestigator = {
+        armor: 0,
+        relics: state.investigator?.relics,
+        maxStamina: state.investigator?.maxStamina ?? occ.stats.stamina,
+      };
+      const relicStart = applyRelicCombatStart(baseInvestigator);
 
       const investigator: Investigator = {
         name: occ.name,
@@ -1387,13 +1364,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         occupationId: occ.id,
         health: state.investigator?.maxHealth ?? occ.stats.health,
         maxHealth: state.investigator?.maxHealth ?? occ.stats.health,
-        stamina: startingStamina,
+        stamina: relicStart.stamina,
         maxStamina: state.investigator?.maxStamina ?? occ.stats.stamina,
-        armor: startingArmor,
+        armor: relicStart.armor,
         obols: state.investigator?.obols ?? occ.stats.obols,
         handCapacity,
         relics: state.investigator?.relics ? [...state.investigator.relics] : [],
-        statusEffects: startingStatusEffects,
+        statusEffects: relicStart.statusEffects,
       };
 
       // Gather permanent cards to preserve crafted deck upon retrying
@@ -1416,16 +1393,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const resetLogs = [
         `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
+        ...relicStart.logs,
       ];
-      if (relicBonus.startingArmor > 0) {
-        resetLogs.push(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
-      }
-      if (relicBonus.startingStatusEffects.length > 0) {
-        const names = relicBonus.startingStatusEffects
-          .map((e) => `【${e.name}】${e.stacks}層`)
-          .join('、');
-        resetLogs.push(`【舊日遺物共鳴】遺物為你賦予了 ${names} 印記！`);
-      }
 
       return {
         phase: 'combat',

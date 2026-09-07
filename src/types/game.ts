@@ -18,6 +18,7 @@ export interface RelicModifier {
   handCapacity?: number;
   startingArmor?: number;
   startingStamina?: number;
+  startingStatusEffects?: Array<{ type: StatusEffectType; stacks: number }>;
 }
 
 export interface Relic {
