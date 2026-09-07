@@ -120,23 +120,6 @@ export const CardView: React.FC<CardViewProps> = ({
     defaultIcon: <Sparkles size={16} color="#cfa866" />,
   };
 
-  const defaultPrompt = isSealLocked
-    ? '神性封印中'
-    : card.isUnplayable
-    ? '無法打出'
-    : card.costType === 'sanity'
-    ? '理智不足'
-    : meta.defaultPrompt;
-
-  const playablePromptText = isSealUnlocked ? '引動終極封滅！' : meta.playablePrompt;
-  const promptText = isDiscardMode
-    ? isSelectedForDiscard
-      ? '✓ 已選取待棄置'
-      : '點擊選取棄牌'
-    : isPlayable
-    ? playablePromptText
-    : defaultPrompt;
-
   const tooltip = isDiscardMode
     ? isSelectedForDiscard
       ? `【${card.name}】已選取待棄置，再次點擊取消選取`
@@ -345,13 +328,6 @@ export const CardView: React.FC<CardViewProps> = ({
       {/* Flavor Narrative Text */}
       {card.flavorText && (
         <div className="card-flavor" title={card.flavorText}>{card.flavorText}</div>
-      )}
-
-      {/* Bottom Play Prompt */}
-      {!isStandalone && (
-        <div className="card-play-prompt">
-          {promptText}
-        </div>
       )}
     </motion.div>
   );

@@ -209,6 +209,10 @@ _Avoid_: 退出遊戲, 當機畫面, 錯誤阻斷
 
 ### 介面文字規範與去技術化 (UI Presentation & De-technologization)
 
-**Pure Narrative Presentation (純粹敘事沉浸原則)**:
-所有面向玩家的介面標籤、按鈕指示、數值說明與結算彈窗，全面禁止包含開發用英文附註（如 `(Battle Log)`、`(Claim Rewards)`、`(Drag Up to Cast)`、`(Deceased)`）、程式語言技術名詞（如 `Web Audio API`、`Vite`、`React`、`UI Click`、`Sandbox`）以及 AI 繪圖提示殘留風格詞（如「Q版可愛卡通」、「可愛卡通風格 (Cute Cartoon)」、「陽光奇幻魔導」）。所有提示皆須維持 1920 年代克蘇魯神話調查手記之莊嚴、沉浸、純中文文學語境。
-_Avoid_: (Claim Rewards), (Reset), (Battle Log), (SAN), (Drag Up to Cast), Web Audio, UI Click, Q版可愛卡通, Cute Cartoon
+**Pure Narrative Presentation & De-hinted UI (純粹敘事沉浸與去提示化原則)**:
+所有面向玩家的介面標籤、按鈕指示、數值說明與結算彈窗，全面禁止包含開發用英文附註（如 `(Battle Log)`、`(Claim Rewards)`、`(Deceased)`）、程式語言技術名詞（如 `Web Audio API`、`Vite`、`React`、`UI Click`、`Sandbox`）以及 AI 繪圖提示殘留風格詞。依據 ADR-0019，戰鬥介面全面拔除拖曳提示橫條與卡牌底部操作提示列，回歸本能直覺互動。所有提示與敘事皆須維持 1920 年代克蘇魯神話調查手記之莊嚴、沉浸、純中文文學語境。
+_Avoid_: (Claim Rewards), (Reset), (Battle Log), (SAN), (Drag Up to Cast), 點擊或向上拖曳以打出卡牌, 點擊或上拖打出, Web Audio, UI Click, Q版可愛卡通, Cute Cartoon
+
+**Gothic Elongated Card (3:5 哥德修長大卡牌)**:
+依據 ADR-0019 確立之全局卡牌標準長寬比（Aspect Ratio 3:5，1 : 1.667），取代舊版 5:7 規格。上半部以 4:3 比例滿版容納專屬繪卷（約佔高 45%），下半部保留超過 55% 垂直空間，大字級完整展示卡牌名稱（15~18px）與多行規則效果敘述（13~16px），徹底消除卡牌文字擁擠與截斷問題。
+_Avoid_: 舊版 5:7 寬胖卡, 緊湊微縮手牌

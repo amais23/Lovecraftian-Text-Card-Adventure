@@ -34,7 +34,7 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     expect(onPlay).toHaveBeenCalledWith(mockPlayableCard.id);
   });
 
-  it('renders unplayable card with disabled class, unplayable badge, prompt, and prevents onPlay on click', () => {
+  it('renders unplayable card with disabled class, unplayable badge, and prevents onPlay on click', () => {
     const onPlay = vi.fn();
     render(
       <CardView
@@ -49,9 +49,9 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     expect(cardElement?.classList.contains('disabled')).toBe(true);
     expect(cardElement?.classList.contains('playable')).toBe(false);
 
-    // Shows badge and bottom prompt
-    const unplayableElements = screen.getAllByText('無法打出');
-    expect(unplayableElements.length).toBe(2); // One badge, one play-prompt
+    // Shows badge (ADR-0019: play-prompt removed)
+    expect(screen.getByText('無法打出')).toBeDefined();
+    expect(cardElement?.querySelector('.card-play-prompt')).toBeNull();
 
     // Clicking should NOT invoke onPlay
     fireEvent.click(cardElement!);
@@ -93,7 +93,7 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     expect(cardElement?.classList.contains('playable')).toBe(false);
 
     expect(screen.getByText('神性封印')).toBeDefined();
-    expect(screen.getByText('神性封印中')).toBeDefined();
+    expect(cardElement?.querySelector('.card-play-prompt')).toBeNull();
 
     fireEvent.click(cardElement!);
     expect(onPlay).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     expect(cardElement?.classList.contains('disabled')).toBe(false);
 
     expect(screen.getByText('終極斬殺')).toBeDefined();
-    expect(screen.getByText('引動終極封滅！')).toBeDefined();
+    expect(cardElement?.querySelector('.card-play-prompt')).toBeNull();
 
     fireEvent.click(cardElement!);
     expect(onPlay).toHaveBeenCalledWith(COMPLETE_ANCIENT_SEAL.id);
@@ -163,12 +163,11 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     expect(flavorElement).toBeDefined();
     expect(flavorElement?.getAttribute('title')).toBe(mockPlayableCard.flavorText);
 
-    const promptElement = cardElement?.querySelector('.card-play-prompt');
-    expect(promptElement).toBeDefined();
-    expect(promptElement?.textContent).toContain('點擊或上拖打出');
+    // ADR-0019: card-play-prompt is completely removed across all cards for pure de-hinted immersion
+    expect(cardElement?.querySelector('.card-play-prompt')).toBeNull();
   });
 
-  it('renders standalone card with standalone class and without bottom play prompt', () => {
+  it('renders standalone card with standalone class and proper 3:5 gothic card structure', () => {
     render(
       <CardView
         card={mockPlayableCard}

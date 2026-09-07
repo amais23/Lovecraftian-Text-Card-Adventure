@@ -18,7 +18,6 @@ interface CombatScreenProps {
 }
 
 export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) => {
-  const [isDraggingCard, setIsDraggingCard] = useState<boolean>(false);
   const [isBanishmentVfxActive, setIsBanishmentVfxActive] = useState<boolean>(false);
   const isCombatEnded = state.phase !== 'combat';
 
@@ -132,8 +131,8 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
 
       {/* Lower Split-Screen: Investigator Dashboard & Hand */}
       <section className="combat-lower-section">
-        {/* Discard Phase Bar or Drag Guidance Bar */}
-        {state.discardPhase ? (
+        {/* Discard Phase Bar */}
+        {state.discardPhase && (
           <div className="discard-phase-bar" id="discard-phase-bar">
             <div className="discard-phase-info">
               <AlertTriangle size={18} className="discard-alert-icon" />
@@ -168,13 +167,6 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
               </button>
             </div>
           </div>
-        ) : (
-          <div className={`drag-drop-target-bar ${isDraggingCard ? 'active' : ''}`}>
-            <div className="drop-target-glow" />
-            <span className="drop-target-label">
-              <Sparkles size={16} /> 點擊或向上拖曳以打出卡牌
-            </span>
-          </div>
         )}
 
         <InvestigatorStatus
@@ -202,7 +194,6 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 onPlay={handlePlayCard}
                 disabled={isCombatEnded}
                 fanTransform={fan}
-                onDragStateChange={setIsDraggingCard}
                 enemy={state.currentEnemy}
                 enemyHealth={state.currentEnemy.health}
                 enemyDivineImmortality={state.currentEnemy.divineImmortality}
