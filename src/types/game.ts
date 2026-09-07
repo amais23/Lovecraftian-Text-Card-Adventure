@@ -108,7 +108,28 @@ export interface Investigator {
   statusEffects?: StatusEffect[]; // 戰鬥內暫態印記（戰後清空）
 }
 
-export type MapNodeType = 'combat' | 'elite' | 'event' | 'sanctuary' | 'market' | 'boss';
+export type MapNodeType =
+  | 'combat'
+  | 'elite'
+  | 'event'
+  | 'sanctuary'
+  | 'market'
+  | 'boss'
+  | 'altar'
+  | 'vault'
+  | 'blood_altar'
+  | 'remains';
+
+export interface FallenInvestigatorRecord {
+  name: string;
+  occupation: string;
+  occupationId?: OccupationId;
+  deck: Card[];
+  obols: number;
+  depth: DepthLevel;
+  causeOfDeath: string;
+  timestamp: number;
+}
 
 export interface MapNode {
   id: string;
@@ -180,7 +201,24 @@ export interface AdventureStats {
 }
 
 export interface GameState {
-  phase: 'title' | 'prologue' | 'occupation_select' | 'departure' | 'map' | 'combat' | 'victory' | 'reward' | 'event' | 'sanctuary' | 'market' | 'depth_transition' | 'gameover';
+  phase:
+    | 'title'
+    | 'prologue'
+    | 'occupation_select'
+    | 'departure'
+    | 'map'
+    | 'combat'
+    | 'victory'
+    | 'reward'
+    | 'event'
+    | 'sanctuary'
+    | 'market'
+    | 'depth_transition'
+    | 'gameover'
+    | 'altar'
+    | 'vault'
+    | 'blood_altar'
+    | 'remains';
   currentDepth: DepthLevel;
   turn: number;
   investigator: Investigator;
@@ -196,6 +234,12 @@ export interface GameState {
   currentEvent?: MythosEvent;
   sanctuaryUsed?: boolean;
   marketItems?: MarketItem[];
+  altarUsed?: boolean;
+  vaultRelics?: Relic[];
+  vaultClaimed?: boolean;
+  bloodAltarUsed?: boolean;
+  fallenInvestigator?: FallenInvestigatorRecord | null;
+  remainsClaimed?: boolean;
   adventureStats?: AdventureStats;
   abyssalSealFused?: boolean;
   isTrueEnding?: boolean;
@@ -231,4 +275,12 @@ export type GameAction =
   | { type: 'DISCARD_CARDS_TO_LIMIT'; payload: { cardIds: string[] } }
   | { type: 'ACQUIRE_RELIC'; payload: { relic: Relic } }
   | { type: 'APPLY_STATUS_EFFECT'; payload: { target: 'investigator' | 'enemy'; effect: StatusEffect } }
-  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } };
+  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } }
+  | { type: 'USE_ALTAR'; payload: { optionId: 'flesh' | 'mind' | 'boon' } }
+  | { type: 'LEAVE_ALTAR' }
+  | { type: 'CLAIM_VAULT_RELIC'; payload: { relicId?: string; claimObols?: boolean } }
+  | { type: 'LEAVE_VAULT' }
+  | { type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR'; payload: { cardIds: string[] } }
+  | { type: 'LEAVE_BLOOD_ALTAR' }
+  | { type: 'INHERIT_REMAINS'; payload: { type: 'card'; cardId: string } | { type: 'obols' } }
+  | { type: 'LEAVE_REMAINS' };

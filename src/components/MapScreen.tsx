@@ -15,6 +15,10 @@ import {
   Eye,
   CheckCircle2,
   Navigation,
+  Flame,
+  Key,
+  Droplets,
+  Ghost,
 } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
 
@@ -62,6 +66,30 @@ const NODE_TYPE_CONFIG: Record<
     icon: <Eye size={24} color="#c77dff" />,
     color: '#c77dff',
     bg: 'rgba(199, 125, 255, 0.25)',
+  },
+  altar: {
+    label: '禁忌祭壇',
+    icon: <Flame size={20} color="#ff4a6e" />,
+    color: '#ff4a6e',
+    bg: 'rgba(255, 74, 110, 0.18)',
+  },
+  vault: {
+    label: '遺物秘閣',
+    icon: <Key size={20} color="#e0a96d" />,
+    color: '#e0a96d',
+    bg: 'rgba(224, 169, 109, 0.18)',
+  },
+  blood_altar: {
+    label: '血之祭壇',
+    icon: <Droplets size={20} color="#d90429" />,
+    color: '#d90429',
+    bg: 'rgba(217, 4, 41, 0.18)',
+  },
+  remains: {
+    label: '屍骨遺骸',
+    icon: <Ghost size={20} color="#b8c0ff" />,
+    color: '#b8c0ff',
+    bg: 'rgba(184, 192, 255, 0.18)',
   },
 };
 

@@ -179,5 +179,57 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
         }
       }
     });
+
+    it('generates altar, vault, and blood_altar across procedural maps', () => {
+      const allFoundTypes = new Set<string>();
+
+      // Sample maps across various seeds and depths
+      for (const seed of [1, 2, 3, 5, 8, 13, 21, 34]) {
+        for (const depth of [1, 2, 3] as DepthLevel[]) {
+          const map = generateProceduralInvestigationMap({ depth, seed });
+          for (const node of Object.values(map.nodes)) {
+            allFoundTypes.add(node.type);
+          }
+        }
+      }
+
+      expect(allFoundTypes.has('altar')).toBe(true);
+      expect(allFoundTypes.has('vault')).toBe(true);
+      expect(allFoundTypes.has('blood_altar')).toBe(true);
+    });
+
+    it('conditionally generates remains node in Depth 1 when hasFallenInvestigator is true', () => {
+      // 1. Procedural map with fallen investigator
+      const proceduralWithRemains = generateProceduralInvestigationMap({
+        depth: 1,
+        seed: 42,
+        hasFallenInvestigator: true,
+      });
+      const proceduralRemainsNodes = Object.values(proceduralWithRemains.nodes).filter(
+        (n) => n.type === 'remains'
+      );
+      expect(proceduralRemainsNodes.length).toBeGreaterThan(0);
+      expect(proceduralRemainsNodes[0].layer).toBe(1);
+      expect(proceduralRemainsNodes[0].label).toBe('屍骨遺骸');
+
+      // 2. Static base map with fallen investigator
+      const staticWithRemains = generateInvestigationMap({
+        depth: 1,
+        procedural: false,
+        hasFallenInvestigator: true,
+      });
+      expect(staticWithRemains.nodes['node_1_0'].type).toBe('remains');
+      expect(staticWithRemains.nodes['node_1_0'].label).toBe('屍骨遺骸');
+
+      // 3. Depth > 1 should not spawn remains even if hasFallenInvestigator is true
+      const depth2Map = generateProceduralInvestigationMap({
+        depth: 2,
+        seed: 42,
+        hasFallenInvestigator: true,
+      });
+      const depth2Remains = Object.values(depth2Map.nodes).filter((n) => n.type === 'remains');
+      expect(depth2Remains).toHaveLength(0);
+    });
   });
 });
+

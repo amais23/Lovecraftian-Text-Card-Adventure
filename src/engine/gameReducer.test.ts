@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   gameReducer,
   createInitialCombatState,
@@ -3802,5 +3802,517 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       }
     });
   });
+
+  describe('4 New Map Node Types & Cross-Run Inheritance (Issue #30)', () => {
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    describe('Altar Node (禁忌祭壇)', () => {
+      it('navigates to altar node and enters altar phase', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'map',
+          map: {
+            id: 'map_test',
+            name: '測試地圖',
+            layers: [['node_0_0']],
+            currentNodeId: null,
+            nodes: {
+              node_0_0: {
+                id: 'node_0_0',
+                type: 'altar',
+                layer: 0,
+                col: 0,
+                label: '禁忌祭壇',
+                title: '無名舊神祭壇',
+                description: '石台燃燒冷火',
+                nextNodes: [],
+                status: 'accessible',
+              },
+            },
+          },
+        };
+
+        const next = gameReducer(state, {
+          type: 'NAVIGATE_TO_NODE',
+          payload: { nodeId: 'node_0_0' },
+        });
+
+        expect(next.phase).toBe('altar');
+        expect(next.altarUsed).toBe(false);
+        expect(next.map?.currentNodeId).toBe('node_0_0');
+      });
+
+      it('USE_ALTAR flesh increases maxHealth and heals by 5 after paying 6 HP', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            maxHealth: 25,
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'flesh' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.maxHealth).toBe(30);
+        expect(next.investigator.health).toBe(19); // 20 - 6 + 5 = 19
+      });
+
+      it('USE_ALTAR flesh prevents sacrifice if health <= 6', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 6,
+            maxHealth: 25,
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'flesh' },
+        });
+
+        expect(next.altarUsed).toBe(false);
+        expect(next.investigator.health).toBe(6);
+      });
+
+      it('USE_ALTAR mind increases handCapacity by 1 after paying 10 HP', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            handCapacity: 2,
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'mind' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBe(10);
+        expect(next.investigator.handCapacity).toBe(3);
+      });
+
+      it('USE_ALTAR boon grants a relic after paying 6 HP', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            relics: [],
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'boon' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBeLessThan(20);
+        expect(next.investigator.relics?.length).toBe(1);
+      });
+
+      it('LEAVE_ALTAR advances map and returns to map phase', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          map: {
+            id: 'map_test',
+            name: '測試地圖',
+            layers: [['node_0_0'], ['node_1_0']],
+            currentNodeId: 'node_0_0',
+            nodes: {
+              node_0_0: {
+                id: 'node_0_0',
+                type: 'altar',
+                layer: 0,
+                col: 0,
+                label: '禁忌祭壇',
+                title: '無名舊神祭壇',
+                description: '石台',
+                nextNodes: ['node_1_0'],
+                status: 'current',
+              },
+              node_1_0: {
+                id: 'node_1_0',
+                type: 'combat',
+                layer: 1,
+                col: 0,
+                label: '常規遭遇',
+                title: '巷道',
+                description: '敵人',
+                nextNodes: [],
+                status: 'unvisited',
+              },
+            },
+          },
+        };
+
+        const next = gameReducer(state, { type: 'LEAVE_ALTAR' });
+        expect(next.phase).toBe('map');
+        expect(next.map?.nodes['node_0_0'].status).toBe('visited');
+        expect(next.map?.nodes['node_1_0'].status).toBe('accessible');
+      });
+    });
+
+    describe('Vault Node (遺物秘閣)', () => {
+      it('navigates to vault node and populates up to 3 vault relics', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'map',
+          map: {
+            id: 'map_test',
+            name: '測試地圖',
+            layers: [['node_0_0']],
+            currentNodeId: null,
+            nodes: {
+              node_0_0: {
+                id: 'node_0_0',
+                type: 'vault',
+                layer: 0,
+                col: 0,
+                label: '遺物秘閣',
+                title: '教授密室',
+                description: '秘匣',
+                nextNodes: [],
+                status: 'accessible',
+              },
+            },
+          },
+        };
+
+        const next = gameReducer(state, {
+          type: 'NAVIGATE_TO_NODE',
+          payload: { nodeId: 'node_0_0' },
+        });
+
+        expect(next.phase).toBe('vault');
+        expect(next.vaultRelics).toBeDefined();
+        expect(next.vaultRelics?.length).toBe(3);
+        expect(next.vaultClaimed).toBe(false);
+      });
+
+      it('CLAIM_VAULT_RELIC adds chosen relic to investigator and applies modifiers', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'vault',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            relics: [],
+            handCapacity: 2,
+          },
+          vaultRelics: [
+            {
+              id: 'pocket_watch',
+              name: '黃銅懷錶',
+              description: '手牌容量 +1',
+              flavorText: '懷錶',
+              rarity: 'rare',
+              icon: 'Watch',
+              modifiers: { handCapacity: 1 },
+            },
+          ],
+          vaultClaimed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'CLAIM_VAULT_RELIC',
+          payload: { relicId: 'pocket_watch' },
+        });
+
+        expect(next.vaultClaimed).toBe(true);
+        expect(next.investigator.relics?.some((r) => r.id === 'pocket_watch')).toBe(true);
+        expect(next.investigator.handCapacity).toBe(3);
+      });
+
+      it('CLAIM_VAULT_RELIC can alternatively claim 35 ancient obols', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'vault',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            obols: 20,
+          },
+          vaultClaimed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'CLAIM_VAULT_RELIC',
+          payload: { claimObols: true },
+        });
+
+        expect(next.vaultClaimed).toBe(true);
+        expect(next.investigator.obols).toBe(55);
+      });
+
+      it('LEAVE_VAULT returns to map and advances node', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'vault',
+          map: {
+            id: 'map_test',
+            name: '測試地圖',
+            layers: [['node_0_0']],
+            currentNodeId: 'node_0_0',
+            nodes: {
+              node_0_0: {
+                id: 'node_0_0',
+                type: 'vault',
+                layer: 0,
+                col: 0,
+                label: '遺物秘閣',
+                title: '教授密室',
+                description: '秘匣',
+                nextNodes: [],
+                status: 'current',
+              },
+            },
+          },
+        };
+
+        const next = gameReducer(state, { type: 'LEAVE_VAULT' });
+        expect(next.phase).toBe('map');
+        expect(next.vaultRelics).toBeUndefined();
+      });
+    });
+
+    describe('Blood Altar Node (血之祭壇)', () => {
+      it('SACRIFICE_CARDS_AT_BLOOD_ALTAR purges 2 selected cards permanently', () => {
+        const initialCards = createInitialCombatState().sanityDeck;
+        expect(initialCards.length).toBeGreaterThan(4);
+        const card1 = initialCards[0];
+        const card2 = initialCards[1];
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'blood_altar',
+          sanityDeck: initialCards,
+          hand: [],
+          discardPile: [],
+          bloodAltarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: [card1.id, card2.id] },
+        });
+
+        expect(next.bloodAltarUsed).toBe(true);
+        expect(next.sanityDeck.length).toBe(initialCards.length - 2);
+        expect(next.sanityDeck.some((c) => c.id === card1.id)).toBe(false);
+        expect(next.sanityDeck.some((c) => c.id === card2.id)).toBe(false);
+      });
+
+      it('SACRIFICE_CARDS_AT_BLOOD_ALTAR rejects if not exactly 2 cards or insufficient deck', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'blood_altar',
+          bloodAltarUsed: false,
+        };
+
+        // 1 card
+        const res1 = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: ['card_1'] },
+        });
+        expect(res1.bloodAltarUsed).toBe(false);
+
+        // 3 cards
+        const res3 = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: ['c1', 'c2', 'c3'] },
+        });
+        expect(res3.bloodAltarUsed).toBe(false);
+      });
+
+      it('LEAVE_BLOOD_ALTAR returns to map and advances node', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'blood_altar',
+          map: {
+            id: 'map_test',
+            name: '測試地圖',
+            layers: [['node_0_0']],
+            currentNodeId: 'node_0_0',
+            nodes: {
+              node_0_0: {
+                id: 'node_0_0',
+                type: 'blood_altar',
+                layer: 0,
+                col: 0,
+                label: '血之祭壇',
+                title: '放血槽',
+                description: '石槽',
+                nextNodes: [],
+                status: 'current',
+              },
+            },
+          },
+        };
+
+        const next = gameReducer(state, { type: 'LEAVE_BLOOD_ALTAR' });
+        expect(next.phase).toBe('map');
+      });
+    });
+
+    describe('Remains Node & Cross-Run Inheritance (屍骨遺骸)', () => {
+      it('saves fallen investigator on fatal combat damage', () => {
+        const base = createInitialCombatState();
+        const state: GameState = {
+          ...base,
+          phase: 'combat',
+          investigator: {
+            ...base.investigator,
+            name: '威廉·戴爾',
+            occupation: '地質學教授',
+            health: 2,
+            armor: 0,
+            obols: 60,
+          },
+          currentEnemy: {
+            ...base.currentEnemy,
+            name: '食屍鬼首領',
+            currentIntent: { type: 'attack', value: 15, name: '撕裂骨爪', description: '猛烈撕裂' },
+          },
+        };
+
+        const deadState = gameReducer(state, { type: 'END_TURN' });
+        expect(deadState.phase).toBe('gameover');
+
+        const fallen = JSON.parse(localStorage.getItem('arkham_fallen_investigator') || 'null');
+        expect(fallen).not.toBeNull();
+        expect(fallen.name).toBe('威廉·戴爾');
+        expect(fallen.obols).toBe(60);
+        expect(fallen.deck.length).toBeGreaterThan(0);
+      });
+
+      it('INHERIT_REMAINS allows player to inherit 1 card from fallen deck and clears tomb record', () => {
+        const fallenCard = createInitialCombatState().sanityDeck[0];
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'remains',
+          fallenInvestigator: {
+            name: '威廉·戴爾',
+            occupation: '地質學教授',
+            deck: [fallenCard],
+            obols: 50,
+            depth: 1,
+            causeOfDeath: '死因測試',
+            timestamp: 12345,
+          },
+          remainsClaimed: false,
+        };
+
+        localStorage.setItem('arkham_fallen_investigator', JSON.stringify(state.fallenInvestigator));
+
+        const next = gameReducer(state, {
+          type: 'INHERIT_REMAINS',
+          payload: { type: 'card', cardId: fallenCard.id },
+        });
+
+        expect(next.remainsClaimed).toBe(true);
+        expect(next.sanityDeck.some((c) => c.name === fallenCard.name)).toBe(true);
+        // Record is cleared from localStorage
+        expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
+      });
+
+      it('INHERIT_REMAINS allows player to inherit 50% ancient obols and clears tomb record', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'remains',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            obols: 10,
+          },
+          fallenInvestigator: {
+            name: '威廉·戴爾',
+            occupation: '地質學教授',
+            deck: [],
+            obols: 60,
+            depth: 1,
+            causeOfDeath: '死因測試',
+            timestamp: 12345,
+          },
+          remainsClaimed: false,
+        };
+
+        localStorage.setItem('arkham_fallen_investigator', JSON.stringify(state.fallenInvestigator));
+
+        const next = gameReducer(state, {
+          type: 'INHERIT_REMAINS',
+          payload: { type: 'obols' },
+        });
+
+        expect(next.remainsClaimed).toBe(true);
+        expect(next.investigator.obols).toBe(40); // 10 + 30
+        expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
+      });
+
+      it('LEAVE_REMAINS clears tomb record and advances map', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'remains',
+          fallenInvestigator: {
+            name: '威廉·戴爾',
+            occupation: '地質學教授',
+            deck: [],
+            obols: 60,
+            depth: 1,
+            causeOfDeath: '死因測試',
+            timestamp: 12345,
+          },
+          map: {
+            id: 'map_test',
+            name: '測試地圖',
+            layers: [['node_0_0']],
+            currentNodeId: 'node_0_0',
+            nodes: {
+              node_0_0: {
+                id: 'node_0_0',
+                type: 'remains',
+                layer: 0,
+                col: 0,
+                label: '屍骨遺骸',
+                title: '前代枯骨',
+                description: '骸骨',
+                nextNodes: [],
+                status: 'current',
+              },
+            },
+          },
+        };
+
+        localStorage.setItem('arkham_fallen_investigator', JSON.stringify(state.fallenInvestigator));
+
+        const next = gameReducer(state, { type: 'LEAVE_REMAINS' });
+        expect(next.phase).toBe('map');
+        expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
+      });
+    });
+  });
 });
+
 

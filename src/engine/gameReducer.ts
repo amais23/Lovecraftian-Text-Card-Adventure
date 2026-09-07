@@ -44,7 +44,12 @@ import {
   isAncientSealLocked,
   isAncientSealUnlocked,
 } from './abyssalSeals';
-import { applyRelicCombatStart, applyRelicToInvestigator } from './relics';
+import { applyRelicCombatStart, applyRelicToInvestigator, PRESET_RELICS } from './relics';
+import {
+  getFallenInvestigator,
+  clearFallenInvestigator,
+  saveFallenInvestigatorFromState,
+} from './remainsInheritance';
 import {
   addStatusEffect,
   calculateArmorGain,
@@ -386,6 +391,7 @@ export function resolveTurnEndAndFixedDraw(
   // Check GameOver / Victory
   if (investigatorHealth <= 0) {
     newLogs.unshift(`【調查員殞命】你的視線被血污模糊，神識散盡倒在血泊中……未知之物將你吞噬。`);
+    saveFallenInvestigatorFromState(state, `遭${enemy.name}擊殺殞命`);
     return {
       ...state,
       phase: 'gameover',
@@ -768,6 +774,70 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
+      if (targetNode.type === 'altar') {
+        return {
+          ...state,
+          phase: 'altar',
+          map: updatedMap,
+          altarUsed: false,
+          adventureStats: updatedStats,
+          battleLog: [
+            `探索【${targetNode.title}】！古老陰森的禁忌祭壇在前方矗立，幽藍冷火散發著陣陣寒意。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'vault') {
+        const ownedRelicIds = new Set((state.investigator.relics || []).map((r) => r.id));
+        const unowned = PRESET_RELICS.filter((r) => !ownedRelicIds.has(r.id));
+        const candidates = unowned.length >= 3 ? unowned : PRESET_RELICS;
+        const shuffled = [...candidates].sort(() => 0.5 - Math.random());
+        const vaultRelics = shuffled.slice(0, 3);
+        return {
+          ...state,
+          phase: 'vault',
+          map: updatedMap,
+          vaultRelics,
+          vaultClaimed: false,
+          adventureStats: updatedStats,
+          battleLog: [
+            `探索【${targetNode.title}】！厚重的青銅巨門徐徐開啟，遺物秘閣內陳列著太古法器。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'blood_altar') {
+        return {
+          ...state,
+          phase: 'blood_altar',
+          map: updatedMap,
+          bloodAltarUsed: false,
+          adventureStats: updatedStats,
+          battleLog: [
+            `探索【${targetNode.title}】！血之祭壇前刻劃著純淨之契，可用自身鮮血為媒介淨化理智牌庫。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      if (targetNode.type === 'remains') {
+        const fallen = getFallenInvestigator();
+        return {
+          ...state,
+          phase: 'remains',
+          map: updatedMap,
+          fallenInvestigator: fallen,
+          remainsClaimed: false,
+          adventureStats: updatedStats,
+          battleLog: [
+            `探索【${targetNode.title}】！在迷霧與碎石間發現了前代殉職調查員的殘破骸骨與行囊。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
       return state;
     }
 
@@ -853,6 +923,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
 
       if (newHealth <= 0) {
+        saveFallenInvestigatorFromState(state, `於奇遇【${state.currentEvent?.title ?? '未知奇遇'}】中傷重不治`);
         return {
           ...state,
           phase: 'gameover',
@@ -1624,6 +1695,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase = 'gameover';
         investigatorStatusEffects = [];
         newLogs.unshift(`【調查員殞命】不可名狀的反噬耗盡了你最後一絲氣息，你倒在血泊中……`);
+        saveFallenInvestigatorFromState(state, '承受深淵反噬殞命');
       } else if (enemyHealth <= 0) {
         phase = 'victory';
         investigatorStatusEffects = [];
@@ -1792,7 +1864,249 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
     }
 
+    case 'USE_ALTAR': {
+      if (state.phase !== 'altar' || state.altarUsed) return state;
+      const optionId = action.payload.optionId;
+      let newHealth = state.investigator.health;
+      let newMaxHealth = state.investigator.maxHealth;
+      let newHandCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+      let updatedRelics = [...(state.investigator.relics || [])];
+      let newObols = state.investigator.obols;
+      const newLogs: string[] = [];
+
+      if (optionId === 'flesh') {
+        if (newHealth <= 6) return state;
+        newHealth = newHealth - 6;
+        newMaxHealth = newMaxHealth + 5;
+        newHealth = Math.min(newMaxHealth, newHealth + 5);
+        newLogs.push(
+          `在禁忌祭壇割破血肉完成誓約，承受 6 點傷害，最大生命值永久提升 5 點（當前生命值: ${newHealth} / ${newMaxHealth}）！`
+        );
+      } else if (optionId === 'mind') {
+        if (newHealth <= 10) return state;
+        newHealth = newHealth - 10;
+        newHandCapacity = newHandCapacity + 1;
+        newLogs.push(
+          `在禁忌祭壇忍受神經撕裂劇痛，承受 10 點傷害，手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
+        );
+      } else if (optionId === 'boon') {
+        if (newHealth <= 6) return state;
+        newHealth = newHealth - 6;
+        const ownedIds = new Set(updatedRelics.map((r) => r.id));
+        const unowned = PRESET_RELICS.filter((r) => !ownedIds.has(r.id));
+        if (unowned.length > 0) {
+          const chosenRelic = unowned[Math.floor(Math.random() * unowned.length)];
+          const invWithRelic = applyRelicToInvestigator(
+            {
+              ...state.investigator,
+              health: newHealth,
+              maxHealth: newMaxHealth,
+              handCapacity: newHandCapacity,
+              relics: updatedRelics,
+            },
+            chosenRelic
+          );
+          newHealth = invWithRelic.health;
+          newMaxHealth = invWithRelic.maxHealth;
+          newHandCapacity = invWithRelic.handCapacity ?? newHandCapacity;
+          updatedRelics = invWithRelic.relics ?? updatedRelics;
+          newLogs.push(`在禁忌祭壇獻祭鮮血，獲得舊日恩賜遺物【${chosenRelic.name}】！${chosenRelic.description}`);
+        } else {
+          newObols += 35;
+          newLogs.push(`在禁忌祭壇獻祭鮮血，舊日微光賜予你 35 枚古金幣！`);
+        }
+      }
+
+      return {
+        ...state,
+        investigator: {
+          ...state.investigator,
+          health: newHealth,
+          maxHealth: newMaxHealth,
+          handCapacity: newHandCapacity,
+          relics: updatedRelics,
+          obols: newObols,
+        },
+        altarUsed: true,
+        battleLog: newLogs.concat(state.battleLog),
+      };
+    }
+
+    case 'LEAVE_ALTAR': {
+      if (state.phase !== 'altar') return state;
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        altarUsed: undefined,
+        battleLog: ['告別禁忌祭壇，重回阿卡姆調查地圖。', ...state.battleLog],
+      };
+    }
+
+    case 'CLAIM_VAULT_RELIC': {
+      if (state.phase !== 'vault' || state.vaultClaimed) return state;
+      const { relicId, claimObols } = action.payload;
+      const newLogs: string[] = [];
+      let updatedInvestigator = { ...state.investigator };
+      const currentStats = ensureAdventureStats(state);
+      let updatedStats = currentStats;
+
+      if (claimObols) {
+        updatedInvestigator.obols += 35;
+        updatedStats = {
+          ...currentStats,
+          totalObolsCollected: currentStats.totalObolsCollected + 35,
+        };
+        newLogs.push(`在遺物秘閣中搜括暗格，獲得了 35 枚古金幣！`);
+      } else if (relicId) {
+        const targetRelic =
+          (state.vaultRelics || []).find((r) => r.id === relicId) ||
+          PRESET_RELICS.find((r) => r.id === relicId);
+        if (targetRelic) {
+          updatedInvestigator = applyRelicToInvestigator(updatedInvestigator, targetRelic);
+          newLogs.push(`在遺物秘閣中選取了【${targetRelic.name}】收入行囊！${targetRelic.description}`);
+        }
+      }
+
+      return {
+        ...state,
+        investigator: updatedInvestigator,
+        vaultClaimed: true,
+        adventureStats: updatedStats,
+        battleLog: newLogs.concat(state.battleLog),
+      };
+    }
+
+    case 'LEAVE_VAULT': {
+      if (state.phase !== 'vault') return state;
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        vaultRelics: undefined,
+        vaultClaimed: undefined,
+        battleLog: ['離開遺物秘閣，青銅巨門在身後轟然闔上。', ...state.battleLog],
+      };
+    }
+
+    case 'SACRIFICE_CARDS_AT_BLOOD_ALTAR': {
+      if (state.phase !== 'blood_altar' || state.bloodAltarUsed) return state;
+      const cardIds = action.payload.cardIds;
+      if (!cardIds || cardIds.length !== 2) return state;
+
+      const permanentCards = getAllPermanentCards(state);
+      if (permanentCards.length - cardIds.length < 2) {
+        return state;
+      }
+
+      const idSet = new Set(cardIds);
+      const purgedNames: string[] = [];
+      const filterCards = (cards: Card[]) =>
+        cards.filter((c) => {
+          if (idSet.has(c.id)) {
+            purgedNames.push(c.name);
+            return false;
+          }
+          return true;
+        });
+
+      const newSanityDeck = filterCards(state.sanityDeck);
+      const newHand = filterCards(state.hand);
+      const newDiscardPile = filterCards(state.discardPile);
+
+      return {
+        ...state,
+        sanityDeck: newSanityDeck,
+        hand: newHand,
+        discardPile: newDiscardPile,
+        bloodAltarUsed: true,
+        battleLog: [
+          `在血之祭壇燃起淨化血火，將【${purgedNames.join('】與【')}】自理智牌庫中永久除役！`,
+          ...state.battleLog,
+        ],
+      };
+    }
+
+    case 'LEAVE_BLOOD_ALTAR': {
+      if (state.phase !== 'blood_altar') return state;
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        bloodAltarUsed: undefined,
+        battleLog: ['離開血之祭壇，牌庫精簡洗鍊，神識重歸清明。', ...state.battleLog],
+      };
+    }
+
+    case 'INHERIT_REMAINS': {
+      if (state.phase !== 'remains' || state.remainsClaimed) return state;
+      const fallen = state.fallenInvestigator;
+      if (!fallen) return state;
+
+      const newLogs: string[] = [];
+      let updatedInvestigator = { ...state.investigator };
+      let newSanityDeck = [...state.sanityDeck];
+      const currentStats = ensureAdventureStats(state);
+      let updatedStats = currentStats;
+
+      if (action.payload.type === 'card') {
+        const cardId = action.payload.cardId;
+        const targetCard = fallen.deck.find((c) => c.id === cardId);
+        if (targetCard) {
+          const inheritedCard: Card = {
+            ...targetCard,
+            id: `${targetCard.id}_inherited_${Date.now()}`,
+            isTemporary: false,
+          };
+          newSanityDeck.push(inheritedCard);
+          newLogs.push(
+            `撫摸著枯骨旁沾血的筆記，繼承了前人遺留的卡牌【${targetCard.name}】納入理智牌庫！`
+          );
+        }
+      } else if (action.payload.type === 'obols') {
+        const inheritedObols = Math.max(15, Math.floor(fallen.obols * 0.5));
+        updatedInvestigator = {
+          ...updatedInvestigator,
+          obols: updatedInvestigator.obols + inheritedObols,
+        };
+        updatedStats = {
+          ...currentStats,
+          totalObolsCollected: currentStats.totalObolsCollected + inheritedObols,
+        };
+        newLogs.push(`自前代殉職調查員的殘破行囊中，拾取了 ${inheritedObols} 枚殘存古金幣。`);
+      }
+
+      clearFallenInvestigator();
+
+      return {
+        ...state,
+        investigator: updatedInvestigator,
+        sanityDeck: newSanityDeck,
+        remainsClaimed: true,
+        adventureStats: updatedStats,
+        battleLog: newLogs.concat(state.battleLog),
+      };
+    }
+
+    case 'LEAVE_REMAINS': {
+      if (state.phase !== 'remains') return state;
+      clearFallenInvestigator();
+      const updatedMap = advanceMapAfterNode(state.map);
+      return {
+        ...state,
+        phase: 'map',
+        map: updatedMap,
+        fallenInvestigator: undefined,
+        remainsClaimed: undefined,
+        battleLog: ['向殉職前輩的骸骨致敬默哀後，調查員背起行囊繼續踏入迷霧。', ...state.battleLog],
+      };
+    }
+
     default:
       return state;
   }
 }
+

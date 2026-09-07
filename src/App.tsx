@@ -12,6 +12,10 @@ import { CombatScreen } from './components/CombatScreen';
 import { RewardScreen } from './components/RewardScreen';
 import { DepthTransitionScreen } from './components/DepthTransitionScreen';
 import { AbyssDeathScreen } from './components/AbyssDeathScreen';
+import { AltarScreen } from './components/AltarScreen';
+import { VaultScreen } from './components/VaultScreen';
+import { BloodAltarScreen } from './components/BloodAltarScreen';
+import { RemainsScreen } from './components/RemainsScreen';
 
 export function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialGameState);
@@ -69,6 +73,22 @@ export function App() {
     return <MarketScreen state={state} dispatch={dispatch} />;
   }
 
+  if (state.phase === 'altar') {
+    return <AltarScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'vault') {
+    return <VaultScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'blood_altar') {
+    return <BloodAltarScreen state={state} dispatch={dispatch} />;
+  }
+
+  if (state.phase === 'remains') {
+    return <RemainsScreen state={state} dispatch={dispatch} />;
+  }
+
   if (state.phase === 'reward') {
     return <RewardScreen state={state} dispatch={dispatch} />;
   }
@@ -81,3 +101,4 @@ export function App() {
 }
 
 export default App;
+

@@ -876,7 +876,7 @@
 
 /* Tier 1 (Base / Common): Clean, restrained border */
 .card-item.tier-1 {
-  /* Default category styling */
+  border-style: solid;
 }
 
 /* Tier 2 (Advanced): Inlaid Steel / Silver dual-line border */
@@ -990,7 +990,7 @@
 
 /* Madness is completely exempt from tiers */
 .card-item.tier-madness {
-  /* Retains raw abyss flicker without tier overlay */
+  position: relative;
 }
 
 .card-item.playable:hover {
@@ -3724,3 +3724,1075 @@
   font-weight: 600;
   letter-spacing: 0.5px;
 }
+
+/* =========================================================
+   Altar Screen Styles (Issue #30)
+   ========================================================= */
+.altar-screen-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  max-width: 1600px;
+  margin: 0 auto;
+  position: relative;
+  background-color: var(--bg-deep);
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
+  user-select: none;
+}
+
+.altar-card-panel {
+  background: rgba(14, 18, 25, 0.95);
+  border: 1px solid #ff4a6e;
+  border-radius: var(--radius-md);
+  padding: clamp(14px, 2.5dvh, 32px) clamp(16px, 2.5vw, 40px);
+  max-width: 960px;
+  max-height: calc(100dvh - 20px);
+  overflow-y: auto;
+  width: 100%;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 74, 110, 0.15);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8dvh, 20px);
+}
+
+.altar-header {
+  text-align: center;
+}
+
+.altar-header-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.altar-header-top .audio-toggle-btn {
+  position: absolute;
+  right: 0;
+}
+
+.altar-title {
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: #ff4a6e;
+  margin-bottom: 6px;
+}
+
+.altar-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.altar-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 74, 110, 0.2);
+}
+
+.altar-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--text-parchment);
+}
+
+.altar-status-pill.health {
+  color: #ff334b;
+  font-weight: 600;
+}
+
+.altar-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 800px) {
+  .altar-options-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.altar-option-card {
+  background: rgba(22, 28, 38, 0.85);
+  border: 1px solid rgba(255, 74, 110, 0.3);
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.altar-option-card:hover:not(.disabled) {
+  border-color: #ff4a6e;
+  box-shadow: 0 0 20px rgba(255, 74, 110, 0.25);
+  transform: translateY(-2px);
+}
+
+.altar-option-card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.altar-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 74, 110, 0.3);
+}
+
+.altar-card-title {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  color: #ff758f;
+  margin: 0;
+}
+
+.altar-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-parchment);
+  line-height: 1.5;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.altar-action-btn {
+  background: rgba(255, 74, 110, 0.15);
+  border: 1px solid #ff4a6e;
+  color: #ff758f;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.altar-action-btn:hover:not(:disabled) {
+  background: #ff4a6e;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 74, 110, 0.5);
+}
+
+.altar-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.altar-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.altar-leave-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 36, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.altar-leave-btn:hover {
+  border-color: #ff4a6e;
+  color: #fff;
+}
+
+/* =========================================================
+   Vault Screen Styles (Issue #30)
+   ========================================================= */
+.vault-screen-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  max-width: 1600px;
+  margin: 0 auto;
+  position: relative;
+  background-color: var(--bg-deep);
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
+  user-select: none;
+}
+
+.vault-card-panel {
+  background: rgba(14, 18, 25, 0.95);
+  border: 1px solid #e0a96d;
+  border-radius: var(--radius-md);
+  padding: clamp(14px, 2.5dvh, 32px) clamp(16px, 2.5vw, 40px);
+  max-width: 980px;
+  max-height: calc(100dvh - 20px);
+  overflow-y: auto;
+  width: 100%;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 35px rgba(224, 169, 109, 0.15);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8dvh, 18px);
+}
+
+.vault-header {
+  text-align: center;
+}
+
+.vault-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.vault-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vault-obols-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  color: #ffd700;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.vault-title {
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: #e0a96d;
+  margin-bottom: 6px;
+}
+
+.vault-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.vault-status-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(224, 169, 109, 0.2);
+  font-size: 0.85rem;
+  color: var(--text-parchment);
+}
+
+.vault-relics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 840px) {
+  .vault-relics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vault-relic-card {
+  background: rgba(22, 28, 38, 0.88);
+  border: 1px solid rgba(224, 169, 109, 0.35);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.vault-relic-card:hover:not(.disabled) {
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(224, 169, 109, 0.3);
+  transform: translateY(-2px);
+}
+
+.vault-relic-card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.vault-relic-icon-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vault-relic-rarity-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.vault-relic-rarity-badge.rarity-common {
+  background: rgba(144, 164, 174, 0.15);
+  color: #cfd8dc;
+  border: 1px solid #90a4ae;
+}
+
+.vault-relic-rarity-badge.rarity-rare {
+  background: rgba(207, 168, 102, 0.15);
+  color: #ffd700;
+  border: 1px solid #e0a96d;
+}
+
+.vault-relic-rarity-badge.rarity-mythic {
+  background: rgba(186, 104, 200, 0.2);
+  color: #f3e5f5;
+  border: 1px solid #ba68c8;
+}
+
+.vault-relic-name {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  color: #ffd700;
+  margin: 0;
+}
+
+.vault-relic-desc {
+  font-size: 0.82rem;
+  color: var(--text-parchment);
+  line-height: 1.5;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.vault-relic-flavor {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.vault-claim-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(224, 169, 109, 0.15);
+  border: 1px solid #e0a96d;
+  color: #ffd700;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vault-claim-btn:hover:not(:disabled) {
+  background: #e0a96d;
+  color: #0b0e14;
+}
+
+.vault-claim-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vault-alt-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(20, 24, 32, 0.85);
+  border: 1px dashed rgba(255, 215, 0, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+}
+
+.vault-alt-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vault-alt-title {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: #ffd700;
+  margin: 0 0 2px 0;
+}
+
+.vault-alt-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.vault-obols-claim-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid #ffd700;
+  color: #ffd700;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vault-obols-claim-btn:hover:not(:disabled) {
+  background: #ffd700;
+  color: #0b0e14;
+}
+
+.vault-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.vault-leave-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 36, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vault-leave-btn:hover {
+  border-color: #e0a96d;
+  color: #fff;
+}
+
+/* =========================================================
+   Blood Altar Screen Styles (Issue #30)
+   ========================================================= */
+.blood-altar-screen-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  max-width: 1600px;
+  margin: 0 auto;
+  position: relative;
+  background-color: var(--bg-deep);
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
+  user-select: none;
+}
+
+.blood-altar-card-panel {
+  background: rgba(14, 18, 25, 0.96);
+  border: 1px solid #d90429;
+  border-radius: var(--radius-md);
+  padding: clamp(14px, 2.5dvh, 30px) clamp(16px, 2.5vw, 36px);
+  max-width: 980px;
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
+  width: 100%;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 35px rgba(217, 4, 41, 0.2);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.5dvh, 16px);
+}
+
+.blood-altar-header {
+  text-align: center;
+}
+
+.blood-altar-header-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.blood-altar-header-top .audio-toggle-btn {
+  position: absolute;
+  right: 0;
+}
+
+.blood-altar-title {
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: #ef233c;
+  margin-bottom: 4px;
+}
+
+.blood-altar-subtitle {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  max-width: 740px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.blood-altar-status-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(217, 4, 41, 0.25);
+  font-size: 0.84rem;
+}
+
+.blood-altar-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-parchment);
+}
+
+.blood-altar-status-pill.highlight {
+  color: #ef233c;
+  font-weight: 600;
+}
+
+.blood-altar-hint {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.blood-altar-cards-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.blood-altar-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.blood-altar-card-item {
+  background: rgba(20, 24, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.blood-altar-card-item:hover:not(.disabled) {
+  border-color: #ef233c;
+  transform: translateY(-2px);
+}
+
+.blood-altar-card-item.selected {
+  border-color: #d90429;
+  background: rgba(217, 4, 41, 0.12);
+  box-shadow: 0 0 16px rgba(217, 4, 41, 0.35);
+}
+
+.blood-altar-card-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.blood-altar-card-checkbox {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.blood-altar-card-item.selected .blood-altar-card-checkbox {
+  background: #d90429;
+  border-color: #ef233c;
+}
+
+.blood-altar-card-top {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.blood-altar-card-badge {
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+}
+
+.blood-altar-card-cost {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.blood-altar-card-name {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: var(--text-gold);
+  margin: 0;
+}
+
+.blood-altar-card-desc {
+  font-size: 0.78rem;
+  color: var(--text-parchment);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.blood-altar-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 6px;
+}
+
+.blood-altar-purge-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(217, 4, 41, 0.2);
+  border: 1px solid #d90429;
+  color: #ef233c;
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.blood-altar-purge-btn:hover:not(:disabled) {
+  background: #d90429;
+  color: #fff;
+  box-shadow: 0 0 16px rgba(217, 4, 41, 0.5);
+}
+
+.blood-altar-purge-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.blood-altar-leave-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 36, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.blood-altar-leave-btn:hover {
+  border-color: #ef233c;
+  color: #fff;
+}
+
+/* =========================================================
+   Remains Screen Styles (Issue #30)
+   ========================================================= */
+.remains-screen-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  max-width: 1600px;
+  margin: 0 auto;
+  position: relative;
+  background-color: var(--bg-deep);
+  padding: clamp(12px, 2dvh, 24px);
+  overflow: hidden;
+  user-select: none;
+}
+
+.remains-card-panel {
+  background: rgba(14, 18, 25, 0.96);
+  border: 1px solid #b8c0ff;
+  border-radius: var(--radius-md);
+  padding: clamp(14px, 2.5dvh, 30px) clamp(16px, 2.5vw, 36px);
+  max-width: 980px;
+  max-height: calc(100dvh - 20px);
+  overflow-y: auto;
+  width: 100%;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 35px rgba(184, 192, 255, 0.15);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.5dvh, 16px);
+}
+
+.remains-header {
+  text-align: center;
+}
+
+.remains-header-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.remains-header-top .audio-toggle-btn {
+  position: absolute;
+  right: 0;
+}
+
+.remains-title {
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: #b8c0ff;
+  margin-bottom: 4px;
+}
+
+.remains-subtitle {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.remains-dossier-card {
+  background: rgba(22, 26, 36, 0.8);
+  border: 1px solid rgba(184, 192, 255, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+}
+
+.remains-dossier-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.remains-dossier-title {
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  color: #ff758f;
+  letter-spacing: 1px;
+}
+
+.remains-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .remains-dossier-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.remains-dossier-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.remains-dossier-item .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.remains-dossier-item .value {
+  font-size: 0.88rem;
+  color: var(--text-parchment);
+  font-weight: 600;
+}
+
+.remains-status-strip {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(184, 192, 255, 0.2);
+  font-size: 0.82rem;
+  color: #b8c0ff;
+}
+
+.remains-choices-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 800px) {
+  .remains-choices-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.remains-choice-block {
+  background: rgba(20, 24, 32, 0.85);
+  border: 1px solid rgba(184, 192, 255, 0.3);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.remains-choice-block.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.remains-choice-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remains-choice-header h4 {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: #cfa866;
+  margin: 0;
+}
+
+.remains-choice-block.obols-block .remains-choice-header h4 {
+  color: #ffd700;
+}
+
+.remains-choice-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.remains-cards-scroll {
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.remains-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.remains-card-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(14, 18, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remains-card-item:hover {
+  border-color: #cfa866;
+}
+
+.remains-card-item.selected {
+  border-color: #ffd700;
+  background: rgba(207, 168, 102, 0.15);
+}
+
+.remains-card-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.remains-card-item.selected .remains-card-radio {
+  background: #cfa866;
+  border-color: #ffd700;
+}
+
+.remains-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.remains-card-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-gold);
+}
+
+.remains-card-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.remains-obols-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.remains-obols-numbers {
+  display: flex;
+  flex-direction: column;
+}
+
+.remains-obols-numbers .amount {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.remains-obols-numbers .sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.remains-confirm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(207, 168, 102, 0.15);
+  border: 1px solid #cfa866;
+  color: #ffd700;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.remains-confirm-btn:hover:not(:disabled) {
+  background: #cfa866;
+  color: #0b0e14;
+}
+
+.remains-confirm-btn.obols {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.remains-confirm-btn.obols:hover:not(:disabled) {
+  background: #ffd700;
+  color: #0b0e14;
+}
+
+.remains-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.remains-empty-state {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.remains-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.remains-leave-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 36, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remains-leave-btn:hover {
+  border-color: #b8c0ff;
+  color: #fff;
+}
+

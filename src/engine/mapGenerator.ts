@@ -1,5 +1,6 @@
 import type { DepthLevel, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 import { getEncounterEnemy } from './enemyCatalog';
+import { hasFallenInvestigatorRecord } from './remainsInheritance';
 
 export interface RawNodeConfig {
   id: string;
@@ -198,6 +199,7 @@ export interface MapGenerationOptions {
   randomFn?: () => number;
   procedural?: boolean;
   depth?: DepthLevel;
+  hasFallenInvestigator?: boolean;
 }
 
 const DEPTH_METADATA: Record<
@@ -258,6 +260,34 @@ const DEPTH_METADATA: Record<
           { title: '無底深淵祭壇', desc: '祭壇中央的虛空裂隙中，不可名狀的修格斯黑泥巨塊正在緩緩凝聚……' },
         ],
       },
+      altar: {
+        label: '禁忌祭壇',
+        variants: [
+          { title: '無名舊神祭壇', desc: '石台上凝結著發黑的暗紅血垢，冷冽的微風中夾雜著細碎的非人低語……' },
+          { title: '黑曜石供奉台', desc: '以非歐幾何角度切削的黑石祭壇，燃燒著幽藍色的不熄冷火。' },
+        ],
+      },
+      vault: {
+        label: '遺物秘閣',
+        variants: [
+          { title: '阿米蒂奇教授的密室', desc: '密斯卡托尼克大學地窖深處的加固鐵庫，封存著自世界各地搜繳的禁忌物件。' },
+          { title: '守墓人古董櫃', desc: '佈滿蛛網與符文的古老木櫥，散發著奇異的金屬寒光。' },
+        ],
+      },
+      blood_altar: {
+        label: '血之祭壇',
+        variants: [
+          { title: '放血淨化石槽', desc: '刻滿除役符文的青石水槽，唯有以鮮血洗滌，方能洗去心智中受污染的雜念卡牌。' },
+          { title: '異端悔罪石室', desc: '昏暗的密室中央擺放著帶刺的祭台，能將狂亂記憶永久剝除焚毀。' },
+        ],
+      },
+      remains: {
+        label: '屍骨遺骸',
+        variants: [
+          { title: '前代調查員枯骨', desc: '倚靠在牆角的殘破骸骨，身旁的皮革公事包已被風雨浸透，記錄著前人未能走完的道路……' },
+          { title: '殉職探員遺物堆', desc: '被血污浸透的風衣與折斷的鋼筆，無言訴說著前任探索者遭遇的殘酷命運。' },
+        ],
+      },
     },
   },
   2: {
@@ -308,6 +338,33 @@ const DEPTH_METADATA: Record<
         label: '舊日宿敵',
         variants: [
           { title: '大袞王廷的祭禮石殿', desc: '海水淹沒的太古石殿中，大袞的深淵祭司高舉三叉戟召喚滅頂海嘯！' },
+        ],
+      },
+      altar: {
+        label: '禁忌祭壇',
+        variants: [
+          { title: '潮汐浸血祭台', desc: '珊瑚岩雕琢的海神古壇，海水退去時露出刻滿獻祭盟約的凹槽。' },
+          { title: '深淵螺紋祭壇', desc: '巨型鸚鵡螺化石鑄就的供壇，散發著令人心悸的幽暗引力。' },
+        ],
+      },
+      vault: {
+        label: '遺物秘閣',
+        variants: [
+          { title: '沉沒走私者寶庫', desc: '深埋於礁石洞穴的防潮防水密匣，保存著歷代水手打撈出的深海遺物。' },
+          { title: '大袞金器儲藏室', desc: '鑲嵌著異星黃金飾物的石壁秘室，封印著未被腐化的古老法器。' },
+        ],
+      },
+      blood_altar: {
+        label: '血之祭壇',
+        variants: [
+          { title: '深海血祭礁岩', desc: '黑潮拍擊的銳利礁岩，以自身鮮血澆灌符文，能永久洗淨牌庫雜質。' },
+          { title: '珊瑚淨化石碑', desc: '活體珊瑚構成的奇異共生碑，能吸噬調查員殘存的心智負擔。' },
+        ],
+      },
+      remains: {
+        label: '屍骨遺骸',
+        variants: [
+          { title: '溺亡探索者骸骨', desc: '卡在玄武岩礁石縫隙間的蒼白枯骨，手中緊緊攥著殘存的防水行囊。' },
         ],
       },
     },
@@ -362,6 +419,33 @@ const DEPTH_METADATA: Record<
           { title: '原形黑泥核心深淵', desc: '太古無底祭壇撕裂開來，山嶽般的原生巨型修格斯發出震耳欲聾的泰克利利笛音！' },
         ],
       },
+      altar: {
+        label: '禁忌祭壇',
+        variants: [
+          { title: '原形冷火祭壇', desc: '無定形黑泥環繞的太古祭壇，唯有承受錐心痛苦方能引動恩賜。' },
+          { title: '虛空割裂之石', desc: '漂浮於深淵裂隙上的懸空石台，虛空中傳來索求代價的太古回音。' },
+        ],
+      },
+      vault: {
+        label: '遺物秘閣',
+        variants: [
+          { title: '先驅者造物秘匣', desc: '太古高維造物主留下的金屬秘倉，機械核心仍在緩慢運轉。' },
+          { title: '星際物質保險庫', desc: '懸浮於反重力場中的發光方匣，蘊藏著顛覆常理的超自然遺物。' },
+        ],
+      },
+      blood_altar: {
+        label: '血之祭壇',
+        variants: [
+          { title: '深淵融解血池', desc: '冒著黑煙的太古原質血池，投入多餘思緒即可將其永久化為虛無。' },
+          { title: '虛空燃魂之砧', desc: '以虛無冷火鍛燒靈魂的鐵砧，將不可名狀的污染卡牌自心靈永久拔除。' },
+        ],
+      },
+      remains: {
+        label: '屍骨遺骸',
+        variants: [
+          { title: '深淵遇難者殘骸', desc: '半融入黑色黏液岩壁的探險者遺骸，身旁的探險背包仍閃爍著微光。' },
+        ],
+      },
     },
   },
   4: {
@@ -403,6 +487,30 @@ const DEPTH_METADATA: Record<
         label: '舊日宿敵',
         variants: [
           { title: '拉萊耶核心神殿', desc: '星辰正位！沉睡的克蘇魯星之眷族破門而出，神性不朽威壓籠罩萬物！' },
+        ],
+      },
+      altar: {
+        label: '禁忌祭壇',
+        variants: [
+          { title: '群星歸位祭禮壇', desc: '拉萊耶核心巨石頂端的星宿祭壇，宇宙維度在此崩塌交匯。' },
+        ],
+      },
+      vault: {
+        label: '遺物秘閣',
+        variants: [
+          { title: '拉萊耶原核密藏', desc: '群星歸位時方會開啟的深淵核心，封存著抵抗舊日支配者的最終遺物。' },
+        ],
+      },
+      blood_altar: {
+        label: '血之祭壇',
+        variants: [
+          { title: '終局血契聖座', desc: '面對終極恐怖前的決死儀式台，將所有軟弱思緒焚燒殆盡。' },
+        ],
+      },
+      remains: {
+        label: '屍骨遺骸',
+        variants: [
+          { title: '太古先驅者遺骸', desc: '倒在拉萊耶門扉前的孤獨骸骨，為後繼者留下了最後的指引。' },
         ],
       },
     },
@@ -484,7 +592,11 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
     const layerTypePools: MapNodeType[][] = [
       ['combat', 'event'],
       ['elite', 'sanctuary'],
-      ['market', 'event', 'sanctuary'],
+      pick([
+        ['vault', 'blood_altar', 'sanctuary'],
+        ['market', 'altar', 'sanctuary'],
+        ['vault', 'altar', 'combat'],
+      ]),
       ['boss'],
     ];
 
@@ -511,32 +623,46 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
     };
   }
 
+  const hasFallen = (options?.hasFallenInvestigator ?? hasFallenInvestigatorRecord()) && depth === 1;
+
   // Depths 1, 2, 3: 16 nodes DAG (6 layers: 2 + 3 + 3 + 4 + 3 + 1 = 16 nodes)
+  const layer1Choices: MapNodeType[][] = hasFallen
+    ? [
+        ['remains', 'combat', 'market'],
+        ['combat', 'remains', 'vault'],
+        ['event', 'remains', 'market'],
+      ]
+    : [
+        ['event', 'combat', 'vault'],
+        ['combat', 'event', 'market'],
+        ['event', 'vault', 'combat'],
+        ['combat', 'vault', 'market'],
+      ];
+
   const layerTypePools: MapNodeType[][] = [
     // Layer 0 (2 nodes: entry points)
     rng() > 0.5 ? ['combat', 'event'] : ['event', 'combat'],
-    // Layer 1 (3 nodes: exploration)
+    // Layer 1 (3 nodes: exploration & legacy)
+    pick(layer1Choices),
+    // Layer 2 (3 nodes: danger, refuge & altars)
     pick([
-      ['event', 'combat', 'market'],
-      ['combat', 'event', 'market'],
-      ['event', 'event', 'combat'],
-    ]),
-    // Layer 2 (3 nodes: danger & refuge)
-    pick([
-      ['combat', 'event', 'sanctuary'],
-      ['event', 'combat', 'market'],
-      ['combat', 'sanctuary', 'combat'],
+      ['combat', 'altar', 'sanctuary'],
+      ['blood_altar', 'combat', 'market'],
+      ['combat', 'event', 'blood_altar'],
+      ['event', 'combat', 'sanctuary'],
     ]),
     // Layer 3 (4 nodes: turning point & elite encounters)
     pick([
-      ['elite', 'market', 'event', 'sanctuary'],
-      ['event', 'elite', 'market', 'combat'],
-      ['sanctuary', 'elite', 'event', 'market'],
+      ['elite', 'market', 'vault', 'sanctuary'],
+      ['altar', 'elite', 'market', 'combat'],
+      ['sanctuary', 'elite', 'market', 'blood_altar'],
+      ['event', 'altar', 'elite', 'market'],
     ]),
     // Layer 4 (3 nodes: final preparations)
     pick([
-      ['sanctuary', 'combat', 'event'],
-      ['market', 'sanctuary', 'combat'],
+      ['sanctuary', 'blood_altar', 'altar'],
+      ['market', 'altar', 'combat'],
+      ['blood_altar', 'sanctuary', 'combat'],
       ['event', 'combat', 'sanctuary'],
     ]),
     // Layer 5 (1 node: boss)
@@ -609,6 +735,8 @@ export function generateInvestigationMap(options?: MapGenerationOptions): Invest
   const nodes: Record<string, MapNode> = {};
   const layersMap: Record<number, string[]> = {};
 
+  const hasFallen = Boolean(options?.hasFallenInvestigator) && depth === 1;
+
   for (const raw of BASE_MAP_TEMPLATE) {
     const isEntryLayer = raw.layer === 0;
     nodes[raw.id] = {
@@ -621,6 +749,17 @@ export function generateInvestigationMap(options?: MapGenerationOptions): Invest
       layersMap[raw.layer] = [];
     }
     layersMap[raw.layer].push(raw.id);
+  }
+
+  if (hasFallen && nodes['node_1_0']) {
+    const variant = DEPTH_METADATA[1].pools.remains.variants[0];
+    nodes['node_1_0'] = {
+      ...nodes['node_1_0'],
+      type: 'remains',
+      label: DEPTH_METADATA[1].pools.remains.label,
+      title: variant.title,
+      description: variant.desc,
+    };
   }
 
   const sortedLayerKeys = Object.keys(layersMap)
@@ -637,3 +776,4 @@ export function generateInvestigationMap(options?: MapGenerationOptions): Invest
     currentNodeId: null,
   };
 }
+
