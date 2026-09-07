@@ -78,7 +78,7 @@ export const TIER_1_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     effects: [{ type: 'damage', value: 10 }],
-    description: '造成 10 點心靈傷害。',
+    description: '造成 10 點秘術傷害。',
     flavorText: '「在敵人腦海中回放拉萊耶的潮汐聲。」',
   },
   {
@@ -93,7 +93,7 @@ export const TIER_1_CARDS: Card[] = [
       { type: 'self_damage', value: 2 },
       { type: 'add_to_deck', value: 3 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌，解除瘋狂狀態。',
+    description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
     flavorText: '「意識升入無垠星穹，心智雖千瘡百孔，卻獲得浩瀚的安寧。」',
   },
   {
@@ -108,7 +108,7 @@ export const TIER_1_CARDS: Card[] = [
       { type: 'armor', value: 3 },
       { type: 'restore_sanity', value: 2 },
     ],
-    description: '獲得 3 點護甲，洗回 2 張卡牌（回復 2 點理智）。',
+    description: '獲得 3 點護甲，洗回 2 張卡牌。',
     flavorText: '「酒精與繃帶能穩固搖搖欲墜的精神防線。」',
   },
 ];
@@ -166,7 +166,7 @@ export const TIER_2_CARDS: Card[] = [
       { type: 'armor', value: 6 },
       { type: 'restore_sanity', value: 3 },
     ],
-    description: '獲得 6 點護甲，洗回 3 張卡牌（回復 3 點理智）。',
+    description: '獲得 6 點護甲，洗回 3 張卡牌。',
     flavorText: '「即便手指被寒風凍得發僵，依然熟練地穿針引線，穩住潰散的精神防線。」',
   },
   {
@@ -193,7 +193,7 @@ export const TIER_2_CARDS: Card[] = [
       { type: 'damage', value: 14 },
       { type: 'draw', value: 1 },
     ],
-    description: '造成 14 點心靈傷害，抽取 1 張卡牌。',
+    description: '造成 14 點秘術傷害，抽取 1 張卡牌。',
     flavorText: '「神經元在尖嘯中過載，將腦海中的混亂與回音直接烙印在敵人意識深處。」',
   },
   {
@@ -208,7 +208,7 @@ export const TIER_2_CARDS: Card[] = [
       { type: 'self_damage', value: 2 },
       { type: 'add_to_deck', value: 4 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 4 張真相卡牌，解除瘋狂狀態。',
+    description: '自身承受 2 點反噬傷害，向理智牌庫注入 4 張真相卡牌。',
     flavorText: '「石板上的非歐幾何符文正向外滲出幽綠磷光，閱讀它需要承受難以言喻的痛楚。」',
   },
   {
@@ -281,7 +281,7 @@ export const TIER_3_CARDS: Card[] = [
       { type: 'armor', value: 8 },
       { type: 'restore_sanity', value: 5 },
     ],
-    description: '獲得 8 點護甲，洗回 5 張卡牌（回復 5 點理智）。',
+    description: '獲得 8 點護甲，洗回 5 張卡牌。',
     flavorText: '「以古代舊印銘文將狂暴渙散的心靈死死固定在理性之錨上。」',
   },
   {
@@ -351,7 +351,7 @@ export const TIER_4_EXCLUSIVE_CARDS: Card[] = [
     isTemporary: false,
     tier: 4,
     effects: [{ type: 'damage', value: 34 }],
-    description: '造成 34 點毀滅傷害。',
+    description: '造成 34 點物理傷害。',
     flavorText: '「凡人的工藝與禁忌秘銀在此刻昇華，這一擊的威力足以讓舊日支配者的血脈為之顫慄。」',
   },
   {
@@ -378,7 +378,7 @@ export const TIER_4_EXCLUSIVE_CARDS: Card[] = [
     isTemporary: false,
     tier: 4,
     effects: [{ type: 'damage', value: 42 }],
-    description: '造成 42 點毀滅秘術傷害。',
+    description: '造成 42 點秘術傷害。',
     flavorText: '「宇宙黑洞深處的奇異點在眼前剎那綻放，將目光所及的一切狂暴異質徹底撕裂。」',
   },
   {
@@ -393,7 +393,7 @@ export const TIER_4_EXCLUSIVE_CARDS: Card[] = [
       { type: 'add_to_deck', value: 8 },
       { type: 'armor', value: 12 },
     ],
-    description: '獲得 12 點護甲，向理智牌庫注入 8 張真相卡牌，解除瘋狂狀態。',
+    description: '獲得 12 點護甲，向理智牌庫注入 8 張真相卡牌。',
     flavorText: '「當意識凌駕於群星之上，深淵的詛咒與瘋狂皆化為無垠宇宙中的一粒微塵。」',
   },
 ];

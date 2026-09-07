@@ -891,7 +891,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
       costValue: 3,
       isTemporary: false,
       effects: [{ type: 'damage', value: 16 }],
-      description: '造成 16 點毀滅秘術傷害。',
+      description: '造成 16 點秘術傷害。',
       flavorText: '秘術',
     };
 

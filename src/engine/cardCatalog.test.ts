@@ -78,7 +78,7 @@ describe('cardCatalog', () => {
     });
   });
 
-  describe('Card description standardization (Issue #25)', () => {
+  describe('Card description standardization (Issue #25 & ADR Alignment)', () => {
     it('ensures no card in the entire catalog contains redundant cost phrases or legacy keywords', () => {
       const catalog = getCardCatalog();
       for (const card of catalog) {
@@ -88,18 +88,22 @@ describe('cardCatalog', () => {
         expect(card.description, `Card "${card.name}" has legacy 回補 text`).not.toContain('回補');
         expect(card.description, `Card "${card.name}" has legacy 護甲值 text`).not.toContain('護甲值');
         expect(card.description, `Card "${card.name}" has legacy 認知傷害 text`).not.toContain('認知傷害');
+        expect(card.description, `Card "${card.name}" has forbidden 毀滅 text`).not.toContain('毀滅');
+        expect(card.description, `Card "${card.name}" has forbidden 心靈傷害 text`).not.toContain('心靈傷害');
+        expect(card.description, `Card "${card.name}" has redundant 回復理智 text`).not.toMatch(/回復.*理智/);
+        expect(card.description, `Card "${card.name}" has redundant 解除瘋狂 text`).not.toContain('解除瘋狂');
       }
     });
 
-    it('ensures damage cards follow the standardized "造成 X 點...傷害" paradigm', () => {
+    it('ensures damage cards strictly follow "造成 X 點物理傷害" or "造成 X 點秘術傷害"', () => {
       const catalog = getCardCatalog();
       for (const card of catalog) {
         const damageEffect = card.effects.find((e) => e.type === 'damage');
         if (damageEffect && !card.isUnplayable) {
-          expect(card.description, `Card "${card.name}" missing standardized damage phrasing`).toMatch(
-            new RegExp(`^造成 ${damageEffect.value} 點`)
-          );
-          expect(card.description, `Card "${card.name}" missing 傷害 suffix`).toContain('傷害');
+          expect(
+            card.description,
+            `Card "${card.name}" must strictly specify 物理傷害 or 秘術傷害`
+          ).toMatch(new RegExp(`^造成 ${damageEffect.value} 點(物理|秘術)傷害`));
         }
       }
     });
@@ -116,14 +120,15 @@ describe('cardCatalog', () => {
       }
     });
 
-    it('ensures restore sanity cards follow the standardized "洗回 X 張卡牌（回復 X 點理智）" paradigm', () => {
+    it('ensures restore sanity cards follow the standardized "洗回 X 張卡牌" paradigm without redundant sanity notes', () => {
       const catalog = getCardCatalog();
       for (const card of catalog) {
         const restoreEffect = card.effects.find((e) => e.type === 'restore_sanity');
         if (restoreEffect && !card.isUnplayable) {
           expect(card.description, `Card "${card.name}" missing standardized restore sanity phrasing`).toContain(
-            `洗回 ${restoreEffect.value} 張卡牌（回復 ${restoreEffect.value} 點理智）`
+            `洗回 ${restoreEffect.value} 張卡牌`
           );
+          expect(card.description, `Card "${card.name}" has redundant 回復理智 note`).not.toMatch(/回復.*理智/);
         }
       }
     });

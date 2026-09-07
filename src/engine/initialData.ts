@@ -121,7 +121,7 @@ export const INVESTIGATOR_DECK: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'restore_sanity', value: 1 }],
-    description: '洗回 1 張卡牌（回復 1 點理智）。',
+    description: '洗回 1 張卡牌。',
     flavorText: '「緊閉雙眼，強迫狂亂跳動的心臟放緩節奏。」',
   },
   {
@@ -132,7 +132,7 @@ export const INVESTIGATOR_DECK: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'restore_sanity', value: 2 }],
-    description: '洗回 2 張卡牌（回復 2 點理智）。',
+    description: '洗回 2 張卡牌。',
     flavorText: '「刺鼻的化學藥劑推入靜脈，混亂的囈語暫時歸於死寂。」',
   },
   {
@@ -146,7 +146,7 @@ export const INVESTIGATOR_DECK: Card[] = [
       { type: 'self_damage', value: 2 },
       { type: 'add_to_deck', value: 2 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌，解除瘋狂狀態。',
+    description: '自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。',
     flavorText: '「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」',
   },
 ];
@@ -182,7 +182,7 @@ export const OCCULTIST_DECK: Card[] = [
     costValue: 2,
     isTemporary: false,
     effects: [{ type: 'damage', value: 16 }],
-    description: '造成 16 點毀滅秘術傷害。',
+    description: '造成 16 點秘術傷害。',
     flavorText: '「直視來自異次元的虛空陰影，受創的怪物皮肉開始崩解腐化。」',
   },
   {
@@ -193,7 +193,7 @@ export const OCCULTIST_DECK: Card[] = [
     costValue: 2,
     isTemporary: false,
     effects: [{ type: 'damage', value: 16 }],
-    description: '造成 16 點毀滅秘術傷害。',
+    description: '造成 16 點秘術傷害。',
     flavorText: '「深淵的回響將眼前的邪物撕得支離破碎。」',
   },
   {
@@ -226,7 +226,7 @@ export const OCCULTIST_DECK: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'restore_sanity', value: 2 }],
-    description: '洗回 2 張卡牌（回復 2 點理智）。',
+    description: '洗回 2 張卡牌。',
     flavorText: '「在狂亂的幻覺浪潮中，強行構築一道理性的防波堤。」',
   },
   {
@@ -237,7 +237,7 @@ export const OCCULTIST_DECK: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'restore_sanity', value: 2 }],
-    description: '洗回 2 張卡牌（回復 2 點理智）。',
+    description: '洗回 2 張卡牌。',
     flavorText: '「重新默誦《玄密七章》的安定真言。」',
   },
   {
@@ -251,7 +251,7 @@ export const OCCULTIST_DECK: Card[] = [
       { type: 'self_damage', value: 1 },
       { type: 'add_to_deck', value: 2 },
     ],
-    description: '自身承受 1 點反噬傷害，向理智牌庫注入 2 張真相卡牌，解除瘋狂狀態。',
+    description: '自身承受 1 點反噬傷害，向理智牌庫注入 2 張真相卡牌。',
     flavorText: '「旋轉銀色鑰匙，推開通向終極真相的一絲門縫。」',
   },
   {
@@ -265,7 +265,7 @@ export const OCCULTIST_DECK: Card[] = [
       { type: 'self_damage', value: 2 },
       { type: 'add_to_deck', value: 2 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌，解除瘋狂狀態。',
+    description: '自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。',
     flavorText: '「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」',
   },
   {
@@ -410,7 +410,7 @@ export const REWARD_CARD_POOL: Card[] = [
     costValue: 1,
     isTemporary: false,
     effects: [{ type: 'damage', value: 10 }],
-    description: '造成 10 點心靈傷害。',
+    description: '造成 10 點秘術傷害。',
     flavorText: '「在敵人腦海中回放拉萊耶的潮汐聲。」',
   },
   {
@@ -424,7 +424,7 @@ export const REWARD_CARD_POOL: Card[] = [
       { type: 'self_damage', value: 2 },
       { type: 'add_to_deck', value: 3 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌，解除瘋狂狀態。',
+    description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
     flavorText: '「意識升入無垠星穹，心智雖千瘡百孔，卻獲得浩瀚的安寧。」',
   },
   {
@@ -438,7 +438,7 @@ export const REWARD_CARD_POOL: Card[] = [
       { type: 'armor', value: 3 },
       { type: 'restore_sanity', value: 2 },
     ],
-    description: '獲得 3 點護甲，洗回 2 張卡牌（回復 2 點理智）。',
+    description: '獲得 3 點護甲，洗回 2 張卡牌。',
     flavorText: '「酒精與繃帶能穩固搖搖欲墜的精神防線。」',
   },
 ];

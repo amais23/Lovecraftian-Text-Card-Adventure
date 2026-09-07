@@ -9,8 +9,7 @@ export const ABYSSAL_FRAGMENT_1: Card = {
   isTemporary: false,
   isUnplayable: true,
   effects: [],
-  description:
-    '無法打出。佔據手牌卡槽。相傳集齊三枚殘片將引發某種不可思議的星辰共鳴……',
+  description: '無法打出。佔據手牌卡槽。集齊三枚引發星辰共鳴。',
   flavorText: '「第一塊浸泡著黑泥的原生殘片，在手心傳遞著刺骨的深淵脈動。」',
 };
 
@@ -23,8 +22,7 @@ export const ABYSSAL_FRAGMENT_2: Card = {
   isTemporary: false,
   isUnplayable: true,
   effects: [],
-  description:
-    '無法打出。佔據手牌卡槽。與第一枚殘片相互吸引，散發幽暗的深海寒意。',
+  description: '無法打出。佔據手牌卡槽。散發幽暗深海寒意。',
   flavorText: '「第二塊帶有海蝕太古星圖的殘片，低語著拉萊耶的古老潮鳴。」',
 };
 
@@ -37,8 +35,7 @@ export const ABYSSAL_FRAGMENT_3: Card = {
   isTemporary: false,
   isUnplayable: true,
   effects: [],
-  description:
-    '無法打出。佔據手牌卡槽。三枚殘片齊聚之時，深淵封印將產生劇烈質變。',
+  description: '無法打出。佔據手牌卡槽。三枚齊聚深淵質變。',
   flavorText: '「最後一塊殘片歸位，不可名狀的舊日律動在靈魂深處合為一體。」',
 };
 
@@ -55,8 +52,7 @@ export const COMPLETE_ANCIENT_SEAL: Card = {
     { type: 'armor', value: 20 },
     { type: 'add_to_deck', value: 5 },
   ],
-  description:
-    '洗回 10 張卡牌（回復 10 點理智），獲得 20 點護甲，向理智牌庫注入 5 張真相卡牌，解除瘋狂狀態。',
+  description: '洗回 10 張卡牌，獲得 20 點護甲，向理智牌庫注入 5 張真相卡牌。',
   flavorText: '「當三枚殘片嵌合的剎那，深淵的污穢化為純淨真理，虛空裂隙為之洞開。」',
 };
 

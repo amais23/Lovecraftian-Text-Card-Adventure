@@ -24,7 +24,7 @@ export const MADNESS_CARD_TEMPLATES: Omit<Card, 'id'>[] = [
       { type: 'damage', value: 14 },
       { type: 'self_damage', value: 3 },
     ],
-    description: '造成 14 點毀滅傷害，自身承受 3 點反噬傷害。',
+    description: '造成 14 點秘術傷害，自身承受 3 點反噬傷害。',
     flavorText: '「非人的狂吼撕裂了喉管，震碎了眼前怪物的血肉。」',
   },
   {
@@ -37,7 +37,7 @@ export const MADNESS_CARD_TEMPLATES: Omit<Card, 'id'>[] = [
       { type: 'damage', value: 20 },
       { type: 'self_damage', value: 5 },
     ],
-    description: '造成 20 點毀滅傷害，自身承受 5 點反噬傷害。',
+    description: '造成 20 點物理傷害，自身承受 5 點反噬傷害。',
     flavorText: '「燃燒最後的肉魄，化為毀滅深淵的漆黑利刃。」',
   },
 ];
