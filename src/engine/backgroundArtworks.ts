@@ -93,7 +93,7 @@ export function getCombatBackground(depth: number = 1): string {
 /**
  * 依據職業 ID 取得專屬肖像立繪路徑
  */
-export function getOccupationPortrait(occupationId: string): string {
+export function getOccupationPortrait(occupationId?: string): string {
   if (occupationId === 'occultist') {
     return OCCUPATION_PORTRAITS.occultist.portraitUrl;
   }

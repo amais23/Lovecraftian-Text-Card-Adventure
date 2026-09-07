@@ -33,6 +33,10 @@ describe('DepartureScreen (Issue #13)', () => {
     expect(screen.getByText(/雨夜啟程 · 破霧而行/i)).toBeDefined();
     expect(screen.getByText(/愛德華·皮爾斯/i)).toBeDefined();
 
+    const portrait = screen.getByTestId('departure-hero-portrait') as HTMLImageElement;
+    expect(portrait).toBeDefined();
+    expect(portrait.src).toContain('/occupations/portrait_investigator.webp');
+
     gunSpy.mockRestore();
     engineSpy.mockRestore();
   });
@@ -61,6 +65,10 @@ describe('DepartureScreen (Issue #13)', () => {
 
     expect(screen.getByText(/星扉初啟 · 銀鑰生輝/i)).toBeDefined();
     expect(screen.getByText(/艾蓮諾·凡斯/i)).toBeDefined();
+
+    const portrait = screen.getByTestId('departure-hero-portrait') as HTMLImageElement;
+    expect(portrait).toBeDefined();
+    expect(portrait.src).toContain('/occupations/portrait_occultist.webp');
 
     astralSpy.mockRestore();
   });
