@@ -2126,7 +2126,7 @@
 .map-screen-bg-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(12, 10, 8, 0.2) 0%, rgba(5, 4, 3, 0.45) 100%);
+  background: radial-gradient(circle at 50% 50%, rgba(12, 10, 8, 0.65) 0%, rgba(5, 4, 3, 0.88) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -2136,11 +2136,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 28px;
-  background: rgba(10, 14, 20, 0.65);
-  backdrop-filter: blur(6px);
+  background: rgba(10, 14, 20, 0.92);
   border-bottom: 1px solid var(--border-gold);
   z-index: 10;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
 }
 
 .map-header-left {
