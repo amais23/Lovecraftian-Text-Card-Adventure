@@ -176,6 +176,107 @@ describe('New Node Screens (Issue #30)', () => {
       fireEvent.click(leaveBtn);
       expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_BLOOD_ALTAR' });
     });
+
+    it('selects only the clicked card and does NOT select all copies when multiple copies of the same card exist', () => {
+      const dispatch = vi.fn();
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'blood_altar',
+        bloodAltarUsed: false,
+        sanityDeck: [
+          {
+            id: 'card_punch_1',
+            name: '重拳壓制',
+            category: 'combat',
+            costType: 'stamina',
+            costValue: 1,
+            isTemporary: false,
+            effects: [{ type: 'damage', value: 4 }],
+            description: '造成 4 點物理傷害。',
+            flavorText: '「第一拳」',
+          },
+          {
+            id: 'card_punch_2',
+            name: '重拳壓制',
+            category: 'combat',
+            costType: 'stamina',
+            costValue: 1,
+            isTemporary: false,
+            effects: [{ type: 'damage', value: 4 }],
+            description: '造成 4 點物理傷害。',
+            flavorText: '「第二拳」',
+          },
+          {
+            id: 'card_punch_3',
+            name: '重拳壓制',
+            category: 'combat',
+            costType: 'stamina',
+            costValue: 1,
+            isTemporary: false,
+            effects: [{ type: 'damage', value: 4 }],
+            description: '造成 4 點物理傷害。',
+            flavorText: '「第三拳」',
+          },
+          {
+            id: 'card_bayonet_1',
+            name: '軍刀突刺',
+            category: 'combat',
+            costType: 'stamina',
+            costValue: 2,
+            isTemporary: false,
+            effects: [{ type: 'damage', value: 11 }],
+            description: '造成 11 點物理傷害。',
+            flavorText: '「突刺」',
+          },
+        ],
+        hand: [],
+        discardPile: [],
+      };
+
+      const { container } = render(<BloodAltarScreen state={state} dispatch={dispatch} />);
+
+      const cardItems = container.querySelectorAll('.blood-altar-card-item');
+      expect(cardItems).toHaveLength(4);
+
+      // Verify all 3 punch cards have the same display title
+      const titles = Array.from(cardItems).map((c) => c.querySelector('.blood-altar-card-name')?.textContent);
+      expect(titles[0]).toBe('重拳壓制');
+      expect(titles[1]).toBe('重拳壓制');
+      expect(titles[2]).toBe('重拳壓制');
+
+      // Click ONLY the first copy
+      fireEvent.click(cardItems[0]);
+
+      // Copy 1 must be selected
+      expect(cardItems[0].classList.contains('selected')).toBe(true);
+      expect(cardItems[0].querySelector('.blood-altar-card-checkbox svg')).toBeDefined();
+
+      // Copies 2 and 3 must NOT be selected!
+      expect(cardItems[1].classList.contains('selected')).toBe(false);
+      expect(cardItems[2].classList.contains('selected')).toBe(false);
+      expect(cardItems[1].querySelector('.blood-altar-card-checkbox svg')).toBeNull();
+      expect(cardItems[2].querySelector('.blood-altar-card-checkbox svg')).toBeNull();
+
+      // Selected count indicator should show exactly 1 / 2
+      expect(screen.getByText(/已選除役卡牌：1 \/ 2 張/)).toBeDefined();
+
+      // Click the second copy
+      fireEvent.click(cardItems[1]);
+      expect(cardItems[0].classList.contains('selected')).toBe(true);
+      expect(cardItems[1].classList.contains('selected')).toBe(true);
+      expect(cardItems[2].classList.contains('selected')).toBe(false);
+      expect(screen.getByText(/已選除役卡牌：2 \/ 2 張/)).toBeDefined();
+
+      // Click the purge button
+      const purgeBtn = container.querySelector('#blood-altar-purge-btn') as HTMLButtonElement;
+      expect(purgeBtn.disabled).toBe(false);
+      fireEvent.click(purgeBtn);
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+        payload: { cardIds: ['card_punch_1', 'card_punch_2'] },
+      });
+    });
   });
 
 

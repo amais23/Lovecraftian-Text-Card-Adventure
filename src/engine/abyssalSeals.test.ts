@@ -13,6 +13,7 @@ import {
   isAncientSealLocked,
   isAncientSealUnlocked,
   fuseAbyssalFragments,
+  ensureUniqueCardIds,
 } from './abyssalSeals';
 import type { Card } from '../types/game';
 
@@ -236,4 +237,59 @@ describe('Abyssal Seals Module (Issue #21 / ADR-0015)', () => {
     };
     expect(isAncientSealUnlocked(normalCard, { health: 1, divineImmortality: true })).toBe(false);
   });
+
+  describe('ensureUniqueCardIds', () => {
+    const makeCard = (id: string, name: string = '卡牌'): Card => ({
+      id,
+      name,
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    });
+
+    it('returns empty array unchanged', () => {
+      expect(ensureUniqueCardIds([])).toEqual([]);
+    });
+
+    it('returns cards unchanged when all IDs are already unique', () => {
+      const c1 = makeCard('card_1');
+      const c2 = makeCard('card_2');
+      const result = ensureUniqueCardIds([c1, c2]);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('card_1');
+      expect(result[1].id).toBe('card_2');
+    });
+
+    it('deduplicates duplicate card IDs with _copy_1, _copy_2', () => {
+      const c1 = makeCard('card_punch');
+      const c2 = makeCard('card_punch');
+      const c3 = makeCard('card_punch');
+      const result = ensureUniqueCardIds([c1, c2, c3]);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe('card_punch');
+      expect(result[1].id).toBe('card_punch_copy_1');
+      expect(result[2].id).toBe('card_punch_copy_2');
+    });
+
+    it('avoids collisions when array already contains a card with _copy_1 suffix', () => {
+      const c1 = makeCard('card_punch');
+      const c2 = makeCard('card_punch_copy_1');
+      const c3 = makeCard('card_punch');
+      const result = ensureUniqueCardIds([c1, c2, c3]);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe('card_punch');
+      expect(result[1].id).toBe('card_punch_copy_1');
+      // Must NOT collide with card_punch_copy_1! It should become card_punch_copy_2
+      expect(result[2].id).toBe('card_punch_copy_2');
+      const allIds = result.map((c) => c.id);
+      expect(new Set(allIds).size).toBe(3);
+    });
+  });
 });
+

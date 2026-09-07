@@ -51,7 +51,7 @@ import {
 import { createStatusEffect } from './statusEffects';
 import { getEnemyTemplateById, getBossByDepth } from './enemyCatalog';
 import { getFreshEnemyTemplate } from './gameReducer';
-import type { Card, GameState, Enemy, InvestigationMap, DepthLevel } from '../types/game';
+import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
   return {
@@ -3586,6 +3586,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       const baseState = createInitialCombatState();
       const stateWithRelics: GameState = {
         ...baseState,
+        combatInitialHealth: 30,
         investigator: {
           ...baseState.investigator,
           relics: [ELDER_SIGN_AMULET, VITALITY_ELIXIR],
@@ -4159,6 +4160,44 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(next.sanityDeck.some((c) => c.id === card2.id)).toBe(false);
       });
 
+      it('purges only the chosen duplicate card copy and keeps other copies intact in sanityDeck', () => {
+        const punch1 = createMockCard({ id: 'card_punch', name: '重拳壓制' });
+        const punch2 = createMockCard({ id: 'card_punch', name: '重拳壓制' });
+        const punch3 = createMockCard({ id: 'card_punch', name: '重拳壓制' });
+        const bayonet = createMockCard({ id: 'card_bayonet', name: '軍刀突刺' });
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'blood_altar',
+          bloodAltarUsed: false,
+          sanityDeck: [punch1, punch2, punch3, bayonet],
+          hand: [],
+          discardPile: [],
+        };
+
+        const permanentCards = getAllPermanentCards(state);
+        expect(permanentCards.map((c) => c.id)).toEqual([
+          'card_punch',
+          'card_punch_copy_1',
+          'card_punch_copy_2',
+          'card_bayonet',
+        ]);
+
+        // User chooses to sacrifice punch_copy_1 and bayonet
+        const nextState = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: ['card_punch_copy_1', 'card_bayonet'] },
+        });
+
+        expect(nextState.bloodAltarUsed).toBe(true);
+        // Exactly 2 cards were sacrificed!
+        expect(nextState.sanityDeck).toHaveLength(2);
+        const remainingIds = nextState.sanityDeck.map((c) => c.id);
+        expect(remainingIds).not.toContain('card_punch_copy_1');
+        expect(remainingIds).not.toContain('card_bayonet');
+        expect(nextState.sanityDeck.filter((c) => c.name === '重拳壓制')).toHaveLength(2);
+      });
+
       it('SACRIFICE_CARDS_AT_BLOOD_ALTAR rejects if not exactly 2 cards or insufficient deck', () => {
         const state: GameState = {
           ...createInitialCombatState(),
@@ -4418,6 +4457,309 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
         gameReducer(state, { type: 'CLAIM_CARD_REWARD', payload: {} });
         expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
+      });
+    });
+
+    describe('Card Duplication & Lingering Hand Cards Prevention', () => {
+      it('prevents card duplication when investigator is defeated after active discard phase', () => {
+        const cardA = createMockCard({ id: 'card_a', name: '卡牌A' });
+        const cardB = createMockCard({ id: 'card_b', name: '卡牌B' });
+        const cardC = createMockCard({ id: 'card_c', name: '卡牌C' });
+        const cardD = createMockCard({ id: 'card_d', name: '卡牌D' });
+
+        const lethalEnemy: Enemy = {
+          ...cloneEnemy(INITIAL_GHOUL),
+          currentIntent: {
+            name: '致命一擊',
+            type: 'attack',
+            value: 99,
+            description: '致命一擊',
+          },
+        };
+
+        const state: GameState = {
+          ...createInitialCombatState(lethalEnemy),
+          phase: 'combat',
+          turn: 1,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 5,
+            armor: 0,
+            handCapacity: 2,
+          },
+          hand: [cardA, cardB, cardC, cardD],
+          discardPile: [],
+          sanityDeck: [],
+          discardPhase: {
+            requiredDiscardCount: 2,
+            selectedDiscardIds: ['card_c', 'card_d'],
+          },
+        };
+
+        // Confirm discard: cardC and cardD are discarded, remainingHand is [cardA, cardB]
+        // Enemy attacks with 99 damage, killing investigator!
+        const gameoverState = gameReducer(state, { type: 'CONFIRM_DISCARD' });
+
+        expect(gameoverState.phase).toBe('gameover');
+        expect(gameoverState.hand.map((c) => c.id)).toEqual(['card_a', 'card_b']);
+        expect(gameoverState.discardPile.map((c) => c.id)).toEqual(['card_c', 'card_d']);
+
+        // Now retry combat from gameover state
+        const resetState = gameReducer(gameoverState, { type: 'RESET_COMBAT' });
+        const allResetCards = [...resetState.hand, ...resetState.sanityDeck];
+
+        // Total cards must be exactly 4, with NO duplicate copies of cardC or cardD!
+        expect(allResetCards).toHaveLength(4);
+        const cardIds = allResetCards.map((c) => c.id);
+        expect(new Set(cardIds).size).toBe(4);
+        expect(cardIds).toContain('card_a');
+        expect(cardIds).toContain('card_b');
+        expect(cardIds).toContain('card_c');
+        expect(cardIds).toContain('card_d');
+      });
+
+      it('prevents card duplication when recovering sanity from discardPile in RESOLVE_EVENT_OPTION', () => {
+        const discardedCard = createMockCard({ id: 'card_discarded_1', name: '已棄卡牌' });
+        const deckCard = createMockCard({ id: 'card_in_deck_1', name: '牌庫卡牌' });
+
+        const mockEvent: MythosEvent = {
+          id: 'test_event_heal_sanity',
+          title: '安撫理智奇遇',
+          location: '靜謐圖書館',
+          storyText: ['你在古籍中找到了安撫心靈的真言。'],
+          options: [
+            {
+              id: 'opt_meditate',
+              text: '誦讀安神真言',
+              costDescription: '恢復 1 點理智',
+              consequences: [
+                {
+                  type: 'sanity_change',
+                  value: 1,
+                  narrative: '理智恢復了 1 點。',
+                },
+              ],
+            },
+          ],
+        };
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'event',
+          currentEvent: mockEvent,
+          sanityDeck: [deckCard],
+          discardPile: [discardedCard],
+          hand: [],
+        };
+
+        const eventState = gameReducer(state, {
+          type: 'RESOLVE_EVENT_OPTION',
+          payload: { optionId: 'opt_meditate' },
+        });
+
+        // The card was moved from discardPile into sanityDeck
+        expect(eventState.sanityDeck.map((c) => c.id)).toContain('card_discarded_1');
+        // Crucial: discardPile must NOT still hold card_discarded_1!
+        expect(eventState.discardPile).toHaveLength(0);
+      });
+
+      it('automatically assigns unique IDs to duplicates during setupCombatDeck', () => {
+        const duplicateCard = createMockCard({ id: 'card_punch_1', name: '重拳壓制' });
+        const cardsWithDuplicates = [duplicateCard, duplicateCard, duplicateCard];
+
+        const { hand, sanityDeck } = setupCombatDeck(cardsWithDuplicates, 'investigator', undefined, 2);
+        const allCards = [...hand, ...sanityDeck];
+
+        expect(allCards).toHaveLength(3);
+        const ids = allCards.map((c) => c.id);
+        expect(new Set(ids).size).toBe(3);
+        expect(ids).toContain('card_punch_1');
+        expect(ids).toContain('card_punch_1_copy_1');
+        expect(ids).toContain('card_punch_1_copy_2');
+      });
+    });
+
+    describe('Combat Retry & Persistent Health Restoration (RESET_COMBAT)', () => {
+      it('restores investigator health to combat entry health instead of maxHealth when retrying after death', () => {
+        const map = generateInvestigationMap();
+        const combatNodeId = Object.keys(map.nodes).find((id) => map.nodes[id].type === 'combat')!;
+        map.nodes[combatNodeId].status = 'accessible';
+
+        // Investigator enters combat with damaged health (14 HP out of 25)
+        const damagedState: GameState = {
+          ...createInitialCombatState(),
+          phase: 'map',
+          map,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 14,
+            maxHealth: 25,
+          },
+        };
+
+        const combatState = gameReducer(damagedState, {
+          type: 'NAVIGATE_TO_NODE',
+          payload: { nodeId: combatNodeId },
+        });
+
+        expect(combatState.phase).toBe('combat');
+        expect(combatState.investigator.health).toBe(14);
+        expect(combatState.combatInitialHealth).toBe(14);
+
+        // Investigator takes fatal damage and succumbs (0 HP, gameover)
+        const gameOverState: GameState = {
+          ...combatState,
+          phase: 'gameover',
+          investigator: {
+            ...combatState.investigator,
+            health: 0,
+          },
+        };
+
+        // Retry combat
+        const resetState = gameReducer(gameOverState, { type: 'RESET_COMBAT' });
+
+        // Must restore back to 14 HP (combat entry health), NOT 25 HP (maxHealth)!
+        expect(resetState.phase).toBe('combat');
+        expect(resetState.investigator.health).toBe(14);
+        expect(resetState.investigator.maxHealth).toBe(25);
+        expect(resetState.combatInitialHealth).toBe(14);
+      });
+
+      it('maintains the original combat entry health across multiple consecutive retries', () => {
+        const combatState: GameState = {
+          ...createInitialCombatState(),
+          combatInitialHealth: 11,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 11,
+            maxHealth: 25,
+          },
+        };
+
+        // First death & retry
+        const deadState1: GameState = {
+          ...combatState,
+          phase: 'gameover',
+          investigator: { ...combatState.investigator, health: 0 },
+        };
+        const resetState1 = gameReducer(deadState1, { type: 'RESET_COMBAT' });
+        expect(resetState1.investigator.health).toBe(11);
+        expect(resetState1.combatInitialHealth).toBe(11);
+
+        // Second death & retry in the same encounter
+        const deadState2: GameState = {
+          ...resetState1,
+          phase: 'gameover',
+          investigator: { ...resetState1.investigator, health: 0 },
+        };
+        const resetState2 = gameReducer(deadState2, { type: 'RESET_COMBAT' });
+        expect(resetState2.investigator.health).toBe(11);
+        expect(resetState2.combatInitialHealth).toBe(11);
+      });
+
+      it('restores entry health when combat was triggered by a mythos event with health damage', () => {
+        const mockAmbushEvent: MythosEvent = {
+          id: 'event_ambush',
+          title: '暗巷伏擊',
+          location: '廢棄碼頭',
+          storyText: ['你在暗處遭到了伏擊！'],
+          options: [
+            {
+              id: 'opt_fight',
+              text: '迎戰',
+              consequences: [
+                { type: 'health_change', value: -7, narrative: '受到衝擊，失去 7 點體力。' },
+                { type: 'trigger_combat', enemy: INITIAL_GHOUL, narrative: '食屍鬼撲了上來！' },
+              ],
+            },
+          ],
+        };
+
+        const stateBeforeEvent: GameState = {
+          ...createInitialCombatState(),
+          phase: 'event',
+          currentEvent: mockAmbushEvent,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 25,
+            maxHealth: 25,
+          },
+        };
+
+        const triggeredCombatState = gameReducer(stateBeforeEvent, {
+          type: 'RESOLVE_EVENT_OPTION',
+          payload: { optionId: 'opt_fight' },
+        });
+
+        // Event dealt 7 damage, so investigator entered combat with 18 HP
+        expect(triggeredCombatState.phase).toBe('combat');
+        expect(triggeredCombatState.investigator.health).toBe(18);
+        expect(triggeredCombatState.combatInitialHealth).toBe(18);
+
+        // Investigator dies in this combat
+        const gameoverState: GameState = {
+          ...triggeredCombatState,
+          phase: 'gameover',
+          investigator: { ...triggeredCombatState.investigator, health: 0 },
+        };
+
+        const resetState = gameReducer(gameoverState, { type: 'RESET_COMBAT' });
+        expect(resetState.investigator.health).toBe(18);
+        expect(resetState.combatInitialHealth).toBe(18);
+      });
+
+      it('restores combat entry health when manual restart is triggered mid-battle', () => {
+        const combatState: GameState = {
+          ...createInitialCombatState(),
+          combatInitialHealth: 16,
+          investigator: {
+            ...INITIAL_INVESTIGATOR,
+            health: 8, // damaged mid-battle
+            maxHealth: 25,
+          },
+        };
+
+        const resetState = gameReducer(combatState, { type: 'RESET_COMBAT' });
+        expect(resetState.investigator.health).toBe(16);
+      });
+
+      it('preserves abyssalSealFused flag and clears discardPhase upon RESET_COMBAT', () => {
+        const combatState: GameState = {
+          ...createInitialCombatState(),
+          abyssalSealFused: true,
+          discardPhase: {
+            requiredDiscardCount: 2,
+            selectedDiscardIds: ['card_1'],
+          },
+        };
+
+        const resetState = gameReducer(combatState, { type: 'RESET_COMBAT' });
+        expect(resetState.abyssalSealFused).toBe(true);
+        expect(resetState.discardPhase).toBeUndefined();
+      });
+
+      it('clears combatInitialHealth when proceeding from victory to reward and returning to map', () => {
+        const map = generateInvestigationMap();
+        const combatNodeId = Object.keys(map.nodes).find((id) => map.nodes[id].type === 'combat')!;
+        map.nodes[combatNodeId].status = 'accessible';
+
+        const combatState: GameState = {
+          ...createInitialCombatState(),
+          phase: 'reward',
+          combatInitialHealth: 14,
+          map,
+          rewardCards: [],
+          rewardObols: 15,
+        };
+
+        const mapState = gameReducer(combatState, {
+          type: 'CLAIM_CARD_REWARD',
+          payload: {},
+        });
+
+        expect(mapState.phase).toBe('map');
+        expect(mapState.combatInitialHealth).toBeUndefined();
       });
     });
   });

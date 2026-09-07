@@ -92,12 +92,39 @@ export function isAbyssalFragment(card: Card | { name?: string; id?: string }): 
   return false;
 }
 
+/**
+ * 確保卡牌陣列中所有 ID 唯一之純函式
+ * 若檢測到重複的 card.id，為後續複本追加確定性的 _copy_${count} 後綴，
+ * 並透過 usedIds 集合防禦已存在的衝突後綴，確保 100% 唯一性。
+ */
+export function ensureUniqueCardIds(cards: Card[]): Card[] {
+  const usedIds = new Set<string>();
+  return cards.map((card) => {
+    if (!usedIds.has(card.id)) {
+      usedIds.add(card.id);
+      return card;
+    }
+    let count = 1;
+    let candidateId = `${card.id}_copy_${count}`;
+    while (usedIds.has(candidateId)) {
+      count++;
+      candidateId = `${card.id}_copy_${count}`;
+    }
+    usedIds.add(candidateId);
+    return {
+      ...card,
+      id: candidateId,
+    };
+  });
+}
+
 export function getAllPermanentCards(state: GameState): Card[] {
-  return [
+  const rawCards = [
     ...state.sanityDeck,
     ...state.hand,
     ...state.discardPile,
   ].filter((c) => !c.isTemporary);
+  return ensureUniqueCardIds(rawCards);
 }
 
 function matchesFragment(card: Card, fragmentNumber: 1 | 2 | 3): boolean {

@@ -38,6 +38,7 @@ import {
   ABYSSAL_FRAGMENT_3,
   hasBothAbyssalFragments,
   fuseAbyssalFragments,
+  ensureUniqueCardIds,
   getAllPermanentCards,
   isAbyssalFragment,
   isCompleteAncientSeal,
@@ -77,6 +78,8 @@ export function splitDeckToHandAndSanity(
   };
 }
 
+export { ensureUniqueCardIds };
+
 /**
  * 戰鬥卡牌構建與洗牌純函式（消除重複代碼，支援洗牌覆寫以利確定性測試）
  */
@@ -87,14 +90,15 @@ export function setupCombatDeck(
   handCapacity: number = DEFAULT_HAND_CAPACITY
 ): { hand: Card[]; sanityDeck: Card[] } {
   if (overrideDeck && overrideDeck.length > 0) {
-    return splitDeckToHandAndSanity(overrideDeck, handCapacity);
+    return splitDeckToHandAndSanity(ensureUniqueCardIds(overrideDeck), handCapacity);
   }
   const permanentCards = cards.filter((c) => !c.isTemporary);
   const occ = OCCUPATIONS[occupationId] ?? OCCUPATIONS.investigator;
   const pool: Card[] = permanentCards.length > 0
     ? permanentCards
     : occ.deck.map((c) => ({ ...c }));
-  const shuffledDeck = fisherYatesShuffle(pool);
+  const sanitizedPool = ensureUniqueCardIds(pool);
+  const shuffledDeck = fisherYatesShuffle(sanitizedPool);
 
   // ADR-0015: 固有抽牌 - 身為真相卡的「完整的深淵古印」必定為第一張起手手牌
   const sealIdx = shuffledDeck.findIndex(isCompleteAncientSeal);
@@ -305,6 +309,7 @@ export function createInitialCombatState(
     currentEnemy: enemy,
     adventureStats: createInitialAdventureStats(investigator),
     battleLog: initialLogs,
+    combatInitialHealth: investigator.health,
   };
 }
 
@@ -392,10 +397,12 @@ export function resolveTurnEndAndFixedDraw(
   // Check GameOver / Victory
   if (investigatorHealth <= 0) {
     newLogs.unshift(`【調查員殞命】你的視線被血污模糊，神識散盡倒在血泊中……未知之物將你吞噬。`);
-    saveFallenInvestigatorFromState(state, `遭${enemy.name}擊殺殞命`);
-    return {
+    const gameoverState: GameState = {
       ...state,
       phase: 'gameover',
+      hand: remainingHand,
+      sanityDeck,
+      discardPile,
       discardPhase: undefined,
       adventureStats: ensureAdventureStats(state),
       investigator: {
@@ -406,6 +413,8 @@ export function resolveTurnEndAndFixedDraw(
       },
       battleLog: [...newLogs, ...state.battleLog],
     };
+    saveFallenInvestigatorFromState(gameoverState, `遭${enemy.name}擊殺殞命`);
+    return gameoverState;
   }
 
   if (enemyHealth <= 0) {
@@ -602,7 +611,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         obols: occ.stats.obols,
         handCapacity: occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY,
       };
-      const allCards = occ.deck.map((c) => ({ ...c }));
+      const allCards = ensureUniqueCardIds(occ.deck.map((c) => ({ ...c })));
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, investigator.handCapacity);
       const enemy = cloneEnemy(INITIAL_GHOUL);
       const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap({ depth: 1 }) : generateInvestigationMap({ depth: 1 }));
@@ -729,6 +738,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           },
           adventureStats: updatedStats,
           battleLog: [logMsg, ...relicStart.logs, ...state.battleLog],
+          combatInitialHealth: state.investigator.health,
         };
       }
 
@@ -857,6 +867,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newHealth = state.investigator.health;
       let newObols = state.investigator.obols;
       let newSanityDeck = [...state.sanityDeck];
+      let newDiscardPile = [...state.discardPile];
       const newHand = [...state.hand];
       let triggerCombatEnemy: Enemy | undefined;
       const outcomeTexts: string[] = [];
@@ -873,9 +884,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             newSanityDeck = newSanityDeck.slice(burnCount);
           } else if (consequence.value > 0) {
             let deficit = consequence.value;
-            if (state.discardPile.length > 0) {
-              const recoverCount = Math.min(state.discardPile.length, deficit);
-              const recovered = state.discardPile.slice(0, recoverCount);
+            if (newDiscardPile.length > 0) {
+              const recoverCount = Math.min(newDiscardPile.length, deficit);
+              const recovered = newDiscardPile.splice(0, recoverCount);
               newSanityDeck = [...newSanityDeck, ...recovered];
               deficit -= recoverCount;
             }
@@ -939,7 +950,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const currentCards = [
           ...newSanityDeck,
           ...newHand,
-          ...state.discardPile,
+          ...newDiscardPile,
         ];
         const handCapacity = updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
         const { hand, sanityDeck } = setupCombatDeck(
@@ -966,6 +977,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           currentEvent: undefined,
           adventureStats: updatedStats,
           battleLog: outcomeTexts.concat(state.battleLog),
+          combatInitialHealth: updatedInvestigator.health,
         };
       }
 
@@ -974,6 +986,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         investigator: updatedInvestigator,
         sanityDeck: newSanityDeck,
         hand: newHand,
+        discardPile: newDiscardPile,
         currentEvent: updatedEvent,
         adventureStats: updatedStats,
         battleLog: outcomeTexts.concat(state.battleLog),
@@ -1302,6 +1315,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         map: updatedMap,
         adventureStats: updatedStats,
         battleLog: [...newLogs, ...state.battleLog],
+        combatInitialHealth: undefined,
       };
     }
 
@@ -1362,6 +1376,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         map: updatedMap,
         adventureStats: updatedStats,
         battleLog: [...newLogs, ...state.battleLog],
+        combatInitialHealth: undefined,
       };
     }
 
@@ -1445,12 +1460,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
       const relicStart = applyRelicCombatStart(baseInvestigator);
 
+      const maxHealth = state.investigator?.maxHealth ?? occ.stats.health;
+      const initialCombatHealth = action.payload?.initialHealth
+        ?? state.combatInitialHealth
+        ?? maxHealth;
+      const restoredHealth = Math.min(maxHealth, Math.max(1, initialCombatHealth));
+
       const investigator: Investigator = {
-        name: occ.name,
-        occupation: occ.occupation,
+        name: state.investigator?.name ?? occ.name,
+        occupation: state.investigator?.occupation ?? occ.occupation,
         occupationId: occ.id,
-        health: state.investigator?.maxHealth ?? occ.stats.health,
-        maxHealth: state.investigator?.maxHealth ?? occ.stats.health,
+        health: restoredHealth,
+        maxHealth,
         stamina: relicStart.stamina,
         maxStamina: state.investigator?.maxStamina ?? occ.stats.stamina,
         armor: relicStart.armor,
@@ -1496,6 +1517,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         map: state.map,
         adventureStats: ensureAdventureStats(state),
         battleLog: [...resetLogs, ...state.battleLog],
+        abyssalSealFused: state.abyssalSealFused,
+        combatInitialHealth: state.combatInitialHealth ?? restoredHealth,
+        discardPhase: undefined,
       };
     }
 
@@ -2015,32 +2039,32 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'blood_altar' || state.bloodAltarUsed) return state;
       const cardIds = action.payload.cardIds;
       if (!cardIds || cardIds.length !== 2) return state;
+      const idSet = new Set(cardIds);
+      if (idSet.size !== 2) return state;
 
       const permanentCards = getAllPermanentCards(state);
       if (permanentCards.length - cardIds.length < 2) {
         return state;
       }
 
-      const idSet = new Set(cardIds);
       const purgedNames: string[] = [];
-      const filterCards = (cards: Card[]) =>
-        cards.filter((c) => {
-          if (idSet.has(c.id)) {
-            purgedNames.push(c.name);
-            return false;
-          }
-          return true;
-        });
+      const remainingCards = permanentCards.filter((c) => {
+        if (idSet.has(c.id)) {
+          purgedNames.push(c.name);
+          return false;
+        }
+        return true;
+      });
 
-      const newSanityDeck = filterCards(state.sanityDeck);
-      const newHand = filterCards(state.hand);
-      const newDiscardPile = filterCards(state.discardPile);
+      if (remainingCards.length !== permanentCards.length - 2) {
+        return state;
+      }
 
       return {
         ...state,
-        sanityDeck: newSanityDeck,
-        hand: newHand,
-        discardPile: newDiscardPile,
+        sanityDeck: remainingCards,
+        hand: [],
+        discardPile: [],
         bloodAltarUsed: true,
         battleLog: [
           `在血之祭壇燃起淨化血火，將【${purgedNames.join('】與【')}】自理智牌庫中永久除役！`,

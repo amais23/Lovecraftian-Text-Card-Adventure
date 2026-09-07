@@ -247,6 +247,7 @@ export interface GameState {
     requiredDiscardCount: number;
     selectedDiscardIds: string[];
   };
+  combatInitialHealth?: number; // 踏入當前戰鬥時的初始生命值快照（重試戰鬥時精確還原）
 }
 
 export type GameAction =
@@ -275,7 +276,7 @@ export type GameAction =
   | { type: 'DISCARD_CARDS_TO_LIMIT'; payload: { cardIds: string[] } }
   | { type: 'ACQUIRE_RELIC'; payload: { relic: Relic } }
   | { type: 'APPLY_STATUS_EFFECT'; payload: { target: 'investigator' | 'enemy'; effect: StatusEffect } }
-  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } }
+  | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[]; initialHealth?: number } }
   | { type: 'USE_ALTAR'; payload: { optionId: 'flesh' | 'mind' | 'boon'; costType?: 'health' | 'sanity' } }
   | { type: 'LEAVE_ALTAR' }
   | { type: 'CLAIM_VAULT_RELIC'; payload: { relicId?: string; claimObols?: boolean } }
