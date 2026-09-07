@@ -229,6 +229,19 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
       });
       const depth2Remains = Object.values(depth2Map.nodes).filter((n) => n.type === 'remains');
       expect(depth2Remains).toHaveLength(0);
+
+      // 4. Default generateInvestigationMap automatically detects localStorage
+      localStorage.setItem(
+        'arkham_fallen_investigator',
+        JSON.stringify({
+          name: '死者',
+          deck: [],
+          obols: 10,
+        })
+      );
+      const autoMap = generateInvestigationMap({ depth: 1 });
+      expect(autoMap.nodes['node_1_0'].type).toBe('remains');
+      localStorage.clear();
     });
   });
 });

@@ -3,6 +3,7 @@ import type { Card, GameAction, GameState } from '../types/game';
 import { Ghost, Coins, BookOpen, LogOut, Check, Sparkles, Skull } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
+import { isInheritableCard } from '../engine/remainsInheritance';
 
 interface RemainsScreenProps {
   state: GameState;
@@ -14,6 +15,7 @@ export const RemainsScreen: React.FC<RemainsScreenProps> = ({ state, dispatch })
   const isClaimed = Boolean(state.remainsClaimed);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
+  const inheritableCards = fallen ? (fallen.deck || []).filter(isInheritableCard) : [];
   const residualObols = fallen ? Math.max(15, Math.floor(fallen.obols * 0.5)) : 0;
 
   const handleInheritCard = () => {
@@ -109,25 +111,31 @@ export const RemainsScreen: React.FC<RemainsScreenProps> = ({ state, dispatch })
 
                 <div className="remains-cards-scroll">
                   <div className="remains-cards-list">
-                    {fallen.deck.map((card: Card) => {
-                      const isSelected = selectedCardId === card.id;
-                      return (
-                        <div
-                          key={card.id}
-                          id={`remains-card-${card.id}`}
-                          className={`remains-card-item ${isSelected ? 'selected' : ''}`}
-                          onClick={() => !isClaimed && setSelectedCardId(card.id)}
-                        >
-                          <div className="remains-card-radio">
-                            {isSelected ? <Check size={14} color="#fff" /> : null}
+                    {inheritableCards.length > 0 ? (
+                      inheritableCards.map((card: Card) => {
+                        const isSelected = selectedCardId === card.id;
+                        return (
+                          <div
+                            key={card.id}
+                            id={`remains-card-${card.id}`}
+                            className={`remains-card-item ${isSelected ? 'selected' : ''}`}
+                            onClick={() => !isClaimed && setSelectedCardId(card.id)}
+                          >
+                            <div className="remains-card-radio">
+                              {isSelected ? <Check size={14} color="#fff" /> : null}
+                            </div>
+                            <div className="remains-card-info">
+                              <span className="remains-card-name">{card.name}</span>
+                              <span className="remains-card-desc">{card.description}</span>
+                            </div>
                           </div>
-                          <div className="remains-card-info">
-                            <span className="remains-card-name">{card.name}</span>
-                            <span className="remains-card-desc">{card.description}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    ) : (
+                      <p className="remains-empty-hint" style={{ padding: '12px', color: '#888' }}>
+                        先驅手記中未遺留可繼承之常規卡牌。
+                      </p>
+                    )}
                   </div>
                 </div>
 

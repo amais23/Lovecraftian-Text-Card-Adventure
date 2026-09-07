@@ -735,7 +735,7 @@ export function generateInvestigationMap(options?: MapGenerationOptions): Invest
   const nodes: Record<string, MapNode> = {};
   const layersMap: Record<number, string[]> = {};
 
-  const hasFallen = Boolean(options?.hasFallenInvestigator) && depth === 1;
+  const hasFallen = (options?.hasFallenInvestigator ?? hasFallenInvestigatorRecord()) && depth === 1;
 
   for (const raw of BASE_MAP_TEMPLATE) {
     const isEntryLayer = raw.layer === 0;

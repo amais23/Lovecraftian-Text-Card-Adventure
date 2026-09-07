@@ -161,7 +161,7 @@ export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispa
 
           <button id="blood-altar-leave-btn" className="blood-altar-leave-btn" onClick={handleLeave}>
             <LogOut size={18} />
-            <span>{isUsed ? '完成血契 · 離開祭壇' : '保留牌組 · 轉身離開'}</span>
+            <span>{isUsed ? '完成血契 · 離開血之祭壇' : '保留牌組 · 離開血之祭壇'}</span>
           </button>
         </footer>
       </div>

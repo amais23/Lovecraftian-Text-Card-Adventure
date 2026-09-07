@@ -49,6 +49,7 @@ import {
   getFallenInvestigator,
   clearFallenInvestigator,
   saveFallenInvestigatorFromState,
+  isInheritableCard,
 } from './remainsInheritance';
 import {
   addStatusEffect,
@@ -1134,6 +1135,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             : fisherYatesShuffle(currentPermanentCards);
           const handCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
           const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, handCapacity);
+          clearFallenInvestigator();
           return {
             ...state,
             phase: 'map',
@@ -1274,9 +1276,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         if (currentDepth === 3 && !state.abyssalSealFused) {
           nextPhase = 'map';
           if (updatedMap) updatedMap.isCompleted = true;
+          clearFallenInvestigator();
         } else if (!isFinalBoss) {
           nextPhase = 'depth_transition';
         }
+      }
+
+      if (isFinalBoss) {
+        clearFallenInvestigator();
       }
 
       return {
@@ -1706,6 +1713,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
         if (isAncientSeal && isDivineEnemy) {
           isTrueEnding = true;
+          clearFallenInvestigator();
           newLogs.unshift(`【達成真結局】群星歸位終告破滅，調查員以凡人之軀拯救了世界！`);
         } else {
           newLogs.unshift(`【戰鬥勝利】${state.currentEnemy.name} 發出臨死的淒厲悲鳴，化為一灘腥臭的黑水消滅了！`);
@@ -1866,12 +1874,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'USE_ALTAR': {
       if (state.phase !== 'altar' || state.altarUsed) return state;
-      const optionId = action.payload.optionId;
+      const { optionId, costType } = action.payload;
       let newHealth = state.investigator.health;
       let newMaxHealth = state.investigator.maxHealth;
       let newHandCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
       let updatedRelics = [...(state.investigator.relics || [])];
       let newObols = state.investigator.obols;
+      let newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
 
       if (optionId === 'flesh') {
@@ -1883,12 +1892,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           `在禁忌祭壇割破血肉完成誓約，承受 6 點傷害，最大生命值永久提升 5 點（當前生命值: ${newHealth} / ${newMaxHealth}）！`
         );
       } else if (optionId === 'mind') {
-        if (newHealth <= 10) return state;
-        newHealth = newHealth - 10;
-        newHandCapacity = newHandCapacity + 1;
-        newLogs.push(
-          `在禁忌祭壇忍受神經撕裂劇痛，承受 10 點傷害，手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
-        );
+        if (costType === 'sanity') {
+          if (newSanityDeck.length <= 2) return state;
+          const consumedCards = newSanityDeck.slice(0, 2);
+          newSanityDeck = newSanityDeck.slice(2);
+          newHandCapacity = newHandCapacity + 1;
+          newLogs.push(
+            `在禁忌祭壇承受理智撕裂侵蝕，損耗 2 點理智（自牌庫永久除役【${consumedCards.map((c) => c.name).join('】與【')}】），手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
+          );
+        } else {
+          if (newHealth <= 10) return state;
+          newHealth = newHealth - 10;
+          newHandCapacity = newHandCapacity + 1;
+          newLogs.push(
+            `在禁忌祭壇忍受神經撕裂劇痛，承受 10 點傷害，手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
+          );
+        }
       } else if (optionId === 'boon') {
         if (newHealth <= 6) return state;
         newHealth = newHealth - 6;
@@ -1927,6 +1946,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           relics: updatedRelics,
           obols: newObols,
         },
+        sanityDeck: newSanityDeck,
         altarUsed: true,
         battleLog: newLogs.concat(state.battleLog),
       };
@@ -2055,7 +2075,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (action.payload.type === 'card') {
         const cardId = action.payload.cardId;
         const targetCard = fallen.deck.find((c) => c.id === cardId);
-        if (targetCard) {
+        if (targetCard && isInheritableCard(targetCard)) {
           const inheritedCard: Card = {
             ...targetCard,
             id: `${targetCard.id}_inherited_${Date.now()}`,

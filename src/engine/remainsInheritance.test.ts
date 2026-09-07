@@ -130,4 +130,52 @@ describe('remainsInheritance', () => {
     expect(() => saveFallenInvestigator(record)).not.toThrow();
     setItemSpy.mockRestore();
   });
+
+  it('filters out abyssal fragments and unplayable cards when saving from state', () => {
+    const unplayableFragment: Card = {
+      id: 'card_abyssal_fragment_1',
+      name: '深淵封印殘片·其一',
+      category: 'madness',
+      costType: 'free',
+      costValue: 0,
+      isTemporary: false,
+      isUnplayable: true,
+      effects: [],
+      description: '無法打出。',
+      flavorText: '殘片',
+    };
+
+    const temporaryCard: Card = {
+      id: 'temp_madness_card',
+      name: '臨時瘋狂卡',
+      category: 'madness',
+      costType: 'free',
+      costValue: 0,
+      isTemporary: true,
+      effects: [],
+      description: '臨時卡',
+      flavorText: '消散',
+    };
+
+    const mockState = {
+      phase: 'gameover',
+      currentDepth: 2,
+      investigator: {
+        name: '探險家',
+        occupation: '私家偵探',
+        obols: 20,
+      },
+      sanityDeck: [MOCK_CARD_1, unplayableFragment, temporaryCard],
+      hand: [],
+      discardPile: [],
+    } as unknown as GameState;
+
+    saveFallenInvestigatorFromState(mockState, '遭深淵吞噬');
+
+    const loaded = getFallenInvestigator();
+    expect(loaded).not.toBeNull();
+    // Only MOCK_CARD_1 should be saved in legacy deck
+    expect(loaded?.deck).toHaveLength(1);
+    expect(loaded?.deck[0].id).toBe(MOCK_CARD_1.id);
+  });
 });

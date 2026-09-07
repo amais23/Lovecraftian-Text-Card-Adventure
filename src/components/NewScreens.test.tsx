@@ -41,6 +41,35 @@ describe('New Node Screens (Issue #30)', () => {
       fireEvent.click(leaveBtn);
       expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_ALTAR' });
     });
+
+    it('handles mind sacrifice with sanity payment option', () => {
+      const dispatch = vi.fn();
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'altar',
+        investigator: {
+          ...createInitialCombatState().investigator,
+          health: 8, // <= 10 HP, cannot pay with HP
+          handCapacity: 2,
+        },
+        sanityDeck: createInitialCombatState().sanityDeck, // has > 2 cards
+        altarUsed: false,
+      };
+
+      render(<AltarScreen state={state} dispatch={dispatch} />);
+
+      // Switch to paying with sanity
+      const sanityToggleBtn = screen.getByText(/損耗 2 點理智代價/);
+      fireEvent.click(sanityToggleBtn);
+
+      const mindBtn = screen.getByText(/損耗理智 · 永久除役 2 張卡牌/);
+      fireEvent.click(mindBtn);
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'USE_ALTAR',
+        payload: { optionId: 'mind', costType: 'sanity' },
+      });
+    });
   });
 
   describe('VaultScreen', () => {
@@ -143,7 +172,7 @@ describe('New Node Screens (Issue #30)', () => {
         })
       );
 
-      const leaveBtn = screen.getByText(/保留牌組 · 轉身離開/);
+      const leaveBtn = screen.getByText(/保留牌組 · 離開血之祭壇/);
       fireEvent.click(leaveBtn);
       expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_BLOOD_ALTAR' });
     });
@@ -201,6 +230,41 @@ describe('New Node Screens (Issue #30)', () => {
       const leaveBtn = screen.getByText(/致敬默哀 · 離開遺骨/);
       fireEvent.click(leaveBtn);
       expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_REMAINS' });
+    });
+
+    it('filters out abyssal fragments and unplayable cards from remains card selection', () => {
+      const dispatch = vi.fn();
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'remains',
+        fallenInvestigator: {
+          name: '亨利·阿米蒂奇',
+          occupation: '密斯卡托尼克圖書館長',
+          deck: [
+            {
+              id: 'card_abyssal_fragment_1',
+              name: '深淵封印殘片·其一',
+              category: 'madness',
+              costType: 'free',
+              costValue: 0,
+              isTemporary: false,
+              isUnplayable: true,
+              effects: [],
+              description: '無法打出。',
+              flavorText: '深淵之物',
+            },
+          ],
+          obols: 40,
+          depth: 2,
+          causeOfDeath: '心智瘋狂墜入深淵',
+          timestamp: 1700000000000,
+        },
+        remainsClaimed: false,
+      };
+
+      render(<RemainsScreen state={state} dispatch={dispatch} />);
+      expect(screen.queryByText('深淵封印殘片·其一')).toBeNull();
+      expect(screen.getByText(/先驅手記中未遺留可繼承之常規卡牌/)).toBeDefined();
     });
   });
 });

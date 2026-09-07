@@ -69,6 +69,14 @@ function createMockCard(overrides?: Partial<Card>): Card {
 }
 
 describe('Game State Reducer (Combat Vertical Slice)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it('initializes combat with investigator, ghoul enemy, and 4 drawn cards', () => {
     const initialState = createInitialCombatState();
 
@@ -3913,6 +3921,31 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(next.investigator.handCapacity).toBe(3);
       });
 
+      it('USE_ALTAR mind increases handCapacity by 1 after paying 2 Sanity cards when costType is sanity', () => {
+        const initialSanityDeck = createInitialCombatState().sanityDeck;
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            handCapacity: 2,
+          },
+          sanityDeck: [...initialSanityDeck],
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'mind', costType: 'sanity' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBe(20);
+        expect(next.sanityDeck.length).toBe(initialSanityDeck.length - 2);
+        expect(next.investigator.handCapacity).toBe(3);
+      });
+
       it('USE_ALTAR boon grants a relic after paying 6 HP', () => {
         const state: GameState = {
           ...createInitialCombatState(),
@@ -4309,6 +4342,81 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
         const next = gameReducer(state, { type: 'LEAVE_REMAINS' });
         expect(next.phase).toBe('map');
+        expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
+      });
+
+      it('INHERIT_REMAINS ignores uninheritable cards like abyssal fragments', () => {
+        const unplayableFragment: Card = {
+          id: 'card_abyssal_fragment_1',
+          name: '深淵封印殘片·其一',
+          category: 'madness',
+          costType: 'free',
+          costValue: 0,
+          isTemporary: false,
+          isUnplayable: true,
+          effects: [],
+          description: '無法打出。',
+          flavorText: '殘片',
+        };
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'remains',
+          fallenInvestigator: {
+            name: '威廉·戴爾',
+            occupation: '地質學教授',
+            deck: [unplayableFragment],
+            obols: 60,
+            depth: 1,
+            causeOfDeath: '死因測試',
+            timestamp: 12345,
+          },
+          sanityDeck: [],
+          remainsClaimed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'INHERIT_REMAINS',
+          payload: { type: 'card', cardId: 'card_abyssal_fragment_1' },
+        });
+
+        // Should reject uninheritable card
+        expect(next.sanityDeck).toHaveLength(0);
+      });
+
+      it('clears fallen investigator from localStorage upon victory in CLAIM_REWARD', () => {
+        localStorage.setItem(
+          'arkham_fallen_investigator',
+          JSON.stringify({ name: '前人', deck: [], obols: 10 })
+        );
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'reward',
+          currentDepth: 3,
+          map: {
+            id: 'map_d3',
+            name: 'Depth 3 Map',
+            depth: 3,
+            layers: [['node_boss']],
+            currentNodeId: 'node_boss',
+            nodes: {
+              node_boss: {
+                id: 'node_boss',
+                type: 'boss',
+                layer: 5,
+                col: 0,
+                label: '守關首領',
+                title: '原生修格斯',
+                description: '首領',
+                nextNodes: [],
+                status: 'current',
+              },
+            },
+          },
+        };
+
+        gameReducer(state, { type: 'CLAIM_CARD_REWARD', payload: {} });
         expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
       });
     });
