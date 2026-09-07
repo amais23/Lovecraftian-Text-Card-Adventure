@@ -214,4 +214,24 @@ describe('CombatScreen Component (Cosmic Banishment VFX & True Ending)', () => {
       expect(dispatch).toHaveBeenCalledWith({ type: 'CANCEL_DISCARD' });
     });
   });
+
+  describe('Depth-Adaptive Combat Background (ADR-0020)', () => {
+    it('renders depth 1 background image when currentDepth is 1', () => {
+      const dispatch = vi.fn();
+      render(<CombatScreen state={{ ...mockState, currentDepth: 1 }} dispatch={dispatch} />);
+
+      const bgElement = screen.getByTestId('combat-bg-image');
+      expect(bgElement).toBeDefined();
+      expect(bgElement.style.backgroundImage).toContain('/backgrounds/bg_combat_depth1.webp');
+    });
+
+    it('renders depth 4 background image when currentDepth is 4', () => {
+      const dispatch = vi.fn();
+      render(<CombatScreen state={{ ...mockState, currentDepth: 4 }} dispatch={dispatch} />);
+
+      const bgElement = screen.getByTestId('combat-bg-image');
+      expect(bgElement).toBeDefined();
+      expect(bgElement.style.backgroundImage).toContain('/backgrounds/bg_combat_depth4.webp');
+    });
+  });
 });

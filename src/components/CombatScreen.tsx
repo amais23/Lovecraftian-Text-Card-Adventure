@@ -11,6 +11,7 @@ import { soundEngine } from '../engine/audioManager';
 import { Trophy, Coins, Compass, Sparkles, AlertTriangle, Trash2, X } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
 import { isAncientSealUnlocked } from '../engine/abyssalSeals';
+import { getCombatBackground } from '../engine/backgroundArtworks';
 
 interface CombatScreenProps {
   state: GameState;
@@ -89,8 +90,18 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
     dispatch({ type: 'PROCEED_TO_REWARD' });
   };
 
+  const currentDepth = state.currentDepth ?? 1;
+  const combatBgUrl = getCombatBackground(currentDepth);
+
   return (
     <div className={`combat-container ${state.isMadness ? 'madness-mode' : ''}`}>
+      {/* Background Ambience Layers (ADR-0020) */}
+      <div
+        className="combat-bg-image"
+        data-testid="combat-bg-image"
+        style={{ backgroundImage: `url(${combatBgUrl})` }}
+      />
+      <div className="combat-bg-overlay" />
       <div className="vignette-overlay" />
       <div className="fog-layer" />
 
