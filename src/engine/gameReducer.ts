@@ -22,12 +22,11 @@ import {
   cloneEnemy,
   getEncounterEnemy,
   getEnemyTemplateById,
-  getAllRegisteredEnemies,
+  getBossByDepth,
 } from './enemyCatalog';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
 import { generateInvestigationMap, generateProceduralInvestigationMap } from './mapGenerator';
 import {
-  getBossByDepth,
   getMythosEventForNode,
   generateMarketItemsForDepth,
   TRUTH_CARD_BREAKWATER,
@@ -130,7 +129,6 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
   };
 }
 
-export const STATIC_ENEMY_TEMPLATES: Record<string, Enemy> = getAllRegisteredEnemies();
 
 /**
  * 取得敵人初始模板以利於戰鬥重整 (Reset Combat) 重新迎戰原敵人
@@ -665,7 +663,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           enemy = cloneEnemy(action.payload.enemy);
         } else if (targetNode.enemyId) {
           const template = getEnemyTemplateById(targetNode.enemyId);
-          enemy = template ? cloneEnemy(template) : getEncounterEnemy(currentDepth, targetNode.type);
+          enemy = template ? template : getEncounterEnemy(currentDepth, targetNode.type);
         } else {
           enemy = getEncounterEnemy(currentDepth, targetNode.type);
         }
@@ -1398,7 +1396,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         handCapacity
       );
       const candidateEnemy = action.payload?.enemy ?? state.currentEnemy;
-      const currentDepth = state.currentDepth ?? 1;
+      const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
       const enemy = getFreshEnemyTemplate(candidateEnemy, state.map, currentDepth);
       enemy.statusEffects = [];
 

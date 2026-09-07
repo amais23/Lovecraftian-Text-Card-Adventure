@@ -171,19 +171,7 @@ export const INITIAL_STAR_SPAWN: Enemy = {
   currentIntentIndex: 0,
 };
 
-export function getBossByDepth(depth: DepthLevel = 1): Enemy {
-  switch (depth) {
-    case 2:
-      return INITIAL_DAGON_PRIEST;
-    case 3:
-      return INITIAL_COLOSSAL_SHOGGOTH;
-    case 4:
-      return INITIAL_STAR_SPAWN;
-    case 1:
-    default:
-      return INITIAL_SHOGGOTH;
-  }
-}
+
 
 /* =========================================================
    Mythos Events Script Database

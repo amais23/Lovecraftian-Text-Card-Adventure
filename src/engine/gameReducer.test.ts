@@ -31,7 +31,6 @@ import {
   INITIAL_DAGON_PRIEST,
   INITIAL_COLOSSAL_SHOGGOTH,
   INITIAL_STAR_SPAWN,
-  getBossByDepth,
 } from './eventData';
 import { TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
 import {
@@ -50,8 +49,9 @@ import {
   ELDRITCH_LANTERN,
 } from './relics';
 import { createStatusEffect } from './statusEffects';
-import { getEnemyTemplateById } from './enemyCatalog';
-import type { Card, GameState, Enemy } from '../types/game';
+import { getEnemyTemplateById, getBossByDepth } from './enemyCatalog';
+import { getFreshEnemyTemplate } from './gameReducer';
+import type { Card, GameState, Enemy, InvestigationMap, DepthLevel } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
   return {
@@ -3737,6 +3737,69 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
       expect(nextTurnState.currentEnemy.armor).toBe(9); // 2 + 7
       expect(nextTurnState.battleLog.some((log) => log.includes('獲得 7 點護甲'))).toBe(true);
+    });
+
+    it('getBossByDepth returns independent clones with boss category', () => {
+      const bossD1 = getBossByDepth(1);
+      expect(bossD1.category).toBe('boss');
+      expect(bossD1.id).toBe('enemy_shoggoth_progeny');
+
+      bossD1.health = 1;
+      const pristineBossD1 = getBossByDepth(1);
+      expect(pristineBossD1.health).toBe(60);
+      expect(pristineBossD1.category).toBe('boss');
+    });
+
+    it('getFreshEnemyTemplate correctly retrieves cloned boss with category when map node has no enemyId', () => {
+      const mockMap: InvestigationMap = {
+        id: 'map_mock',
+        name: '深潛者海蝕迷宮調查圖',
+        depth: 2,
+        currentNodeId: 'node_boss',
+        nodes: {
+          node_boss: {
+            id: 'node_boss',
+            type: 'boss',
+            label: '舊日宿敵',
+            layer: 4,
+            col: 0,
+            title: '深海祭禮殿堂',
+            description: '守關首領',
+            nextNodes: [],
+            status: 'current',
+          },
+        },
+        layers: [['node_boss']],
+      };
+
+      const freshBoss = getFreshEnemyTemplate(undefined, mockMap, 2);
+      expect(freshBoss.id).toBe('enemy_dagon_priest');
+      expect(freshBoss.category).toBe('boss');
+      expect(freshBoss.health).toBe(freshBoss.maxHealth);
+    });
+
+    it('RESET_COMBAT recovers correct enemy depth using state.map.depth when currentDepth is undefined', () => {
+      const mapD2 = generateInvestigationMap({ depth: 2, procedural: true });
+      const combatNode = Object.values(mapD2.nodes).find((n) => n.type === 'combat');
+      expect(combatNode).toBeDefined();
+      if (!combatNode) return;
+
+      mapD2.currentNodeId = combatNode.id;
+
+      const stateWithoutCurrentDepth: GameState = {
+        ...createInitialCombatState(),
+        currentDepth: undefined as unknown as DepthLevel,
+        currentEnemy: undefined as unknown as Enemy,
+        map: mapD2,
+        phase: 'gameover',
+      };
+
+      const resetState = gameReducer(stateWithoutCurrentDepth, { type: 'RESET_COMBAT' });
+      expect(resetState.phase).toBe('combat');
+      expect(resetState.currentDepth).toBe(2);
+      if (combatNode.enemyId) {
+        expect(resetState.currentEnemy.id).toBe(combatNode.enemyId);
+      }
     });
   });
 });
