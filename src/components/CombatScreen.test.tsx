@@ -233,5 +233,27 @@ describe('CombatScreen Component (Cosmic Banishment VFX & True Ending)', () => {
       expect(bgElement).toBeDefined();
       expect(bgElement.style.backgroundImage).toContain('/backgrounds/bg_combat_depth4.webp');
     });
+
+    it('renders both enemy view and battle log simultaneously in combat upper section', () => {
+      const dispatch = vi.fn();
+      render(
+        <CombatScreen
+          state={{
+            ...mockState,
+            battleLog: ['當前回合最新記錄', '歷史日誌：遭遇敵人！'],
+          }}
+          dispatch={dispatch}
+        />
+      );
+
+      // Enemy information is rendered
+      expect(screen.getByText(mockState.currentEnemy.name)).toBeDefined();
+      expect(screen.getByText(mockState.currentEnemy.title)).toBeDefined();
+
+      // Battle log is rendered with header and entry
+      expect(screen.getByText('戰鬥日誌')).toBeDefined();
+      expect(screen.getByText('即時記錄')).toBeDefined();
+      expect(screen.getByText('歷史日誌：遭遇敵人！')).toBeDefined();
+    });
   });
 });
