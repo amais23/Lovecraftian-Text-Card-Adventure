@@ -1,3 +1,4 @@
+import React, { useRef, useState, useCallback, useLayoutEffect } from 'react';
 import type { GameAction, GameState, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
@@ -84,19 +85,46 @@ const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = 
 };
 
 /**
- * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標
+ * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標（用於無 DOM 測量時的平滑降級）
  */
 function getNodeCoordinates(node: MapNode, map: InvestigationMap): { x: string; y: string } {
   const layerLength = map.layers[node.layer]?.length ?? 1;
   return {
     x: `${(node.col + 1) * (100 / (layerLength + 1))}%`,
-    y: `${node.layer * 130 + 60}px`,
+    y: `${node.layer * 160 + 75}px`,
   };
 }
 
 export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const map = state.map;
   const investigator = state.investigator;
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+
+  const updatePositions = useCallback(() => {
+    if (!canvasRef.current || !map) return;
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    if (canvasRect.width === 0) return;
+    const positions: Record<string, { x: number; y: number }> = {};
+
+    for (const nodeId of Object.keys(map.nodes)) {
+      const el = document.getElementById(`map-node-${nodeId}`);
+      if (el) {
+        const elRect = el.getBoundingClientRect();
+        positions[nodeId] = {
+          x: elRect.left - canvasRect.left + elRect.width / 2,
+          y: elRect.top - canvasRect.top + elRect.height / 2,
+        };
+      }
+    }
+    setNodePositions(positions);
+  }, [map]);
+
+  useLayoutEffect(() => {
+    updatePositions();
+    window.addEventListener('resize', updatePositions);
+    return () => window.removeEventListener('resize', updatePositions);
+  }, [updatePositions]);
 
   const permanentDeckCapacity = [
     ...state.sanityDeck,
@@ -185,7 +213,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
 
       {/* Main Map DAG Viewport */}
       <main className="map-viewport">
-        <div className="map-canvas">
+        <div ref={canvasRef} className="map-canvas">
           {/* SVG Connecting Lines between reachable nodes */}
           <svg className="map-connections-svg">
             {map.layers.map((layerNodeIds) =>
@@ -202,8 +230,15 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                     (node.status === 'current' && target.status === 'accessible') ||
                     (node.status === 'visited' && (target.status === 'visited' || target.status === 'current'));
 
-                  const sourceCoord = getNodeCoordinates(node, map);
-                  const targetCoord = getNodeCoordinates(target, map);
+                  const sourcePos = nodePositions[node.id];
+                  const targetPos = nodePositions[target.id];
+
+                  const sourceCoord = sourcePos
+                    ? { x: `${sourcePos.x}px`, y: `${sourcePos.y}px` }
+                    : getNodeCoordinates(node, map);
+                  const targetCoord = targetPos
+                    ? { x: `${targetPos.x}px`, y: `${targetPos.y}px` }
+                    : getNodeCoordinates(target, map);
 
                   return (
                     <line

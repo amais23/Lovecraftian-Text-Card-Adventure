@@ -95,47 +95,89 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     label: '秘識奇遇',
     title: '低語古書店',
     description: '陳列著發黃星圖與禁忌舊書的密室，空氣中充斥著乾燥的霉味。',
-    nextNodes: ['node_3_1', 'node_3_2'],
+    nextNodes: ['node_3_2', 'node_3_3'],
   },
 
-  // Layer 3: Final Preparations (3 nodes)
+  // Layer 3: Danger & Elite Turning Point (4 nodes)
   {
     id: 'node_3_0',
+    type: 'combat',
+    layer: 3,
+    col: 0,
+    label: '常規遭遇',
+    title: '迷霧屠宰場',
+    description: '生鏽的鐵鉤在風中搖晃，嗜血的異形正在血窪中伺機而動。',
+    nextNodes: ['node_4_0', 'node_4_1'],
+  },
+  {
+    id: 'node_3_1',
+    type: 'elite',
+    layer: 3,
+    col: 1,
+    label: '舊日精英',
+    title: '詛咒鐘樓',
+    description: '狂亂的鐘聲震盪心靈，舊日僕從正展開黑曜石般的巨翼！',
+    nextNodes: ['node_4_0', 'node_4_1'],
+  },
+  {
+    id: 'node_3_2',
+    type: 'event',
+    layer: 3,
+    col: 2,
+    label: '秘識奇遇',
+    title: '療養院禁忌病房',
+    description: '軟墊牆上刻滿扭曲的幾何圖騰，彷彿連空氣都被不可名狀的引力撕扯。',
+    nextNodes: ['node_4_1', 'node_4_2'],
+  },
+  {
+    id: 'node_3_3',
     type: 'market',
     layer: 3,
+    col: 3,
+    label: '黑市商人',
+    title: '鐘錶匠的密閣',
+    description: '滴答作響的奇異機械之間，黑市商人展示著來自海外的特殊護符。',
+    nextNodes: ['node_4_1', 'node_4_2'],
+  },
+
+  // Layer 4: Final Preparations (3 nodes)
+  {
+    id: 'node_4_0',
+    type: 'market',
+    layer: 4,
     col: 0,
     label: '黑市商人',
     title: '走私者密碼頭',
     description: '潮水拍打著腐朽木棧道，黑市走私者正兜售最後的軍用應急物資。',
-    nextNodes: ['node_4_0'],
+    nextNodes: ['node_5_0'],
   },
   {
-    id: 'node_3_1',
+    id: 'node_4_1',
     type: 'event',
-    layer: 3,
+    layer: 4,
     col: 1,
     label: '秘識奇遇',
-    title: '療養院禁忌病房',
-    description: '軟墊牆上刻滿扭曲的幾何圖騰，彷彿連空氣都被不可名狀的引力撕扯。',
-    nextNodes: ['node_4_0'],
+    title: '荒廢修道院遺址',
+    description: '傾頹的尖頂教堂殘垣下，散落著異端信徒留下的儀式泥板。',
+    nextNodes: ['node_5_0'],
   },
   {
-    id: 'node_3_2',
+    id: 'node_4_2',
     type: 'sanctuary',
-    layer: 3,
+    layer: 4,
     col: 2,
     label: '安全避難所',
     title: '聖壇懺悔室',
     description: '遠離異教徒狂亂聲浪的隱秘祈禱室，提供最後的包紮與心智整頓。',
-    nextNodes: ['node_4_0'],
+    nextNodes: ['node_5_0'],
   },
 
-  // Layer 4: Culmination / Boss (1 node)
+  // Layer 5: Culmination / Boss (1 node)
   {
-    id: 'node_4_0',
+    id: 'node_5_0',
     type: 'boss',
-    layer: 4,
-    col: 1,
+    layer: 5,
+    col: 0,
     label: '舊日宿敵',
     title: '無底深淵祭壇',
     description: '祭壇中央的虛空裂隙中，不可名狀的巨大輪廓正在緩緩凝聚……',
@@ -183,6 +225,7 @@ const DEPTH_METADATA: Record<
           { title: '淹沒的石龕', desc: '下水道深處半浸在黑水中的無名石龕，散發著微弱的潮汐腥味。' },
           { title: '低語古書店', desc: '陳列著發黃星圖與禁忌舊書的密室，空氣中充斥著乾燥的霉味。' },
           { title: '療養院禁忌病房', desc: '軟墊牆上刻滿扭曲的幾何圖騰，彷彿連空氣都被不可名狀的引力撕扯。' },
+          { title: '荒廢修道院遺址', desc: '傾頹的尖頂教堂殘垣下，散落著異端信徒留下的儀式泥板。' },
         ],
       },
       sanctuary: {
@@ -499,7 +542,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
     // Layer 2 (3 nodes) -> Layer 3 (4 nodes)
     [
       ['node_3_0', 'node_3_1'],
-      ['node_3_1', 'node_3_2'],
+      ['node_3_0', 'node_3_1', 'node_3_2'],
       ['node_3_2', 'node_3_3'],
     ],
     // Layer 3 (4 nodes) -> Layer 4 (3 nodes)
@@ -532,9 +575,11 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
 }
 
 /**
- * 產生調查地圖資料結構
- * - 若未指定 options.procedural 且深度為 1（或無參數），回傳確定性基底範本（確保測試與單元驗收 100% 重現）
- * - 若指定 options.procedural 為 true，或請求無靜態基底範本的深層（Depth >= 2），則執行動態程序化生成（Depth 1~3 為 16 節點，Depth 4 為 8 節點）
+ * 產生調查地圖資料結構 (16+16+16+8 規格 · ADR-0015)
+ * - 深度 1、2、3 一律產生 16 個節點（6 層：2+3+3+4+3+1）
+ * - 深度 4 一律產生 8 個節點（4 層：2+2+3+1）
+ * - 若未指定 options.procedural 且深度為 1，回傳確定性 16 節點基底範本
+ * - 若指定 options.procedural 為 true，或深度 >= 2，則執行動態程序化隨機分佈生成
  */
 export function generateInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
   const depth: DepthLevel = options?.depth ?? 1;

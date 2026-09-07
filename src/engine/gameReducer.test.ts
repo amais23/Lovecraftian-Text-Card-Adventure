@@ -790,7 +790,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     expect(nextState.phase).toBe('map');
     expect(nextState.map).toBeDefined();
-    expect(nextState.map?.layers.length).toBe(5);
+    expect(nextState.map?.layers.length).toBe(6);
     expect(nextState.investigator.name).toContain('Edward Pierce');
     expect(nextState.investigator.occupation).toBe('私家偵探');
     expect(nextState.investigator.health).toBe(25);
@@ -1211,11 +1211,12 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
   it('retains original boss enemy (Shoggoth Progeny) on RESET_COMBAT without reverting to ghoul', () => {
     const map = generateInvestigationMap();
-    map.nodes['node_4_0'].status = 'accessible';
+    const bossNodeId = map.layers[map.layers.length - 1][0];
+    map.nodes[bossNodeId].status = 'accessible';
 
     const bossCombatState = gameReducer(
       { ...createInitialCombatState(), phase: 'map', map },
-      { type: 'NAVIGATE_TO_NODE', payload: { nodeId: 'node_4_0' } }
+      { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bossNodeId } }
     );
 
     expect(bossCombatState.currentEnemy.id).toBe(INITIAL_SHOGGOTH.id);
@@ -1245,7 +1246,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(resetState.currentEnemy.name).toContain('修格斯幼體');
     expect(resetState.currentEnemy.health).toBe(INITIAL_SHOGGOTH.health);
     expect(resetState.currentEnemy.armor).toBe(INITIAL_SHOGGOTH.armor);
-    expect(resetState.map?.currentNodeId).toBe('node_4_0');
+    expect(resetState.map?.currentNodeId).toBe(bossNodeId);
   });
 
   it('allows PROCEED_TO_REWARD with pre-generated payload to guarantee reducer purity', () => {
@@ -1337,15 +1338,15 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 });
 
 describe('Investigation Map & Mythos Events System (Issue #6)', () => {
-  it('generateInvestigationMap generates a valid 5-layer DAG with accessible entry nodes', () => {
+  it('generateInvestigationMap generates a valid 6-layer DAG with accessible entry nodes', () => {
     const map = generateInvestigationMap();
 
     expect(map.id).toBe('map_arkham_quarantine_01');
-    expect(map.layers.length).toBe(5);
+    expect(map.layers.length).toBe(6);
     expect(map.currentNodeId).toBeNull();
 
     const nodeIds = Object.keys(map.nodes);
-    expect(nodeIds.length).toBe(12);
+    expect(nodeIds.length).toBe(16);
 
     // Layer 0 nodes must be accessible; all others unvisited
     for (const nodeId of map.layers[0]) {
@@ -1362,7 +1363,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     // DAG integrity: nodes point only to the immediately next layer (except boss which has 0 nextNodes)
     for (const node of Object.values(map.nodes)) {
-      if (node.layer < 4) {
+      if (node.layer < 5) {
         expect(node.nextNodes.length).toBeGreaterThan(0);
         for (const nextId of node.nextNodes) {
           const nextNode = map.nodes[nextId];
@@ -1370,7 +1371,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           expect(nextNode.layer).toBe(node.layer + 1);
         }
       } else {
-        expect(node.layer).toBe(4);
+        expect(node.layer).toBe(5);
         expect(node.type).toBe('boss');
         expect(node.nextNodes.length).toBe(0);
       }
@@ -1392,7 +1393,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     expect(nextState.phase).toBe('map');
     expect(nextState.map).toBeDefined();
-    expect(nextState.map?.layers.length).toBe(5);
+    expect(nextState.map?.layers.length).toBe(6);
     expect(nextState.investigator.name).toContain('愛德華·皮爾斯');
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.investigator.obols).toBe(15);
@@ -1468,7 +1469,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
   it('NAVIGATE_TO_NODE enters boss combat with Shoggoth Progeny', () => {
     const map = generateInvestigationMap();
-    map.nodes['node_4_0'].status = 'accessible';
+    const bossNodeId = map.layers[map.layers.length - 1][0];
+    map.nodes[bossNodeId].status = 'accessible';
     const mapState: GameState = {
       ...createInitialCombatState(),
       phase: 'map',
@@ -1477,7 +1479,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     const nextState = gameReducer(mapState, {
       type: 'NAVIGATE_TO_NODE',
-      payload: { nodeId: 'node_4_0' },
+      payload: { nodeId: bossNodeId },
     });
 
     expect(nextState.phase).toBe('combat');
@@ -2038,7 +2040,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     it('marks map.isCompleted = true upon boss node defeat in CLAIM_CARD_REWARD', () => {
       const map = generateInvestigationMap();
-      map.nodes['node_4_0'].status = 'accessible';
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+      map.nodes[bossNodeId].status = 'accessible';
 
       const bossCombatState = gameReducer(
         {
@@ -2048,7 +2051,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         },
         {
           type: 'NAVIGATE_TO_NODE',
-          payload: { nodeId: 'node_4_0' },
+          payload: { nodeId: bossNodeId },
         }
       );
 
@@ -2065,7 +2068,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       // Boss defeat triggers full-screen depth transition and marks map completed
       expect(postBossTransitionState.phase).toBe('depth_transition');
       expect(postBossTransitionState.map?.isCompleted).toBe(true);
-      expect(postBossTransitionState.map?.nodes['node_4_0'].status).toBe('visited');
+      expect(postBossTransitionState.map?.nodes[bossNodeId].status).toBe('visited');
 
       // Completing depth transition advances depth and enters new depth map
       const postBossMapState = gameReducer(postBossTransitionState, { type: 'COMPLETE_DEPTH_TRANSITION' });
@@ -2730,20 +2733,29 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('handles generateInvestigationMap predicate correctly for deterministic vs procedural', () => {
-      // Default: deterministic base map template
+      // Default: deterministic 16-node base map template (Issue #26)
       const baseMap = generateInvestigationMap();
       expect(baseMap.depth).toBe(1);
-      expect(Object.keys(baseMap.nodes).length).toBe(12);
+      expect(Object.keys(baseMap.nodes).length).toBe(16);
+      expect(baseMap.layers.length).toBe(6);
 
       // Explicit procedural: true at depth 1 produces 16 nodes
       const procMapDepth1 = generateInvestigationMap({ depth: 1, procedural: true });
       expect(procMapDepth1.depth).toBe(1);
       expect(Object.keys(procMapDepth1.nodes).length).toBe(16);
+      expect(procMapDepth1.layers.length).toBe(6);
 
-      // Depth 2 without explicit procedural flag defaults to procedural 16 nodes
+      // Depth 2 without explicit procedural flag produces procedural 16 nodes
       const procMapDepth2 = generateInvestigationMap({ depth: 2 });
       expect(procMapDepth2.depth).toBe(2);
       expect(Object.keys(procMapDepth2.nodes).length).toBe(16);
+      expect(procMapDepth2.layers.length).toBe(6);
+
+      // Depth 4 produces 8 nodes across 4 layers
+      const procMapDepth4 = generateInvestigationMap({ depth: 4 });
+      expect(procMapDepth4.depth).toBe(4);
+      expect(Object.keys(procMapDepth4.nodes).length).toBe(8);
+      expect(procMapDepth4.layers.length).toBe(4);
     });
   });
 
