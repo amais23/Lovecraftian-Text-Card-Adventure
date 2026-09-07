@@ -608,7 +608,7 @@
 /* Hand Section */
 .hand-area {
   position: relative;
-  height: clamp(170px, 23.5dvh, 280px);
+  height: clamp(185px, 25.5dvh, 295px);
   width: 100%;
   padding: 4px 10px;
   perspective: 1000px;
@@ -793,8 +793,8 @@
   container-type: inline-size;
   container-name: card;
   aspect-ratio: var(--card-aspect-ratio, 5 / 7);
-  height: clamp(165px, 22.5dvh, 265px);
-  width: calc(clamp(165px, 22.5dvh, 265px) * var(--card-ratio-multiplier, 5 / 7));
+  height: clamp(180px, 24.5dvh, 280px);
+  width: calc(clamp(180px, 24.5dvh, 280px) * var(--card-ratio-multiplier, 5 / 7));
   box-sizing: border-box;
   overflow: hidden;
   border-radius: var(--radius-md);
@@ -802,7 +802,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(3px, 2.8cqw, 8px) clamp(4px, 3.2cqw, 10px);
+  padding: clamp(4px, 3cqw, 8px) clamp(5px, 3.5cqw, 10px);
   cursor: grab;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
   box-shadow: var(--shadow-card);
@@ -818,8 +818,8 @@
   bottom: auto;
   margin-left: 0;
   cursor: pointer;
-  height: clamp(250px, 32dvh, 320px);
-  width: calc(clamp(250px, 32dvh, 320px) * var(--card-ratio-multiplier, 5 / 7));
+  height: clamp(260px, 34dvh, 340px);
+  width: calc(clamp(260px, 34dvh, 340px) * var(--card-ratio-multiplier, 5 / 7));
 }
 
 /* Fan-out Center Anchoring inside Hand Area */
@@ -827,7 +827,7 @@
   position: absolute;
   bottom: 6px;
   left: 50%;
-  margin-left: calc(clamp(165px, 22.5dvh, 265px) * var(--card-ratio-multiplier, 5 / 7) / -2);
+  margin-left: calc(clamp(180px, 24.5dvh, 280px) * var(--card-ratio-multiplier, 5 / 7) / -2);
 }
 
 .card-item.dragging {
@@ -1268,12 +1268,12 @@
 /* Title Banner */
 .card-title-banner {
   font-family: var(--font-title);
-  font-size: clamp(0.72rem, 7.5cqw, 0.9rem);
+  font-size: clamp(0.88rem, 9cqw, 1.22rem);
   font-weight: 700;
   color: var(--text-parchment);
   text-align: center;
   letter-spacing: 0.5px;
-  margin: 1px 0;
+  margin: 2px 0;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
   overflow: hidden;
@@ -1292,7 +1292,7 @@
 }
 
 .card-tag-badge {
-  font-size: clamp(0.48rem, 5cqw, 0.6rem);
+  font-size: clamp(0.52rem, 5.2cqw, 0.65rem);
   padding: 1px clamp(3px, 2.5cqw, 5px);
   border-radius: 2px;
   font-weight: 600;
@@ -1338,11 +1338,11 @@
 
 /* Rule Effect Description */
 .card-effect-desc {
-  font-size: clamp(0.6rem, 6cqw, 0.72rem);
+  font-size: clamp(0.76rem, 7.6cqw, 1rem);
   color: #f3ecdb;
-  line-height: 1.25;
-  padding: clamp(2px, 1.8cqw, 4px) clamp(3px, 2.5cqw, 5px);
-  background: rgba(0, 0, 0, 0.45);
+  line-height: 1.32;
+  padding: clamp(2.5px, 2cqw, 5px) clamp(4px, 2.5cqw, 8px);
+  background: rgba(0, 0, 0, 0.55);
   border-radius: var(--radius-sm);
   width: 100%;
   box-sizing: border-box;
@@ -1353,14 +1353,15 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
+  margin-bottom: 1px;
 }
 
 /* Flavor Narrative Text */
 .card-flavor {
-  font-size: clamp(0.5rem, 5cqw, 0.6rem);
+  font-size: clamp(0.6rem, 6cqw, 0.74rem);
   color: var(--text-dim);
   font-style: italic;
-  line-height: 1.18;
+  line-height: 1.2;
   text-align: center;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1994,8 +1995,8 @@
 .reward-card-wrapper .card-item {
   cursor: pointer;
   aspect-ratio: var(--card-aspect-ratio, 5 / 7);
-  height: clamp(175px, 24dvh, 245px);
-  width: calc(clamp(175px, 24dvh, 245px) * var(--card-ratio-multiplier, 5 / 7));
+  height: clamp(185px, 25dvh, 255px);
+  width: calc(clamp(185px, 25dvh, 255px) * var(--card-ratio-multiplier, 5 / 7));
 }
 
 .reward-card-wrapper .card-play-prompt {
