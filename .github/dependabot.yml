@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "cargo"
+    directory: "/src-tauri"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # glib 0.20+ is incompatible with gtk 0.18 (GTK3 stack used by Tauri 2.x on Linux).
+      # glib::VariantStrIter is not used in this project (RUSTSEC-2024-0429).
+      - dependency-name: "glib"
