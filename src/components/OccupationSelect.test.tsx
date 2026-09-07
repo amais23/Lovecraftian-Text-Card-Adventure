@@ -104,4 +104,30 @@ describe('OccupationSelect (Issue #13)', () => {
     fireEvent.click(closeBtn);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('renders split-column layout with 3:4 character portraits (ADR-0020)', () => {
+    const handleBack = vi.fn();
+    const handleSelect = vi.fn();
+
+    render(
+      <OccupationSelect
+        onBackToMenu={handleBack}
+        onSelectOccupation={handleSelect}
+      />
+    );
+
+    // Verify split-layout class on cards
+    const pierceCard = document.getElementById('select-investigator-card');
+    const vanceCard = document.getElementById('select-occultist-card');
+    expect(pierceCard?.classList.contains('split-layout')).toBe(true);
+    expect(vanceCard?.classList.contains('split-layout')).toBe(true);
+
+    // Verify portraits
+    const piercePortrait = screen.getByTestId('portrait-investigator') as HTMLImageElement;
+    const vancePortrait = screen.getByTestId('portrait-occultist') as HTMLImageElement;
+    expect(piercePortrait).toBeDefined();
+    expect(piercePortrait.src).toContain('/occupations/portrait_investigator.webp');
+    expect(vancePortrait).toBeDefined();
+    expect(vancePortrait.src).toContain('/occupations/portrait_occultist.webp');
+  });
 });

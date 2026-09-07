@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Compass,
-  UserCheck,
   BookOpen,
   Heart,
   Zap,
@@ -15,6 +14,7 @@ import {
 import { OCCUPATIONS } from '../engine/initialData';
 import { soundEngine } from '../engine/audioManager';
 import { getCardCostDisplay } from '../engine/cardCatalog';
+import { getOccupationPortrait } from '../engine/backgroundArtworks';
 import { CardView } from './CardView';
 import type { Card } from '../types/game';
 
@@ -79,172 +79,196 @@ export const OccupationSelect: React.FC<OccupationSelectProps> = ({
         </div>
       </header>
 
-      {/* Occupation Selection Cards */}
+      {/* Occupation Selection Cards (ADR-0020 Split Column Layout) */}
       <main className="occupation-selection-container">
         {/* Edward Pierce - Private Investigator */}
         <div
-          className="occupation-card investigator-card"
+          className="occupation-card investigator-card split-layout"
           id="select-investigator-card"
           onClick={() => onSelectOccupation('investigator')}
         >
           <div className="occupation-card-glow" />
-          <div className="occupation-card-header">
-            <div className="occupation-avatar investigator">
-              <UserCheck size={36} color="#ffd700" />
-            </div>
-            <div className="occupation-identity">
-              <h2 className="occupation-name">{investigator.name}</h2>
-              <span className="occupation-badge">{investigator.occupation}</span>
+
+          {/* Left Column: 3:4 Character Portrait Frame (ADR-0020) */}
+          <div className="occupation-portrait-col">
+            <div className="occupation-portrait-frame">
+              <img
+                src={getOccupationPortrait('investigator')}
+                alt={investigator.name}
+                className="occupation-portrait-img"
+                data-testid="portrait-investigator"
+              />
+              <div className="occupation-portrait-vignette" />
+              <span className="occupation-portrait-tag">物理生存</span>
             </div>
           </div>
 
-          <p className="occupation-quote">{investigator.quote}</p>
-          <p className="occupation-desc">{investigator.description}</p>
+          {/* Right Column: Streamlined Info, Stats, Starting Deck, Action */}
+          <div className="occupation-info-col">
+            <div className="occupation-card-header">
+              <div className="occupation-identity">
+                <h2 className="occupation-name">{investigator.name}</h2>
+                <span className="occupation-badge">{investigator.occupation}</span>
+              </div>
+            </div>
 
-          {/* Stats Badges */}
-          <div className="occupation-stats-grid">
-            <div className="occupation-stat-pill health">
-              <Heart size={16} color="#ff334b" />
-              <span>生命值 {investigator.stats.health}</span>
+            <p className="occupation-quote">{investigator.quote}</p>
+            <p className="occupation-desc">{investigator.description}</p>
+
+            {/* Stats Badges */}
+            <div className="occupation-stats-grid">
+              <div className="occupation-stat-pill health">
+                <Heart size={16} color="#ff334b" />
+                <span>生命值 {investigator.stats.health}</span>
+              </div>
+              <div className="occupation-stat-pill stamina">
+                <Zap size={16} color="#ffd700" />
+                <span>精力 {investigator.stats.stamina}</span>
+              </div>
+              <div className="occupation-stat-pill obols">
+                <Coins size={16} color="#ffd700" />
+                <span>古金幣 {investigator.stats.obols}</span>
+              </div>
             </div>
-            <div className="occupation-stat-pill stamina">
-              <Zap size={16} color="#ffd700" />
-              <span>精力 {investigator.stats.stamina}</span>
+
+            {/* Deck Strategy Features */}
+            <div className="occupation-deck-features">
+              <div className="deck-feature-title">
+                <Shield size={16} color="#cfa866" />
+                <span>專屬起始卡牌（12 張 · 物理生存）</span>
+              </div>
+
+              {/* Complete 12 Cards Inspection List */}
+              <div className="occupation-cards-preview-list" aria-label="愛德華·皮爾斯起始卡牌清單">
+                {investigator.deck.map((card, idx) => {
+                  const cost = getCardCostDisplay(card.costType, card.costValue);
+                  return (
+                    <div
+                      key={`${card.id}_${idx}`}
+                      className={`occupation-card-chip category-${card.category}`}
+                      title={`點擊檢視【${card.name}】卡牌詳情`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        soundEngine.playClick();
+                        setInspectedCard(card);
+                      }}
+                    >
+                      <span className="card-chip-dot" />
+                      <span className="card-chip-name">{card.name}</span>
+                      <span className="card-chip-cost">{cost.shortText}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="occupation-stat-pill obols">
-              <Coins size={16} color="#ffd700" />
-              <span>古金幣 {investigator.stats.obols}</span>
-            </div>
+
+            <button
+              id="choose-investigator-btn"
+              className="occupation-select-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectOccupation('investigator');
+              }}
+            >
+              <span>啟程調查</span>
+              <ArrowRight size={18} />
+            </button>
           </div>
-
-          {/* Deck Strategy Features */}
-          <div className="occupation-deck-features">
-            <div className="deck-feature-title">
-              <Shield size={16} color="#cfa866" />
-              <span>專屬起始卡牌（12 張 · 物理生存）</span>
-            </div>
-            <p className="deck-feature-desc">
-              配備點38轉輪手槍、重拳壓制、軍刀突刺、就地掩蔽與醫療鎮定劑。擅長以厚重護甲抵禦深淵侵襲。
-            </p>
-
-            {/* Complete 12 Cards Inspection List */}
-            <div className="occupation-cards-preview-list" aria-label="愛德華·皮爾斯起始卡牌清單">
-              {investigator.deck.map((card, idx) => {
-                const cost = getCardCostDisplay(card.costType, card.costValue);
-                return (
-                  <div
-                    key={`${card.id}_${idx}`}
-                    className={`occupation-card-chip category-${card.category}`}
-                    title={`點擊檢視【${card.name}】卡牌詳情`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      soundEngine.playClick();
-                      setInspectedCard(card);
-                    }}
-                  >
-                    <span className="card-chip-dot" />
-                    <span className="card-chip-name">{card.name}</span>
-                    <span className="card-chip-cost">{cost.shortText}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <button
-            id="choose-investigator-btn"
-            className="occupation-select-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectOccupation('investigator');
-            }}
-          >
-            <span>啟程調查</span>
-            <ArrowRight size={18} />
-          </button>
         </div>
 
         {/* Eleanor Vance - Occultist */}
         <div
-          className="occupation-card occultist-card"
+          className="occupation-card occultist-card split-layout"
           id="select-occultist-card"
           onClick={() => onSelectOccupation('occultist')}
         >
           <div className="occupation-card-glow" />
-          <div className="occupation-card-header">
-            <div className="occupation-avatar occultist">
-              <BookOpen size={36} color="#c77dff" />
-            </div>
-            <div className="occupation-identity">
-              <h2 className="occupation-name">{occultist.name}</h2>
-              <span className="occupation-badge occultist">{occultist.occupation}</span>
+
+          {/* Left Column: 3:4 Character Portrait Frame (ADR-0020) */}
+          <div className="occupation-portrait-col">
+            <div className="occupation-portrait-frame">
+              <img
+                src={getOccupationPortrait('occultist')}
+                alt={occultist.name}
+                className="occupation-portrait-img"
+                data-testid="portrait-occultist"
+              />
+              <div className="occupation-portrait-vignette" />
+              <span className="occupation-portrait-tag occultist">秘術真相</span>
             </div>
           </div>
 
-          <p className="occupation-quote">{occultist.quote}</p>
-          <p className="occupation-desc">{occultist.description}</p>
+          {/* Right Column: Streamlined Info, Stats, Starting Deck, Action */}
+          <div className="occupation-info-col">
+            <div className="occupation-card-header">
+              <div className="occupation-identity">
+                <h2 className="occupation-name">{occultist.name}</h2>
+                <span className="occupation-badge occultist">{occultist.occupation}</span>
+              </div>
+            </div>
 
-          {/* Stats Badges */}
-          <div className="occupation-stats-grid">
-            <div className="occupation-stat-pill health">
-              <Heart size={16} color="#ff334b" />
-              <span>生命值 {occultist.stats.health}</span>
+            <p className="occupation-quote">{occultist.quote}</p>
+            <p className="occupation-desc">{occultist.description}</p>
+
+            {/* Stats Badges */}
+            <div className="occupation-stats-grid">
+              <div className="occupation-stat-pill health">
+                <Heart size={16} color="#ff334b" />
+                <span>生命值 {occultist.stats.health}</span>
+              </div>
+              <div className="occupation-stat-pill stamina">
+                <Zap size={16} color="#ffd700" />
+                <span>精力 {occultist.stats.stamina}</span>
+              </div>
+              <div className="occupation-stat-pill obols">
+                <Coins size={16} color="#ffd700" />
+                <span>古金幣 {occultist.stats.obols}</span>
+              </div>
             </div>
-            <div className="occupation-stat-pill stamina">
-              <Zap size={16} color="#ffd700" />
-              <span>精力 {occultist.stats.stamina}</span>
+
+            {/* Deck Strategy Features */}
+            <div className="occupation-deck-features">
+              <div className="deck-feature-title">
+                <Sparkles size={16} color="#c77dff" />
+                <span>專屬起始卡牌（12 張 · 秘術真相）</span>
+              </div>
+
+              {/* Complete 12 Cards Inspection List */}
+              <div className="occupation-cards-preview-list" aria-label="艾蓮諾·凡斯起始卡牌清單">
+                {occultist.deck.map((card, idx) => {
+                  const cost = getCardCostDisplay(card.costType, card.costValue);
+                  return (
+                    <div
+                      key={`${card.id}_${idx}`}
+                      className={`occupation-card-chip category-${card.category}`}
+                      title={`點擊檢視【${card.name}】卡牌詳情`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        soundEngine.playClick();
+                        setInspectedCard(card);
+                      }}
+                    >
+                      <span className="card-chip-dot" />
+                      <span className="card-chip-name">{card.name}</span>
+                      <span className="card-chip-cost">{cost.shortText}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="occupation-stat-pill obols">
-              <Coins size={16} color="#ffd700" />
-              <span>古金幣 {occultist.stats.obols}</span>
-            </div>
+
+            <button
+              id="choose-occultist-btn"
+              className="occupation-select-btn occultist"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectOccupation('occultist');
+              }}
+            >
+              <span>啟動秘儀</span>
+              <ArrowRight size={18} />
+            </button>
           </div>
-
-          {/* Deck Strategy Features */}
-          <div className="occupation-deck-features">
-            <div className="deck-feature-title">
-              <Sparkles size={16} color="#c77dff" />
-              <span>專屬起始卡牌（12 張 · 秘術真相）</span>
-            </div>
-            <p className="deck-feature-desc">
-              配備靈能衝擊、厄運凝視、星界庇護、心靈冥想與銀鑰儀式。可直接自牌庫頂獻祭理智施展高傷秘法。
-            </p>
-
-            {/* Complete 12 Cards Inspection List */}
-            <div className="occupation-cards-preview-list" aria-label="艾蓮諾·凡斯起始卡牌清單">
-              {occultist.deck.map((card, idx) => {
-                const cost = getCardCostDisplay(card.costType, card.costValue);
-                return (
-                  <div
-                    key={`${card.id}_${idx}`}
-                    className={`occupation-card-chip category-${card.category}`}
-                    title={`點擊檢視【${card.name}】卡牌詳情`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      soundEngine.playClick();
-                      setInspectedCard(card);
-                    }}
-                  >
-                    <span className="card-chip-dot" />
-                    <span className="card-chip-name">{card.name}</span>
-                    <span className="card-chip-cost">{cost.shortText}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <button
-            id="choose-occultist-btn"
-            className="occupation-select-btn occultist"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectOccupation('occultist');
-            }}
-          >
-            <span>啟動秘儀</span>
-            <ArrowRight size={18} />
-          </button>
         </div>
       </main>
 
