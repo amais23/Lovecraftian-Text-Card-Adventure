@@ -57,4 +57,21 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     fireEvent.click(cardElement!);
     expect(onPlay).not.toHaveBeenCalled();
   });
+
+  it('renders generic unplayable card without abyssal fragment wording in tooltip', () => {
+    const genericUnplayableCard: Card = {
+      ...mockPlayableCard,
+      id: 'generic_curse',
+      name: '禁錮鎖鏈',
+      isUnplayable: true,
+    };
+    render(
+      <CardView
+        card={genericUnplayableCard}
+        currentStamina={5}
+      />
+    );
+    const cardElement = screen.getByText('禁錮鎖鏈').closest('.card-item');
+    expect(cardElement?.getAttribute('title')).toBe('【禁錮鎖鏈】無法打出');
+  });
 });

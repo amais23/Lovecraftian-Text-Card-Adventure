@@ -3020,7 +3020,36 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(afterPlay.hand).toHaveLength(1);
       expect(afterPlay.hand[0].id).toBe(unplayableCard.id);
       expect(afterPlay.investigator.stamina).toBe(3);
+      expect(afterPlay.battleLog[0]).toContain('深淵封印殘片');
       expect(afterPlay.battleLog[0]).toContain('無法被打出');
+    });
+
+    it('guards PLAY_CARD against generic unplayable cards with non-abyssal log', () => {
+      const genericCard: Card = {
+        ...createMockCard(),
+        id: 'generic_unplayable',
+        name: '石化封禁',
+        isUnplayable: true,
+      };
+
+      const combatState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'combat',
+        hand: [genericCard],
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          stamina: 3,
+        },
+        battleLog: ['戰鬥開始'],
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: genericCard.id },
+      });
+
+      expect(afterPlay.hand).toHaveLength(1);
+      expect(afterPlay.battleLog[0]).toBe('【石化封禁】無法被打出！它沉重地佔據著手牌。');
     });
 
     it('diverges to Normal Ending directly on Depth 3 Boss victory when player lacks abyssal fragments', () => {

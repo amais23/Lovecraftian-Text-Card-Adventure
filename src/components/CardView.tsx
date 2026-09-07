@@ -5,6 +5,7 @@ import { Swords, Shield, Sparkles, Wind, Flame, Eye } from 'lucide-react';
 import { soundEngine } from '../engine/audioManager';
 import type { HandFanOutTransform } from '../engine/handMath';
 import { getCardArtwork } from '../engine/cardArtworks';
+import { isAbyssalFragment } from '../engine/abyssalSeals';
 
 interface CategoryMeta {
   label: string;
@@ -98,7 +99,9 @@ export const CardView: React.FC<CardViewProps> = ({
     : meta.defaultPrompt;
   const promptText = isPlayable ? meta.playablePrompt : defaultPrompt;
   const tooltip = card.isUnplayable
-    ? `【${card.name}】為深淵封印殘片，無法打出`
+    ? isAbyssalFragment(card)
+      ? `【${card.name}】為深淵封印殘片，無法打出`
+      : `【${card.name}】無法打出`
     : isPlayable
     ? `點擊或向上拖曳打出【${card.name}】`
     : card.costType === 'sanity'
@@ -232,7 +235,14 @@ export const CardView: React.FC<CardViewProps> = ({
       {(card.isTemporary || selfDamageEffect || card.isUnplayable) && (
         <div className="card-badges-row">
           {card.isUnplayable && (
-            <span className="card-tag-badge unplayable" title="深淵封印殘片無法打出，佔據手牌卡槽">
+            <span
+              className="card-tag-badge unplayable"
+              title={
+                isAbyssalFragment(card)
+                  ? '深淵封印殘片無法打出，佔據手牌卡槽'
+                  : '此卡牌無法打出，佔據手牌卡槽'
+              }
+            >
               無法打出
             </span>
           )}

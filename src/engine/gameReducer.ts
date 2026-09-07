@@ -40,6 +40,7 @@ import {
   hasBothAbyssalFragments,
   fuseAbyssalFragments,
   getAllPermanentCards,
+  isAbyssalFragment,
 } from './abyssalSeals';
 
 export const BASELINE_HAND_SIZE = 4;
@@ -839,11 +840,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         : undefined;
 
       // 1. Gather all permanent cards across current battle state (temporary cards discarded)
-      const currentPermanentCards = [
-        ...state.sanityDeck,
-        ...state.hand,
-        ...state.discardPile,
-      ].filter((c) => !c.isTemporary);
+      const currentPermanentCards = getAllPermanentCards(state);
 
       const newPermanentDeck = selectedCard
         ? [
@@ -1114,10 +1111,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Guard unplayable cards (e.g. Abyssal Seal Fragments)
       if (card.isUnplayable) {
+        const logMsg = isAbyssalFragment(card)
+          ? `【${card.name}】是深淵封印殘片，無法被打出！它沉重地佔據著手牌。`
+          : `【${card.name}】無法被打出！它沉重地佔據著手牌。`;
         return {
           ...state,
           battleLog: [
-            `【${card.name}】是深淵封印殘片，無法被打出！它沉重地佔據著手牌。`,
+            logMsg,
             ...state.battleLog,
           ],
         };

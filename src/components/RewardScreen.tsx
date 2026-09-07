@@ -111,7 +111,7 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
                 【白色真理古印已共鳴融合】
               </h4>
               <p className="reward-fusion-desc">
-                三枚深淵封印殘片劇烈共鳴，昇華為終極白色真相卡【完整的深淵古印】並納入永久牌庫！通往第四深度的虛空裂隙已然開闢！
+                三枚深淵封印殘片劇烈共鳴，昇華為終極白色真相卡【完整的深淵古印】並作為一般卡納入理智牌庫！通往第四深度的虛空裂隙已然開闢！
               </p>
             </div>
           </div>

@@ -113,10 +113,39 @@ describe('Abyssal Seals Module (Issue #21 / ADR-0015)', () => {
     expect(result.newDeck.some((c) => isAbyssalFragment(c))).toBe(false);
   });
 
-  it('does not fuse if fragments are incomplete', () => {
-    const initialDeck = [ABYSSAL_FRAGMENT_1];
-    const result = fuseAbyssalFragments(initialDeck);
-    expect(result.wasFused).toBe(false);
-    expect(result.newDeck).toEqual(initialDeck);
+  it('does not fuse if fragments are incomplete (including only fragments 1 and 2 without 3)', () => {
+    const onlyFrag1 = [ABYSSAL_FRAGMENT_1];
+    expect(fuseAbyssalFragments(onlyFrag1).wasFused).toBe(false);
+    expect(fuseAbyssalFragments(onlyFrag1).newDeck).toEqual(onlyFrag1);
+
+    const onlyFrag1And2 = [ABYSSAL_FRAGMENT_1, ABYSSAL_FRAGMENT_2];
+    const result1And2 = fuseAbyssalFragments(onlyFrag1And2);
+    expect(result1And2.wasFused).toBe(false);
+    expect(result1And2.newDeck).toEqual(onlyFrag1And2);
+
+    const onlyFrag2And3 = [ABYSSAL_FRAGMENT_2, ABYSSAL_FRAGMENT_3];
+    expect(fuseAbyssalFragments(onlyFrag2And3).wasFused).toBe(false);
+  });
+
+  it('matches fragments and complete seal by id as well as display name', () => {
+    const renamedFrag1: Card = {
+      ...ABYSSAL_FRAGMENT_1,
+      name: '自訂殘片名稱',
+    };
+    expect(isAbyssalFragment(renamedFrag1)).toBe(true);
+    expect(hasAbyssalFragment([renamedFrag1], 1)).toBe(true);
+
+    const draftedFrag2: Card = {
+      ...ABYSSAL_FRAGMENT_2,
+      id: `${ABYSSAL_FRAGMENT_2.id}_drafted_5`,
+    };
+    expect(isAbyssalFragment(draftedFrag2)).toBe(true);
+    expect(hasAbyssalFragment([draftedFrag2], 2)).toBe(true);
+
+    const draftedSeal: Card = {
+      ...COMPLETE_ANCIENT_SEAL,
+      id: `${COMPLETE_ANCIENT_SEAL.id}_drafted_8`,
+    };
+    expect(hasCompleteAncientSeal([draftedSeal])).toBe(true);
   });
 });

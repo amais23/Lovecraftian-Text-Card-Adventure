@@ -67,14 +67,29 @@ export const ALL_ABYSSAL_CARDS: Card[] = [
   COMPLETE_ANCIENT_SEAL,
 ];
 
+export const ABYSSAL_FRAGMENT_IDS = new Set<string>([
+  ABYSSAL_FRAGMENT_1.id,
+  ABYSSAL_FRAGMENT_2.id,
+  ABYSSAL_FRAGMENT_3.id,
+]);
+
 export const ABYSSAL_FRAGMENT_NAMES = new Set<string>([
   ABYSSAL_FRAGMENT_1.name,
   ABYSSAL_FRAGMENT_2.name,
   ABYSSAL_FRAGMENT_3.name,
 ]);
 
-export function isAbyssalFragment(card: Card | { name: string }): boolean {
-  return ABYSSAL_FRAGMENT_NAMES.has(card.name);
+export function isAbyssalFragment(card: Card | { name?: string; id?: string }): boolean {
+  if (card.id) {
+    const rootId = card.id.split('_drafted_')[0];
+    if (ABYSSAL_FRAGMENT_IDS.has(card.id) || ABYSSAL_FRAGMENT_IDS.has(rootId)) {
+      return true;
+    }
+  }
+  if (card.name && ABYSSAL_FRAGMENT_NAMES.has(card.name)) {
+    return true;
+  }
+  return false;
 }
 
 export function getAllPermanentCards(state: GameState): Card[] {
@@ -85,6 +100,17 @@ export function getAllPermanentCards(state: GameState): Card[] {
   ].filter((c) => !c.isTemporary);
 }
 
+function matchesFragment(card: Card, fragmentNumber: 1 | 2 | 3): boolean {
+  const target =
+    fragmentNumber === 1
+      ? ABYSSAL_FRAGMENT_1
+      : fragmentNumber === 2
+      ? ABYSSAL_FRAGMENT_2
+      : ABYSSAL_FRAGMENT_3;
+  const rootId = card.id?.split('_drafted_')[0];
+  return card.id === target.id || rootId === target.id || card.name === target.name;
+}
+
 export function hasAbyssalFragment(
   cardsOrState: Card[] | GameState,
   fragmentNumber: 1 | 2 | 3
@@ -92,13 +118,7 @@ export function hasAbyssalFragment(
   const cards = Array.isArray(cardsOrState)
     ? cardsOrState
     : getAllPermanentCards(cardsOrState);
-  const targetName =
-    fragmentNumber === 1
-      ? ABYSSAL_FRAGMENT_1.name
-      : fragmentNumber === 2
-      ? ABYSSAL_FRAGMENT_2.name
-      : ABYSSAL_FRAGMENT_3.name;
-  return cards.some((c) => c.name === targetName);
+  return cards.some((c) => matchesFragment(c, fragmentNumber));
 }
 
 export function hasBothAbyssalFragments(
@@ -108,8 +128,8 @@ export function hasBothAbyssalFragments(
     ? cardsOrState
     : getAllPermanentCards(cardsOrState);
   return (
-    cards.some((c) => c.name === ABYSSAL_FRAGMENT_1.name) &&
-    cards.some((c) => c.name === ABYSSAL_FRAGMENT_2.name)
+    cards.some((c) => matchesFragment(c, 1)) &&
+    cards.some((c) => matchesFragment(c, 2))
   );
 }
 
@@ -119,22 +139,31 @@ export function hasCompleteAncientSeal(
   const cards = Array.isArray(cardsOrState)
     ? cardsOrState
     : getAllPermanentCards(cardsOrState);
-  return cards.some((c) => c.name === COMPLETE_ANCIENT_SEAL.name);
+  return cards.some((c) => {
+    const rootId = c.id?.split('_drafted_')[0];
+    return (
+      c.id === COMPLETE_ANCIENT_SEAL.id ||
+      rootId === COMPLETE_ANCIENT_SEAL.id ||
+      c.name === COMPLETE_ANCIENT_SEAL.name
+    );
+  });
 }
 
 /**
  * 執行深淵封印殘片共鳴融合：
- * 移除牌庫中所有的「深淵封印殘片·其一」、「其二」、「其三」，並注入 1 張「完整的深淵古印」
+ * 牌庫中必須同時集齊「深淵封印殘片·其一」、「其二」、「其三」全部三枚殘片，
+ * 移除所有殘片並注入 1 張「完整的深淵古印」。
  */
 export function fuseAbyssalFragments(deck: Card[]): {
   newDeck: Card[];
   wasFused: boolean;
 } {
-  const hasFrag1 = deck.some((c) => c.name === ABYSSAL_FRAGMENT_1.name);
-  const hasFrag2 = deck.some((c) => c.name === ABYSSAL_FRAGMENT_2.name);
-  const filtered = deck.filter((c) => !ABYSSAL_FRAGMENT_NAMES.has(c.name));
+  const hasFrag1 = deck.some((c) => matchesFragment(c, 1));
+  const hasFrag2 = deck.some((c) => matchesFragment(c, 2));
+  const hasFrag3 = deck.some((c) => matchesFragment(c, 3));
 
-  if (hasFrag1 && hasFrag2) {
+  if (hasFrag1 && hasFrag2 && hasFrag3) {
+    const filtered = deck.filter((c) => !isAbyssalFragment(c));
     return {
       newDeck: [...filtered, { ...COMPLETE_ANCIENT_SEAL }],
       wasFused: true,
