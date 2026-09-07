@@ -63,7 +63,7 @@
 .title-menu-nav {
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.2dvh, 14px);
+  gap: clamp(10px, 1.4dvh, 16px);
   width: 100%;
 }
 
@@ -73,7 +73,7 @@
   align-items: center;
   gap: 16px;
   width: 100%;
-  padding: clamp(8px, 1.2dvh, 14px) clamp(12px, 1.5vw, 20px);
+  padding: clamp(10px, 1.4dvh, 16px) clamp(16px, 1.8vw, 22px);
   background: linear-gradient(135deg, rgba(22, 27, 36, 0.85), rgba(14, 17, 23, 0.95));
   border: 1px solid rgba(184, 146, 84, 0.35);
   border-radius: var(--radius-md);
@@ -136,8 +136,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--radius-sm);
   background: rgba(10, 13, 18, 0.7);
   border: 1px solid rgba(184, 146, 84, 0.25);
@@ -153,27 +153,22 @@
 .btn-text-group {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   flex: 1;
 }
 
 .btn-main-text {
   font-family: var(--font-title);
-  font-size: 1.15rem;
+  font-size: clamp(1.05rem, 1.5dvh, 1.2rem);
   font-weight: 700;
   letter-spacing: 2px;
   color: var(--text-parchment);
   transition: color 0.2s ease;
+  line-height: 1.2;
 }
 
 .title-menu-btn:hover .btn-main-text {
   color: var(--text-gold);
-}
-
-.btn-sub-text {
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  letter-spacing: 0.5px;
-  margin-top: 2px;
 }
 
 .btn-arrow {

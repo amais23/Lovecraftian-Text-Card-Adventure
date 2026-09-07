@@ -73,7 +73,6 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">開啟新調查</span>
-              <span className="btn-sub-text">踏入迷霧 · 選擇調查員啟程</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>
@@ -89,7 +88,6 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">調查紀錄手冊</span>
-              <span className="btn-sub-text">調查手記 · 理智牌庫、五色卡牌與瘋狂對弈規則</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>
@@ -105,7 +103,6 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">卡牌圖鑑</span>
-              <span className="btn-sub-text">五色手牌典藏 · 26 張秘術卡牌檢視</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>
@@ -121,7 +118,6 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">遊戲設定</span>
-              <span className="btn-sub-text">全域音效 · 感官感知與聲效調節</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>
@@ -137,7 +133,6 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <div className="btn-text-group">
               <span className="btn-main-text">離開遊戲</span>
-              <span className="btn-sub-text">深淵呢喃 · 逃離不可名狀之境</span>
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>
