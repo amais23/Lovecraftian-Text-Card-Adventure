@@ -758,16 +758,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'victory') return state;
       const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
       const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
-      const isBoss = currentNode?.type === 'boss';
+      const isBossFight = currentNode?.type === 'boss';
       const isElite = currentNode?.type === 'elite';
 
       // ADR-0015: 第三深度首領戰勝分歧
-      if (isBoss && currentDepth === 3) {
+      if (isBossFight && currentDepth === 3) {
         if (!hasBothAbyssalFragments(state)) {
           // 未湊齊前兩枚殘片：直接進入普通結局（Arkham Gazette）
           const updatedMap = advanceMapAfterNode(state.map);
           const currentPermanentCards = getAllPermanentCards(state);
-          const resetDeck = fisherYatesShuffle(currentPermanentCards);
+          const resetDeck = action.payload?.shuffledDeck
+            ? [...action.payload.shuffledDeck]
+            : fisherYatesShuffle(currentPermanentCards);
           const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
           return {
             ...state,
@@ -816,10 +818,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
-      const baseObols = isBoss ? 50 : isElite ? 25 : 15;
+      const baseObols = isBossFight ? 50 : isElite ? 25 : 15;
       const rewardObols = action.payload?.rewardObols ?? baseObols;
       const rewardCards =
-        action.payload?.rewardCards ?? generateRewardCardsForDepth(currentDepth, isBoss);
+        action.payload?.rewardCards ?? generateRewardCardsForDepth(currentDepth, isBossFight);
 
       return {
         ...state,

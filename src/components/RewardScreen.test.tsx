@@ -75,6 +75,9 @@ describe('RewardScreen Component (Issue #21 / ADR-0015)', () => {
 
     const sealBtn = screen.getByRole('button', { name: /承受深淵封印.*深淵封印殘片·其二/ });
     expect(sealBtn).toBeTruthy();
+    expect(
+      screen.getByText(/封印殘片為無法打出的黑色瘋狂卡，將永久佔據手牌與理智牌庫！/)
+    ).toBeTruthy();
   });
 
   it('displays the glowing fusion banner when abyssalSealFused is true', () => {

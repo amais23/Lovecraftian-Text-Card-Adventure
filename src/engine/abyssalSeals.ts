@@ -151,7 +151,7 @@ export function hasCompleteAncientSeal(
 
 /**
  * 執行深淵封印殘片共鳴融合：
- * 牌庫中必須同時集齊「深淵封印殘片·其一」、「其二」、「其三」全部三枚殘片，
+ * 理智牌庫中必須同時集齊「深淵封印殘片·其一」、「其二」、「其三」全部三枚殘片，
  * 移除所有殘片並注入 1 張「完整的深淵古印」。
  */
 export function fuseAbyssalFragments(deck: Card[]): {

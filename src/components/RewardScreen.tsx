@@ -187,7 +187,7 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
                 <span>放棄常規獎勵，承受深淵封印（獲得【{sealFragmentName}】）</span>
               </button>
               <div className="reward-seal-desc">
-                ⚠️ 承受深淵代價：放棄本次戰鬥的 +{obolsReward} 枚古金幣與卡牌挑選。封印殘片為無法打出的黑色瘋狂卡，將永久佔據手牌與牌庫！
+                ⚠️ 承受深淵代價：放棄本次戰鬥的 +{obolsReward} 枚古金幣與卡牌挑選。封印殘片為無法打出的黑色瘋狂卡，將永久佔據手牌與理智牌庫！
               </div>
             </div>
           )}

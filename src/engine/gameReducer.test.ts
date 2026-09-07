@@ -3074,12 +3074,17 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
       expect(hasBothAbyssalFragments(victoryState)).toBe(false);
 
-      const result = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      const presetCards = OCCUPATIONS.investigator.deck.map((c) => ({ ...c }));
+      const result = gameReducer(victoryState, {
+        type: 'PROCEED_TO_REWARD',
+        payload: { shuffledDeck: presetCards },
+      });
       // Normal ending: finishes map, sets isCompleted = true, phase = 'map'
       expect(result.phase).toBe('map');
       expect(result.map?.isCompleted).toBe(true);
       expect(result.abyssalSealFused).toBeFalsy();
       expect(result.investigator.health).toBe(25); // Heals to full on boss defeat
+      expect(result.hand[0].id).toBe(presetCards[0].id);
       expect(result.battleLog.some((l) => l.includes('阿卡姆常規終局'))).toBe(true);
     });
 
