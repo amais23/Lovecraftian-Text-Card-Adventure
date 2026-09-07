@@ -441,6 +441,47 @@ export class SoundEngine {
   }
 
   /**
+   * 10b. 太古星印終極封滅處決音效 (Cosmic Banishment Fatal Strike)
+   * 結合超維純淨泛音列共鳴與深淵崩塌次低頻衝擊
+   */
+  public playCosmicBanishment(): void {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain) return;
+
+    const t = ctx.currentTime;
+
+    // 1. 深沉次低頻衝擊 (Sub-bass impact)
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(80, t);
+    subOsc.frequency.exponentialRampToValueAtTime(24, t + 0.8);
+    subGain.gain.setValueAtTime(0.7, t);
+    subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+    subOsc.connect(subGain);
+    subGain.connect(this.masterGain);
+    subOsc.start(t);
+    subOsc.stop(t + 0.9);
+
+    // 2. 超維星穹純淨泛音 (Celestial chime harmonics)
+    const freqs = [528, 880, 1320];
+    freqs.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.linearRampToValueAtTime(freq * 1.05, t + 1.2);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t);
+      osc.stop(t + 1.2);
+    });
+  }
+
+  /**
    * 11. 報紙甩拍桌面重音 (Newspaper Table Slam)
    * 結合深沉木質撞擊低頻與紙張摩擦高頻帶通雜訊
    */

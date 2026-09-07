@@ -124,6 +124,19 @@
   transform: rotate(-8deg);
 }
 
+.gazette-paper-sheet.true-ending-theme {
+  background-color: #fcf6e8;
+  background-image: 
+    radial-gradient(ellipse at 80% 20%, rgba(255, 215, 0, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(180, 130, 40, 0.18) 0%, transparent 70%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 0%, transparent 5%, transparent 95%, rgba(0, 0, 0, 0.08) 100%);
+  border: 2px solid #5c4418;
+  box-shadow: 
+    0 25px 70px rgba(0, 0, 0, 0.9),
+    0 0 35px rgba(255, 215, 0, 0.22),
+    inset 0 0 80px rgba(212, 175, 55, 0.2);
+}
+
 /* Rubber Stamp Overlay (Coroner or Sanction Seal) */
 .gazette-stamp {
   position: absolute;
@@ -151,6 +164,15 @@
   top: 45px;
   right: 50px;
   transform: rotate(-8deg);
+}
+
+.gazette-stamp.true-ending {
+  border-color: #b8860b;
+  color: #b8860b;
+  top: 45px;
+  right: 50px;
+  transform: rotate(-5deg);
+  text-shadow: 0 0 3px rgba(255, 215, 0, 0.4);
 }
 
 /* Newspaper Header / Masthead */
@@ -225,6 +247,10 @@
 
 .gazette-headline-section.victory .gazette-kicker {
   color: #8c5b16;
+}
+
+.gazette-headline-section.true-ending .gazette-kicker {
+  color: #b8860b;
 }
 
 .gazette-primary-headline {
@@ -451,6 +477,12 @@
   border: 1px solid #855812;
 }
 
+.dossier-status-pill.true-ending {
+  background: rgba(255, 215, 0, 0.15);
+  color: #8c6808;
+  border: 1px solid #b8860b;
+}
+
 /* Actions Bar */
 .gazette-actions-bar {
   margin-top: 18px;
@@ -497,6 +529,72 @@
   color: #110e0b;
   border-color: #110e0b;
   transform: translateY(-2px);
+}
+
+/* Staff Credits Section for True Ending */
+.gazette-credits-section {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(40, 32, 20, 0.04);
+  border: 1px solid rgba(80, 60, 40, 0.3);
+  border-radius: 2px;
+}
+
+.credits-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.credits-rule {
+  flex: 1;
+  height: 1px;
+  background: #3b2f23;
+  opacity: 0.35;
+}
+
+.credits-title {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #2e2417;
+  text-transform: uppercase;
+}
+
+.gazette-credits-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+
+.credit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.76rem;
+}
+
+.credit-item.full-width {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(60, 45, 30, 0.3);
+  text-align: center;
+}
+
+.credit-role {
+  color: #6b553d;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+}
+
+.credit-name {
+  color: #1a1510;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 /* Responsive Viewport */

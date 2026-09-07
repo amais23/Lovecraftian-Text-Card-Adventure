@@ -165,6 +165,7 @@ export const INITIAL_STAR_SPAWN: Enemy = {
   health: 150,
   maxHealth: 150,
   armor: 12,
+  divineImmortality: true,
   currentIntent: STAR_SPAWN_INTENTS[0],
   intentSequence: STAR_SPAWN_INTENTS,
   currentIntentIndex: 0,

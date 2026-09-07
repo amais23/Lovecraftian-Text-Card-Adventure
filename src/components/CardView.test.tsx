@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { CardView } from './CardView';
-import { ABYSSAL_FRAGMENT_1 } from '../engine/abyssalSeals';
+import { ABYSSAL_FRAGMENT_1, COMPLETE_ANCIENT_SEAL } from '../engine/abyssalSeals';
 import type { Card } from '../types/game';
 
 describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
@@ -74,4 +74,53 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     const cardElement = screen.getByText('禁錮鎖鏈').closest('.card-item');
     expect(cardElement?.getAttribute('title')).toBe('【禁錮鎖鏈】無法打出');
   });
+
+  it('renders COMPLETE_ANCIENT_SEAL as locked when fighting divine immortality enemy with health > 1', () => {
+    const onPlay = vi.fn();
+    render(
+      <CardView
+        card={COMPLETE_ANCIENT_SEAL}
+        currentStamina={5}
+        enemyHealth={50}
+        enemyDivineImmortality={true}
+        onPlay={onPlay}
+      />
+    );
+
+    const cardElement = screen.getByText(COMPLETE_ANCIENT_SEAL.name).closest('.card-item');
+    expect(cardElement?.classList.contains('seal-locked')).toBe(true);
+    expect(cardElement?.classList.contains('disabled')).toBe(true);
+    expect(cardElement?.classList.contains('playable')).toBe(false);
+
+    expect(screen.getByText('神性封印')).toBeDefined();
+    expect(screen.getByText('神性封印中')).toBeDefined();
+
+    fireEvent.click(cardElement!);
+    expect(onPlay).not.toHaveBeenCalled();
+  });
+
+  it('renders COMPLETE_ANCIENT_SEAL as unlocked with divine radiance when boss health reaches 1', () => {
+    const onPlay = vi.fn();
+    render(
+      <CardView
+        card={COMPLETE_ANCIENT_SEAL}
+        currentStamina={5}
+        enemyHealth={1}
+        enemyDivineImmortality={true}
+        onPlay={onPlay}
+      />
+    );
+
+    const cardElement = screen.getByText(COMPLETE_ANCIENT_SEAL.name).closest('.card-item');
+    expect(cardElement?.classList.contains('ancient-seal-unlocked')).toBe(true);
+    expect(cardElement?.classList.contains('playable')).toBe(true);
+    expect(cardElement?.classList.contains('disabled')).toBe(false);
+
+    expect(screen.getByText('終極斬殺')).toBeDefined();
+    expect(screen.getByText('引動終極封滅！')).toBeDefined();
+
+    fireEvent.click(cardElement!);
+    expect(onPlay).toHaveBeenCalledWith(COMPLETE_ANCIENT_SEAL.id);
+  });
 });
+

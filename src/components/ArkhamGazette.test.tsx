@@ -153,4 +153,48 @@ describe('ArkhamGazette Component', () => {
     expect(soundEngine.playClick).toHaveBeenCalled();
     expect(onRetryCombat).toHaveBeenCalledTimes(1);
   });
+
+  it('renders True Ending newspaper with cosmic banishment headline, special stamp, and staff credits', () => {
+    const dispatch = vi.fn();
+    mockState.investigator.health = 25;
+    mockState.isTrueEnding = true;
+
+    render(
+      <ArkhamGazette
+        endingType="true_ending"
+        state={mockState}
+        dispatch={dispatch}
+      />
+    );
+
+    // True Ending Masthead Dateline & Stamp
+    expect(screen.getByText('THE ARKHAM GAZETTE')).toBeDefined();
+    expect(screen.getByText('COSMIC BANISHMENT · TRUE VICTORY')).toBeDefined();
+    expect(screen.getByText(/ULTRA SPECIAL OVERSEAS EDITION/)).toBeDefined();
+
+    // True Ending Headline & Kicker
+    expect(screen.getByText(/ASTRONOMICAL ANOMALY · THE STARS ARE NO LONGER RIGHT/)).toBeDefined();
+    expect(
+      screen.getByText(/【星辰歸位終告破滅！拉萊耶萬丈黑淵崩解，密斯卡托尼克天文台證實超維星軌封滅】/)
+    ).toBeDefined();
+
+    // Narrative snippet
+    expect(screen.getByText(/璀璨金色古印神輝徹底擊穿/)).toBeDefined();
+    expect(screen.getByText(/星辰正位的終焉時刻被一名血肉凡軀的孤膽調查員硬生生扭轉/)).toBeDefined();
+
+    // True Ending Dossier
+    expect(screen.getByText('傳奇調查員真結局功勳')).toBeDefined();
+    expect(screen.getByText('古印封滅 · 扭轉星辰')).toBeDefined();
+    expect(screen.getByText('第四深度 · 拉萊耶核心湮滅')).toBeDefined();
+
+    // Staff Credits Section
+    expect(screen.getByText(/【阿卡姆調查手記 · 通關製作名錄】/)).toBeDefined();
+    expect(screen.getByText(/密斯卡托尼克調查團/)).toBeDefined();
+    expect(screen.getByText(/H.P. Lovecraft 洛夫克拉夫特神話遺產/)).toBeDefined();
+    expect(screen.getByText(/感謝您拯救阿卡姆！/)).toBeDefined();
+
+    // True Ending Return Button
+    expect(screen.getByText('達成真結局 · 凱旋歸來')).toBeDefined();
+  });
 });
+

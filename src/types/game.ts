@@ -37,6 +37,7 @@ export interface Enemy {
   health: number;
   maxHealth: number;
   armor: number;
+  divineImmortality?: boolean;
   currentIntent: EnemyIntent;
   intentSequence?: EnemyIntent[];
   currentIntentIndex?: number;
@@ -145,6 +146,7 @@ export interface GameState {
   marketItems?: MarketItem[];
   adventureStats?: AdventureStats;
   abyssalSealFused?: boolean;
+  isTrueEnding?: boolean;
 }
 
 export type GameAction =

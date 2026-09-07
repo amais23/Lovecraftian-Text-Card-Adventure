@@ -41,7 +41,7 @@ import {
   hasBothAbyssalFragments,
   getAllPermanentCards,
 } from './abyssalSeals';
-import type { Card, GameState } from '../types/game';
+import type { Card, GameState, Enemy } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
   return {
@@ -3157,6 +3157,161 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(hand).toHaveLength(4);
       expect(hand[0].name).toBe(COMPLETE_ANCIENT_SEAL.name);
       expect(sanityDeck.some((c) => c.name === COMPLETE_ANCIENT_SEAL.name)).toBe(false);
+    });
+  });
+
+  describe('Depth 4 Divine Immortality & True Ending Strike (Issue #22 / ADR-0015)', () => {
+    const slashCard: Card = {
+      id: 'test_heavy_slash',
+      name: '重磅斬擊',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [{ type: 'damage', value: 999 }],
+      description: '造成 999 點物理傷害。',
+      flavorText: '「全力一擊。」',
+    };
+
+    it('locks enemy health at minimum 1 HP against normal card attacks when enemy has divineImmortality', () => {
+      const divineEnemy: Enemy = {
+        ...INITIAL_STAR_SPAWN,
+        health: 50,
+        maxHealth: 150,
+        armor: 0,
+        divineImmortality: true,
+      };
+
+      const combatState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'combat',
+        currentEnemy: divineEnemy,
+        hand: [slashCard],
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          stamina: 3,
+        },
+        battleLog: [],
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: slashCard.id },
+      });
+
+      // Health must be locked at 1, combat phase must remain 'combat'
+      expect(afterPlay.currentEnemy.health).toBe(1);
+      expect(afterPlay.phase).toBe('combat');
+      expect(afterPlay.battleLog[0]).toContain('神性不朽');
+      expect(afterPlay.battleLog[0]).toContain('生命值被鎖定在 1 點');
+    });
+
+    it('prevents playing COMPLETE_ANCIENT_SEAL when divine enemy health > 1', () => {
+      const divineEnemy: Enemy = {
+        ...INITIAL_STAR_SPAWN,
+        health: 20,
+        maxHealth: 150,
+        armor: 0,
+        divineImmortality: true,
+      };
+
+      const sealCard: Card = {
+        ...COMPLETE_ANCIENT_SEAL,
+      };
+
+      const combatState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'combat',
+        currentEnemy: divineEnemy,
+        hand: [sealCard],
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          stamina: 3,
+        },
+        battleLog: ['戰鬥開始'],
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: sealCard.id },
+      });
+
+      // Card must remain in hand, log notes seal is locked
+      expect(afterPlay.hand).toHaveLength(1);
+      expect(afterPlay.hand[0].id).toBe(sealCard.id);
+      expect(afterPlay.currentEnemy.health).toBe(20);
+      expect(afterPlay.battleLog[0]).toContain('古印封印中');
+      expect(afterPlay.battleLog[0]).toContain('生命值尚未削弱至 1 點極限');
+    });
+
+    it('executes divine boss to 0 HP, wins combat, and sets isTrueEnding = true when playing COMPLETE_ANCIENT_SEAL at 1 HP', () => {
+      const divineEnemy: Enemy = {
+        ...INITIAL_STAR_SPAWN,
+        health: 1,
+        maxHealth: 150,
+        armor: 0,
+        divineImmortality: true,
+      };
+
+      const sealCard: Card = {
+        ...COMPLETE_ANCIENT_SEAL,
+      };
+
+      const combatState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'combat',
+        currentEnemy: divineEnemy,
+        hand: [sealCard],
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          stamina: 3,
+        },
+        battleLog: [],
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: sealCard.id },
+      });
+
+      expect(afterPlay.currentEnemy.health).toBe(0);
+      expect(afterPlay.phase).toBe('victory');
+      expect(afterPlay.isTrueEnding).toBe(true);
+      expect(afterPlay.battleLog[0]).toContain('達成真結局');
+      expect(afterPlay.battleLog.some((l) => l.includes('太古星辰封滅'))).toBe(true);
+    });
+
+    it('transitions to map with isCompleted = true and isTrueEnding = true upon claiming final boss victory', () => {
+      const map = generateInvestigationMap({ depth: 4 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const victoryState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 4,
+        isTrueEnding: true,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 10,
+          maxHealth: 25,
+          obols: 80,
+        },
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.phase).toBe('reward');
+      expect(rewardState.rewardObols).toBe(50);
+
+      const finalState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+      expect(finalState.phase).toBe('map');
+      expect(finalState.map?.isCompleted).toBe(true);
+      expect(finalState.isTrueEnding).toBe(true);
+      expect(finalState.investigator.health).toBe(25); // Healed to full
+      expect(finalState.investigator.obols).toBe(130); // 80 + 50
     });
   });
 });

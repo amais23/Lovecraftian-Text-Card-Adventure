@@ -9,6 +9,7 @@ import { calculateCardFanOut } from '../engine/handMath';
 import { soundEngine } from '../engine/audioManager';
 import { Trophy, Coins, Compass, Sparkles } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
+import { isCompleteAncientSeal } from '../engine/abyssalSeals';
 
 interface CombatScreenProps {
   state: GameState;
@@ -55,6 +56,15 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
   ].filter((card) => !card.isTemporary).length;
 
   const handlePlayCard = (cardId: string) => {
+    const playedCard = state.hand.find((c) => c.id === cardId);
+    if (
+      playedCard &&
+      isCompleteAncientSeal(playedCard) &&
+      state.currentEnemy.divineImmortality &&
+      state.currentEnemy.health <= 1
+    ) {
+      soundEngine.playCosmicBanishment();
+    }
     dispatch({ type: 'PLAY_CARD', payload: { cardId } });
   };
 
@@ -154,6 +164,8 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
                 disabled={isCombatEnded}
                 fanTransform={fan}
                 onDragStateChange={setIsDraggingCard}
+                enemyHealth={state.currentEnemy.health}
+                enemyDivineImmortality={state.currentEnemy.divineImmortality}
               />
             );
           })}
@@ -161,7 +173,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
       </section>
 
       {/* Victory Modal */}
-      {state.phase === 'victory' && (
+      {state.phase === 'victory' && !state.isTrueEnding && (
         <div className="combat-modal-overlay">
           <div className="combat-modal-box victory">
             <Trophy size={48} color="#74c69d" className="modal-hero-icon" />
@@ -186,6 +198,15 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
             </div>
           </div>
         </div>
+      )}
+
+      {/* True Ending Gazette Sequence directly on Cosmic Banishment */}
+      {state.phase === 'victory' && state.isTrueEnding && (
+        <ArkhamGazette
+          endingType="true_ending"
+          state={state}
+          dispatch={dispatch}
+        />
       )}
 
       {/* Arkham Gazette Ending Sequence on Investigator Death */}

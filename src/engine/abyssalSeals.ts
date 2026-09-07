@@ -133,20 +133,26 @@ export function hasBothAbyssalFragments(
   );
 }
 
+export function isCompleteAncientSeal(card: Card | { name?: string; id?: string }): boolean {
+  if (card.id) {
+    const rootId = card.id.split('_drafted_')[0];
+    if (card.id === COMPLETE_ANCIENT_SEAL.id || rootId === COMPLETE_ANCIENT_SEAL.id) {
+      return true;
+    }
+  }
+  if (card.name && card.name === COMPLETE_ANCIENT_SEAL.name) {
+    return true;
+  }
+  return false;
+}
+
 export function hasCompleteAncientSeal(
   cardsOrState: Card[] | GameState
 ): boolean {
   const cards = Array.isArray(cardsOrState)
     ? cardsOrState
     : getAllPermanentCards(cardsOrState);
-  return cards.some((c) => {
-    const rootId = c.id?.split('_drafted_')[0];
-    return (
-      c.id === COMPLETE_ANCIENT_SEAL.id ||
-      rootId === COMPLETE_ANCIENT_SEAL.id ||
-      c.name === COMPLETE_ANCIENT_SEAL.name
-    );
-  });
+  return cards.some(isCompleteAncientSeal);
 }
 
 /**

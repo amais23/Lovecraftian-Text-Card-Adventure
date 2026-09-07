@@ -41,6 +41,7 @@ import {
   fuseAbyssalFragments,
   getAllPermanentCards,
   isAbyssalFragment,
+  isCompleteAncientSeal,
 } from './abyssalSeals';
 
 export const BASELINE_HAND_SIZE = 4;
@@ -761,6 +762,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const isBossFight = currentNode?.type === 'boss';
       const isElite = currentNode?.type === 'elite';
 
+
+
       // ADR-0015: 第三深度首領戰勝分歧
       if (isBossFight && currentDepth === 3) {
         if (!hasBothAbyssalFragments(state)) {
@@ -862,7 +865,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         totalObolsCollected: currentStats.totalObolsCollected + addedObols,
       };
 
-      const isBossFight = state.map?.currentNodeId && state.map.nodes[state.map.currentNodeId]?.type === 'boss';
+      const isBossFight = Boolean(state.map?.currentNodeId && state.map.nodes[state.map.currentNodeId]?.type === 'boss');
 
       // 2. Persistent health: investigator.health does NOT heal normally, EXCEPT on Boss defeat!
       const isHealingToFull = Boolean(isBossFight);
@@ -919,6 +922,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         phase: nextPhase,
+        isTrueEnding: Boolean(state.isTrueEnding || isFinalBoss),
         turn: 1,
         investigator: updatedInvestigator,
         sanityDeck,
@@ -1110,6 +1114,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (cardIndex === -1) return state;
 
       const card = state.hand[cardIndex];
+      const isAncientSeal = isCompleteAncientSeal(card);
+      const isDivineEnemy = Boolean(state.currentEnemy.divineImmortality);
 
       // Guard unplayable cards (e.g. Abyssal Seal Fragments)
       if (card.isUnplayable) {
@@ -1120,6 +1126,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           battleLog: [
             logMsg,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      // Guard COMPLETE_ANCIENT_SEAL when enemy has divine immortality and health > 1
+      if (isAncientSeal && isDivineEnemy && state.currentEnemy.health > 1) {
+        return {
+          ...state,
+          battleLog: [
+            `【古印封印中】${state.currentEnemy.name} 的深淵神性威壓依然磅礡，生命值尚未削弱至 1 點極限！【完整的深淵古印】無法引動！`,
             ...state.battleLog,
           ],
         };
@@ -1163,13 +1180,37 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let investigatorArmor = state.investigator.armor;
       const newLogs: string[] = [];
 
+      // Divine Execution: Ancient Seal strikes enemy with divine immortality at 1 HP
+      if (isAncientSeal && isDivineEnemy && state.currentEnemy.health <= 1) {
+        enemyHealth = 0;
+        enemyArmor = 0;
+        newLogs.push(
+          `【太古星辰封滅】調查員高舉【${card.name}】！崇高熾白的星穹真理光芒撕裂深淵，${state.currentEnemy.name} 在淒厲的太古哀嚎中灰飛煙滅，舊日支配者的意志被永遠放逐！`
+        );
+      }
+
       // Execute card effects
       for (const effect of card.effects) {
         if (effect.type === 'damage') {
           const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, effect.value);
-          enemyHealth = dmg.newHealth;
-          enemyArmor = dmg.newArmor;
-          newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點傷害！`);
+          if (isDivineEnemy && !isAncientSeal) {
+            // Divine Immortality locks health at minimum 1
+            if (dmg.newHealth < 1) {
+              enemyHealth = 1;
+              enemyArmor = dmg.newArmor;
+              newLogs.push(
+                `調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成打擊！但【神性不朽】抵禦了致命傷，生命值被鎖定在 1 點！唯有【完整的深淵古印】方能將其終極封滅！`
+              );
+            } else {
+              enemyHealth = dmg.newHealth;
+              enemyArmor = dmg.newArmor;
+              newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點傷害！`);
+            }
+          } else {
+            enemyHealth = dmg.newHealth;
+            enemyArmor = dmg.newArmor;
+            newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點傷害！`);
+          }
         } else if (effect.type === 'armor') {
           investigatorArmor += effect.value;
           newLogs.push(`調查員打出【${card.name}】，構築掩體獲得 ${effect.value} 點護甲！`);
@@ -1246,6 +1287,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // Check Victory / Defeat
       let phase: GameState['phase'] = state.phase;
       let stats = ensureAdventureStats(state);
+      let isTrueEnding = state.isTrueEnding;
       if (investigatorHealth <= 0) {
         phase = 'gameover';
         newLogs.unshift(`【調查員殞命】不可名狀的反噬耗盡了你最後一絲氣息，你倒在血泊中……`);
@@ -1255,12 +1297,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...stats,
           enemiesDefeated: stats.enemiesDefeated + 1,
         };
-        newLogs.unshift(`【戰鬥勝利】${state.currentEnemy.name} 發出臨死的淒厲悲鳴，化為一灘腥臭的黑水消滅了！`);
+        if (isAncientSeal && isDivineEnemy) {
+          isTrueEnding = true;
+          newLogs.unshift(`【達成真結局】群星歸位終告破滅，調查員以凡人之軀拯救了世界！`);
+        } else {
+          newLogs.unshift(`【戰鬥勝利】${state.currentEnemy.name} 發出臨死的淒厲悲鳴，化為一灘腥臭的黑水消滅了！`);
+        }
       }
 
       return {
         ...state,
         phase,
+        isTrueEnding,
         investigator: {
           ...state.investigator,
           stamina: newStamina,

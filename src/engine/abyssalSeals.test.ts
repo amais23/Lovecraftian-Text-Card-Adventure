@@ -9,6 +9,7 @@ import {
   hasAbyssalFragment,
   hasBothAbyssalFragments,
   hasCompleteAncientSeal,
+  isCompleteAncientSeal,
   fuseAbyssalFragments,
 } from './abyssalSeals';
 import type { Card } from '../types/game';
@@ -146,6 +147,20 @@ describe('Abyssal Seals Module (Issue #21 / ADR-0015)', () => {
       ...COMPLETE_ANCIENT_SEAL,
       id: `${COMPLETE_ANCIENT_SEAL.id}_drafted_8`,
     };
+    expect(isCompleteAncientSeal(draftedSeal)).toBe(true);
     expect(hasCompleteAncientSeal([draftedSeal])).toBe(true);
+
+    const normalCard: Card = {
+      id: 'mock_card',
+      name: '一般攻擊',
+      category: 'combat',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '',
+      flavorText: '',
+    };
+    expect(isCompleteAncientSeal(normalCard)).toBe(false);
   });
 });

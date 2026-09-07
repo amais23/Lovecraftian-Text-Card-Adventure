@@ -296,10 +296,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         </div>
       </main>
 
-      {/* Arkham Gazette Normal Victory Ending Sequence */}
+      {/* Arkham Gazette Normal Victory or True Ending Sequence */}
       {map.isCompleted && (
         <ArkhamGazette
-          endingType="victory"
+          endingType={state.isTrueEnding ? 'true_ending' : 'victory'}
           state={state}
           dispatch={dispatch}
         />

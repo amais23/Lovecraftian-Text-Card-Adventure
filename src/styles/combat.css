@@ -779,6 +779,34 @@
   cursor: not-allowed;
 }
 
+.card-item.ancient-seal-unlocked {
+  border-color: #ffd700 !important;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.85), inset 0 0 15px rgba(255, 235, 120, 0.6) !important;
+  animation: ancient-seal-pulse 1.8s infinite ease-in-out !important;
+  z-index: 10;
+}
+
+@keyframes ancient-seal-pulse {
+  0% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), inset 0 0 10px rgba(255, 235, 120, 0.4);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(255, 235, 120, 0.95), 0 0 50px rgba(255, 215, 0, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.8);
+    transform: translateY(-4px) scale(1.03);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), inset 0 0 10px rgba(255, 235, 120, 0.4);
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-item.seal-locked {
+  filter: grayscale(0.5) brightness(0.7);
+  cursor: not-allowed;
+  border-color: #991b1b !important;
+}
+
 /* Card Top Row */
 .card-top-row {
   display: flex;
@@ -963,6 +991,24 @@
   background: rgba(88, 28, 135, 0.85);
   color: #e9d5ff;
   border: 1px solid rgba(168, 85, 247, 0.8);
+}
+
+.card-tag-badge.seal-locked {
+  background: rgba(153, 27, 27, 0.85);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.85);
+}
+
+.card-tag-badge.seal-unlocked {
+  background: rgba(161, 98, 7, 0.85);
+  color: #fef08a;
+  border: 1px solid rgba(250, 204, 21, 0.95);
+  animation: seal-badge-pulse 1.5s infinite alternate;
+}
+
+@keyframes seal-badge-pulse {
+  0% { transform: scale(0.98); box-shadow: 0 0 4px rgba(250, 204, 21, 0.4); }
+  100% { transform: scale(1.05); box-shadow: 0 0 10px rgba(250, 204, 21, 0.9); }
 }
 
 .card-effect-desc {

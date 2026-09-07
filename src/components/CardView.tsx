@@ -5,7 +5,7 @@ import { Swords, Shield, Sparkles, Wind, Flame, Eye } from 'lucide-react';
 import { soundEngine } from '../engine/audioManager';
 import type { HandFanOutTransform } from '../engine/handMath';
 import { getCardArtwork } from '../engine/cardArtworks';
-import { isAbyssalFragment } from '../engine/abyssalSeals';
+import { isAbyssalFragment, isCompleteAncientSeal } from '../engine/abyssalSeals';
 
 interface CategoryMeta {
   label: string;
@@ -58,6 +58,8 @@ export interface CardViewProps {
   onDragStateChange?: (isDragging: boolean) => void;
   isStandalone?: boolean;
   onClick?: () => void;
+  enemyHealth?: number;
+  enemyDivineImmortality?: boolean;
 }
 
 export const CardView: React.FC<CardViewProps> = ({
@@ -71,14 +73,25 @@ export const CardView: React.FC<CardViewProps> = ({
   onDragStateChange,
   isStandalone = false,
   onClick,
+  enemyHealth,
+  enemyDivineImmortality,
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const isAncientSeal = isCompleteAncientSeal(card);
+  const isSealLocked = Boolean(
+    isAncientSeal && enemyDivineImmortality && enemyHealth !== undefined && enemyHealth > 1
+  );
+  const isSealUnlocked = Boolean(
+    isAncientSeal && enemyDivineImmortality && enemyHealth !== undefined && enemyHealth <= 1
+  );
 
   const isPlayable =
     !disabled &&
     !isStandalone &&
     !card.isUnplayable &&
+    !isSealLocked &&
     (card.costType === 'sanity'
       ? currentSanity !== undefined
         ? currentSanity >= card.costValue
@@ -92,13 +105,22 @@ export const CardView: React.FC<CardViewProps> = ({
     defaultIcon: <Sparkles size={16} color="#cfa866" />,
   };
 
-  const defaultPrompt = card.isUnplayable
+  const defaultPrompt = isSealLocked
+    ? '神性封印中'
+    : card.isUnplayable
     ? '無法打出'
     : card.costType === 'sanity'
     ? '理智不足'
     : meta.defaultPrompt;
-  const promptText = isPlayable ? meta.playablePrompt : defaultPrompt;
-  const tooltip = card.isUnplayable
+
+  const playablePromptText = isSealUnlocked ? '引動終極封滅！' : meta.playablePrompt;
+  const promptText = isPlayable ? playablePromptText : defaultPrompt;
+
+  const tooltip = isSealLocked
+    ? `【${card.name}】封印中：舊日神性威壓依然籠罩，須將其生命值削弱至 1 點方可引動！`
+    : isSealUnlocked
+    ? `【神性破除】點擊或向上拖曳打出【${card.name}】，引發星穹天火終極斬殺！`
+    : card.isUnplayable
     ? isAbyssalFragment(card)
       ? `【${card.name}】為深淵封印殘片，無法打出`
       : `【${card.name}】無法打出`
@@ -122,14 +144,14 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const handleDragStart = () => {
-    if (isStandalone || card.isUnplayable) return;
+    if (isStandalone || card.isUnplayable || isSealLocked) return;
     setIsDragging(true);
     onDragStateChange?.(true);
     soundEngine.playCardHover();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (isStandalone || card.isUnplayable) return;
+    if (isStandalone || card.isUnplayable || isSealLocked) return;
     setIsDragging(false);
     onDragStateChange?.(false);
     if (info.offset.y < -85 && isPlayable) {
@@ -143,7 +165,7 @@ export const CardView: React.FC<CardViewProps> = ({
       onClick();
       return;
     }
-    if (card.isUnplayable) return;
+    if (card.isUnplayable || isSealLocked) return;
     if (isPlayable && !isDragging) {
       soundEngine.playCardPlay(card.category);
       onPlay?.(card.id);
@@ -165,7 +187,9 @@ export const CardView: React.FC<CardViewProps> = ({
       layout={!isStandalone}
       className={`card-item ${card.category} ${tierClass} ${
         isStandalone ? 'standalone' : isPlayable ? 'playable' : 'disabled'
-      } ${isDragging ? 'dragging' : ''}`}
+      } ${isDragging ? 'dragging' : ''} ${isSealLocked ? 'seal-locked' : ''} ${
+        isSealUnlocked ? 'ancient-seal-unlocked' : ''
+      }`}
       initial={isStandalone ? false : { opacity: 0, y: 120, scale: 0.8 }}
       animate={
         isStandalone
@@ -231,9 +255,25 @@ export const CardView: React.FC<CardViewProps> = ({
         <span className="card-title-text">{card.name}</span>
       </div>
 
-      {/* Badges row (Temporary / Recoil / Unplayable) */}
-      {(card.isTemporary || selfDamageEffect || card.isUnplayable) && (
+      {/* Badges row (Temporary / Recoil / Unplayable / Seal Status) */}
+      {(card.isTemporary || selfDamageEffect || card.isUnplayable || isSealLocked || isSealUnlocked) && (
         <div className="card-badges-row">
+          {isSealLocked && (
+            <span
+              className="card-tag-badge seal-locked"
+              title="須將首領生命值降至 1 點方可引動"
+            >
+              神性封印
+            </span>
+          )}
+          {isSealUnlocked && (
+            <span
+              className="card-tag-badge seal-unlocked"
+              title="神性已破除，可引動終極封滅！"
+            >
+              終極斬殺
+            </span>
+          )}
           {card.isUnplayable && (
             <span
               className="card-tag-badge unplayable"

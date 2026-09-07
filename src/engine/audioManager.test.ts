@@ -56,12 +56,14 @@ describe('SoundEngine subscription', () => {
     expect(() => soundEngine.playGunCock()).not.toThrow();
     expect(() => soundEngine.playEngineStart()).not.toThrow();
     expect(() => soundEngine.playAstralHum()).not.toThrow();
+    expect(() => soundEngine.playCosmicBanishment()).not.toThrow();
 
     soundEngine.setMuted(false);
     expect(() => soundEngine.playHeartbeat()).not.toThrow();
     expect(() => soundEngine.playGunCock()).not.toThrow();
     expect(() => soundEngine.playEngineStart()).not.toThrow();
     expect(() => soundEngine.playAstralHum()).not.toThrow();
+    expect(() => soundEngine.playCosmicBanishment()).not.toThrow();
   });
 });
 
