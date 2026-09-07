@@ -32,6 +32,15 @@ import {
   TRUTH_CARD_BREAKWATER,
 } from './eventData';
 import { generateRewardCardsForDepth } from './cardTiers';
+import {
+  ABYSSAL_FRAGMENT_1,
+  ABYSSAL_FRAGMENT_2,
+  ABYSSAL_FRAGMENT_3,
+  COMPLETE_ANCIENT_SEAL,
+  hasBothAbyssalFragments,
+  fuseAbyssalFragments,
+  getAllPermanentCards,
+} from './abyssalSeals';
 
 export const BASELINE_HAND_SIZE = 4;
 
@@ -72,6 +81,16 @@ export function setupCombatDeck(
     ? permanentCards
     : occ.deck.map((c) => ({ ...c }));
   const shuffledDeck = fisherYatesShuffle(pool);
+
+  // ADR-0015: 固有抽牌 - 身為真相卡的「完整的深淵古印」必定為第一張起手手牌
+  const sealIdx = shuffledDeck.findIndex(
+    (c) => c.name === COMPLETE_ANCIENT_SEAL.name || c.id === COMPLETE_ANCIENT_SEAL.id
+  );
+  if (sealIdx > 0) {
+    const [sealCard] = shuffledDeck.splice(sealIdx, 1);
+    shuffledDeck.unshift(sealCard);
+  }
+
   return splitDeckToHandAndSanity(shuffledDeck, BASELINE_HAND_SIZE);
 }
 
@@ -740,6 +759,62 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
       const isBoss = currentNode?.type === 'boss';
       const isElite = currentNode?.type === 'elite';
+
+      // ADR-0015: 第三深度首領戰勝分歧
+      if (isBoss && currentDepth === 3) {
+        if (!hasBothAbyssalFragments(state)) {
+          // 未湊齊前兩枚殘片：直接進入普通結局（Arkham Gazette）
+          const updatedMap = advanceMapAfterNode(state.map);
+          const currentPermanentCards = getAllPermanentCards(state);
+          const resetDeck = fisherYatesShuffle(currentPermanentCards);
+          const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
+          return {
+            ...state,
+            phase: 'map',
+            map: updatedMap ? { ...updatedMap, isCompleted: true } : undefined,
+            investigator: {
+              ...state.investigator,
+              health: state.investigator.maxHealth,
+              armor: 0,
+              stamina: state.investigator.maxStamina,
+            },
+            sanityDeck,
+            hand,
+            discardPile: [],
+            isMadness: false,
+            rewardCards: undefined,
+            rewardObols: undefined,
+            battleLog: [
+              '【阿卡姆常規終局】第三深度原生巨型修格斯伏誅！未湊齊深淵古印殘片，深淵裂隙漸漸平息，調查員逃離深淵……',
+              ...state.battleLog,
+            ],
+          };
+        } else {
+          // 持有前兩枚殘片：解鎖第三殘片，三殘片共鳴融合為白色真相卡「完整的深淵古印」，解鎖第四深度！
+          const currentPermanentCards = getAllPermanentCards(state);
+          const withFrag3 = [...currentPermanentCards, { ...ABYSSAL_FRAGMENT_3 }];
+          const { newDeck } = fuseAbyssalFragments(withFrag3);
+          const rewardCards = action.payload?.rewardCards ?? generateRewardCardsForDepth(3, true);
+          const rewardObols = action.payload?.rewardObols ?? 50;
+
+          return {
+            ...state,
+            phase: 'reward',
+            abyssalSealFused: true,
+            sanityDeck: newDeck,
+            hand: [],
+            discardPile: [],
+            rewardCards,
+            rewardObols,
+            battleLog: [
+              '【白色真理共鳴】第三深度原生巨型修格斯崩解！三枚深淵封印殘片劇烈震顫、光芒大盛，融合為至高真理【完整的深淵古印】！通往第四深度的虛空裂隙已然開闢！',
+              `戰鬥結算：獲得 ${rewardObols} 古金幣！請挑選 1 張專屬第四階構築卡牌或跳過以精簡牌庫。`,
+              ...state.battleLog,
+            ],
+          };
+        }
+      }
+
       const baseObols = isBoss ? 50 : isElite ? 25 : 15;
       const rewardObols = action.payload?.rewardObols ?? baseObols;
       const rewardCards =
@@ -833,8 +908,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const currentDepth = state.currentDepth ?? 1;
       const isFinalBoss = isBossFight && currentDepth >= 4;
       let nextPhase: GameState['phase'] = state.map ? 'map' : 'combat';
-      if (isBossFight && state.map && !isFinalBoss) {
-        nextPhase = 'depth_transition';
+      if (isBossFight && state.map) {
+        if (currentDepth === 3 && !state.abyssalSealFused) {
+          nextPhase = 'map';
+          if (updatedMap) updatedMap.isCompleted = true;
+        } else if (!isFinalBoss) {
+          nextPhase = 'depth_transition';
+        }
       }
 
       return {
@@ -849,6 +929,66 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         rewardCards: undefined,
         rewardObols: undefined,
         currentEnemy: nextEnemy,
+        map: updatedMap,
+        adventureStats: updatedStats,
+        battleLog: [...newLogs, ...state.battleLog],
+      };
+    }
+
+    case 'CLAIM_ABYSSAL_SEAL': {
+      if (state.phase !== 'reward') return state;
+      const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
+      const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
+      const isBossFight = currentNode?.type === 'boss';
+
+      if (!isBossFight || (currentDepth !== 1 && currentDepth !== 2)) {
+        return state;
+      }
+
+      const fragmentCard: Card = currentDepth === 1
+        ? { ...ABYSSAL_FRAGMENT_1 }
+        : { ...ABYSSAL_FRAGMENT_2 };
+
+      const currentPermanentCards = getAllPermanentCards(state);
+      const newPermanentDeck = [...currentPermanentCards, fragmentCard];
+
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+      };
+
+      const updatedInvestigator: Investigator = {
+        ...state.investigator,
+        health: state.investigator.maxHealth,
+        armor: 0,
+        stamina: state.investigator.maxStamina,
+      };
+
+      const resetDeck = action.payload?.shuffledDeck
+        ? [...action.payload.shuffledDeck]
+        : fisherYatesShuffle(newPermanentDeck);
+
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, BASELINE_HAND_SIZE);
+      const updatedMap = advanceMapAfterNode(state.map);
+
+      const newLogs: string[] = [
+        `【承受深淵封印】調查員放棄常規構築獎勵與古金幣，自首領殘骸中拾取【${fragmentCard.name}】！漆黑詛咒烙印在理智深處。`,
+        `【首領決戰復甦】古老宿敵伏誅，威壓短暫退散。調查員身體生命值全額恢復至上限（${updatedInvestigator.maxHealth} / ${updatedInvestigator.maxHealth}）！`,
+        `戰後重整：所有一般卡（含深淵封印殘片）洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。`,
+      ];
+
+      return {
+        ...state,
+        phase: 'depth_transition',
+        turn: 1,
+        investigator: updatedInvestigator,
+        sanityDeck,
+        hand,
+        discardPile: [],
+        isMadness: false,
+        rewardCards: undefined,
+        rewardObols: undefined,
+        currentEnemy: cloneEnemy(INITIAL_GHOUL),
         map: updatedMap,
         adventureStats: updatedStats,
         battleLog: [...newLogs, ...state.battleLog],
@@ -971,6 +1111,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (cardIndex === -1) return state;
 
       const card = state.hand[cardIndex];
+
+      // Guard unplayable cards (e.g. Abyssal Seal Fragments)
+      if (card.isUnplayable) {
+        return {
+          ...state,
+          battleLog: [
+            `【${card.name}】是深淵封印殘片，無法被打出！它沉重地佔據著手牌。`,
+            ...state.battleLog,
+          ],
+        };
+      }
 
       // Check cost
       if (card.costType === 'stamina' && state.investigator.stamina < card.costValue) {

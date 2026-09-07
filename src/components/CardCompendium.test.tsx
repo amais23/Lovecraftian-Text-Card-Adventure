@@ -12,16 +12,16 @@ vi.mock('../engine/audioManager', () => ({
 }));
 
 describe('CardCompendium Component', () => {
-  it('renders compendium title and all 48 cards by default', () => {
+  it('renders compendium title and all 52 cards by default', () => {
     const onClose = vi.fn();
     const { container } = render(<CardCompendium onClose={onClose} />);
 
     expect(screen.getByRole('heading', { name: '卡牌圖鑑' })).toBeDefined();
-    expect(screen.getByText(/48 張/)).toBeDefined();
+    expect(screen.getByText(/52 張/)).toBeDefined();
 
-    // Check that all 48 card items are rendered and none have playable combat glow
+    // Check that all 52 card items are rendered and none have playable combat glow
     const cardItems = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardItems.length).toBe(48);
+    expect(cardItems.length).toBe(52);
     expect(container.querySelector('.card-item.playable')).toBeNull();
   });
 
@@ -48,7 +48,7 @@ describe('CardCompendium Component', () => {
     fireEvent.click(madnessTab);
 
     cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardWrappers.length).toBe(3);
+    expect(cardWrappers.length).toBe(6);
   });
 
   it('opens detail modal on card click and closes on close button or Esc', () => {

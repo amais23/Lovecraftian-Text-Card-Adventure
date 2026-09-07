@@ -272,6 +272,42 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '血肉筋膜與黑曜石深淵金屬共生熔鑄的魔刃，刀脊滴落著沸騰狂暴的深紫血液。',
     imageUrl: '/cards/madness/card_frenzy_blade.png',
   },
+  card_abyssal_fragment_1: {
+    artId: 'card_abyssal_fragment_1',
+    name: '深淵封印殘片·其一',
+    category: 'madness',
+    styleTag: 'madness',
+    styleName: '深淵異化 · 封印殘片',
+    conceptLore: '浸泡在修格斯漆黑原形黏液中的黑曜石殘片，異化血肉纖維蠕動纏繞，隱隱透露出不可名狀的心跳脈動。',
+    imageUrl: '/cards/madness/card_abyssal_fragment_1.png',
+  },
+  card_abyssal_fragment_2: {
+    artId: 'card_abyssal_fragment_2',
+    name: '深淵封印殘片·其二',
+    category: 'madness',
+    styleTag: 'madness',
+    styleName: '深淵異化 · 潮汐殘片',
+    conceptLore: '沉沒於萬米海蝕深淵的玄武岩星圖斷片，幽綠磷光星紋在冰冷海流中若隱若現，低語著深潛者的太古祭歌。',
+    imageUrl: '/cards/madness/card_abyssal_fragment_2.png',
+  },
+  card_abyssal_fragment_3: {
+    artId: 'card_abyssal_fragment_3',
+    name: '深淵封印殘片·其三',
+    category: 'madness',
+    styleTag: 'madness',
+    styleName: '深淵異化 · 原核殘片',
+    conceptLore: '原生修格斯崩解核心結晶化形成的拱頂楔石，深紫狂亂異象在此處劇烈共振，即將引發太古封印的昇華質變。',
+    imageUrl: '/cards/madness/card_abyssal_fragment_3.png',
+  },
+  card_complete_ancient_seal: {
+    artId: 'card_complete_ancient_seal',
+    name: '完整的深淵古印',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 終極古印',
+    conceptLore: '三枚深淵殘片在星穹神性光輝中合為一體的崇高神器，純白真理天火與神聖幾何星軌徹底驅散深淵，洞開多維星門。',
+    imageUrl: '/cards/truth/card_complete_ancient_seal.png',
+  },
 
   // === TIER 4+ EXCLUSIVE BOSS CARDS (ADR-0017) ===
   card_tier4_god_slayer: {

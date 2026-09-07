@@ -8,15 +8,15 @@ import {
 import type { CardCategory } from '../types/game';
 
 describe('cardCatalog', () => {
-  it('returns all 46 distinct cards in the comprehensive compendium', () => {
+  it('returns all 50 distinct cards in the comprehensive compendium', () => {
     const catalog = getCardCatalog();
-    expect(catalog).toHaveLength(46);
+    expect(catalog).toHaveLength(50);
 
     const ids = new Set(catalog.map((c) => c.id));
-    expect(ids.size).toBe(46);
+    expect(ids.size).toBe(50);
 
     const names = new Set(catalog.map((c) => c.name));
-    expect(names.size).toBe(46);
+    expect(names.size).toBe(50);
   });
 
   it('correctly maps all 5 categories with expected counts', () => {
@@ -24,9 +24,9 @@ describe('cardCatalog', () => {
     expect(stats.combat).toBe(12);
     expect(stats.skill).toBe(13);
     expect(stats.magic).toBe(9);
-    expect(stats.truth).toBe(9);
-    expect(stats.madness).toBe(3);
-    expect(stats.total).toBe(46);
+    expect(stats.truth).toBe(10);
+    expect(stats.madness).toBe(6);
+    expect(stats.total).toBe(50);
   });
 
   it('filters cards by category accurately', () => {
@@ -45,7 +45,9 @@ describe('cardCatalog', () => {
       expect(card.name).toBeTruthy();
       expect(card.description).toBeTruthy();
       expect(card.flavorText).toBeTruthy();
-      expect(card.effects.length).toBeGreaterThan(0);
+      if (!card.isUnplayable) {
+        expect(card.effects.length).toBeGreaterThan(0);
+      }
       expect(['stamina', 'sanity', 'free']).toContain(card.costType);
     }
   });

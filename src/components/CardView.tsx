@@ -77,6 +77,7 @@ export const CardView: React.FC<CardViewProps> = ({
   const isPlayable =
     !disabled &&
     !isStandalone &&
+    !card.isUnplayable &&
     (card.costType === 'sanity'
       ? currentSanity !== undefined
         ? currentSanity >= card.costValue
@@ -90,9 +91,15 @@ export const CardView: React.FC<CardViewProps> = ({
     defaultIcon: <Sparkles size={16} color="#cfa866" />,
   };
 
-  const defaultPrompt = card.costType === 'sanity' ? '理智不足' : meta.defaultPrompt;
+  const defaultPrompt = card.isUnplayable
+    ? '無法打出'
+    : card.costType === 'sanity'
+    ? '理智不足'
+    : meta.defaultPrompt;
   const promptText = isPlayable ? meta.playablePrompt : defaultPrompt;
-  const tooltip = isPlayable
+  const tooltip = card.isUnplayable
+    ? `【${card.name}】為深淵封印殘片，無法打出`
+    : isPlayable
     ? `點擊或向上拖曳打出【${card.name}】`
     : card.costType === 'sanity'
     ? '理智不足無法打出'
@@ -112,14 +119,14 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const handleDragStart = () => {
-    if (isStandalone) return;
+    if (isStandalone || card.isUnplayable) return;
     setIsDragging(true);
     onDragStateChange?.(true);
     soundEngine.playCardHover();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (isStandalone) return;
+    if (isStandalone || card.isUnplayable) return;
     setIsDragging(false);
     onDragStateChange?.(false);
     if (info.offset.y < -85 && isPlayable) {
@@ -133,6 +140,7 @@ export const CardView: React.FC<CardViewProps> = ({
       onClick();
       return;
     }
+    if (card.isUnplayable) return;
     if (isPlayable && !isDragging) {
       soundEngine.playCardPlay(card.category);
       onPlay?.(card.id);
@@ -220,9 +228,14 @@ export const CardView: React.FC<CardViewProps> = ({
         <span className="card-title-text">{card.name}</span>
       </div>
 
-      {/* Badges row (Temporary / Recoil) */}
-      {(card.isTemporary || selfDamageEffect) && (
+      {/* Badges row (Temporary / Recoil / Unplayable) */}
+      {(card.isTemporary || selfDamageEffect || card.isUnplayable) && (
         <div className="card-badges-row">
+          {card.isUnplayable && (
+            <span className="card-tag-badge unplayable" title="深淵封印殘片無法打出，佔據手牌卡槽">
+              無法打出
+            </span>
+          )}
           {card.isTemporary && <span className="card-tag-badge temp">臨時</span>}
           {selfDamageEffect && (
             <span className="card-tag-badge recoil" title="打出此卡將直接扣除生命值">

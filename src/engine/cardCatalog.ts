@@ -6,6 +6,7 @@ import {
 } from './initialData';
 import { MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from './cardFactory';
 import { TIER_2_CARDS, TIER_3_CARDS, TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
+import { ALL_ABYSSAL_CARDS } from './abyssalSeals';
 
 /**
  * 完整典藏卡牌清單 (Card Compendium Catalog)
@@ -60,6 +61,11 @@ const CARD_COMPENDIUM_REGISTRY: Card[] = (() => {
     addUnique(card);
   }
   for (const card of TIER_4_EXCLUSIVE_CARDS) {
+    addUnique(card);
+  }
+
+  // 7. 深淵封印殘片與完整的深淵古印 (Issue #21)
+  for (const card of ALL_ABYSSAL_CARDS) {
     addUnique(card);
   }
 

@@ -15,6 +15,7 @@ export interface Card {
   costValue: number;
   isTemporary: boolean;
   tier?: CardTier;
+  isUnplayable?: boolean;
   effects: CardEffect[];
   description: string;
   flavorText: string;
@@ -143,6 +144,7 @@ export interface GameState {
   sanctuaryUsed?: boolean;
   marketItems?: MarketItem[];
   adventureStats?: AdventureStats;
+  abyssalSealFused?: boolean;
 }
 
 export type GameAction =
@@ -159,6 +161,7 @@ export type GameAction =
   | { type: 'LEAVE_MARKET' }
   | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number } }
   | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }
+  | { type: 'CLAIM_ABYSSAL_SEAL'; payload?: { shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_DEPTH_TRANSITION' }
   | { type: 'RETURN_TO_TITLE' }
   | { type: 'START_COMBAT'; payload?: { enemy?: Enemy; initialCards?: Card[]; investigator?: Investigator } }

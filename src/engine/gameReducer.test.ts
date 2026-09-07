@@ -34,6 +34,13 @@ import {
   getBossByDepth,
 } from './eventData';
 import { TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
+import {
+  ABYSSAL_FRAGMENT_1,
+  ABYSSAL_FRAGMENT_2,
+  COMPLETE_ANCIENT_SEAL,
+  hasBothAbyssalFragments,
+  getAllPermanentCards,
+} from './abyssalSeals';
 import type { Card, GameState } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
@@ -2920,6 +2927,202 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(marketState.phase).toBe('market');
       expect(marketState.marketItems).toBeDefined();
       expect(marketState.marketItems?.some((item) => item.name === '泵動式散彈槍')).toBe(true);
+    });
+  });
+
+  describe('Abyssal Seals & Hidden Depth 4 Mechanics (ADR-0015, Issue #21)', () => {
+    it('claims Depth 1 Abyssal Seal Fragment 1, adds 0 obols, heals to full, and advances to depth_transition', () => {
+      const map = generateInvestigationMap({ depth: 1 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'reward',
+        currentDepth: 1,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 8,
+          maxHealth: 25,
+          obols: 30,
+        },
+        rewardObols: 50,
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      const result = gameReducer(state, { type: 'CLAIM_ABYSSAL_SEAL' });
+      expect(result.phase).toBe('depth_transition');
+      expect(result.investigator.health).toBe(25); // Healed to full
+      expect(result.investigator.obols).toBe(30); // 0 obols gained (forsaken)
+      expect(result.rewardObols).toBeUndefined();
+
+      const allCards = getAllPermanentCards(result);
+      expect(allCards.some((c) => c.name === ABYSSAL_FRAGMENT_1.name)).toBe(true);
+      expect(allCards.some((c) => c.isUnplayable === true)).toBe(true);
+      expect(result.battleLog.some((l) => l.includes('承受深淵封印'))).toBe(true);
+    });
+
+    it('claims Depth 2 Abyssal Seal Fragment 2, adds 0 obols, heals to full, and advances to depth_transition', () => {
+      const map = generateInvestigationMap({ depth: 2 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'reward',
+        currentDepth: 2,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 12,
+          maxHealth: 25,
+          obols: 45,
+        },
+        rewardObols: 50,
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      const result = gameReducer(state, { type: 'CLAIM_ABYSSAL_SEAL' });
+      expect(result.phase).toBe('depth_transition');
+      expect(result.investigator.health).toBe(25);
+      expect(result.investigator.obols).toBe(45);
+
+      const allCards = getAllPermanentCards(result);
+      expect(allCards.some((c) => c.name === ABYSSAL_FRAGMENT_2.name)).toBe(true);
+    });
+
+    it('guards PLAY_CARD against unplayable cards in combat', () => {
+      const unplayableCard: Card = {
+        ...ABYSSAL_FRAGMENT_1,
+        id: 'test_unplayable_frag_1',
+      };
+
+      const combatState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'combat',
+        hand: [unplayableCard],
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          stamina: 3,
+        },
+        battleLog: ['戰鬥開始'],
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: unplayableCard.id },
+      });
+
+      // Card must remain in hand and stamina must not be consumed
+      expect(afterPlay.hand).toHaveLength(1);
+      expect(afterPlay.hand[0].id).toBe(unplayableCard.id);
+      expect(afterPlay.investigator.stamina).toBe(3);
+      expect(afterPlay.battleLog[0]).toContain('無法被打出');
+    });
+
+    it('diverges to Normal Ending directly on Depth 3 Boss victory when player lacks abyssal fragments', () => {
+      const map = generateInvestigationMap({ depth: 3 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const victoryState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 3,
+        sanityDeck: OCCUPATIONS.investigator.deck.map((c) => ({ ...c })),
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 10,
+          maxHealth: 25,
+        },
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      expect(hasBothAbyssalFragments(victoryState)).toBe(false);
+
+      const result = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      // Normal ending: finishes map, sets isCompleted = true, phase = 'map'
+      expect(result.phase).toBe('map');
+      expect(result.map?.isCompleted).toBe(true);
+      expect(result.abyssalSealFused).toBeFalsy();
+      expect(result.investigator.health).toBe(25); // Heals to full on boss defeat
+      expect(result.battleLog.some((l) => l.includes('阿卡姆常規終局'))).toBe(true);
+    });
+
+    it('fuses 3 fragments into COMPLETE_ANCIENT_SEAL and unlocks Depth 4 upon Depth 3 Boss victory with fragments 1 and 2', () => {
+      const map = generateInvestigationMap({ depth: 3 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const baseDeck = OCCUPATIONS.investigator.deck.map((c) => ({ ...c }));
+      const deckWithFragments: Card[] = [
+        ...baseDeck,
+        { ...ABYSSAL_FRAGMENT_1 },
+        { ...ABYSSAL_FRAGMENT_2 },
+      ];
+
+      const victoryState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'victory',
+        currentDepth: 3,
+        sanityDeck: deckWithFragments,
+        hand: [],
+        discardPile: [],
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 10,
+          maxHealth: 25,
+          obols: 60,
+        },
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+      };
+
+      expect(hasBothAbyssalFragments(victoryState)).toBe(true);
+
+      const rewardState = gameReducer(victoryState, { type: 'PROCEED_TO_REWARD' });
+      expect(rewardState.phase).toBe('reward');
+      expect(rewardState.abyssalSealFused).toBe(true);
+      expect(rewardState.rewardObols).toBe(50);
+      expect(rewardState.rewardCards).toHaveLength(4); // 4-pick-1 Tier 4+ cards
+      expect(rewardState.battleLog.some((l) => l.includes('白色真理共鳴'))).toBe(true);
+
+      // Verify fragments are removed and COMPLETE_ANCIENT_SEAL is in deck
+      const rewardDeck = getAllPermanentCards(rewardState);
+      expect(rewardDeck.some((c) => c.name === ABYSSAL_FRAGMENT_1.name)).toBe(false);
+      expect(rewardDeck.some((c) => c.name === ABYSSAL_FRAGMENT_2.name)).toBe(false);
+      expect(rewardDeck.some((c) => c.name === COMPLETE_ANCIENT_SEAL.name)).toBe(true);
+
+      // Claim reward and verify transition to Depth 4 (depth_transition)
+      const transitionState = gameReducer(rewardState, { type: 'CLAIM_CARD_REWARD' });
+      expect(transitionState.phase).toBe('depth_transition');
+      expect(transitionState.investigator.health).toBe(25);
+      expect(transitionState.investigator.obols).toBe(110); // 60 + 50
+
+      // Complete depth transition to reach Depth 4
+      const depth4State = gameReducer(transitionState, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(depth4State.phase).toBe('map');
+      expect(depth4State.currentDepth).toBe(4);
+      expect(depth4State.map?.name).toBe('星辰正位 · 拉萊耶核心終局圖');
+      expect(depth4State.map?.isCompleted).toBeFalsy();
+    });
+
+    it('inherently places COMPLETE_ANCIENT_SEAL as first card in opening hand during setupCombatDeck', () => {
+      const cards: Card[] = [
+        ...OCCUPATIONS.investigator.deck.map((c) => ({ ...c })),
+        { ...COMPLETE_ANCIENT_SEAL },
+      ];
+
+      const { hand, sanityDeck } = setupCombatDeck(cards, 'investigator');
+      expect(hand).toHaveLength(4);
+      expect(hand[0].name).toBe(COMPLETE_ANCIENT_SEAL.name);
+      expect(sanityDeck.some((c) => c.name === COMPLETE_ANCIENT_SEAL.name)).toBe(false);
     });
   });
 });
