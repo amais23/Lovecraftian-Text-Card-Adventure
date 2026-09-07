@@ -70,6 +70,16 @@ jobs:
             - 🎮 **SteamOS / Linux (Steam Deck)**：`LovecraftianCardAdventure___VERSION___amd64.AppImage`（免安裝單檔）
             - 🐧 **Debian / Ubuntu**：`LovecraftianCardAdventure___VERSION___amd64.deb`
             - 🍏 **macOS**：`LovecraftianCardAdventure___VERSION___aarch64.dmg`（Apple Silicon M系列）
+
+            ---
+
+            #### 🍏 macOS 開啟指引（Gatekeeper 隔離提示）
+            因本遊戲為開源獨立發行，未加入 Apple 年費開發者公證計畫。首次將 App 拖入「應用程式（Applications）」後若開啟時出現 **「已損毀，無法打開。你應該將其丟到垃圾桶」** 的 macOS 預設安全阻擋提示，請在終端機（Terminal）執行以下指令即可正常開啟：
+
+            ```bash
+            xattr -cr /Applications/LovecraftianCardAdventure.app
+            codesign --force --deep --sign - /Applications/LovecraftianCardAdventure.app
+            ```
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
