@@ -2065,6 +2065,28 @@
   user-select: none;
 }
 
+/* Background Image Layer (ADR-0020) */
+.map-screen-bg-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/backgrounds/bg_map_desk.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  filter: brightness(0.85) contrast(1.05);
+}
+
+/* Deep Vintage Blend & Dark Vignette (ADR-0020) */
+.map-screen-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(12, 10, 8, 0.62) 0%, rgba(5, 4, 3, 0.88) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
 .map-header-bar {
   display: flex;
   align-items: center;

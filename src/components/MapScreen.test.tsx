@@ -98,4 +98,13 @@ describe('MapScreen Component (Issue #26)', () => {
     fireEvent.click(lockedNode!);
     expect(dispatch).not.toHaveBeenCalled();
   });
+
+  it('renders the cinematic Arkham cartographic chart background layer (ADR-0020)', () => {
+    const state = createMockMapState(1);
+    const dispatch = vi.fn();
+    render(<MapScreen state={state} dispatch={dispatch} />);
+
+    const bgImage = screen.getByTestId('map-screen-bg-image');
+    expect(bgImage).toBeDefined();
+  });
 });

@@ -185,6 +185,9 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
 
   return (
     <div className="map-screen-container">
+      {/* Background Ambience Layers (ADR-0020) */}
+      <div className="map-screen-bg-image" data-testid="map-screen-bg-image" />
+      <div className="map-screen-bg-overlay" />
       <div className="vignette-overlay" />
       <div className="fog-layer" />
 
