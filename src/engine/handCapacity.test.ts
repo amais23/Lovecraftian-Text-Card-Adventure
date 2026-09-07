@@ -311,6 +311,7 @@ describe('Hand Capacity, Fixed Draw & Discard Flow (Issue #27 & ADR-0018)', () =
             type: 'attack',
             name: '利爪撕裂',
             value: 10,
+            description: '造成 10 點傷害',
           },
         },
       };
