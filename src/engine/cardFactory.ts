@@ -53,18 +53,26 @@ export const TRUTH_INJECTED_TEMPLATE: Omit<Card, 'id'> = {
   flavorText: '「瘋狂漸漸褪去，但未知的印記已深深烙印在靈魂之中。」',
 };
 
+let tempCardCounter = 0;
+
+export function resetTempCardCounter(): void {
+  tempCardCounter = 0;
+}
+
 /**
- * Pure, deterministic factory to generate temporary black madness cards.
- * Uses turn and index to ensure state determinism without relying on Date.now() or global counters.
+ * Pure factory to generate temporary black madness cards.
+ * Uses turn, index, and an auto-incrementing counter to guarantee global ID uniqueness
+ * across multiple card generation calls within the same turn.
  */
 export function createMadnessCards(count: number, turn: number, offset: number = 0): Card[] {
   const cards: Card[] = [];
   for (let i = 0; i < count; i++) {
+    tempCardCounter += 1;
     const templateIndex = (offset + i) % MADNESS_CARD_TEMPLATES.length;
     const template = MADNESS_CARD_TEMPLATES[templateIndex];
     cards.push({
       ...template,
-      id: `temp_madness_t${turn}_${offset + i}`,
+      id: `temp_madness_t${turn}_${offset + i}_${tempCardCounter}`,
       isTemporary: true,
     });
   }
@@ -72,14 +80,17 @@ export function createMadnessCards(count: number, turn: number, offset: number =
 }
 
 /**
- * Pure, deterministic factory to generate temporary white truth cards injected into the sanity deck.
+ * Pure factory to generate temporary white truth cards injected into the sanity deck.
+ * Uses turn, index, and an auto-incrementing counter to guarantee global ID uniqueness
+ * across multiple card generation calls within the same turn.
  */
 export function createTruthInjectedCards(count: number, turn: number, offset: number = 0): Card[] {
   const cards: Card[] = [];
   for (let i = 0; i < count; i++) {
+    tempCardCounter += 1;
     cards.push({
       ...TRUTH_INJECTED_TEMPLATE,
-      id: `temp_truth_t${turn}_${offset + i}`,
+      id: `temp_truth_t${turn}_${offset + i}_${tempCardCounter}`,
       isTemporary: true,
     });
   }

@@ -507,8 +507,8 @@ export function resolveTurnEndAndFixedDraw(
       stamina: state.investigator.maxStamina,
       statusEffects: investigatorStatusEffects,
     },
-    sanityDeck,
-    hand: newHand,
+    sanityDeck: ensureUniqueCardIds(sanityDeck),
+    hand: ensureUniqueCardIds(newHand),
     discardPile,
     isMadness: isMadnessNow,
     currentEnemy: {
@@ -1755,8 +1755,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           armor: investigatorArmor,
           statusEffects: investigatorStatusEffects,
         },
-        sanityDeck: newSanityDeck,
-        hand: newHand,
+        sanityDeck: ensureUniqueCardIds(newSanityDeck),
+        hand: ensureUniqueCardIds(newHand),
         discardPile: finalDiscardPile,
         isMadness: isMadnessNow,
         currentEnemy: {

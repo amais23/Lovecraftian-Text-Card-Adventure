@@ -4577,6 +4577,55 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(ids).toContain('card_punch_1_copy_1');
         expect(ids).toContain('card_punch_1_copy_2');
       });
+
+      it('guarantees unique IDs when repeatedly injecting temporary truth cards into sanity deck on the same turn', () => {
+        const truthCard1 = createMockCard({
+          id: 'card_truth_inject_1',
+          name: '真相卡1',
+          effects: [{ type: 'add_to_deck', value: 2 }],
+          costType: 'stamina',
+          costValue: 1,
+        });
+        const truthCard2 = createMockCard({
+          id: 'card_truth_inject_2',
+          name: '真相卡2',
+          effects: [{ type: 'add_to_deck', value: 2 }],
+          costType: 'stamina',
+          costValue: 1,
+        });
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          hand: [truthCard1, truthCard2],
+          sanityDeck: [],
+          turn: 1,
+        };
+
+        // Play truth card 1 on turn 1
+        const afterPlay1 = gameReducer(state, {
+          type: 'PLAY_CARD',
+          payload: { cardId: 'card_truth_inject_1' },
+        });
+
+        expect(afterPlay1.sanityDeck).toHaveLength(2);
+
+        // Play truth card 2 on the SAME turn 1
+        const afterPlay2 = gameReducer(afterPlay1, {
+          type: 'PLAY_CARD',
+          payload: { cardId: 'card_truth_inject_2' },
+        });
+
+        expect(afterPlay2.sanityDeck).toHaveLength(4);
+
+        // Verify all 4 injected cards have distinct IDs - no duplicate key like temp_truth_t1_1!
+        const deckIds = afterPlay2.sanityDeck.map((c) => c.id);
+        expect(new Set(deckIds).size).toBe(4);
+
+        // End turn and draw cards into hand
+        const endTurnState = gameReducer(afterPlay2, { type: 'END_TURN' });
+        const handIds = endTurnState.hand.map((c) => c.id);
+        expect(new Set(handIds).size).toBe(endTurnState.hand.length);
+      });
     });
 
     describe('Combat Retry & Persistent Health Restoration (RESET_COMBAT)', () => {
