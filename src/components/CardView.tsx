@@ -192,7 +192,7 @@ export const CardView: React.FC<CardViewProps> = ({
     return meta.defaultIcon;
   };
 
-  const selfDamageEffect = card.effects.find((e) => e.type === 'self_damage');
+  const selfDamageEffect = card.effects?.find((e) => e.type === 'self_damage');
   const tierClass = card.category === 'madness' ? 'tier-madness' : `tier-${card.tier ?? 1}`;
 
   return (

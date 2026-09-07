@@ -16,9 +16,18 @@ import { AltarScreen } from './components/AltarScreen';
 import { VaultScreen } from './components/VaultScreen';
 import { BloodAltarScreen } from './components/BloodAltarScreen';
 import { RemainsScreen } from './components/RemainsScreen';
+import { COMPLETE_ANCIENT_SEAL } from './engine/abyssalSeals';
 
 export function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialGameState);
+
+  if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    (window as any).__DEBUG__ = {
+      dispatch,
+      state,
+      COMPLETE_ANCIENT_SEAL,
+    };
+  }
   const [isAbyssDead, setIsAbyssDead] = useState<boolean>(() => {
     try {
       return localStorage.getItem('arkham_abyss_dead') === 'true';

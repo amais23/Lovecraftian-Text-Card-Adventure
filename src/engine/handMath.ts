@@ -32,8 +32,8 @@ export function calculateCardFanOut(index: number, total: number): HandFanOutTra
   const angleStep = maxAngle / (total - 1);
   const rotate = Math.round(offset * angleStep * 10) / 10;
 
-  // 水平間距 (卡牌多時自動重疊收緊，使用對稱捨入確保左右絕對對稱)
-  const spacing = Math.min(115, Math.max(55, 680 / total));
+  // 水平間距 (卡牌多時自動重疊收緊，使用對稱捨入確保左右絕對對稱；適配 3:5 大卡牌)
+  const spacing = Math.min(155, Math.max(65, 780 / total));
   const x = Math.sign(offset) * Math.round(Math.abs(offset) * spacing);
 
   // 拋物線下凹弧度：中央高、兩翼自然下垂

@@ -1222,12 +1222,17 @@
   color: var(--text-parchment);
   text-align: center;
   letter-spacing: 0.5px;
-  margin: 3px 0;
+  margin: 1px 0;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
+}
+
+.card-title-text {
+  display: inline-block;
+  max-width: 100%;
 }
 
 .card-badges-row {
@@ -1236,7 +1241,7 @@
   justify-content: center;
   gap: 4px;
   width: 100%;
-  margin: 1px 0;
+  margin: 0;
   flex-shrink: 0;
 }
 
@@ -1289,8 +1294,8 @@
 .card-effect-desc {
   font-size: clamp(0.78rem, 7.8cqw, 1.05rem);
   color: #f3ecdb;
-  line-height: 1.32;
-  padding: clamp(2px, 1.8cqw, 5px) clamp(4px, 2.5cqw, 8px);
+  line-height: 1.26;
+  padding: clamp(2px, 1.6cqw, 4px) clamp(3px, 2.2cqw, 6px);
   background: rgba(0, 0, 0, 0.55);
   border-radius: var(--radius-sm);
   width: 100%;
@@ -1319,6 +1324,15 @@
   overflow: hidden;
   margin-top: 1px;
   word-break: break-word;
+}
+
+/* Hand Area Tactical Focus (ADR-0019 Pure Tactical Text & Unclipped Multi-line Capacity) */
+.hand-area .card-item .card-flavor {
+  display: none !important;
+}
+
+.hand-area .card-item .card-illustration-frame {
+  max-height: clamp(80px, 42%, 118px);
 }
 
 /* Media & Container Queries for Adaptive Compact Layouts */
