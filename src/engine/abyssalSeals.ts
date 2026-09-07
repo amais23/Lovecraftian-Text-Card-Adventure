@@ -10,7 +10,7 @@ export const ABYSSAL_FRAGMENT_1: Card = {
   isUnplayable: true,
   effects: [],
   description:
-    '【無法打出 · 深淵詛咒】此卡沉重地盤踞在手牌中，無法打出，嚴重阻礙手牌運轉。相傳集齊三枚殘片將引發某種不可思議的星辰共鳴……',
+    '無法打出。佔據手牌卡槽。相傳集齊三枚殘片將引發某種不可思議的星辰共鳴……',
   flavorText: '「第一塊浸泡著黑泥的原生殘片，在手心傳遞著刺骨的深淵脈動。」',
 };
 
@@ -24,7 +24,7 @@ export const ABYSSAL_FRAGMENT_2: Card = {
   isUnplayable: true,
   effects: [],
   description:
-    '【無法打出 · 深淵詛咒】此卡沉重地盤踞在手牌中，無法打出，嚴重阻礙手牌運轉。與第一枚殘片相互吸引，散發幽暗的深海寒意。',
+    '無法打出。佔據手牌卡槽。與第一枚殘片相互吸引，散發幽暗的深海寒意。',
   flavorText: '「第二塊帶有海蝕太古星圖的殘片，低語著拉萊耶的古老潮鳴。」',
 };
 
@@ -38,7 +38,7 @@ export const ABYSSAL_FRAGMENT_3: Card = {
   isUnplayable: true,
   effects: [],
   description:
-    '【無法打出 · 深淵詛咒】擊敗第三深度首領時自其核心崩解而出的最後殘片。三片齊聚之時，深淵封印將產生劇烈質變。',
+    '無法打出。佔據手牌卡槽。三枚殘片齊聚之時，深淵封印將產生劇烈質變。',
   flavorText: '「最後一塊殘片歸位，不可名狀的舊日律動在靈魂深處合為一體。」',
 };
 
@@ -56,7 +56,7 @@ export const COMPLETE_ANCIENT_SEAL: Card = {
     { type: 'add_to_deck', value: 5 },
   ],
   description:
-    '【超維真理 · 舊神封印】由三枚深淵封印殘片共鳴融合昇華而成的終極古印。散發崇高冰冷的星穹光芒，完全解除瘋狂狀態，恢復 10 點理智並獲得 20 點護甲。',
+    '洗回 10 張卡牌（回復 10 點理智），獲得 20 點護甲，向理智牌庫注入 5 張真相卡牌，解除瘋狂狀態。',
   flavorText: '「當三枚殘片嵌合的剎那，深淵的污穢化為純淨真理，虛空裂隙為之洞開。」',
 };
 
