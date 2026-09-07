@@ -10,9 +10,10 @@ import { ALL_TIERED_CARDS } from './cardTiers';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
-  it('should register all 48 unique card artworks across all categories (35 dedicated + 13 WIP placeholders)', () => {
+  it('should register all 48 unique card artworks across all categories with 100% dedicated illustrations', () => {
     expect(ALL_CARD_ARTWORKS.length).toBe(48);
     expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(48);
+    expect(WIP_TIERED_CARD_NAMES.size).toBe(0);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
     expect(categories.filter((c) => c === 'combat').length).toBe(12);
@@ -22,26 +23,22 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     expect(categories.filter((c) => c === 'madness').length).toBe(3);
   });
 
-  it('should ensure all 35 dedicated artwork images exist in public/cards/ and 13 WIP cards map to WIP placeholder', () => {
-    const cardImages = import.meta.glob('/public/cards/**/*.{webp,png,svg}');
+  it('should ensure all 48 artwork images exist physically in public/cards/ with valid WebP/PNG formats', () => {
+    const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
     const imagePaths = Object.keys(cardImages);
-    expect(imagePaths.length).toBeGreaterThanOrEqual(36);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(48);
 
     for (const art of ALL_CARD_ARTWORKS) {
-      if (WIP_TIERED_CARD_NAMES.has(art.name)) {
-        expect(art.imageUrl).toBe('/cards/card_wip_placeholder.svg');
-      } else {
-        expect(
-          art.imageUrl.endsWith('.webp') || art.imageUrl.endsWith('.png'),
-          `Image for ${art.name} must be .webp or .png, got: ${art.imageUrl}`
-        ).toBe(true);
+      expect(
+        art.imageUrl.endsWith('.webp') || art.imageUrl.endsWith('.png'),
+        `Image for ${art.name} must be .webp or .png, got: ${art.imageUrl}`
+      ).toBe(true);
 
-        const expectedKey = `/public${art.imageUrl}`;
-        expect(
-          imagePaths.includes(expectedKey),
-          `Artwork image file missing for card "${art.name}": expected ${expectedKey} in ${JSON.stringify(imagePaths)}`
-        ).toBe(true);
-      }
+      const expectedKey = `/public${art.imageUrl}`;
+      expect(
+        imagePaths.includes(expectedKey),
+        `Artwork image file missing for card "${art.name}": expected ${expectedKey} in ${JSON.stringify(imagePaths)}`
+      ).toBe(true);
     }
   });
 
@@ -164,7 +161,7 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
     }
   });
 
-  it('should resolve dedicated artworks for Tier 4+ cards and map Tier 2/3 to WIP placeholder', () => {
+  it('should resolve dedicated artworks for all tiered cards (Tier 1 through Tier 4+)', () => {
     for (const card of ALL_TIERED_CARDS) {
       const art = getCardArtwork(card);
       expect(art).toBeDefined();
@@ -172,14 +169,9 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
       expect(art.imageUrl).toBeTruthy();
       expect(art.category).toBe(card.category);
 
-      if (card.tier === 4 || !WIP_TIERED_CARD_NAMES.has(card.name)) {
-        // Cards with dedicated artwork
-        expect(art.imageUrl).not.toContain('card_wip_placeholder.svg');
-        expect(art.imageUrl).toContain('/cards/');
-      } else {
-        // Cards currently pending dedicated artwork map to the Lovecraftian WIP placeholder
-        expect(art.imageUrl).toBe('/cards/card_wip_placeholder.svg');
-      }
+      // All cards now have dedicated artworks
+      expect(art.imageUrl).not.toContain('card_wip_placeholder.svg');
+      expect(art.imageUrl).toContain('/cards/');
     }
   });
 });
