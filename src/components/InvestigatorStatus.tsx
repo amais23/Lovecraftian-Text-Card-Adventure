@@ -1,6 +1,19 @@
 import React from 'react';
 import type { Investigator } from '../types/game';
-import { Heart, Zap, Shield, BookOpen, UserCheck, Flame, Layers } from 'lucide-react';
+import {
+  Heart,
+  Zap,
+  Shield,
+  BookOpen,
+  UserCheck,
+  Flame,
+  Layers,
+  Sparkles,
+  Swords,
+  AlertCircle,
+  Droplets,
+  Ghost,
+} from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
 
 interface InvestigatorStatusProps {
@@ -27,6 +40,8 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
   const { isShaking: isHealthShaking, shakeKey: healthShakeKey } = useTraumaShake(investigator.health);
   const { isShaking: isSanityShaking, shakeKey: sanityShakeKey } = useTraumaShake(sanityCount);
   const handCapacity = investigator.handCapacity ?? 2;
+  const relics = investigator.relics ?? [];
+  const statusEffects = investigator.statusEffects ?? [];
 
   return (
     <div className="investigator-panel">
@@ -39,6 +54,43 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
           <h3>{investigator.name}</h3>
           <span>{investigator.occupation}</span>
         </div>
+
+        {/* Relics Bar */}
+        {relics.length > 0 && (
+          <div className="investigator-relics-tray" data-testid="relics-tray">
+            {relics.map((relic) => (
+              <div
+                key={relic.id}
+                className={`relic-badge rarity-${relic.rarity}`}
+                title={`【${relic.name}】（${relic.rarity === 'mythic' ? '神話' : relic.rarity === 'rare' ? '珍稀' : '普通'}遺物）\n${relic.description}\n\n手記：「${relic.flavorText}」`}
+              >
+                <Sparkles size={13} className="relic-icon" />
+                <span className="relic-name">{relic.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Status Effects List */}
+        {statusEffects.length > 0 && (
+          <div className="status-effects-list investigator-statuses" data-testid="investigator-status-effects">
+            {statusEffects.map((status) => (
+              <div
+                key={status.type}
+                className={`status-effect-badge status-${status.type}`}
+                title={`【${status.name}】${status.stacks} 層\n${status.description}`}
+              >
+                {status.type === 'might' && <Swords size={13} />}
+                {status.type === 'resilience' && <Shield size={13} />}
+                {status.type === 'vulnerable' && <AlertCircle size={13} />}
+                {status.type === 'bleed' && <Droplets size={13} />}
+                {status.type === 'horror' && <Ghost size={13} />}
+                <span className="status-name">{status.name}</span>
+                <span className="status-stacks">{status.stacks}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Resource Meters */}

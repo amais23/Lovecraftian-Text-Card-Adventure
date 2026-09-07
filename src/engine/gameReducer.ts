@@ -44,6 +44,15 @@ import {
   isAncientSealLocked,
   isAncientSealUnlocked,
 } from './abyssalSeals';
+import { applyRelicToInvestigator, getRelicCombatBonus } from './relics';
+import {
+  addStatusEffect,
+  calculateArmorGain,
+  calculateAttackDamage,
+  createStatusEffect,
+  getStatusStacks,
+  resolveTurnEndStatusEffects,
+} from './statusEffects';
 
 export const DEFAULT_HAND_CAPACITY = 2;
 
@@ -251,19 +260,56 @@ export function createInitialCombatState(
   const occId = customInvestigator?.occupationId ?? 'investigator';
   const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
   const handCapacity = customInvestigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
+  const relicBonus = getRelicCombatBonus(customInvestigator?.relics);
+  const startingArmor = (customInvestigator?.armor ?? 0) + relicBonus.startingArmor;
+  const startingStamina = (customInvestigator?.stamina ?? occ.stats.stamina) + relicBonus.startingStaminaBonus;
+  const startingStatusEffects = customInvestigator?.statusEffects
+    ? [...customInvestigator.statusEffects]
+    : [...relicBonus.startingStatusEffects];
+
   const investigator: Investigator = customInvestigator
-    ? { ...customInvestigator, handCapacity }
-    : { ...INITIAL_INVESTIGATOR, handCapacity };
+    ? {
+        ...customInvestigator,
+        handCapacity,
+        armor: startingArmor,
+        stamina: startingStamina,
+        statusEffects: startingStatusEffects,
+        relics: customInvestigator.relics ? [...customInvestigator.relics] : [],
+      }
+    : {
+        ...INITIAL_INVESTIGATOR,
+        handCapacity,
+        armor: startingArmor,
+        stamina: startingStamina,
+        statusEffects: startingStatusEffects,
+        relics: [],
+      };
 
   const enemy: Enemy = customEnemy
     ? cloneEnemy(customEnemy)
     : cloneEnemy(INITIAL_GHOUL);
+  if (!enemy.statusEffects) {
+    enemy.statusEffects = [];
+  }
 
   const allCards: Card[] = customDeck
     ? [...customDeck]
     : occ.deck.map((c) => ({ ...c }));
 
   const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, handCapacity);
+
+  const initialLogs = [
+    `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
+  ];
+  if (relicBonus.startingArmor > 0) {
+    initialLogs.unshift(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
+  }
+  if (relicBonus.startingStatusEffects.length > 0) {
+    const effectNames = relicBonus.startingStatusEffects
+      .map((e) => `【${e.name}】${e.stacks}層`)
+      .join('、');
+    initialLogs.unshift(`【舊日遺物共鳴】遺物為你賦予了 ${effectNames} 印記！`);
+  }
 
   return {
     phase: initialPhase,
@@ -276,9 +322,7 @@ export function createInitialCombatState(
     isMadness: sanityDeck.length === 0,
     currentEnemy: enemy,
     adventureStats: createInitialAdventureStats(investigator),
-    battleLog: [
-      `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
-    ],
+    battleLog: initialLogs,
   };
 }
 
@@ -294,14 +338,19 @@ export function resolveTurnEndAndFixedDraw(
   const intent = enemy.currentIntent;
   let investigatorHealth = state.investigator.health;
   let investigatorArmor = state.investigator.armor;
+  let enemyHealth = enemy.health;
   let enemyArmor = enemy.armor;
   let sanityDeck = [...state.sanityDeck];
-  const discardPile = [...state.discardPile];
+  let discardPile = [...state.discardPile];
   const newLogs: string[] = [...initialLogs];
+
+  let investigatorStatusEffects = state.investigator.statusEffects ? [...state.investigator.statusEffects] : [];
+  let enemyStatusEffects = enemy.statusEffects ? [...enemy.statusEffects] : [];
 
   // Enemy performs intent action
   if (intent.type === 'attack') {
-    const dmg = applyDamage({ health: investigatorHealth, armor: investigatorArmor }, intent.value);
+    const finalDamage = calculateAttackDamage(intent.value, enemyStatusEffects, investigatorStatusEffects);
+    const dmg = applyDamage({ health: investigatorHealth, armor: investigatorArmor }, finalDamage);
     investigatorHealth = dmg.newHealth;
     investigatorArmor = dmg.newArmor;
 
@@ -313,6 +362,10 @@ export function resolveTurnEndAndFixedDraw(
     } else {
       newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
     }
+  } else if (intent.type === 'defend') {
+    const finalArmor = calculateArmorGain(intent.value, enemyStatusEffects);
+    enemyArmor += finalArmor;
+    newLogs.push(`${enemy.name} 施展【${intent.name}】，凝聚異質防護獲得 ${finalArmor} 點護甲！`);
   } else if (intent.type === 'erode') {
     const erodeCount = Math.min(sanityDeck.length, intent.value);
     if (erodeCount > 0) {
@@ -323,9 +376,34 @@ export function resolveTurnEndAndFixedDraw(
     } else {
       newLogs.push(`${enemy.name} 施展精神恐懼，但你的心智已徹底陷入瘋狂崩潰，無更多理智可被侵蝕！`);
     }
+  } else if (intent.type === 'apply_status' && intent.statusType) {
+    const status = createStatusEffect(intent.statusType, intent.value);
+    investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
+    newLogs.push(`${enemy.name} 施展【${intent.name}】，向你施加了 ${intent.value} 層【${status.name}】印記！`);
   }
 
-  // Check GameOver
+  // 結算回合結束狀態印記（流血生命扣減、恐慌理智侵蝕）與印記衰減
+  const invStatusRes = resolveTurnEndStatusEffects(
+    { health: investigatorHealth, sanityDeck, discardPile },
+    investigatorStatusEffects,
+    '調查員'
+  );
+  investigatorHealth = invStatusRes.newHealth;
+  sanityDeck = invStatusRes.newSanityDeck;
+  discardPile = invStatusRes.newDiscardPile;
+  investigatorStatusEffects = invStatusRes.decayedEffects;
+  newLogs.push(...invStatusRes.logs);
+
+  const enemyStatusRes = resolveTurnEndStatusEffects(
+    { health: enemyHealth },
+    enemyStatusEffects,
+    enemy.name
+  );
+  enemyHealth = enemyStatusRes.newHealth;
+  enemyStatusEffects = enemyStatusRes.decayedEffects;
+  newLogs.push(...enemyStatusRes.logs);
+
+  // Check GameOver / Victory
   if (investigatorHealth <= 0) {
     newLogs.unshift(`【調查員殞命】你的視線被血污模糊，神識散盡倒在血泊中……未知之物將你吞噬。`);
     return {
@@ -337,6 +415,34 @@ export function resolveTurnEndAndFixedDraw(
         ...state.investigator,
         health: 0,
         armor: investigatorArmor,
+        statusEffects: [],
+      },
+      battleLog: [...newLogs, ...state.battleLog],
+    };
+  }
+
+  if (enemyHealth <= 0) {
+    newLogs.unshift(`【戰鬥勝利】${enemy.name} 在流血與創傷中發出臨死哀嚎，化為一灘黑水消滅了！`);
+    const stats = ensureAdventureStats(state);
+    return {
+      ...state,
+      phase: 'victory',
+      discardPhase: undefined,
+      investigator: {
+        ...state.investigator,
+        health: investigatorHealth,
+        armor: investigatorArmor,
+        statusEffects: [], // clear status effects on combat victory
+      },
+      currentEnemy: {
+        ...enemy,
+        health: 0,
+        armor: enemyArmor,
+        statusEffects: [],
+      },
+      adventureStats: {
+        ...stats,
+        enemiesDefeated: stats.enemiesDefeated + 1,
       },
       battleLog: [...newLogs, ...state.battleLog],
     };
@@ -403,6 +509,7 @@ export function resolveTurnEndAndFixedDraw(
       health: investigatorHealth,
       armor: investigatorArmor,
       stamina: state.investigator.maxStamina,
+      statusEffects: investigatorStatusEffects,
     },
     sanityDeck,
     hand: newHand,
@@ -410,9 +517,11 @@ export function resolveTurnEndAndFixedDraw(
     isMadness: isMadnessNow,
     currentEnemy: {
       ...enemy,
+      health: enemyHealth,
       armor: enemyArmor,
       currentIntent: nextIntent,
       currentIntentIndex: nextIntentIndex,
+      statusEffects: enemyStatusEffects,
     },
     battleLog: [...newLogs, ...state.battleLog],
   };
@@ -592,23 +701,43 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           handCapacity
         );
 
+        const relicBonus = getRelicCombatBonus(state.investigator.relics);
+        const startingArmor = relicBonus.startingArmor;
+        const startingStamina = state.investigator.maxStamina + relicBonus.startingStaminaBonus;
+        const startingStatusEffects = [...relicBonus.startingStatusEffects];
+
+        const combatLogs = [logMsg];
+        if (relicBonus.startingArmor > 0) {
+          combatLogs.push(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
+        }
+        if (relicBonus.startingStatusEffects.length > 0) {
+          const names = relicBonus.startingStatusEffects
+            .map((e) => `【${e.name}】${e.stacks}層`)
+            .join('、');
+          combatLogs.push(`【舊日遺物共鳴】遺物為你賦予了 ${names} 印記！`);
+        }
+
         return {
           ...state,
           phase: 'combat',
           turn: 1,
           investigator: {
             ...state.investigator,
-            armor: 0,
-            stamina: state.investigator.maxStamina,
+            armor: startingArmor,
+            stamina: startingStamina,
+            statusEffects: startingStatusEffects,
           },
           sanityDeck,
           hand,
           discardPile: [],
           isMadness: false,
           map: updatedMap,
-          currentEnemy: enemy,
+          currentEnemy: {
+            ...enemy,
+            statusEffects: [],
+          },
           adventureStats: updatedStats,
-          battleLog: [logMsg, ...state.battleLog],
+          battleLog: [...combatLogs, ...state.battleLog],
         };
       }
 
@@ -1211,8 +1340,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const occId = action.payload?.investigator?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
       const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
       const handCapacity = action.payload?.investigator?.handCapacity ?? state.investigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
-      const investigator = action.payload?.investigator
-        ? { ...action.payload.investigator, handCapacity }
+      const relicList = action.payload?.investigator?.relics ?? state.investigator?.relics;
+
+      const investigator: Investigator = action.payload?.investigator
+        ? {
+            ...action.payload.investigator,
+            handCapacity,
+            relics: relicList ? [...relicList] : [],
+          }
         : {
             name: occ.name,
             occupation: occ.occupation,
@@ -1224,6 +1359,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             armor: 0,
             obols: occ.stats.obols,
             handCapacity,
+            relics: relicList ? [...relicList] : [],
           };
       const initialCards = action.payload?.initialCards
         ? [...action.payload.initialCards]
@@ -1240,17 +1376,24 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const occId = action.payload?.occupationId ?? state.investigator?.occupationId ?? 'investigator';
       const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
       const handCapacity = state.investigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
+      const relicBonus = getRelicCombatBonus(state.investigator?.relics);
+      const startingArmor = relicBonus.startingArmor;
+      const startingStamina = (state.investigator?.maxStamina ?? occ.stats.stamina) + relicBonus.startingStaminaBonus;
+      const startingStatusEffects = [...relicBonus.startingStatusEffects];
+
       const investigator: Investigator = {
         name: occ.name,
         occupation: occ.occupation,
         occupationId: occ.id,
         health: state.investigator?.maxHealth ?? occ.stats.health,
         maxHealth: state.investigator?.maxHealth ?? occ.stats.health,
-        stamina: state.investigator?.maxStamina ?? occ.stats.stamina,
+        stamina: startingStamina,
         maxStamina: state.investigator?.maxStamina ?? occ.stats.stamina,
-        armor: 0,
+        armor: startingArmor,
         obols: state.investigator?.obols ?? occ.stats.obols,
         handCapacity,
+        relics: state.investigator?.relics ? [...state.investigator.relics] : [],
+        statusEffects: startingStatusEffects,
       };
 
       // Gather permanent cards to preserve crafted deck upon retrying
@@ -1269,6 +1412,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const candidateEnemy = action.payload?.enemy ?? state.currentEnemy;
       const currentDepth = state.currentDepth ?? 1;
       const enemy = getFreshEnemyTemplate(candidateEnemy, state.map, currentDepth);
+      enemy.statusEffects = [];
+
+      const resetLogs = [
+        `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
+      ];
+      if (relicBonus.startingArmor > 0) {
+        resetLogs.push(`【舊日遺物護佑】遺物使你獲得了 ${relicBonus.startingArmor} 點起始防禦護甲！`);
+      }
+      if (relicBonus.startingStatusEffects.length > 0) {
+        const names = relicBonus.startingStatusEffects
+          .map((e) => `【${e.name}】${e.stacks}層`)
+          .join('、');
+        resetLogs.push(`【舊日遺物共鳴】遺物為你賦予了 ${names} 印記！`);
+      }
 
       return {
         phase: 'combat',
@@ -1282,9 +1439,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentEnemy: enemy,
         map: state.map,
         adventureStats: ensureAdventureStats(state),
-        battleLog: [
-          `重整戰鬥！調查員 ${investigator.name}（${investigator.occupation}）重新迎戰 ${enemy.name}！`,
-        ],
+        battleLog: [...resetLogs, ...state.battleLog],
       };
     }
 
@@ -1359,6 +1514,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let enemyArmor = state.currentEnemy.armor;
       let investigatorHealth = state.investigator.health;
       let investigatorArmor = state.investigator.armor;
+      let investigatorStatusEffects = state.investigator.statusEffects ? [...state.investigator.statusEffects] : [];
+      let enemyStatusEffects = state.currentEnemy.statusEffects ? [...state.currentEnemy.statusEffects] : [];
       const newLogs: string[] = [];
 
       // Divine Execution: Ancient Seal strikes enemy with divine immortality at 1 health
@@ -1373,7 +1530,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // Execute card effects
       for (const effect of card.effects) {
         if (effect.type === 'damage') {
-          const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, effect.value);
+          const finalDamage = calculateAttackDamage(effect.value, investigatorStatusEffects, enemyStatusEffects);
+          const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, finalDamage);
           if (isDivineEnemy && !isAncientSeal && dmg.newHealth < 1) {
             // Divine Immortality locks health at minimum 1
             enemyHealth = 1;
@@ -1384,11 +1542,32 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           } else {
             enemyHealth = dmg.newHealth;
             enemyArmor = dmg.newArmor;
-            newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${effect.value} 點傷害！`);
+            const mightBonus = getStatusStacks(investigatorStatusEffects, 'might');
+            const vulnBonus = getStatusStacks(enemyStatusEffects, 'vulnerable');
+            let bonusDesc = '';
+            if (mightBonus > 0 || vulnBonus > 0) {
+              const parts: string[] = [];
+              if (mightBonus > 0) parts.push(`力量 +${mightBonus}`);
+              if (vulnBonus > 0) parts.push(`易傷增傷`);
+              bonusDesc = `（${parts.join('，')}）`;
+            }
+            newLogs.push(`調查員打出【${card.name}】，對 ${state.currentEnemy.name} 造成 ${finalDamage} 點傷害${bonusDesc}！`);
           }
         } else if (effect.type === 'armor') {
-          investigatorArmor += effect.value;
-          newLogs.push(`調查員打出【${card.name}】，構築掩體獲得 ${effect.value} 點護甲！`);
+          const finalArmor = calculateArmorGain(effect.value, investigatorStatusEffects);
+          investigatorArmor += finalArmor;
+          const resilienceBonus = getStatusStacks(investigatorStatusEffects, 'resilience');
+          const bonusDesc = resilienceBonus > 0 ? `（堅韌 +${resilienceBonus}）` : '';
+          newLogs.push(`調查員打出【${card.name}】，構築掩體獲得 ${finalArmor} 點護甲${bonusDesc}！`);
+        } else if (effect.type === 'apply_status' && effect.statusType) {
+          const status = createStatusEffect(effect.statusType, effect.value);
+          if (effect.target === 'enemy') {
+            enemyStatusEffects = addStatusEffect(enemyStatusEffects, status);
+            newLogs.push(`調查員打出【${card.name}】，向 ${state.currentEnemy.name} 施加了 ${effect.value} 層【${status.name}】印記！`);
+          } else {
+            investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
+            newLogs.push(`調查員打出【${card.name}】，為自身賦予了 ${effect.value} 層【${status.name}】印記！`);
+          }
         } else if (effect.type === 'draw') {
           const cardsNeeded = effect.value;
           if (cardsNeeded > 0) {
@@ -1465,9 +1644,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let isTrueEnding = state.isTrueEnding;
       if (investigatorHealth <= 0) {
         phase = 'gameover';
+        investigatorStatusEffects = [];
         newLogs.unshift(`【調查員殞命】不可名狀的反噬耗盡了你最後一絲氣息，你倒在血泊中……`);
       } else if (enemyHealth <= 0) {
         phase = 'victory';
+        investigatorStatusEffects = [];
+        enemyStatusEffects = [];
         stats = {
           ...stats,
           enemiesDefeated: stats.enemiesDefeated + 1,
@@ -1489,6 +1671,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           stamina: newStamina,
           health: investigatorHealth,
           armor: investigatorArmor,
+          statusEffects: investigatorStatusEffects,
         },
         sanityDeck: newSanityDeck,
         hand: newHand,
@@ -1498,6 +1681,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state.currentEnemy,
           health: enemyHealth,
           armor: enemyArmor,
+          statusEffects: enemyStatusEffects,
         },
         adventureStats: stats,
         battleLog: [...newLogs, ...state.battleLog],
@@ -1583,6 +1767,51 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const requiredDiscardCount = Math.max(0, state.hand.length - capacity);
 
       return executeCardDiscardAndAdvanceTurn(state, cardIdsToDiscard, requiredDiscardCount);
+    }
+
+    case 'ACQUIRE_RELIC': {
+      const relic = action.payload.relic;
+      const updatedInvestigator = applyRelicToInvestigator(state.investigator, relic);
+      const rarityLabel =
+        relic.rarity === 'mythic' ? '神話' : relic.rarity === 'rare' ? '珍稀' : '普通';
+      return {
+        ...state,
+        investigator: updatedInvestigator,
+        battleLog: [
+          `【獲得舊日遺物】你在探索中獲得了【${relic.name}】（${rarityLabel}遺物）。${relic.description}`,
+          ...state.battleLog,
+        ],
+      };
+    }
+
+    case 'APPLY_STATUS_EFFECT': {
+      if (action.payload.target === 'investigator') {
+        const updated = addStatusEffect(state.investigator.statusEffects, action.payload.effect);
+        return {
+          ...state,
+          investigator: {
+            ...state.investigator,
+            statusEffects: updated,
+          },
+          battleLog: [
+            `調查員獲得了 ${action.payload.effect.stacks} 層【${action.payload.effect.name}】印記！`,
+            ...state.battleLog,
+          ],
+        };
+      } else {
+        const updated = addStatusEffect(state.currentEnemy.statusEffects, action.payload.effect);
+        return {
+          ...state,
+          currentEnemy: {
+            ...state.currentEnemy,
+            statusEffects: updated,
+          },
+          battleLog: [
+            `${state.currentEnemy.name} 獲得了 ${action.payload.effect.stacks} 層【${action.payload.effect.name}】印記！`,
+            ...state.battleLog,
+          ],
+        };
+      }
     }
 
     default:

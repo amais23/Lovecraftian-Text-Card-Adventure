@@ -41,6 +41,15 @@ import {
   hasBothAbyssalFragments,
   getAllPermanentCards,
 } from './abyssalSeals';
+import {
+  ELDER_SIGN_AMULET,
+  POCKET_WATCH,
+  VITALITY_ELIXIR,
+  OBSIDIAN_MIRROR,
+  DREAD_TALISMAN,
+  ELDRITCH_LANTERN,
+} from './relics';
+import { createStatusEffect } from './statusEffects';
 import type { Card, GameState, Enemy } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
@@ -3325,6 +3334,238 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(finalState.isTrueEnding).toBe(true);
       expect(finalState.investigator.health).toBe(25); // Healed to full
       expect(finalState.investigator.obols).toBe(130); // 80 + 50
+    });
+  });
+
+  describe('Relics & Status Effects Dual-Track System (ADR-0018)', () => {
+    it('ACQUIRE_RELIC updates maxHealth, current health, and handCapacity immediately', () => {
+      const state = createInitialCombatState();
+      const stateWithRelic = gameReducer(state, {
+        type: 'ACQUIRE_RELIC',
+        payload: { relic: VITALITY_ELIXIR },
+      });
+
+      expect(stateWithRelic.investigator.maxHealth).toBe(30);
+      expect(stateWithRelic.investigator.health).toBe(30);
+      expect(stateWithRelic.investigator.relics).toHaveLength(1);
+      expect(stateWithRelic.investigator.relics?.[0].id).toBe('vitality_elixir');
+      expect(stateWithRelic.battleLog[0]).toContain('活力秘藥');
+
+      const stateWithWatch = gameReducer(stateWithRelic, {
+        type: 'ACQUIRE_RELIC',
+        payload: { relic: POCKET_WATCH },
+      });
+      expect(stateWithWatch.investigator.handCapacity).toBe(3);
+      expect(stateWithWatch.investigator.relics).toHaveLength(2);
+    });
+
+    it('START_COMBAT applies starting armor, stamina bonus, and starting status effects from relics', () => {
+      const inv = {
+        ...INITIAL_INVESTIGATOR,
+        relics: [ELDER_SIGN_AMULET, OBSIDIAN_MIRROR, DREAD_TALISMAN, ELDRITCH_LANTERN],
+      };
+
+      const combatState = gameReducer(createInitialGameState(), {
+        type: 'START_COMBAT',
+        payload: { investigator: inv },
+      });
+
+      expect(combatState.investigator.armor).toBe(5); // ELDER_SIGN_AMULET gives 5
+      expect(combatState.investigator.stamina).toBe(4); // 3 + 1 from ELDRITCH_LANTERN
+      expect(combatState.investigator.statusEffects).toHaveLength(2);
+      expect(combatState.investigator.statusEffects?.find((e) => e.type === 'resilience')?.stacks).toBe(2);
+      expect(combatState.investigator.statusEffects?.find((e) => e.type === 'might')?.stacks).toBe(1);
+      expect(combatState.battleLog.some((l) => l.includes('舊日遺物護佑'))).toBe(true);
+      expect(combatState.battleLog.some((l) => l.includes('舊日遺物共鳴'))).toBe(true);
+    });
+
+    it('PLAY_CARD applies might and vulnerable modifiers to attack damage', () => {
+      const attackCard: Card = {
+        id: 'test_strike',
+        name: '突刺打擊',
+        category: 'combat',
+        costType: 'free',
+        costValue: 0,
+        isTemporary: false,
+        effects: [{ type: 'damage', value: 6 }],
+        description: '造成 6 點物理傷害。',
+        flavorText: '',
+      };
+
+      const baseState = createInitialCombatState();
+      const stateWithStatus: GameState = {
+        ...baseState,
+        hand: [attackCard],
+        investigator: {
+          ...baseState.investigator,
+          statusEffects: [createStatusEffect('might', 2)],
+        },
+        currentEnemy: {
+          ...baseState.currentEnemy,
+          health: 30,
+          maxHealth: 30,
+          armor: 0,
+          statusEffects: [createStatusEffect('vulnerable', 1)],
+        },
+      };
+
+      // (6 base + 2 might) * 1.5 vulnerable = 12 damage!
+      const afterPlay = gameReducer(stateWithStatus, {
+        type: 'PLAY_CARD',
+        payload: { cardId: 'test_strike' },
+      });
+
+      expect(afterPlay.currentEnemy.health).toBe(18); // 30 - 12
+      expect(afterPlay.battleLog[0]).toContain('12 點傷害');
+      expect(afterPlay.battleLog[0]).toContain('力量 +2');
+      expect(afterPlay.battleLog[0]).toContain('易傷增傷');
+    });
+
+    it('PLAY_CARD applies resilience modifier to armor gain', () => {
+      const shieldCard: Card = {
+        id: 'test_block',
+        name: '緊急防禦',
+        category: 'skill',
+        costType: 'free',
+        costValue: 0,
+        isTemporary: false,
+        effects: [{ type: 'armor', value: 5 }],
+        description: '獲得 5 點護甲。',
+        flavorText: '',
+      };
+
+      const baseState = createInitialCombatState();
+      const stateWithResilience: GameState = {
+        ...baseState,
+        hand: [shieldCard],
+        investigator: {
+          ...baseState.investigator,
+          armor: 0,
+          statusEffects: [createStatusEffect('resilience', 3)],
+        },
+      };
+
+      // 5 base + 3 resilience = 8 armor!
+      const afterPlay = gameReducer(stateWithResilience, {
+        type: 'PLAY_CARD',
+        payload: { cardId: 'test_block' },
+      });
+
+      expect(afterPlay.investigator.armor).toBe(8);
+      expect(afterPlay.battleLog[0]).toContain('8 點護甲');
+      expect(afterPlay.battleLog[0]).toContain('堅韌 +3');
+    });
+
+    it('PLAY_CARD supports apply_status card effect targeting self and enemy', () => {
+      const applyCard: Card = {
+        id: 'test_curse',
+        name: '深淵刻印',
+        category: 'skill',
+        costType: 'free',
+        costValue: 0,
+        isTemporary: false,
+        effects: [
+          { type: 'apply_status', value: 2, statusType: 'might', target: 'self' },
+          { type: 'apply_status', value: 3, statusType: 'vulnerable', target: 'enemy' },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const baseState = createInitialCombatState();
+      const stateWithCard: GameState = {
+        ...baseState,
+        hand: [applyCard],
+      };
+
+      const afterPlay = gameReducer(stateWithCard, {
+        type: 'PLAY_CARD',
+        payload: { cardId: 'test_curse' },
+      });
+
+      expect(afterPlay.investigator.statusEffects?.find((e) => e.type === 'might')?.stacks).toBe(2);
+      expect(afterPlay.currentEnemy.statusEffects?.find((e) => e.type === 'vulnerable')?.stacks).toBe(3);
+    });
+
+    it('END_TURN resolves bleed damage and decays status effects', () => {
+      const baseState = createInitialCombatState();
+      const stateWithBleed: GameState = {
+        ...baseState,
+        investigator: {
+          ...baseState.investigator,
+          health: 20,
+          armor: 10,
+          statusEffects: [createStatusEffect('bleed', 3), createStatusEffect('might', 2)],
+        },
+        currentEnemy: {
+          ...baseState.currentEnemy,
+          health: 25,
+          armor: 0,
+          statusEffects: [createStatusEffect('bleed', 4)],
+          currentIntent: { type: 'defend', value: 3, name: '外殼加固', description: '' },
+        },
+      };
+
+      const afterTurn = gameReducer(stateWithBleed, { type: 'END_TURN' });
+
+      // Investigator took 3 bleed damage directly to health (ignores 10 armor)
+      expect(afterTurn.investigator.health).toBe(17);
+      // Might decayed from 2 to 1, Bleed decayed from 3 to 2
+      expect(afterTurn.investigator.statusEffects?.find((e) => e.type === 'might')?.stacks).toBe(1);
+      expect(afterTurn.investigator.statusEffects?.find((e) => e.type === 'bleed')?.stacks).toBe(2);
+
+      // Enemy took 4 bleed damage (25 - 4 = 21)
+      expect(afterTurn.currentEnemy.health).toBe(21);
+      // Enemy bleed decayed from 4 to 3
+      expect(afterTurn.currentEnemy.statusEffects?.find((e) => e.type === 'bleed')?.stacks).toBe(3);
+    });
+
+    it('END_TURN causes victory if enemy dies from bleed damage and clears investigator status effects', () => {
+      const baseState = createInitialCombatState();
+      const stateDyingEnemy: GameState = {
+        ...baseState,
+        investigator: {
+          ...baseState.investigator,
+          relics: [POCKET_WATCH],
+          statusEffects: [createStatusEffect('might', 3)],
+        },
+        currentEnemy: {
+          ...baseState.currentEnemy,
+          health: 2,
+          armor: 0,
+          statusEffects: [createStatusEffect('bleed', 3)],
+          currentIntent: { type: 'defend', value: 0, name: '無力反抗', description: '' },
+        },
+      };
+
+      const afterTurn = gameReducer(stateDyingEnemy, { type: 'END_TURN' });
+
+      expect(afterTurn.phase).toBe('victory');
+      expect(afterTurn.currentEnemy.health).toBe(0);
+      expect(afterTurn.investigator.statusEffects).toEqual([]);
+      // Relics remain intact!
+      expect(afterTurn.investigator.relics).toHaveLength(1);
+      expect(afterTurn.investigator.relics?.[0].id).toBe('pocket_watch');
+    });
+
+    it('RESET_COMBAT preserves investigator relics and re-applies relic bonuses', () => {
+      const baseState = createInitialCombatState();
+      const stateWithRelics: GameState = {
+        ...baseState,
+        investigator: {
+          ...baseState.investigator,
+          relics: [ELDER_SIGN_AMULET, VITALITY_ELIXIR],
+          maxHealth: 30,
+          health: 12,
+        },
+      };
+
+      const resetState = gameReducer(stateWithRelics, { type: 'RESET_COMBAT' });
+
+      expect(resetState.investigator.relics).toHaveLength(2);
+      expect(resetState.investigator.armor).toBe(5); // ELDER_SIGN_AMULET
+      expect(resetState.investigator.maxHealth).toBe(30);
+      expect(resetState.investigator.health).toBe(30);
     });
   });
 });

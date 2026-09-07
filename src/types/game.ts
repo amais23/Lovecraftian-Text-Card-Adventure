@@ -2,9 +2,39 @@ export type CardCategory = 'combat' | 'skill' | 'magic' | 'truth' | 'madness';
 export type CostType = 'stamina' | 'sanity' | 'free';
 export type CardTier = 1 | 2 | 3 | 4;
 
+export type StatusEffectType = 'might' | 'resilience' | 'vulnerable' | 'bleed' | 'horror';
+
+export interface StatusEffect {
+  type: StatusEffectType;
+  name: string;
+  stacks: number;
+  description: string;
+}
+
+export type RelicRarity = 'common' | 'rare' | 'mythic';
+
+export interface RelicModifier {
+  maxHealth?: number;
+  handCapacity?: number;
+  startingArmor?: number;
+  startingStamina?: number;
+}
+
+export interface Relic {
+  id: string;
+  name: string;
+  description: string;
+  flavorText: string;
+  rarity: RelicRarity;
+  modifiers?: RelicModifier;
+  icon?: string;
+}
+
 export interface CardEffect {
-  type: 'damage' | 'armor' | 'heal' | 'draw' | 'erode_sanity' | 'restore_sanity' | 'self_damage' | 'add_to_deck';
+  type: 'damage' | 'armor' | 'heal' | 'draw' | 'erode_sanity' | 'restore_sanity' | 'self_damage' | 'add_to_deck' | 'apply_status';
   value: number;
+  statusType?: StatusEffectType;
+  target?: 'self' | 'enemy';
 }
 
 export interface Card {
@@ -21,13 +51,14 @@ export interface Card {
   flavorText: string;
 }
 
-export type EnemyIntentType = 'attack' | 'erode' | 'defend';
+export type EnemyIntentType = 'attack' | 'erode' | 'defend' | 'apply_status';
 
 export interface EnemyIntent {
   type: EnemyIntentType;
   value: number;
   name: string;
   description: string;
+  statusType?: StatusEffectType;
 }
 
 export interface Enemy {
@@ -41,6 +72,7 @@ export interface Enemy {
   currentIntent: EnemyIntent;
   intentSequence?: EnemyIntent[];
   currentIntentIndex?: number;
+  statusEffects?: StatusEffect[];
 }
 
 export type OccupationId = 'investigator' | 'occultist';
@@ -56,6 +88,8 @@ export interface Investigator {
   armor: number;
   obols: number;
   handCapacity?: number; // 可變動手牌容量（開局基準值 2，抽牌數 = 手牌保留數）
+  relics?: Relic[];      // 持有之舊日遺物（跨戰鬥永久生效）
+  statusEffects?: StatusEffect[]; // 戰鬥內暫態印記（戰後清空）
 }
 
 export type MapNodeType = 'combat' | 'elite' | 'event' | 'sanctuary' | 'market' | 'boss';
@@ -178,4 +212,6 @@ export type GameAction =
   | { type: 'CONFIRM_DISCARD'; payload?: { cardIds?: string[] } }
   | { type: 'CANCEL_DISCARD' }
   | { type: 'DISCARD_CARDS_TO_LIMIT'; payload: { cardIds: string[] } }
+  | { type: 'ACQUIRE_RELIC'; payload: { relic: Relic } }
+  | { type: 'APPLY_STATUS_EFFECT'; payload: { target: 'investigator' | 'enemy'; effect: StatusEffect } }
   | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[] } };

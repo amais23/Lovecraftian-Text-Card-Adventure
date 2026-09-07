@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Enemy, EnemyIntent } from '../types/game';
-import { Skull, Swords, Shield, Brain } from 'lucide-react';
+import { Skull, Swords, Shield, Brain, AlertCircle, Droplets, Ghost } from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
 
 function formatIntentValue(intent: EnemyIntent): string {
@@ -9,6 +9,9 @@ function formatIntentValue(intent: EnemyIntent): string {
   }
   if (intent.type === 'defend') {
     return `護甲 +${intent.value}`;
+  }
+  if (intent.type === 'apply_status') {
+    return `印記 +${intent.value}`;
   }
   return `${intent.value}`;
 }
@@ -20,6 +23,7 @@ interface EnemyViewProps {
 export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
   const { isShaking, shakeKey } = useTraumaShake(enemy.health);
   const healthPercent = Math.max(0, Math.min(100, (enemy.health / enemy.maxHealth) * 100));
+  const statusEffects = enemy.statusEffects ?? [];
 
   return (
     <div className="enemy-stage">
@@ -29,6 +33,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
           {enemy.currentIntent.type === 'attack' && <Swords size={18} />}
           {enemy.currentIntent.type === 'defend' && <Shield size={18} />}
           {enemy.currentIntent.type === 'erode' && <Brain size={18} />}
+          {enemy.currentIntent.type === 'apply_status' && <AlertCircle size={18} />}
         </span>
         <span className="intent-name">{enemy.currentIntent.name}</span>
         <span className="intent-val">{formatIntentValue(enemy.currentIntent)}</span>
@@ -47,6 +52,27 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
       {/* Enemy Identity */}
       <div className="enemy-name">{enemy.name}</div>
       <div className="enemy-title">{enemy.title}</div>
+
+      {/* Status Effects List */}
+      {statusEffects.length > 0 && (
+        <div className="status-effects-list enemy-statuses" data-testid="enemy-status-effects">
+          {statusEffects.map((status) => (
+            <div
+              key={status.type}
+              className={`status-effect-badge status-${status.type}`}
+              title={`【${status.name}】${status.stacks} 層\n${status.description}`}
+            >
+              {status.type === 'might' && <Swords size={12} />}
+              {status.type === 'resilience' && <Shield size={12} />}
+              {status.type === 'vulnerable' && <AlertCircle size={12} />}
+              {status.type === 'bleed' && <Droplets size={12} />}
+              {status.type === 'horror' && <Ghost size={12} />}
+              <span className="status-name">{status.name}</span>
+              <span className="status-stacks">{status.stacks}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Health Bar */}
       <div
@@ -70,4 +96,5 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
     </div>
   );
 };
+
 
