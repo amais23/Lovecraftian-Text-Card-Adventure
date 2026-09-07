@@ -62,6 +62,20 @@ export interface EnemyIntent {
   statusType?: StatusEffectType;
 }
 
+export type EnemyCategory =
+  | 'cultist'
+  | 'ghoul'
+  | 'nightgaunt'
+  | 'deep_one'
+  | 'drowned'
+  | 'shoggoth'
+  | 'byakhee'
+  | 'formless'
+  | 'hound'
+  | 'star_spawn'
+  | 'ancient_guardian'
+  | 'boss';
+
 export interface Enemy {
   id: string;
   name: string;
@@ -74,6 +88,7 @@ export interface Enemy {
   intentSequence?: EnemyIntent[];
   currentIntentIndex?: number;
   statusEffects?: StatusEffect[];
+  category?: EnemyCategory;
 }
 
 export type OccupationId = 'investigator' | 'occultist';
@@ -105,6 +120,7 @@ export interface MapNode {
   description: string;
   nextNodes: string[];
   status: 'unvisited' | 'current' | 'visited' | 'accessible';
+  enemyId?: string;
 }
 
 export type DepthLevel = 1 | 2 | 3 | 4;
@@ -194,7 +210,7 @@ export type GameAction =
   | { type: 'COMPLETE_PROLOGUE' }
   | { type: 'COMPLETE_DEPARTURE' }
   | { type: 'SELECT_OCCUPATION'; payload: { occupationId: OccupationId; initialPhase?: GameState['phase']; procedural?: boolean; map?: InvestigationMap } }
-  | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string; shuffledDeck?: Card[] } }
+  | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string; shuffledDeck?: Card[]; enemy?: Enemy } }
   | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string; shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_EVENT' }
   | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' } }

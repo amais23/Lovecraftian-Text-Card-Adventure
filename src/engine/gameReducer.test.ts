@@ -50,6 +50,7 @@ import {
   ELDRITCH_LANTERN,
 } from './relics';
 import { createStatusEffect } from './statusEffects';
+import { getEnemyTemplateById } from './enemyCatalog';
 import type { Card, GameState, Enemy } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
@@ -3591,6 +3592,151 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(resetState.investigator.armor).toBe(5); // ELDER_SIGN_AMULET
       expect(resetState.investigator.maxHealth).toBe(30);
       expect(resetState.investigator.health).toBe(30);
+    });
+  });
+
+  describe('Themed Monster Pools & Intent Rotation Engine (Issue #29)', () => {
+    it('spawns depth-appropriate themed monsters when navigating to combat nodes', () => {
+      // Depth 2 map
+      const mapDepth2 = generateInvestigationMap({ depth: 2, procedural: true });
+      const combatNodeD2 = Object.values(mapDepth2.nodes).find((n) => n.type === 'combat');
+      expect(combatNodeD2).toBeDefined();
+
+      if (combatNodeD2) {
+        combatNodeD2.status = 'accessible';
+        const stateD2 = gameReducer(
+          { ...createInitialCombatState(), phase: 'map', currentDepth: 2, map: mapDepth2 },
+          { type: 'NAVIGATE_TO_NODE', payload: { nodeId: combatNodeD2.id } }
+        );
+        expect(stateD2.phase).toBe('combat');
+        const d2EnemyNames = ['深潛者戰士', '溺死亡魂', '深潛者長老'];
+        expect(d2EnemyNames.some((name) => stateD2.currentEnemy.name.includes(name))).toBe(true);
+      }
+
+      // Depth 3 map
+      const mapDepth3 = generateInvestigationMap({ depth: 3, procedural: true });
+      const combatNodeD3 = Object.values(mapDepth3.nodes).find((n) => n.type === 'combat');
+      expect(combatNodeD3).toBeDefined();
+
+      if (combatNodeD3) {
+        combatNodeD3.status = 'accessible';
+        const stateD3 = gameReducer(
+          { ...createInitialCombatState(), phase: 'map', currentDepth: 3, map: mapDepth3 },
+          { type: 'NAVIGATE_TO_NODE', payload: { nodeId: combatNodeD3.id } }
+        );
+        expect(stateD3.phase).toBe('combat');
+        const d3EnemyNames = ['原生黑泥幼體', '拜亞基腐翼獸', '無形之子', '廷達洛斯獵犬'];
+        expect(d3EnemyNames.some((name) => stateD3.currentEnemy.name.includes(name))).toBe(true);
+      }
+
+      // Depth 4 map
+      const mapDepth4 = generateInvestigationMap({ depth: 4, procedural: true });
+      const combatNodeD4 = Object.values(mapDepth4.nodes).find((n) => n.type === 'combat');
+      expect(combatNodeD4).toBeDefined();
+
+      if (combatNodeD4) {
+        combatNodeD4.status = 'accessible';
+        const stateD4 = gameReducer(
+          { ...createInitialCombatState(), phase: 'map', currentDepth: 4, map: mapDepth4 },
+          { type: 'NAVIGATE_TO_NODE', payload: { nodeId: combatNodeD4.id } }
+        );
+        expect(stateD4.phase).toBe('combat');
+        const d4EnemyNames = ['星之眷族幼體', '拉萊耶石棺守衛', '星辰古神侍從'];
+        expect(d4EnemyNames.some((name) => stateD4.currentEnemy.name.includes(name))).toBe(true);
+      }
+    });
+
+    it('RESET_COMBAT recovers pristine state of newly registered enemies without reverting to ghoul', () => {
+      const template = getEnemyTemplateById('enemy_hound_of_tindalos');
+      expect(template).toBeDefined();
+      if (!template) return;
+
+      const damagedState: GameState = {
+        ...createInitialCombatState(),
+        currentDepth: 3,
+        phase: 'gameover',
+        investigator: {
+          ...createInitialCombatState().investigator,
+          health: 0,
+        },
+        currentEnemy: {
+          ...template,
+          health: 12,
+          armor: 0,
+          currentIntentIndex: 2,
+          statusEffects: [createStatusEffect('vulnerable', 3)],
+        },
+      };
+
+      const resetState = gameReducer(damagedState, { type: 'RESET_COMBAT' });
+
+      expect(resetState.phase).toBe('combat');
+      expect(resetState.currentEnemy.id).toBe('enemy_hound_of_tindalos');
+      expect(resetState.currentEnemy.name).toBe('廷達洛斯獵犬');
+      expect(resetState.currentEnemy.health).toBe(template.maxHealth);
+      expect(resetState.currentEnemy.armor).toBe(template.armor);
+      expect(resetState.currentEnemy.currentIntentIndex).toBe(0);
+      expect(resetState.currentEnemy.statusEffects).toHaveLength(0);
+    });
+
+    it('enemy executes apply_status intent to inflict bleeding onto investigator and triggers turn-end damage', () => {
+      const baseState = createInitialCombatState();
+      const enemyWithBleedIntent: Enemy = {
+        ...baseState.currentEnemy,
+        id: 'enemy_arkham_cultist',
+        name: '阿卡姆異教徒',
+        currentIntent: {
+          type: 'apply_status',
+          value: 2,
+          statusType: 'bleed',
+          name: '割脈血祭',
+          description: '向你施加 2 層流血印記',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: enemyWithBleedIntent,
+        investigator: {
+          ...baseState.investigator,
+          health: 20,
+          armor: 0,
+          statusEffects: [],
+        },
+      };
+
+      const nextTurnState = gameReducer(combatState, { type: 'END_TURN' });
+
+      // Investigator was afflicted with bleed(2). At turn-end, bleed inflicts 2 damage and decays to 1 stack.
+      // Health decreases from 20 to 18.
+      expect(nextTurnState.investigator.health).toBe(18);
+      const bleedStatus = nextTurnState.investigator.statusEffects?.find((s) => s.type === 'bleed');
+      expect(bleedStatus?.stacks).toBe(1);
+      expect(nextTurnState.battleLog.some((log) => log.includes('施展【割脈血祭】'))).toBe(true);
+    });
+
+    it('enemy executes defend intent gaining dynamic armor', () => {
+      const baseState = createInitialCombatState();
+      const enemyWithDefendIntent: Enemy = {
+        ...baseState.currentEnemy,
+        armor: 2,
+        currentIntent: {
+          type: 'defend',
+          value: 7,
+          name: '潮汐硬甲',
+          description: '凝聚異質防護獲得 7 點護甲',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: enemyWithDefendIntent,
+      };
+
+      const nextTurnState = gameReducer(combatState, { type: 'END_TURN' });
+
+      expect(nextTurnState.currentEnemy.armor).toBe(9); // 2 + 7
+      expect(nextTurnState.battleLog.some((log) => log.includes('獲得 7 點護甲'))).toBe(true);
     });
   });
 });

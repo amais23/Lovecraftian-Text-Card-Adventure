@@ -1,4 +1,5 @@
 import type { DepthLevel, InvestigationMap, MapNode, MapNodeType } from '../types/game';
+import { getEncounterEnemy } from './enemyCatalog';
 
 export interface RawNodeConfig {
   id: string;
@@ -9,6 +10,7 @@ export interface RawNodeConfig {
   title: string;
   description: string;
   nextNodes: string[];
+  enemyId?: string;
 }
 
 export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
@@ -22,6 +24,7 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     title: '陰暗小巷',
     description: '潛伏於惡臭雨水後的食屍鬼，正啃噬著新鮮的骨殖……',
     nextNodes: ['node_1_0', 'node_1_1'],
+    enemyId: 'enemy_ghoul_lurker',
   },
   {
     id: 'node_0_1',
@@ -54,6 +57,7 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     title: '地下蓄水池',
     description: '兩側滴淌著墨綠黏液，黑暗中傳來骨爪刮擦青石的刺耳聲響。',
     nextNodes: ['node_2_0', 'node_2_1', 'node_2_2'],
+    enemyId: 'enemy_arkham_cultist',
   },
   {
     id: 'node_1_2',
@@ -76,6 +80,7 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     title: '浸水地穴',
     description: '深淵浸染的深潛者長老手持珊瑚尖刺，在黑暗中發出沙啞吟誦！',
     nextNodes: ['node_3_0', 'node_3_1'],
+    enemyId: 'enemy_deep_one_elder',
   },
   {
     id: 'node_2_1',
@@ -108,6 +113,7 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     title: '迷霧屠宰場',
     description: '生鏽的鐵鉤在風中搖晃，嗜血的異形正在血窪中伺機而動。',
     nextNodes: ['node_4_0', 'node_4_1'],
+    enemyId: 'enemy_nightgaunt',
   },
   {
     id: 'node_3_1',
@@ -118,6 +124,7 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     title: '詛咒鐘樓',
     description: '狂亂的鐘聲震盪心靈，舊日僕從正展開黑曜石般的巨翼！',
     nextNodes: ['node_4_0', 'node_4_1'],
+    enemyId: 'enemy_ghoul_high_priest',
   },
   {
     id: 'node_3_2',
@@ -182,6 +189,7 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     title: '無底深淵祭壇',
     description: '祭壇中央的虛空裂隙中，不可名狀的巨大輪廓正在緩緩凝聚……',
     nextNodes: [],
+    enemyId: 'enemy_shoggoth_progeny',
   },
 ];
 
@@ -414,7 +422,9 @@ function buildNodesAndLayers(
   layerTypePools: MapNodeType[][],
   outgoingEdges: string[][][],
   pools: Record<MapNodeType, { label: string; variants: Array<{ title: string; desc: string }> }>,
-  pick: <T>(arr: T[]) => T
+  pick: <T>(arr: T[]) => T,
+  depth: DepthLevel = 1,
+  rng: () => number = Math.random
 ): { nodes: Record<string, MapNode>; layers: string[][] } {
   const nodes: Record<string, MapNode> = {};
   const layers: string[][] = [];
@@ -431,6 +441,12 @@ function buildNodesAndLayers(
       const variant = pick(theme.variants);
       const nextNodes = outgoingEdges[l]?.[c] ?? [];
 
+      let enemyId: string | undefined = undefined;
+      if (nodeType === 'combat' || nodeType === 'elite' || nodeType === 'boss') {
+        const encounter = getEncounterEnemy(depth, nodeType, rng);
+        enemyId = encounter.id;
+      }
+
       nodes[nodeId] = {
         id: nodeId,
         type: nodeType,
@@ -441,6 +457,7 @@ function buildNodesAndLayers(
         description: variant.desc,
         nextNodes,
         status: l === 0 ? 'accessible' : 'unvisited',
+        enemyId,
       };
     }
     layers.push(layerNodeIds);
@@ -482,7 +499,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
       [[]],
     ];
 
-    const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick);
+    const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick, depth, rng);
 
     return {
       id: `map_depth_${depth}_${Math.floor(rng() * 1000000)}`,
@@ -562,7 +579,7 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
     [[]],
   ];
 
-  const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick);
+  const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick, depth, rng);
 
   return {
     id: `map_depth_${depth}_${Math.floor(rng() * 1000000)}`,
@@ -596,6 +613,7 @@ export function generateInvestigationMap(options?: MapGenerationOptions): Invest
     const isEntryLayer = raw.layer === 0;
     nodes[raw.id] = {
       ...raw,
+      enemyId: raw.enemyId,
       status: isEntryLayer ? 'accessible' : 'unvisited',
     };
 

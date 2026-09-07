@@ -183,6 +183,115 @@
   filter: drop-shadow(0 0 6px rgba(0,0,0,0.8));
 }
 
+/* Category-specific Avatar Circles */
+.enemy-avatar-circle.enemy-avatar-cultist {
+  background: radial-gradient(circle at 35% 35%, #4e2608, #180902);
+  border-color: #f57c00;
+  box-shadow: 0 0 22px rgba(245, 124, 0, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-cultist .enemy-avatar-icon {
+  color: #ffb74d;
+}
+
+.enemy-avatar-circle.enemy-avatar-ghoul {
+  background: radial-gradient(circle at 35% 35%, #2e3a1f, #0d1308);
+  border-color: #7cb342;
+  box-shadow: 0 0 22px rgba(124, 179, 66, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-ghoul .enemy-avatar-icon {
+  color: #c5e1a5;
+}
+
+.enemy-avatar-circle.enemy-avatar-nightgaunt {
+  background: radial-gradient(circle at 35% 35%, #252839, #090a12);
+  border-color: #5c6bc0;
+  box-shadow: 0 0 22px rgba(92, 107, 192, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-nightgaunt .enemy-avatar-icon {
+  color: #9fa8da;
+}
+
+.enemy-avatar-circle.enemy-avatar-deep_one {
+  background: radial-gradient(circle at 35% 35%, #0d383b, #031416);
+  border-color: #26a69a;
+  box-shadow: 0 0 22px rgba(38, 166, 154, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-deep_one .enemy-avatar-icon {
+  color: #80cbc4;
+}
+
+.enemy-avatar-circle.enemy-avatar-drowned {
+  background: radial-gradient(circle at 35% 35%, #18354a, #06111a);
+  border-color: #42a5f5;
+  box-shadow: 0 0 22px rgba(66, 165, 245, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-drowned .enemy-avatar-icon {
+  color: #90caf9;
+}
+
+.enemy-avatar-circle.enemy-avatar-shoggoth {
+  background: radial-gradient(circle at 35% 35%, #1c361e, #051407);
+  border-color: #43a047;
+  box-shadow: 0 0 25px rgba(67, 160, 71, 0.5), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-shoggoth .enemy-avatar-icon {
+  color: #a5d6a7;
+}
+
+.enemy-avatar-circle.enemy-avatar-byakhee {
+  background: radial-gradient(circle at 35% 35%, #3d3618, #141103);
+  border-color: #c0ca33;
+  box-shadow: 0 0 22px rgba(192, 202, 51, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-byakhee .enemy-avatar-icon {
+  color: #e6ee9c;
+}
+
+.enemy-avatar-circle.enemy-avatar-formless {
+  background: radial-gradient(circle at 35% 35%, #2a1a36, #0c0512);
+  border-color: #8e24aa;
+  box-shadow: 0 0 22px rgba(142, 36, 170, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-formless .enemy-avatar-icon {
+  color: #ce93d8;
+}
+
+.enemy-avatar-circle.enemy-avatar-hound {
+  background: radial-gradient(circle at 35% 35%, #143242, #041017);
+  border-color: #00acc1;
+  box-shadow: 0 0 22px rgba(0, 172, 193, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-hound .enemy-avatar-icon {
+  color: #80deea;
+}
+
+.enemy-avatar-circle.enemy-avatar-star_spawn {
+  background: radial-gradient(circle at 35% 35%, #311b4a, #11051e);
+  border-color: #ab47bc;
+  box-shadow: 0 0 28px rgba(171, 71, 188, 0.6), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-star_spawn .enemy-avatar-icon {
+  color: #e1bee7;
+}
+
+.enemy-avatar-circle.enemy-avatar-ancient_guardian {
+  background: radial-gradient(circle at 35% 35%, #333333, #0f0f0f);
+  border-color: #9e9e9e;
+  box-shadow: 0 0 22px rgba(158, 158, 158, 0.45), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-ancient_guardian .enemy-avatar-icon {
+  color: #e0e0e0;
+}
+
+.enemy-avatar-circle.enemy-avatar-boss {
+  background: radial-gradient(circle at 35% 35%, #52151d, #1a0408);
+  border-color: #e53935;
+  box-shadow: 0 0 30px rgba(229, 57, 53, 0.6), inset 0 0 15px #000;
+}
+.enemy-avatar-circle.enemy-avatar-boss .enemy-avatar-icon {
+  color: #ffcdd2;
+}
+
 .enemy-name {
   font-family: var(--font-title);
   font-size: clamp(0.9rem, 1.6dvh, 1.15rem);
@@ -3434,6 +3543,45 @@
   color: #ffb74d;
 }
 .enemy-intent-bubble.apply_status .intent-name {
+  color: #ffe0b2;
+}
+
+.enemy-intent-bubble.apply_status.status-bleed {
+  border-color: #e53935;
+  background: rgba(45, 12, 15, 0.94);
+  box-shadow: 0 0 15px rgba(229, 57, 53, 0.45);
+}
+.enemy-intent-bubble.apply_status.status-bleed .intent-icon,
+.enemy-intent-bubble.apply_status.status-bleed .intent-val {
+  color: #ef5350;
+}
+.enemy-intent-bubble.apply_status.status-bleed .intent-name {
+  color: #ffcdd2;
+}
+
+.enemy-intent-bubble.apply_status.status-horror {
+  border-color: #ab47bc;
+  background: rgba(35, 12, 45, 0.94);
+  box-shadow: 0 0 15px rgba(171, 71, 188, 0.45);
+}
+.enemy-intent-bubble.apply_status.status-horror .intent-icon,
+.enemy-intent-bubble.apply_status.status-horror .intent-val {
+  color: #ce93d8;
+}
+.enemy-intent-bubble.apply_status.status-horror .intent-name {
+  color: #f3e5f5;
+}
+
+.enemy-intent-bubble.apply_status.status-vulnerable {
+  border-color: #fb8c00;
+  background: rgba(45, 25, 8, 0.94);
+  box-shadow: 0 0 15px rgba(251, 140, 0, 0.45);
+}
+.enemy-intent-bubble.apply_status.status-vulnerable .intent-icon,
+.enemy-intent-bubble.apply_status.status-vulnerable .intent-val {
+  color: #ffb74d;
+}
+.enemy-intent-bubble.apply_status.status-vulnerable .intent-name {
   color: #ffe0b2;
 }
 

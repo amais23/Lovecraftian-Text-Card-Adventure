@@ -18,14 +18,15 @@ import {
   OCCUPATIONS,
   fisherYatesShuffle,
 } from './initialData';
+import {
+  cloneEnemy,
+  getEncounterEnemy,
+  getEnemyTemplateById,
+  getAllRegisteredEnemies,
+} from './enemyCatalog';
 import { createMadnessCards, createTruthInjectedCards } from './cardFactory';
 import { generateInvestigationMap, generateProceduralInvestigationMap } from './mapGenerator';
 import {
-  INITIAL_DEEP_ONE,
-  INITIAL_SHOGGOTH,
-  INITIAL_DAGON_PRIEST,
-  INITIAL_COLOSSAL_SHOGGOTH,
-  INITIAL_STAR_SPAWN,
   getBossByDepth,
   getMythosEventForNode,
   generateMarketItemsForDepth,
@@ -56,12 +57,7 @@ import {
 
 export const DEFAULT_HAND_CAPACITY = 2;
 
-/**
- * 敵怪物件深拷貝純函式，避免可變狀態污染
- */
-export function cloneEnemy(enemy: Enemy): Enemy {
-  return JSON.parse(JSON.stringify(enemy));
-}
+export { cloneEnemy };
 
 /**
  * 將完整卡牌清單切分為起始手牌（預設 2 張）與理智牌庫（其餘張數）之共用純函式
@@ -134,14 +130,7 @@ export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | 
   };
 }
 
-const STATIC_ENEMY_TEMPLATES: Record<string, Enemy> = {
-  [INITIAL_DEEP_ONE.id]: INITIAL_DEEP_ONE,
-  [INITIAL_SHOGGOTH.id]: INITIAL_SHOGGOTH,
-  [INITIAL_DAGON_PRIEST.id]: INITIAL_DAGON_PRIEST,
-  [INITIAL_COLOSSAL_SHOGGOTH.id]: INITIAL_COLOSSAL_SHOGGOTH,
-  [INITIAL_STAR_SPAWN.id]: INITIAL_STAR_SPAWN,
-  [INITIAL_GHOUL.id]: INITIAL_GHOUL,
-};
+export const STATIC_ENEMY_TEMPLATES: Record<string, Enemy> = getAllRegisteredEnemies();
 
 /**
  * 取得敵人初始模板以利於戰鬥重整 (Reset Combat) 重新迎戰原敵人
@@ -149,16 +138,23 @@ const STATIC_ENEMY_TEMPLATES: Record<string, Enemy> = {
 export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap, depth: DepthLevel = 1): Enemy {
   const currentDepth = depth ?? map?.depth ?? 1;
   const enemyId = candidate?.id;
-  if (enemyId && STATIC_ENEMY_TEMPLATES[enemyId]) {
-    return cloneEnemy(STATIC_ENEMY_TEMPLATES[enemyId]);
+  if (enemyId) {
+    const template = getEnemyTemplateById(enemyId);
+    if (template) {
+      return template;
+    }
   }
 
   // If node type from map is available
   if (map?.currentNodeId && map.nodes[map.currentNodeId]) {
     const node = map.nodes[map.currentNodeId];
-    if (node.type === 'elite') return cloneEnemy(INITIAL_DEEP_ONE);
-    if (node.type === 'boss') return cloneEnemy(getBossByDepth(currentDepth));
-    if (node.type === 'combat') return cloneEnemy(INITIAL_GHOUL);
+    if (node.enemyId) {
+      const template = getEnemyTemplateById(node.enemyId);
+      if (template) return template;
+    }
+    if (node.type === 'elite') return getEncounterEnemy(currentDepth, 'elite');
+    if (node.type === 'boss') return getBossByDepth(currentDepth);
+    if (node.type === 'combat') return getEncounterEnemy(currentDepth, 'combat');
   }
 
   if (candidate) {
@@ -166,12 +162,13 @@ export function getFreshEnemyTemplate(candidate?: Enemy, map?: InvestigationMap,
       ...candidate,
       health: candidate.maxHealth,
       armor: candidate.armor,
+      statusEffects: [],
       currentIntentIndex: 0,
       currentIntent: candidate.intentSequence?.[0] ?? candidate.currentIntent,
     };
   }
 
-  return cloneEnemy(INITIAL_GHOUL);
+  return getEncounterEnemy(currentDepth, 'combat');
 }
 
 /**
@@ -662,14 +659,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         let enemy: Enemy;
         let logMsg: string;
 
-        if (targetNode.type === 'elite') {
-          enemy = cloneEnemy(INITIAL_DEEP_ONE);
-          logMsg = `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`;
-        } else if (targetNode.type === 'boss') {
-          enemy = cloneEnemy(getBossByDepth(state.currentDepth ?? state.map?.depth ?? 1));
-          logMsg = `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`;
+        const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
+
+        if (action.payload.enemy) {
+          enemy = cloneEnemy(action.payload.enemy);
+        } else if (targetNode.enemyId) {
+          const template = getEnemyTemplateById(targetNode.enemyId);
+          enemy = template ? cloneEnemy(template) : getEncounterEnemy(currentDepth, targetNode.type);
         } else {
-          enemy = cloneEnemy(INITIAL_GHOUL);
+          enemy = getEncounterEnemy(currentDepth, targetNode.type);
+        }
+
+        updatedNodes[targetNode.id] = {
+          ...targetNode,
+          status: 'current',
+          enemyId: enemy.id,
+        };
+
+        if (targetNode.type === 'boss') {
+          logMsg = `踏入【${targetNode.title}】！終局宿敵降臨：${enemy.name}（${enemy.title}）！`;
+        } else if (targetNode.type === 'elite') {
+          logMsg = `探索【${targetNode.title}】！遭遇舊日精英敵人：${enemy.name}（${enemy.title}）！`;
+        } else {
           logMsg = `探索【${targetNode.title}】！遭遇常規敵人：${enemy.name}（${enemy.title}）。`;
         }
 

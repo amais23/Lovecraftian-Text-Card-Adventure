@@ -1,6 +1,24 @@
 import React from 'react';
 import type { Enemy, EnemyIntent } from '../types/game';
-import { Skull, Swords, Shield, Brain, AlertCircle } from 'lucide-react';
+import {
+  Skull,
+  Swords,
+  Shield,
+  Brain,
+  AlertCircle,
+  Flame,
+  Feather,
+  Fish,
+  Droplets,
+  Ghost,
+  Eye,
+  Bird,
+  Layers,
+  Compass,
+  Moon,
+  ShieldAlert,
+  Crown,
+} from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
 import { StatusEffectBadge } from './StatusEffectBadge';
 
@@ -17,6 +35,51 @@ function formatIntentValue(intent: EnemyIntent): string {
   return `${intent.value}`;
 }
 
+function renderIntentIcon(intent: EnemyIntent) {
+  if (intent.type === 'attack') return <Swords size={18} />;
+  if (intent.type === 'defend') return <Shield size={18} />;
+  if (intent.type === 'erode') return <Brain size={18} />;
+  if (intent.type === 'apply_status') {
+    if (intent.statusType === 'bleed') return <Droplets size={18} className="intent-status-icon bleed" />;
+    if (intent.statusType === 'horror') return <Ghost size={18} className="intent-status-icon horror" />;
+    if (intent.statusType === 'vulnerable') return <AlertCircle size={18} className="intent-status-icon vulnerable" />;
+    return <AlertCircle size={18} />;
+  }
+  return <Swords size={18} />;
+}
+
+function renderEnemyAvatarIcon(enemy: Enemy) {
+  const category = enemy.category;
+  switch (category) {
+    case 'cultist':
+      return <Flame className="enemy-avatar-icon icon-cultist" data-testid="enemy-icon-cultist" />;
+    case 'ghoul':
+      return <Skull className="enemy-avatar-icon icon-ghoul" data-testid="enemy-icon-ghoul" />;
+    case 'nightgaunt':
+      return <Feather className="enemy-avatar-icon icon-nightgaunt" data-testid="enemy-icon-nightgaunt" />;
+    case 'deep_one':
+      return <Fish className="enemy-avatar-icon icon-deep_one" data-testid="enemy-icon-deep_one" />;
+    case 'drowned':
+      return <Droplets className="enemy-avatar-icon icon-drowned" data-testid="enemy-icon-drowned" />;
+    case 'shoggoth':
+      return <Eye className="enemy-avatar-icon icon-shoggoth" data-testid="enemy-icon-shoggoth" />;
+    case 'byakhee':
+      return <Bird className="enemy-avatar-icon icon-byakhee" data-testid="enemy-icon-byakhee" />;
+    case 'formless':
+      return <Layers className="enemy-avatar-icon icon-formless" data-testid="enemy-icon-formless" />;
+    case 'hound':
+      return <Compass className="enemy-avatar-icon icon-hound" data-testid="enemy-icon-hound" />;
+    case 'star_spawn':
+      return <Moon className="enemy-avatar-icon icon-star_spawn" data-testid="enemy-icon-star_spawn" />;
+    case 'ancient_guardian':
+      return <ShieldAlert className="enemy-avatar-icon icon-ancient_guardian" data-testid="enemy-icon-ancient_guardian" />;
+    case 'boss':
+      return <Crown className="enemy-avatar-icon icon-boss" data-testid="enemy-icon-boss" />;
+    default:
+      return <Skull className="enemy-avatar-icon icon-default" data-testid="enemy-icon-default" />;
+  }
+}
+
 interface EnemyViewProps {
   enemy: Enemy;
 }
@@ -25,16 +88,17 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
   const { isShaking, shakeKey } = useTraumaShake(enemy.health);
   const healthPercent = Math.max(0, Math.min(100, (enemy.health / enemy.maxHealth) * 100));
   const statusEffects = enemy.statusEffects ?? [];
+  const statusClass = enemy.currentIntent.statusType ? `status-${enemy.currentIntent.statusType}` : '';
 
   return (
     <div className="enemy-stage">
       {/* Intent Bubble */}
-      <div className={`enemy-intent-bubble ${enemy.currentIntent.type}`} title={enemy.currentIntent.description}>
+      <div
+        className={`enemy-intent-bubble ${enemy.currentIntent.type} ${statusClass}`}
+        title={enemy.currentIntent.description}
+      >
         <span className="intent-icon">
-          {enemy.currentIntent.type === 'attack' && <Swords size={18} />}
-          {enemy.currentIntent.type === 'defend' && <Shield size={18} />}
-          {enemy.currentIntent.type === 'erode' && <Brain size={18} />}
-          {enemy.currentIntent.type === 'apply_status' && <AlertCircle size={18} />}
+          {renderIntentIcon(enemy.currentIntent)}
         </span>
         <span className="intent-name">{enemy.currentIntent.name}</span>
         <span className="intent-val">{formatIntentValue(enemy.currentIntent)}</span>
@@ -44,9 +108,10 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
       <div
         key={`enemy-avatar-${shakeKey}`}
         className={`enemy-avatar-wrapper ${isShaking ? 'trauma-shake' : ''}`}
+        data-testid="enemy-avatar-wrapper"
       >
-        <div className="enemy-avatar-circle">
-          <Skull className="enemy-avatar-icon" />
+        <div className={`enemy-avatar-circle enemy-avatar-${enemy.category ?? 'default'}`}>
+          {renderEnemyAvatarIcon(enemy)}
         </div>
       </div>
 
