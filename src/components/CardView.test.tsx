@@ -138,5 +138,49 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     expect(cardElement?.classList.contains('ancient-seal-unlocked')).toBe(true);
     expect(screen.getByText('終極斬殺')).toBeDefined();
   });
+
+  it('renders card with proper layout structure, effect description tooltip, and flavor text tooltip', () => {
+    render(
+      <CardView
+        card={mockPlayableCard}
+        currentStamina={2}
+      />
+    );
+
+    const cardElement = screen.getByText('精準斬擊').closest('.card-item');
+    expect(cardElement).toBeDefined();
+
+    // Check inner structure elements
+    expect(cardElement?.querySelector('.card-top-row')).toBeDefined();
+    expect(cardElement?.querySelector('.card-illustration-frame')).toBeDefined();
+    expect(cardElement?.querySelector('.card-title-banner')).toBeDefined();
+
+    const descElement = cardElement?.querySelector('.card-effect-desc');
+    expect(descElement).toBeDefined();
+    expect(descElement?.getAttribute('title')).toBe(mockPlayableCard.description);
+
+    const flavorElement = cardElement?.querySelector('.card-flavor');
+    expect(flavorElement).toBeDefined();
+    expect(flavorElement?.getAttribute('title')).toBe(mockPlayableCard.flavorText);
+
+    const promptElement = cardElement?.querySelector('.card-play-prompt');
+    expect(promptElement).toBeDefined();
+    expect(promptElement?.textContent).toContain('點擊或上拖打出');
+  });
+
+  it('renders standalone card with standalone class and without bottom play prompt', () => {
+    render(
+      <CardView
+        card={mockPlayableCard}
+        currentStamina={2}
+        isStandalone={true}
+      />
+    );
+
+    const cardElement = screen.getByText('精準斬擊').closest('.card-item');
+    expect(cardElement?.classList.contains('standalone')).toBe(true);
+    expect(cardElement?.querySelector('.card-play-prompt')).toBeNull();
+  });
 });
+
 

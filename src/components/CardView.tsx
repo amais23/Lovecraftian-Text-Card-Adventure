@@ -304,10 +304,12 @@ export const CardView: React.FC<CardViewProps> = ({
       )}
 
       {/* Rule Effect Description */}
-      <div className="card-effect-desc">{card.description}</div>
+      <div className="card-effect-desc" title={card.description}>{card.description}</div>
 
       {/* Flavor Narrative Text */}
-      <div className="card-flavor">{card.flavorText}</div>
+      {card.flavorText && (
+        <div className="card-flavor" title={card.flavorText}>{card.flavorText}</div>
+      )}
 
       {/* Bottom Play Prompt */}
       {!isStandalone && (
