@@ -59,7 +59,7 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['occultist'],
-    artworkUrl: '/cards/magic/card_magic_gaze.webp',
+    artworkUrl: '/cards/magic/card_whispers_of_madness.png',
     effects: [
       {
         type: 'damage',
@@ -82,7 +82,7 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     tier: 1,
     keywords: ['retain'],
     occupations: ['occultist'],
-    artworkUrl: '/cards/skill/card_astral_ward.webp',
+    artworkUrl: '/cards/skill/card_astral_refraction.png',
     effects: [
       { type: 'armor', value: 7 },
       { type: 'apply_status', statusType: 'resilience', value: 1, target: 'self' },
@@ -101,7 +101,7 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     isTemporary: false,
     tier: 2,
     occupations: ['occultist'],
-    artworkUrl: '/cards/magic/card_magic_blast.webp',
+    artworkUrl: '/cards/magic/card_abyssal_detonation.png',
     effects: [{ type: 'damage', value: 10, scaleFrom: 'status_stacks', scaleMultiplier: 3 }],
     description: '造成 10 點秘術傷害，目標身上每有 1 層【流血】或【恐慌】印記，額外造成 3 點傷害。',
     flavorText: '「引動敵人體內沸騰的詛咒印記，在皮肉與神經深處引爆深淵連鎖共鳴。」',
@@ -115,7 +115,7 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     isTemporary: false,
     tier: 2,
     occupations: ['occultist'],
-    artworkUrl: '/cards/truth/card_silver_key.webp',
+    artworkUrl: '/cards/truth/card_tide_of_truth.png',
     effects: [
       { type: 'restore_sanity', value: 3 },
       { type: 'draw', value: 2 },

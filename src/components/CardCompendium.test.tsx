@@ -12,16 +12,16 @@ vi.mock('../engine/audioManager', () => ({
 }));
 
 describe('CardCompendium Component', () => {
-  it('renders compendium title and all 52 cards by default', () => {
+  it('renders compendium title and all 64 cards by default', () => {
     const onClose = vi.fn();
     const { container } = render(<CardCompendium onClose={onClose} />);
 
     expect(screen.getByRole('heading', { name: '卡牌圖鑑' })).toBeDefined();
-    expect(screen.getByText(/52 張/)).toBeDefined();
+    expect(screen.getByText(/64 張/)).toBeDefined();
 
-    // Check that all 52 card items are rendered and none have playable combat glow
+    // Check that all 64 card items are rendered and none have playable combat glow
     const cardItems = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardItems.length).toBe(52);
+    expect(cardItems.length).toBe(64);
     expect(container.querySelector('.card-item.playable')).toBeNull();
   });
 
@@ -30,7 +30,7 @@ describe('CardCompendium Component', () => {
     const { container } = render(<CardCompendium onClose={onClose} />);
 
     const cardItems = Array.from(container.querySelectorAll('.compendium-card-wrapper .card-item'));
-    expect(cardItems.length).toBe(52);
+    expect(cardItems.length).toBe(64);
 
     // Extract categories in rendered sequence
     const categories = cardItems.map((el) => {
@@ -70,14 +70,14 @@ describe('CardCompendium Component', () => {
     fireEvent.click(combatTab);
 
     let cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardWrappers.length).toBe(12);
+    expect(cardWrappers.length).toBe(16);
 
     // Click "黃色技能" tab
     const skillTab = screen.getByText(/黃色技能/);
     fireEvent.click(skillTab);
 
     cardWrappers = container.querySelectorAll('.compendium-card-wrapper');
-    expect(cardWrappers.length).toBe(13);
+    expect(cardWrappers.length).toBe(17);
 
     // Click "黑色瘋狂" tab
     const madnessTab = screen.getByText(/黑色瘋狂/);
@@ -141,25 +141,25 @@ describe('CardCompendium Component', () => {
     fireEvent.click(investigatorTab);
     const investigatorCards = container.querySelectorAll('.compendium-card-wrapper');
     expect(investigatorCards.length).toBeGreaterThan(0);
-    expect(investigatorCards.length).toBeLessThan(52);
+    expect(investigatorCards.length).toBeLessThan(64);
 
     // Click "秘術學者"
     fireEvent.click(occultistTab);
     const occultistCards = container.querySelectorAll('.compendium-card-wrapper');
     expect(occultistCards.length).toBeGreaterThan(0);
-    expect(occultistCards.length).toBeLessThan(52);
+    expect(occultistCards.length).toBeLessThan(64);
 
     // Click "中立通用"
     fireEvent.click(neutralTab);
     const neutralCards = container.querySelectorAll('.compendium-card-wrapper');
     expect(neutralCards.length).toBeGreaterThan(0);
-    expect(neutralCards.length).toBeLessThan(52);
+    expect(neutralCards.length).toBeLessThan(64);
 
-    // Investigator + Occultist + Neutral counts should sum to >= 52
-    expect(investigatorCards.length + occultistCards.length + neutralCards.length).toBeGreaterThanOrEqual(52);
+    // Investigator + Occultist + Neutral counts should sum to >= 64
+    expect(investigatorCards.length + occultistCards.length + neutralCards.length).toBeGreaterThanOrEqual(64);
 
     // Reset to "全部職業"
     fireEvent.click(allOccTab);
-    expect(container.querySelectorAll('.compendium-card-wrapper').length).toBe(52);
+    expect(container.querySelectorAll('.compendium-card-wrapper').length).toBe(64);
   });
 });

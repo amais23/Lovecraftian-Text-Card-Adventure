@@ -10,23 +10,23 @@ import { ALL_TIERED_CARDS } from './cardTiers';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
-  it('should register all 52 unique card artworks across all categories with 100% dedicated illustrations', () => {
-    expect(ALL_CARD_ARTWORKS.length).toBe(52);
-    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(52);
+  it('should register all 64 unique card artworks across all categories with 100% dedicated illustrations', () => {
+    expect(ALL_CARD_ARTWORKS.length).toBe(64);
+    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(64);
     expect(WIP_TIERED_CARD_NAMES.size).toBe(0);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
-    expect(categories.filter((c) => c === 'combat').length).toBe(12);
-    expect(categories.filter((c) => c === 'skill').length).toBe(13);
-    expect(categories.filter((c) => c === 'magic').length).toBe(9);
-    expect(categories.filter((c) => c === 'truth').length).toBe(12);
+    expect(categories.filter((c) => c === 'combat').length).toBe(16);
+    expect(categories.filter((c) => c === 'skill').length).toBe(17);
+    expect(categories.filter((c) => c === 'magic').length).toBe(11);
+    expect(categories.filter((c) => c === 'truth').length).toBe(14);
     expect(categories.filter((c) => c === 'madness').length).toBe(6);
   });
 
-  it('should ensure all 52 artwork images exist physically in public/cards/ with valid WebP/PNG formats', () => {
+  it('should ensure all 64 artwork images exist physically in public/cards/ with valid WebP/PNG formats', () => {
     const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
     const imagePaths = Object.keys(cardImages);
-    expect(imagePaths.length).toBeGreaterThanOrEqual(52);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(64);
 
     for (const art of ALL_CARD_ARTWORKS) {
       expect(

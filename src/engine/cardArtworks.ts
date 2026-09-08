@@ -75,6 +75,42 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '神速拔槍的Q版柯基牛仔，在金色速度殘影與火花爆發中迅捷射擊。',
     imageUrl: '/cards/combat/card_quick_draw.webp',
   },
+  card_double_tap: {
+    artId: 'card_double_tap',
+    name: '雙發速射',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器',
+    conceptLore: 'Q版圓潤左輪手槍同時射出兩枚帶有俏皮笑臉的大子彈，伴隨金色漫畫星芒與逗趣雙重煙霧。',
+    imageUrl: '/cards/combat/card_double_tap.png',
+  },
+  card_shield_slam: {
+    artId: 'card_shield_slam',
+    name: '護甲猛擊',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器',
+    conceptLore: '可愛Q版小警探高舉不成比例的巨大防暴鐵盾向前猛衝撞擊，震盪出鮮明漫畫狀撞擊星火與速度線。',
+    imageUrl: '/cards/combat/card_shield_slam.png',
+  },
+  card_weakpoint_snipe: {
+    artId: 'card_weakpoint_snipe',
+    name: '弱點狙擊',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器',
+    conceptLore: '復古卡通獵槍透過圓形狙擊鏡鎖定閃亮可愛的紅色破綻愛心標記，精準射線帶來逗趣致命反差。',
+    imageUrl: '/cards/combat/card_weakpoint_snipe.png',
+  },
+  card_tactical_feint: {
+    artId: 'card_tactical_feint',
+    name: '戰術佯攻',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器',
+    conceptLore: '敏捷的Q版偵探靈巧側翻留下虛線殘影，持小刀虛晃一招，讓紫色觸手怪物暈頭轉向滿頭問號。',
+    imageUrl: '/cards/combat/card_tactical_feint.png',
+  },
 
   // === SKILL CARDS (Realistic Style) ===
   card_sedative: {
@@ -149,6 +185,42 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '軍用卡其帆布急救包與白底紅十字標章，隨附棉質止血繃帶與防腐碘酒藥瓶。',
     imageUrl: '/cards/skill/card_first_aid.png',
   },
+  card_veteran_instinct: {
+    artId: 'card_veteran_instinct',
+    name: '老兵本能',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝',
+    conceptLore: '一戰戰壕老兵滿是泥濘與老繭的粗糙雙手，緊握軍刀握柄與黃銅懷錶，在昏暗提燈下沉著備戰。',
+    imageUrl: '/cards/skill/card_veteran_instinct.png',
+  },
+  card_astral_refraction: {
+    artId: 'card_astral_refraction',
+    name: '星界折射',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝',
+    conceptLore: '古典書房中調查員轉動多面體玻璃稜鏡，將冷色星芒折射為幾何守護陣，精密投射於古籍羊皮紙上。',
+    imageUrl: '/cards/skill/card_astral_refraction.png',
+  },
+  card_field_bandage: {
+    artId: 'card_field_bandage',
+    name: '戰地急救繃帶',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝',
+    conceptLore: '粗糙木板上的戰地醫療靜物，厚棉布繃帶、深棕色烈酒藥瓶、弧形縫合針線與黃色硫磺消毒粉末。',
+    imageUrl: '/cards/skill/card_field_bandage.png',
+  },
+  card_calm_observation: {
+    artId: 'card_calm_observation',
+    name: '冷靜觀察',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝',
+    conceptLore: '皮革手套手持精緻黃銅放大鏡端詳調查筆記上的解剖草圖，黃銅馬燈在陰暗藏書館投射沉靜專注的光影。',
+    imageUrl: '/cards/skill/card_calm_observation.png',
+  },
 
   // === MAGIC CARDS (Sunny High Fantasy Style) ===
   card_magic_blast: {
@@ -186,6 +258,24 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleName: '星空秘法',
     conceptLore: '明麗紫色光譜中的琉璃音波同心漣漪，宛如仙境微光羽毛撫過心靈。',
     imageUrl: '/cards/magic/card_dread_whisper.png',
+  },
+  card_whispers_of_madness: {
+    artId: 'card_whispers_of_madness',
+    name: '狂亂低語',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法',
+    conceptLore: '明媚陽光下飛揚著七彩繽紛的魔導音符與夢幻光環，絢爛紫金光粒如精靈般在天際跳躍起舞。',
+    imageUrl: '/cards/magic/card_whispers_of_madness.png',
+  },
+  card_abyssal_detonation: {
+    artId: 'card_abyssal_detonation',
+    name: '深淵引爆',
+    category: 'magic',
+    styleTag: 'fantasy',
+    styleName: '星空秘法',
+    conceptLore: '陽光明媚的青翠草地上綻放華麗的紫金召喚法陣，璀璨水晶簇升騰爆發出煙火般炫目的慶典式魔力光芒。',
+    imageUrl: '/cards/magic/card_abyssal_detonation.png',
   },
 
   // === TRUTH CARDS (Cosmic Horror Style) ===
@@ -242,6 +332,24 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     styleName: '舊日啟示',
     conceptLore: '神聖崇高的銀白天體光壁長城，在星穹邊緣抵禦不可名狀的舊日浪潮。',
     imageUrl: '/cards/truth/card_breakwater.png',
+  },
+  card_tide_of_truth: {
+    artId: 'card_tide_of_truth',
+    name: '真相潮汐',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示',
+    conceptLore: '浩瀚星海與多維虛空邊界湧動的宇宙真相潮汐，冰冷純銀與暗紫星光交織，巨大克蘇魯天眼在浪潮深處俯瞰凡世。',
+    imageUrl: '/cards/truth/card_tide_of_truth.png',
+  },
+  card_remnant_seal: {
+    artId: 'card_remnant_seal',
+    name: '舊印殘印',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示',
+    conceptLore: '古老玄武岩石板上殘存發光的舊印五芒星微光，冰冷銀白符文在星穹虛空中發出古老威壓，封鎮深淵侵蝕。',
+    imageUrl: '/cards/truth/card_remnant_seal.png',
   },
 
   // === MADNESS CARDS (Visceral Abyss Style) ===
@@ -499,7 +607,7 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
 };
 
 /**
- * All unique card artworks list for Compendium (All 48 game cards with 100% completed dedicated artworks)
+ * All unique card artworks list for Compendium (All 64 game cards with 100% completed dedicated artworks)
  */
 export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);
 
@@ -517,7 +625,7 @@ export const WIP_CARD_ARTWORK: CardArtworkInfo = {
 };
 
 /**
- * Cards currently pending dedicated illustrations (Empty Set: all 48 cards now have completed dedicated illustrations)
+ * Cards currently pending dedicated illustrations (Empty Set: all 64 cards now have completed dedicated illustrations)
  */
 export const WIP_TIERED_CARD_NAMES = new Set<string>();
 

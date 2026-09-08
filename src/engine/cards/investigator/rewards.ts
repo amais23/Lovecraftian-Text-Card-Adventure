@@ -59,7 +59,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_revolver.webp',
+    artworkUrl: '/cards/combat/card_double_tap.png',
     effects: [{ type: 'damage', value: 4, hitCount: 2 }],
     description: '造成 4 點物理傷害。連續射擊 2 次，每段獨立享受力量與易傷加成。',
     flavorText: '「在怪物撲上前，兩顆子彈已帶著火光精準破膛而出。」',
@@ -74,7 +74,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 1,
     keywords: ['innate', 'exhaust'],
     occupations: ['investigator'],
-    artworkUrl: '/cards/skill/card_breathe.webp',
+    artworkUrl: '/cards/skill/card_veteran_instinct.png',
     effects: [
       { type: 'armor', value: 6 },
       { type: 'apply_status', statusType: 'might', value: 2, target: 'self' },
@@ -93,7 +93,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     isTemporary: false,
     tier: 2,
     occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_punch.webp',
+    artworkUrl: '/cards/combat/card_shield_slam.png',
     effects: [{ type: 'damage', value: 4, scaleFrom: 'armor', scaleMultiplier: 1.0 }],
     description: '造成 4 點物理傷害，並附加等同於當前護甲的衝擊傷害。',
     flavorText: '「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」',
@@ -107,7 +107,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     isTemporary: false,
     tier: 2,
     occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_revolver.webp',
+    artworkUrl: '/cards/combat/card_weakpoint_snipe.png',
     effects: [
       {
         type: 'damage',

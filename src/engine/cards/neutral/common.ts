@@ -46,7 +46,7 @@ export const NEUTRAL_CARDS: Card[] = [
     tier: 1,
     keywords: ['exhaust'],
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_cover.webp',
+    artworkUrl: '/cards/skill/card_field_bandage.png',
     effects: [
       { type: 'heal', value: 4 },
       { type: 'armor', value: 4 },
@@ -63,7 +63,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/combat/card_punch.webp',
+    artworkUrl: '/cards/combat/card_tactical_feint.png',
     effects: [
       { type: 'damage', value: 5 },
       { type: 'apply_status', statusType: 'vulnerable', value: 2, target: 'enemy' },
@@ -80,7 +80,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_breathe.webp',
+    artworkUrl: '/cards/skill/card_calm_observation.png',
     effects: [
       { type: 'armor', value: 5 },
       { type: 'draw', value: 2 },
@@ -100,7 +100,7 @@ export const NEUTRAL_CARDS: Card[] = [
     tier: 2,
     keywords: ['exhaust'],
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/truth/card_silver_key.webp',
+    artworkUrl: '/cards/truth/card_remnant_seal.png',
     effects: [
       { type: 'armor', value: 12 },
       { type: 'restore_sanity', value: 2 },
