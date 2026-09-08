@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useLayoutEffect } from 'react';
+import React, { useRef, useState, useCallback, useLayoutEffect, useEffect } from 'react';
 import type { GameAction, GameState, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
@@ -19,6 +19,7 @@ import {
   Key,
   Droplets,
   Ghost,
+  Sparkles,
 } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
 
@@ -96,7 +97,7 @@ const NODE_TYPE_CONFIG: Record<
 const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = {
   1: {
     title: '第一深度：阿卡姆封鎖區 · 調查路線圖',
-    subtitle: '選擇連通節點啟程探索，步步逼近修格斯幼體之巢穴',
+    subtitle: '選擇連通節點啟程探索，十六層長征直通修格斯幼體之巢穴',
   },
   2: {
     title: '第二深度：深潛者海蝕迷宮 · 調查路線圖',
@@ -113,21 +114,30 @@ const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = 
 };
 
 /**
- * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標（用於無 DOM 測量時的平滑降級）
+ * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標（無 DOM 測量時的平滑降級）
  */
 function getNodeCoordinates(node: MapNode, map: InvestigationMap): { x: string; y: string } {
   const layerLength = map.layers[node.layer]?.length ?? 1;
+  const totalLayers = map.layers.length;
+  // 縱向翻轉：Layer 0 在底，Layer totalLayers-1 在頂
+  const visualRow = totalLayers - 1 - node.layer;
   return {
     x: `${(node.col + 1) * (100 / (layerLength + 1))}%`,
-    y: `${node.layer * 160 + 75}px`,
+    y: `${visualRow * 140 + 70}px`,
   };
 }
 
 export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const map = state.map;
   const investigator = state.investigator;
+  const viewportRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+
+  // 滑鼠拖曳卷軸手勢狀態
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartY, setDragStartY] = useState(0);
+  const [scrollStartY, setScrollStartY] = useState(0);
 
   const updatePositions = useCallback(() => {
     if (!canvasRef.current || !map) return;
@@ -154,6 +164,26 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
     return () => window.removeEventListener('resize', updatePositions);
   }, [updatePositions]);
 
+  // 載入時平滑自動聚焦於當前所在層級（由底往上自動滾動至目標）
+  useEffect(() => {
+    if (!map) return;
+    const targetId = map.currentNodeId
+      ? `map-node-${map.currentNodeId}`
+      : map.layers[0]?.[0]
+      ? `map-node-${map.layers[0][0]}`
+      : null;
+
+    if (targetId) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [map?.currentNodeId, map?.depth]);
+
   const permanentDeckCapacity = [
     ...state.sanityDeck,
     ...state.hand,
@@ -170,6 +200,25 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
     }
   };
 
+  // 支援拖曳瀏覽縱向卷軸
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.map-node-card.accessible')) return;
+    if (!viewportRef.current) return;
+    setIsDragging(true);
+    setDragStartY(e.clientY);
+    setScrollStartY(viewportRef.current.scrollTop);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !viewportRef.current) return;
+    const deltaY = e.clientY - dragStartY;
+    viewportRef.current.scrollTop = scrollStartY - deltaY;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
+
   if (!map) {
     return (
       <div className="map-screen-container">
@@ -182,6 +231,14 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const depthInfo = DEPTH_DISPLAY_INFO[currentDepth] ?? DEPTH_DISPLAY_INFO[1];
   const currentLayer = map.currentNodeId ? (map.nodes[map.currentNodeId]?.layer ?? 0) + 1 : 1;
   const totalLayers = map.layers.length;
+
+  // 縱向羊皮紙卷軸由下往上：頂部為守關首領（Layer totalLayers-1），底部為起始入口（Layer 0）
+  const reversedLayers = map.layers
+    .map((nodeIds, originalIndex) => ({
+      layerIndex: originalIndex,
+      nodeIds,
+    }))
+    .reverse();
 
   return (
     <div className="map-screen-container">
@@ -209,7 +266,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         </div>
 
         <div className="map-header-right">
-          {/* Exploration Node Progress */}
+          {/* Exploration Floor Progress */}
           <div
             className="map-status-pill progress"
             title={`調查探索進度：當前位於第 ${currentLayer} / ${totalLayers} 層級`}
@@ -242,17 +299,31 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         </div>
       </header>
 
-      {/* Main Map DAG Viewport */}
-      <main className="map-viewport">
-        <div ref={canvasRef} className="map-canvas">
-          {/* SVG Connecting Lines between reachable nodes */}
+      {/* Main Map Vertical Parchment Scroll Viewport */}
+      <main
+        ref={viewportRef}
+        className={`map-viewport vertical-parchment-scroll ${isDragging ? 'is-dragging' : ''}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+      >
+        <div ref={canvasRef} className="map-canvas parchment-canvas">
+          {/* SVG Connecting Bezier Ink Curves between reachable nodes */}
           <svg className="map-connections-svg">
+            <defs>
+              <linearGradient id="activeInkGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stopColor="#d4af37" stopOpacity="0.6" />
+                <stop offset="50%" stopColor="#ffd700" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#ffe680" stopOpacity="1" />
+              </linearGradient>
+            </defs>
+
             {map.layers.map((layerNodeIds) =>
               layerNodeIds.map((nodeId) => {
                 const node = map.nodes[nodeId];
                 if (!node || !node.nextNodes.length) return null;
 
-                // Connect from this node to its next nodes
                 return node.nextNodes.map((targetId) => {
                   const target = map.nodes[targetId];
                   if (!target) return null;
@@ -265,100 +336,155 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                   const targetPos = nodePositions[target.id];
 
                   const sourceCoord = sourcePos
-                    ? { x: `${sourcePos.x}px`, y: `${sourcePos.y}px` }
-                    : getNodeCoordinates(node, map);
+                    ? { x: sourcePos.x, y: sourcePos.y }
+                    : {
+                        x: parseFloat(getNodeCoordinates(node, map).x),
+                        y: parseFloat(getNodeCoordinates(node, map).y),
+                      };
                   const targetCoord = targetPos
-                    ? { x: `${targetPos.x}px`, y: `${targetPos.y}px` }
-                    : getNodeCoordinates(target, map);
+                    ? { x: targetPos.x, y: targetPos.y }
+                    : {
+                        x: parseFloat(getNodeCoordinates(target, map).x),
+                        y: parseFloat(getNodeCoordinates(target, map).y),
+                      };
+
+                  // 墨水三次貝茲曲線 (Cubic Bezier S-Curve)
+                  const deltaY = targetCoord.y - sourceCoord.y;
+                  const curveD = `M ${sourceCoord.x} ${sourceCoord.y} C ${sourceCoord.x} ${
+                    sourceCoord.y + deltaY * 0.5
+                  }, ${targetCoord.x} ${sourceCoord.y + deltaY * 0.5}, ${targetCoord.x} ${targetCoord.y}`;
 
                   return (
-                    <line
-                      key={`${node.id}->${target.id}`}
-                      x1={sourceCoord.x}
-                      y1={sourceCoord.y}
-                      x2={targetCoord.x}
-                      y2={targetCoord.y}
-                      stroke={isPathAvailable ? '#d4af37' : 'rgba(255, 255, 255, 0.15)'}
-                      strokeWidth={isPathAvailable ? 2.5 : 1.5}
-                      strokeDasharray={isPathAvailable ? 'none' : '4 4'}
-                      className={isPathAvailable ? 'map-line-active' : 'map-line-inactive'}
-                    />
+                    <g key={`${node.id}->${target.id}`}>
+                      {/* Base Retro Ink Curve */}
+                      <path
+                        d={curveD}
+                        className={
+                          isPathAvailable
+                            ? 'map-ink-path map-ink-path-active'
+                            : node.status === 'visited'
+                            ? 'map-ink-path map-ink-path-visited'
+                            : 'map-ink-path'
+                        }
+                      />
+                      {/* Backward-compatibility line for coordinate testing */}
+                      <line
+                        x1={sourceCoord.x}
+                        y1={sourceCoord.y}
+                        x2={targetCoord.x}
+                        y2={targetCoord.y}
+                        style={{ display: 'none' }}
+                      />
+                    </g>
                   );
                 });
               })
             )}
           </svg>
 
-          {/* Render Nodes by Layer */}
-          {map.layers.map((layerNodeIds, layerIndex) => (
-            <div key={`layer_${layerIndex}`} className="map-layer-row">
-              <div className="map-layer-indicator">
-                <span>層級 {layerIndex + 1}</span>
-              </div>
+          {/* Render Layers Vertically from Top (Boss) to Bottom (Entry) */}
+          {reversedLayers.map(({ layerIndex, nodeIds }) => {
+            const isMidDepthHaven = layerIndex === 8 && currentDepth <= 3;
+            const isBossLayer = layerIndex === totalLayers - 1;
 
-              <div className="map-layer-nodes">
-                {layerNodeIds.map((nodeId) => {
-                  const node = map.nodes[nodeId];
-                  if (!node) return null;
-                  const config = NODE_TYPE_CONFIG[node.type];
-                  const isAccessible = node.status === 'accessible';
-                  const isCurrent = node.status === 'current';
-                  const isVisited = node.status === 'visited';
+            return (
+              <div
+                key={`layer_${layerIndex}`}
+                className={`map-layer-row ${isMidDepthHaven ? 'haven-layer-row' : ''} ${
+                  isBossLayer ? 'boss-layer-row' : ''
+                }`}
+              >
+                <div className="map-layer-indicator">
+                  <span className="layer-tag">層級 {layerIndex + 1}</span>
+                  {isMidDepthHaven && (
+                    <span className="haven-layer-tag" title="第 8 層中繼避難所：全圖安全休整點">
+                      <Sparkles size={12} color="#74c69d" />
+                      豐饒中繼站
+                    </span>
+                  )}
+                  {isBossLayer && (
+                    <span className="boss-layer-tag">
+                      <Skull size={12} color="#ff4d5a" />
+                      舊日宿敵
+                    </span>
+                  )}
+                </div>
 
-                  return (
-                    <div
-                      key={node.id}
-                      id={`map-node-${node.id}`}
-                      className={`map-node-card ${node.type} ${node.status}`}
-                      onClick={() => handleNodeClick(node)}
-                      title={
-                        isAccessible
-                          ? `點選前往【${node.title}】（${config.label}）`
-                          : isCurrent
-                          ? `當前停留處：【${node.title}】`
-                          : isVisited
-                          ? `已調查完畢：【${node.title}】`
-                          : `尚未到達：【${node.title}】`
-                      }
-                    >
-                      {/* Node Icon Avatar */}
-                      <div className="map-node-icon-circle">
-                        {isVisited ? (
-                          <CheckCircle2 size={20} color="#74c69d" />
-                        ) : isCurrent ? (
-                          <Navigation size={22} color="#ffd700" className="current-pin" />
-                        ) : (
-                          config.icon
+                <div className="map-layer-nodes">
+                  {nodeIds.map((nodeId) => {
+                    const node = map.nodes[nodeId];
+                    if (!node) return null;
+                    const config = NODE_TYPE_CONFIG[node.type];
+                    const isAccessible = node.status === 'accessible';
+                    const isCurrent = node.status === 'current';
+                    const isVisited = node.status === 'visited';
+
+                    return (
+                      <div
+                        key={node.id}
+                        id={`map-node-${node.id}`}
+                        className={`map-node-card ${node.type} ${node.status} ${
+                          isAccessible ? 'candle-breathing' : ''
+                        } ${isCurrent ? 'current-scroll-target' : ''}`}
+                        onClick={() => handleNodeClick(node)}
+                        title={
+                          isAccessible
+                            ? `點選前往【${node.title}】（${config.label}）`
+                            : isCurrent
+                            ? `當前停留處：【${node.title}】`
+                            : isVisited
+                            ? `已調查完畢：【${node.title}】`
+                            : `尚未到達：【${node.title}】`
+                        }
+                      >
+                        {/* Accessible Candlelight Breathing Micro-glow */}
+                        {isAccessible && <div className="candle-aura-glow" />}
+
+                        {/* Node Icon Avatar */}
+                        <div className="map-node-icon-circle">
+                          {isVisited ? (
+                            <CheckCircle2 size={20} color="#74c69d" />
+                          ) : isCurrent ? (
+                            <Navigation size={22} color="#ffd700" className="current-pin" />
+                          ) : isAccessible ? (
+                            <div className="accessible-icon-wrapper">
+                              {config.icon}
+                              <Flame size={12} className="candle-spark" />
+                            </div>
+                          ) : (
+                            config.icon
+                          )}
+                        </div>
+
+                        {/* Node Texts */}
+                        <div className="map-node-details">
+                          <span className="map-node-type-label" style={{ color: config.color }}>
+                            {config.label}
+                          </span>
+                          <h4 className="map-node-title">{node.title}</h4>
+                          <p className="map-node-desc">{node.description}</p>
+                        </div>
+
+                        {/* Accessible indicator button */}
+                        {isAccessible && (
+                          <div className="map-node-enter-badge candle-button-glow">
+                            <Flame size={12} color="#120e03" />
+                            <span>啟程探索</span>
+                          </div>
+                        )}
+
+                        {isCurrent && (
+                          <div className="map-node-current-badge">
+                            <span>目前位置</span>
+                          </div>
                         )}
                       </div>
-
-                      {/* Node Texts */}
-                      <div className="map-node-details">
-                        <span className="map-node-type-label" style={{ color: config.color }}>
-                          {config.label}
-                        </span>
-                        <h4 className="map-node-title">{node.title}</h4>
-                        <p className="map-node-desc">{node.description}</p>
-                      </div>
-
-                      {/* Accessible indicator button */}
-                      {isAccessible && (
-                        <div className="map-node-enter-badge">
-                          <span>啟程探索</span>
-                        </div>
-                      )}
-
-                      {isCurrent && (
-                        <div className="map-node-current-badge">
-                          <span>目前位置</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
 

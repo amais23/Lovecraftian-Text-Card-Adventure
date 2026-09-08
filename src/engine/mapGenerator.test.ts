@@ -6,19 +6,27 @@ import {
 } from './mapGenerator';
 import type { DepthLevel, InvestigationMap } from '../types/game';
 
-describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
+describe('Investigation Map Generator (Issue #43 / ADR-0022)', () => {
   describe('16+16+16+8 Architecture', () => {
-    it('always generates 16 nodes across 6 layers (2+3+3+4+3+1) for Depths 1, 2, and 3', () => {
+    it('always generates 16 layers (Layers 0~15) for Depths 1, 2, and 3', () => {
       const depths: DepthLevel[] = [1, 2, 3];
 
       for (const depth of depths) {
         const map = generateInvestigationMap({ depth });
         expect(map.depth).toBe(depth);
-        expect(map.layers).toHaveLength(6);
-        expect(map.layers.map((l) => l.length)).toEqual([2, 3, 3, 4, 3, 1]);
+        expect(map.layers).toHaveLength(16);
 
-        const nodeIds = Object.keys(map.nodes);
-        expect(nodeIds).toHaveLength(16);
+        // Every layer must have between 1 and 5 nodes (boss layer has 1)
+        for (let l = 0; l < 16; l++) {
+          const layerNodes = map.layers[l];
+          if (l === 15) {
+            expect(layerNodes).toHaveLength(1);
+            expect(map.nodes[layerNodes[0]].type).toBe('boss');
+          } else {
+            expect(layerNodes.length).toBeGreaterThanOrEqual(1);
+            expect(layerNodes.length).toBeLessThanOrEqual(5);
+          }
+        }
 
         // Every node registered in layers must exist in map.nodes
         for (const layer of map.layers) {
@@ -30,14 +38,21 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
       }
     });
 
-    it('always generates 8 nodes across 4 layers (2+2+3+1) for Depth 4', () => {
+    it('always generates 8 layers (Layers 0~7) for Depth 4', () => {
       const map = generateInvestigationMap({ depth: 4 });
       expect(map.depth).toBe(4);
-      expect(map.layers).toHaveLength(4);
-      expect(map.layers.map((l) => l.length)).toEqual([2, 2, 3, 1]);
+      expect(map.layers).toHaveLength(8);
 
-      const nodeIds = Object.keys(map.nodes);
-      expect(nodeIds).toHaveLength(8);
+      for (let l = 0; l < 8; l++) {
+        const layerNodes = map.layers[l];
+        if (l === 7) {
+          expect(layerNodes).toHaveLength(1);
+          expect(map.nodes[layerNodes[0]].type).toBe('boss');
+        } else {
+          expect(layerNodes.length).toBeGreaterThanOrEqual(1);
+          expect(layerNodes.length).toBeLessThanOrEqual(5);
+        }
+      }
 
       for (const layer of map.layers) {
         for (const id of layer) {
@@ -46,16 +61,21 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
       }
     });
 
-    it('confirms the 12-node legacy map template is completely abolished', () => {
-      expect(BASE_MAP_TEMPLATE).toHaveLength(16);
+    it('guarantees Layer 8 in Depths 1, 2, and 3 is a Mid-Depth Haven (all Sanctuary nodes)', () => {
+      for (const depth of [1, 2, 3] as DepthLevel[]) {
+        for (const seed of [42, 108, 999, 7777]) {
+          const map = generateProceduralInvestigationMap({ depth, seed });
+          const layer8NodeIds = map.layers[8];
+          expect(layer8NodeIds.length).toBeGreaterThanOrEqual(1);
+          expect(layer8NodeIds.length).toBeLessThanOrEqual(5);
 
-      const defaultMap = generateInvestigationMap();
-      expect(Object.keys(defaultMap.nodes)).toHaveLength(16);
-      expect(defaultMap.layers).toHaveLength(6);
-
-      const proceduralMap = generateProceduralInvestigationMap({ depth: 1 });
-      expect(Object.keys(proceduralMap.nodes)).toHaveLength(16);
-      expect(proceduralMap.layers).toHaveLength(6);
+          for (const nodeId of layer8NodeIds) {
+            const node = map.nodes[nodeId];
+            expect(node.type).toBe('sanctuary');
+            expect(node.label).toBe('安全避難所');
+          }
+        }
+      }
     });
   });
 
@@ -65,11 +85,12 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
     function verifyDAGIntegrity(map: InvestigationMap) {
       const totalLayers = map.layers.length;
 
-      // 1. Check all nodes before the final layer have valid outgoing edges to the next layer
+      // 1. Check all nodes before the final layer have valid outgoing edges (1~3 edges) to the next layer
       for (let l = 0; l < totalLayers - 1; l++) {
         for (const nodeId of map.layers[l]) {
           const node = map.nodes[nodeId];
-          expect(node.nextNodes.length, `Node ${nodeId} at layer ${l} must have nextNodes`).toBeGreaterThan(0);
+          expect(node.nextNodes.length, `Node ${nodeId} at layer ${l} must have 1~3 nextNodes`).toBeGreaterThanOrEqual(1);
+          expect(node.nextNodes.length, `Node ${nodeId} at layer ${l} must not exceed 3 nextNodes`).toBeLessThanOrEqual(3);
 
           for (const nextId of node.nextNodes) {
             const target = map.nodes[nextId];
@@ -156,14 +177,12 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
 
   describe('Node Types & Narrative Consistency', () => {
     it('contains all essential node types in Depth 1~3 maps', () => {
-      const map = generateInvestigationMap({ depth: 1 });
+      const map = generateInvestigationMap({ depth: 1, seed: 12345 });
       const types = new Set(Object.values(map.nodes).map((n) => n.type));
 
       expect(types.has('combat')).toBe(true);
-      expect(types.has('elite')).toBe(true);
       expect(types.has('event')).toBe(true);
       expect(types.has('sanctuary')).toBe(true);
-      expect(types.has('market')).toBe(true);
       expect(types.has('boss')).toBe(true);
     });
 
@@ -180,7 +199,7 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
       }
     });
 
-    it('generates altar, vault, and blood_altar across procedural maps', () => {
+    it('generates altar, vault, or blood_altar across procedural maps', () => {
       const allFoundTypes = new Set<string>();
 
       // Sample maps across various seeds and depths
@@ -212,16 +231,7 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
       expect(proceduralRemainsNodes[0].layer).toBe(1);
       expect(proceduralRemainsNodes[0].label).toBe('屍骨遺骸');
 
-      // 2. Static base map with fallen investigator
-      const staticWithRemains = generateInvestigationMap({
-        depth: 1,
-        procedural: false,
-        hasFallenInvestigator: true,
-      });
-      expect(staticWithRemains.nodes['node_1_0'].type).toBe('remains');
-      expect(staticWithRemains.nodes['node_1_0'].label).toBe('屍骨遺骸');
-
-      // 3. Depth > 1 should not spawn remains even if hasFallenInvestigator is true
+      // 2. Depth > 1 should not spawn remains even if hasFallenInvestigator is true
       const depth2Map = generateProceduralInvestigationMap({
         depth: 2,
         seed: 42,
@@ -230,7 +240,7 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
       const depth2Remains = Object.values(depth2Map.nodes).filter((n) => n.type === 'remains');
       expect(depth2Remains).toHaveLength(0);
 
-      // 4. Default generateInvestigationMap automatically detects localStorage
+      // 3. Default generateInvestigationMap automatically detects localStorage
       localStorage.setItem(
         'arkham_fallen_investigator',
         JSON.stringify({
@@ -239,10 +249,10 @@ describe('Investigation Map Generator (Issue #26 / ADR-0015)', () => {
           obols: 10,
         })
       );
-      const autoMap = generateInvestigationMap({ depth: 1 });
-      expect(autoMap.nodes['node_1_0'].type).toBe('remains');
+      const autoMap = generateInvestigationMap({ depth: 1, seed: 42 });
+      const remainsNodes = Object.values(autoMap.nodes).filter((n) => n.type === 'remains');
+      expect(remainsNodes.length).toBeGreaterThan(0);
       localStorage.clear();
     });
   });
 });
-

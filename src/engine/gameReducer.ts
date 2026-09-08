@@ -627,7 +627,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const allCards = ensureUniqueCardIds(occ.deck.map((c) => ({ ...c })));
       const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, investigator.handCapacity);
       const enemy = cloneEnemy(INITIAL_GHOUL);
-      const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap({ depth: 1 }) : generateInvestigationMap({ depth: 1 }));
+      const map = action.payload.map ?? (action.payload.procedural ? generateProceduralInvestigationMap({ depth: 1, procedural: true }) : generateInvestigationMap({ depth: 1 }));
       const defaultPhase = state.phase === 'occupation_select' ? 'departure' : 'map';
       const nextPhase = action.payload.initialPhase ?? defaultPhase;
 

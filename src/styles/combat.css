@@ -2392,9 +2392,36 @@
   flex: 1;
   padding: 30px 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   justify-content: center;
   z-index: 10;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.45) rgba(10, 14, 20, 0.7);
+}
+
+.map-viewport.vertical-parchment-scroll {
+  cursor: grab;
+}
+
+.map-viewport.vertical-parchment-scroll.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.map-viewport::-webkit-scrollbar {
+  width: 7px;
+}
+
+.map-viewport::-webkit-scrollbar-track {
+  background: rgba(10, 14, 20, 0.7);
+  border-left: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.map-viewport::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af37, #8c6d23);
+  border-radius: 4px;
 }
 
 .map-canvas {
@@ -2403,8 +2430,12 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 36px;
-  padding: 20px 0 60px;
+  gap: 28px;
+  padding: 30px 0 80px;
+}
+
+.current-scroll-target {
+  scroll-initial-target: nearest;
 }
 
 .map-connections-svg {
@@ -2417,13 +2448,39 @@
   z-index: 1;
 }
 
-.map-line-active {
-  animation: mapLinePulse 2s infinite ease-in-out;
+/* Retro Ink Bezier Curve Paths (ADR-0022) */
+.map-ink-path {
+  fill: none;
+  stroke: rgba(200, 180, 150, 0.2);
+  stroke-width: 2.2px;
+  stroke-linecap: round;
+  stroke-dasharray: 4 3;
+  transition: all 0.3s ease;
 }
 
-@keyframes mapLinePulse {
-  0%, 100% { stroke-opacity: 0.6; }
-  50% { stroke-opacity: 1; stroke-width: 3.5px; }
+.map-ink-path-visited {
+  stroke: rgba(116, 198, 157, 0.5);
+  stroke-width: 2.8px;
+  stroke-dasharray: none;
+}
+
+.map-ink-path-active {
+  stroke: url(#activeInkGradient);
+  stroke-width: 3.5px;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+  animation: inkFlowPulse 2.2s infinite ease-in-out;
+}
+
+@keyframes inkFlowPulse {
+  0%, 100% {
+    stroke-opacity: 0.75;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
+  }
+  50% {
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.9));
+  }
 }
 
 .map-layer-row {
@@ -2432,10 +2489,32 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+/* Mid-Depth Haven (Layer 8) Special Ambient Glow */
+.map-layer-row.haven-layer-row {
+  background: radial-gradient(ellipse at center, rgba(116, 198, 157, 0.1) 0%, rgba(116, 198, 157, 0.02) 75%, transparent 100%);
+  border: 1px dashed rgba(116, 198, 157, 0.35);
+  box-shadow: inset 0 0 20px rgba(116, 198, 157, 0.06);
+}
+
+.map-layer-row.boss-layer-row {
+  background: radial-gradient(ellipse at center, rgba(199, 125, 255, 0.12) 0%, rgba(199, 125, 255, 0.02) 75%, transparent 100%);
+  border: 1px solid rgba(199, 125, 255, 0.35);
 }
 
 .map-layer-indicator {
-  width: 60px;
+  width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.map-layer-indicator .layer-tag {
   font-family: var(--font-title);
   font-size: 0.75rem;
   color: var(--text-dim);
@@ -2443,21 +2522,51 @@
   letter-spacing: 1px;
 }
 
+.haven-layer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #74c69d;
+  background: rgba(116, 198, 157, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(116, 198, 157, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.boss-layer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ff4d5a;
+  background: rgba(255, 77, 90, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 77, 90, 0.3);
+}
+
 .map-layer-nodes {
   flex: 1;
   display: flex;
   justify-content: space-around;
-  gap: 20px;
+  gap: 16px;
 }
 
 .map-node-card {
   flex: 1;
-  max-width: 280px;
+  max-width: 260px;
+  min-width: 140px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 16px;
+  padding: 12px 14px;
   border-radius: var(--radius-md);
   background: rgba(14, 18, 25, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -2467,22 +2576,58 @@
   cursor: default;
 }
 
-.map-node-card.accessible {
+/* Candlelight Breathing Micro-glow for Accessible Nodes (ADR-0022) */
+.map-node-card.candle-breathing {
   cursor: pointer;
   border-color: #ffd700;
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.35);
-  animation: accessibleNodePulse 2s infinite ease-in-out;
+  animation: candleBreathingGlow 2.3s infinite ease-in-out;
 }
 
-@keyframes accessibleNodePulse {
-  0%, 100% { transform: translateY(0); box-shadow: 0 0 14px rgba(255, 215, 0, 0.35); }
-  50% { transform: translateY(-4px); box-shadow: 0 0 22px rgba(255, 215, 0, 0.65); }
+@keyframes candleBreathingGlow {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.4), 0 0 24px rgba(255, 140, 0, 0.25);
+    border-color: #ffd700;
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.75), 0 0 40px rgba(255, 160, 20, 0.45);
+    border-color: #ffe066;
+  }
 }
 
-.map-node-card.accessible:hover {
-  transform: translateY(-6px) scale(1.02);
-  border-color: #ffe066;
-  box-shadow: 0 0 28px rgba(255, 215, 0, 0.8);
+.map-node-card.candle-breathing:hover {
+  transform: translateY(-5px) scale(1.04);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 0 0 50px rgba(255, 180, 40, 0.6);
+  border-color: #fff176;
+}
+
+.accessible-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.candle-spark {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  color: #ffd700;
+  filter: drop-shadow(0 0 4px #ffa500);
+  animation: sparkFlicker 1.4s infinite alternate ease-in-out;
+}
+
+@keyframes sparkFlicker {
+  0% { transform: scale(0.9) rotate(-4deg); opacity: 0.75; }
+  100% { transform: scale(1.25) rotate(6deg); opacity: 1; }
+}
+
+.candle-button-glow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .map-node-card.current {
@@ -2503,18 +2648,18 @@
 
 .map-node-card.boss {
   border-color: #c77dff;
-  max-width: 420px;
+  max-width: 380px;
 }
 
 .map-node-icon-circle {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 

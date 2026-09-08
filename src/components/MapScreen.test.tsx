@@ -22,51 +22,57 @@ function createMockMapState(depth: 1 | 2 | 3 | 4 = 1): GameState {
   };
 }
 
-describe('MapScreen Component (Issue #26)', () => {
-  it('renders 6 layers of nodes for Depth 1 map', () => {
+describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
+  it('renders 16 layers of nodes for Depth 1 map with Mid-Depth Haven on Layer 8', () => {
     const state = createMockMapState(1);
     const dispatch = vi.fn();
 
     render(<MapScreen state={state} dispatch={dispatch} />);
 
     expect(screen.getByText('第一深度：阿卡姆封鎖區 · 調查路線圖')).toBeDefined();
-    expect(screen.getByText(/進度 1 \/ 6 層/)).toBeDefined();
+    expect(screen.getByText(/進度 1 \/ 16 層/)).toBeDefined();
 
-    // Verify 6 layer indicators are displayed
-    for (let i = 1; i <= 6; i++) {
-      expect(screen.getByText(`層級 ${i}`)).toBeDefined();
+    // Verify 16 layer indicators are displayed
+    for (let i = 1; i <= 16; i++) {
+      expect(screen.getAllByText(`層級 ${i}`).length).toBeGreaterThanOrEqual(1);
     }
 
-    // Verify all 16 node cards are rendered
-    const nodeCards = document.querySelectorAll('.map-node-card');
-    expect(nodeCards.length).toBe(16);
+    // Verify Mid-Depth Haven (Layer 8) badge is displayed
+    expect(screen.getByText(/豐饒中繼站/)).toBeDefined();
 
-    // Verify SVG connection lines are rendered
-    const svgLines = document.querySelectorAll('.map-connections-svg line');
-    expect(svgLines.length).toBeGreaterThan(0);
+    // Verify Boss layer tag is displayed
+    expect(screen.getAllByText(/舊日宿敵/).length).toBeGreaterThanOrEqual(1);
+
+    // Verify SVG bezier connection paths are rendered
+    const svgPaths = document.querySelectorAll('.map-connections-svg path');
+    expect(svgPaths.length).toBeGreaterThan(0);
+
+    // Verify accessible nodes have the candle-breathing micro-glow class
+    const accessibleNodes = document.querySelectorAll('.map-node-card.accessible.candle-breathing');
+    expect(accessibleNodes.length).toBeGreaterThan(0);
   });
 
-  it('renders 4 layers of nodes for Depth 4 final map', () => {
+  it('renders 8 layers of nodes for Depth 4 final map', () => {
     const state = createMockMapState(4);
     const dispatch = vi.fn();
 
     render(<MapScreen state={state} dispatch={dispatch} />);
 
     expect(screen.getByText('第四深度：星辰正位 · 拉萊耶核心 · 終局之圖')).toBeDefined();
-    expect(screen.getByText(/進度 1 \/ 4 層/)).toBeDefined();
+    expect(screen.getByText(/進度 1 \/ 8 層/)).toBeDefined();
 
-    // Verify 4 layer indicators are displayed
-    for (let i = 1; i <= 4; i++) {
-      expect(screen.getByText(`層級 ${i}`)).toBeDefined();
+    // Verify 8 layer indicators are displayed
+    for (let i = 1; i <= 8; i++) {
+      expect(screen.getAllByText(`層級 ${i}`).length).toBeGreaterThanOrEqual(1);
     }
-    expect(screen.queryByText('層級 5')).toBeNull();
+    expect(screen.queryByText('層級 9')).toBeNull();
 
-    // Verify 8 node cards are rendered
-    const nodeCards = document.querySelectorAll('.map-node-card');
-    expect(nodeCards.length).toBe(8);
+    // Verify SVG bezier connection paths are rendered
+    const svgPaths = document.querySelectorAll('.map-connections-svg path');
+    expect(svgPaths.length).toBeGreaterThan(0);
   });
 
-  it('dispatches NAVIGATE_TO_NODE when clicking on an accessible node', () => {
+  it('dispatches NAVIGATE_TO_NODE when clicking on an accessible node with candle breathing glow', () => {
     const state = createMockMapState(1);
     const dispatch = vi.fn();
 
@@ -76,6 +82,7 @@ describe('MapScreen Component (Issue #26)', () => {
     const entryNode = document.getElementById('map-node-node_0_0');
     expect(entryNode).toBeDefined();
     expect(entryNode?.classList.contains('accessible')).toBe(true);
+    expect(entryNode?.classList.contains('candle-breathing')).toBe(true);
 
     fireEvent.click(entryNode!);
     expect(dispatch).toHaveBeenCalledWith({

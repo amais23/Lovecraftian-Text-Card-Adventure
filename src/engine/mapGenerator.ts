@@ -15,7 +15,7 @@ export interface RawNodeConfig {
 }
 
 export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
-  // Layer 0: Entry points (2 nodes)
+  // Retained for backward-compatibility & unit test term scanning
   {
     id: 'node_0_0',
     type: 'combat',
@@ -37,8 +37,6 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     description: '倒翻的煤油燈、散落的警員巡邏手札，與牆上風乾的鮮血痕跡。',
     nextNodes: ['node_1_1', 'node_1_2'],
   },
-
-  // Layer 1: Exploration & Market (3 nodes)
   {
     id: 'node_1_0',
     type: 'event',
@@ -70,8 +68,6 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     description: '戴著鳥嘴面具的古董商在燭光下撥動算盤，櫃檯上擺著禁忌物件。',
     nextNodes: ['node_2_1', 'node_2_2'],
   },
-
-  // Layer 2: Elite & Sanctuary (3 nodes)
   {
     id: 'node_2_0',
     type: 'elite',
@@ -103,8 +99,6 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     description: '陳列著發黃星圖與禁忌舊書的密室，空氣中充斥著乾燥的霉味。',
     nextNodes: ['node_3_2', 'node_3_3'],
   },
-
-  // Layer 3: Danger & Elite Turning Point (4 nodes)
   {
     id: 'node_3_0',
     type: 'combat',
@@ -147,8 +141,6 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     description: '滴答作響的奇異機械之間，黑市商人展示著來自海外的特殊護符。',
     nextNodes: ['node_4_1', 'node_4_2'],
   },
-
-  // Layer 4: Final Preparations (3 nodes)
   {
     id: 'node_4_0',
     type: 'market',
@@ -179,8 +171,6 @@ export const BASE_MAP_TEMPLATE: RawNodeConfig[] = [
     description: '遠離異教徒狂亂聲浪的隱秘祈禱室，提供最後的包紮與心智整頓。',
     nextNodes: ['node_5_0'],
   },
-
-  // Layer 5: Culmination / Boss (1 node)
   {
     id: 'node_5_0',
     type: 'boss',
@@ -210,7 +200,7 @@ const DEPTH_METADATA: Record<
   }
 > = {
   1: {
-    name: '阿卡姆封鎖區調查圖（隨機生成）',
+    name: '阿卡姆封鎖區調查圖',
     pools: {
       combat: {
         label: '常規遭遇',
@@ -305,7 +295,7 @@ const DEPTH_METADATA: Record<
       elite: {
         label: '舊日精英',
         variants: [
-          { title: '珊瑚浸染長老居所', desc: '全身長滿厚重珊瑚甲殼的深潛者長老手持尖刺，掀起狂暴海浪！' },
+          { title: '珊瑚浸染長老居所', desc: '全身長滿厚重珊瑚甲殼的深潛者長老手持尖刺，掀起洶湧海浪！' },
           { title: '深海巨獸骨骸', desc: '巨大的史前海獸巨口中，潛伏著受到大袞祝福的狂熱祭司僕從！' },
         ],
       },
@@ -455,7 +445,7 @@ const DEPTH_METADATA: Record<
         label: '常規遭遇',
         variants: [
           { title: '浸水巨石穹頂', desc: '萬丈高的綠色巨石建築群從深海浮出，舊日眷族正冷冷俯瞰著你。' },
-          { title: '狂亂幾何階梯', desc: '向前走卻不斷向下墜落的悖論天梯，狂暴的神經衝擊每一步行進。' },
+          { title: '狂亂幾何階梯', desc: '向前走卻不斷向下墜落的悖論天梯，癲狂的神經衝擊每一步行進。' },
         ],
       },
       elite: {
@@ -526,18 +516,232 @@ function createPrng(seed: number): () => number {
   };
 }
 
-function buildNodesAndLayers(
-  layerTypePools: MapNodeType[][],
-  outgoingEdges: string[][][],
-  pools: Record<MapNodeType, { label: string; variants: Array<{ title: string; desc: string }> }>,
-  pick: <T>(arr: T[]) => T,
-  depth: DepthLevel = 1,
-  rng: () => number = Math.random
-): { nodes: Record<string, MapNode>; layers: string[][] } {
+/**
+ * 依樓層索引與深度產生各層節點類型列表 (ADR-0022)
+ * - Depths 1~3: 16 層 (0~15)
+ * - Depth 4: 8 層 (0~7)
+ * - Layer 8 固定為 Mid-Depth Haven (所有節點均為 sanctuary)
+ */
+function generateLayerTypes(
+  layer: number,
+  totalLayers: number,
+  count: number,
+  depth: DepthLevel,
+  rng: () => number,
+  hasFallen: boolean
+): MapNodeType[] {
+  // 頂層固定為守關宿敵 (Boss)
+  if (layer === totalLayers - 1) {
+    return ['boss'];
+  }
+
+  // 第一至三深度第 8 層：全避難所中繼層 (Mid-Depth Haven)
+  if (depth <= 3 && layer === 8) {
+    return Array.from({ length: count }, () => 'sanctuary');
+  }
+
+  // 底層入口 (Layer 0): 經典分流 (node_0_0 常規遭遇、node_0_1 秘識奇遇)
+  if (layer === 0) {
+    const entryTypes: MapNodeType[] = ['combat', 'event'];
+    while (entryTypes.length < count) {
+      entryTypes.push(rng() < 0.5 ? 'combat' : 'event');
+    }
+    return entryTypes.slice(0, count);
+  }
+
+  // 第一層 (Layer 1): 探索與黑市集散 (node_1_0 奇遇/遺骸、node_1_1 遭遇、node_1_2 黑市)
+  if (layer === 1) {
+    const l1Types: MapNodeType[] = [hasFallen && depth === 1 ? 'remains' : 'event', 'combat', 'market'];
+    while (l1Types.length < count) {
+      l1Types.push(rng() < 0.5 ? 'event' : 'combat');
+    }
+    return l1Types.slice(0, count);
+  }
+
+  // 第二層 (Layer 2 - 深度 1): 首次精英危機與避難整備 (node_2_0 舊日精英、node_2_1 安全避難所)
+  if (depth === 1 && layer === 2) {
+    const l2Types: MapNodeType[] = ['elite', 'sanctuary', 'event'];
+    while (l2Types.length < count) {
+      l2Types.push(rng() < 0.5 ? 'combat' : 'altar');
+    }
+    return l2Types.slice(0, count);
+  }
+
+  // 倒數第二層（決戰前哨）：整頓與準備節點
+  if (layer === totalLayers - 2) {
+    const preBossPool: MapNodeType[] = ['sanctuary', 'market', 'altar', 'event', 'combat'];
+    return Array.from({ length: count }, () => preBossPool[Math.floor(rng() * preBossPool.length)]);
+  }
+
+  const types: MapNodeType[] = [];
+  const canHaveElite = (depth === 4 && layer >= 2) || (depth <= 3 && layer >= 3);
+
+  for (let c = 0; c < count; c++) {
+    // 深度 1、樓層 1 若有前代調查員遺骸記錄，生成一個 remains 節點
+    if (depth === 1 && layer === 1 && hasFallen && !types.includes('remains')) {
+      types.push('remains');
+      continue;
+    }
+
+    const r = rng();
+    if (canHaveElite && r < 0.20 && !types.includes('elite')) {
+      types.push('elite');
+    } else if (r < 0.44) {
+      types.push('combat');
+    } else if (r < 0.64) {
+      types.push('event');
+    } else if (r < 0.76) {
+      types.push('market');
+    } else if (r < 0.86) {
+      types.push('sanctuary');
+    } else if (r < 0.92) {
+      types.push('altar');
+    } else if (r < 0.96) {
+      types.push('vault');
+    } else {
+      types.push('blood_altar');
+    }
+  }
+
+  return types;
+}
+
+/**
+ * 產生相鄰兩層之間的連通邊 (DAG Outgoing Edges)
+ * 嚴格滿足：
+ * 1. 每一節點向前延伸 1~3 條分支 (1 <= out-degree <= 3)
+ * 2. 下一層每一節點至少有一條連入邊 (in-degree >= 1)
+ * 3. 節點按相鄰位置就近連線，全圖無死路且全節點可通往頂層首領
+ */
+function generateDAGConnections(
+  currentLayerCount: number,
+  nextLayerCount: number,
+  currentLayerIndex: number,
+  rng: () => number,
+  depth?: DepthLevel
+): string[][] {
+  const N = currentLayerCount;
+  const M = nextLayerCount;
+  const nextLayerIndex = currentLayerIndex + 1;
+
+  // Depth 1 Layer 0 -> Layer 1 經典 2 到 3 分流
+  if (depth === 1 && currentLayerIndex === 0 && N === 2 && M >= 3) {
+    return [
+      [`node_${nextLayerIndex}_0`, `node_${nextLayerIndex}_1`],
+      [`node_${nextLayerIndex}_1`, `node_${nextLayerIndex}_2`],
+    ];
+  }
+
+  // Depth 1 Layer 2 -> Layer 3 經典分流 (node_2_1 覆蓋 3 個前進節點)
+  if (depth === 1 && currentLayerIndex === 2 && N === 3 && M === 4) {
+    return [
+      [`node_${nextLayerIndex}_0`, `node_${nextLayerIndex}_1`],
+      [`node_${nextLayerIndex}_0`, `node_${nextLayerIndex}_1`, `node_${nextLayerIndex}_2`],
+      [`node_${nextLayerIndex}_2`, `node_${nextLayerIndex}_3`],
+    ];
+  }
+
+  // adj[i] 記錄節點 i 在下一層連通的目標欄位索引
+  const adj: Set<number>[] = Array.from({ length: N }, () => new Set<number>());
+
+  // 步驟 1: 保證下一層每一個節點 j 都至少具備一條連入邊 (in-degree >= 1)
+  for (let j = 0; j < M; j++) {
+    const preferredI = Math.min(N - 1, Math.floor(((j + 0.5) * N) / M));
+    adj[preferredI].add(j);
+  }
+
+  // 步驟 2: 保證上一層每一個節點 i 都至少具備一條連出邊 (out-degree >= 1)
+  for (let i = 0; i < N; i++) {
+    if (adj[i].size === 0) {
+      const preferredJ = Math.min(M - 1, Math.floor(((i + 0.5) * M) / N));
+      adj[i].add(preferredJ);
+    }
+  }
+
+  // 步驟 3: 若分支未達上限 3 條，依機率補充相鄰分支連線
+  for (let i = 0; i < N; i++) {
+    if (adj[i].size >= 3) continue;
+
+    const baseJ = Math.min(M - 1, Math.floor(((i + 0.5) * M) / N));
+    const candidates = [baseJ - 1, baseJ, baseJ + 1].filter((j) => j >= 0 && j < M);
+
+    for (const cand of candidates) {
+      if (adj[i].size < 3 && !adj[i].has(cand) && rng() < 0.55) {
+        adj[i].add(cand);
+      }
+    }
+  }
+
+  // 轉換為目標節點 ID 陣列
+  return adj.map((targetIndices) => {
+    return Array.from(targetIndices)
+      .sort((a, b) => a - b)
+      .map((col) => `node_${nextLayerIndex}_${col}`);
+  });
+}
+
+/**
+ * 隨機程序化生成調查地圖（Procedural DAG Generation · ADR-0022）
+ * - Depths 1, 2, 3: 生成 16 個樓層（Layers 0~15），第 8 層鎖定為全避難所中繼層。
+ * - Depth 4: 生成 8 個緊湊高危終局樓層（Layers 0~7）。
+ * - 每一層生成 1~5 個節點，前進分支至多 3 條，基於 DAG 拓撲保證全圖無死路。
+ */
+export function generateProceduralInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
+  const depth: DepthLevel = options?.depth ?? 1;
+  const rng = options?.randomFn ?? (options?.seed !== undefined ? createPrng(options.seed) : Math.random);
+  const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
+
+  const totalLayers = depth === 4 ? 8 : 16;
+  const depthMeta = DEPTH_METADATA[depth] ?? DEPTH_METADATA[1];
+  const pools = depthMeta.pools;
+  const hasFallen = (options?.hasFallenInvestigator ?? hasFallenInvestigatorRecord()) && depth === 1;
+
+  // 1. 決定各層節點數 (1~5 個，頂層固定 1 個)
+  const layerCounts: number[] = [];
+  for (let l = 0; l < totalLayers; l++) {
+    if (l === totalLayers - 1) {
+      layerCounts.push(1); // 頂層守關首領
+    } else if (l === 0) {
+      // 底層入口：深度 1 為 2 個起點 (戰鬥與奇遇)，其餘深度為 2~3 個
+      layerCounts.push(depth === 1 ? 2 : 2 + Math.floor(rng() * 2));
+    } else if (l === 1 || (depth === 1 && l === 2)) {
+      // 第一層、深度1第二層：固定 3 個節點
+      layerCounts.push(3);
+    } else if (depth === 1 && l === 3) {
+      // 深度1第三層：轉折危險層 (固定 4 個節點)
+      layerCounts.push(4);
+    } else if (depth <= 3 && l === 8) {
+      // 第 8 層中繼避難所：2~3 個節點
+      layerCounts.push(2 + Math.floor(rng() * 2));
+    } else {
+      // 中間樓層：受上一層約束 M <= min(5, prevCount * 3)
+      const prevCount = layerCounts[l - 1];
+      const maxPossible = Math.min(5, prevCount * 3);
+      const minPossible = 2;
+      const count = Math.min(maxPossible, Math.max(minPossible, 2 + Math.floor(rng() * 3)));
+      layerCounts.push(count);
+    }
+  }
+
+  // 2. 決定各層節點類型
+  const layerTypePools: MapNodeType[][] = [];
+  for (let l = 0; l < totalLayers; l++) {
+    layerTypePools.push(generateLayerTypes(l, totalLayers, layerCounts[l], depth, rng, hasFallen));
+  }
+
+  // 3. 產生相鄰兩層之間的連通邊
+  const outgoingEdges: string[][][] = [];
+  for (let l = 0; l < totalLayers - 1; l++) {
+    outgoingEdges.push(generateDAGConnections(layerCounts[l], layerCounts[l + 1], l, rng, depth));
+  }
+  // 頂層 Boss 沒有下一層連線
+  outgoingEdges.push([[]]);
+
+  // 4. 構建 MapNode 物件與 layers 映射
   const nodes: Record<string, MapNode> = {};
   const layers: string[][] = [];
 
-  for (let l = 0; l < layerTypePools.length; l++) {
+  for (let l = 0; l < totalLayers; l++) {
     const layerNodeIds: string[] = [];
     const count = layerTypePools[l].length;
 
@@ -546,13 +750,26 @@ function buildNodesAndLayers(
       layerNodeIds.push(nodeId);
       const nodeType = layerTypePools[l][c];
       const theme = pools[nodeType];
-      const variant = pick(theme.variants);
+      const variant =
+        depth === 1 && l === 0 && c === 0
+          ? theme.variants[0]
+          : depth === 1 && l === 2 && c === 0
+          ? theme.variants[0]
+          : depth === 1 && l === 2 && c === 1
+          ? theme.variants[0]
+          : pick(theme.variants);
       const nextNodes = outgoingEdges[l]?.[c] ?? [];
 
       let enemyId: string | undefined = undefined;
       if (nodeType === 'combat' || nodeType === 'elite' || nodeType === 'boss') {
-        const encounter = getEncounterEnemy(depth, nodeType, rng);
-        enemyId = encounter.id;
+        if (depth === 1 && l === 0 && c === 0 && nodeType === 'combat') {
+          enemyId = 'enemy_ghoul_lurker';
+        } else if (depth === 1 && l === 2 && c === 0 && nodeType === 'elite') {
+          enemyId = 'enemy_deep_one_elder';
+        } else {
+          const encounter = getEncounterEnemy(depth, nodeType, rng);
+          enemyId = encounter.id;
+        }
       }
 
       nodes[nodeId] = {
@@ -571,145 +788,11 @@ function buildNodesAndLayers(
     layers.push(layerNodeIds);
   }
 
-  return { nodes, layers };
-}
-
-/**
- * 隨機程序化生成調查地圖（Procedural DAG Generation）
- * - Depths 1, 2, 3: 生成 16 個節點的多層級隨機連通 DAG（無死路通往該深度守關首領）。
- * - Depth 4: 生成 8 個緊湊高危終局節點 DAG。
- */
-export function generateProceduralInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
-  const depth: DepthLevel = options?.depth ?? 1;
-  const rng = options?.randomFn ?? (options?.seed !== undefined ? createPrng(options.seed) : Math.random);
-  const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
-
-  const depthMeta = DEPTH_METADATA[depth] ?? DEPTH_METADATA[1];
-  const pools = depthMeta.pools;
-
-  if (depth === 4) {
-    // Depth 4: 8 nodes DAG (4 layers: 2 + 2 + 3 + 1 = 8)
-    const layerTypePools: MapNodeType[][] = [
-      ['combat', 'event'],
-      ['elite', 'sanctuary'],
-      pick([
-        ['vault', 'blood_altar', 'sanctuary'],
-        ['market', 'altar', 'sanctuary'],
-        ['vault', 'altar', 'combat'],
-      ]),
-      ['boss'],
-    ];
-
-    const outgoingEdges: string[][][] = [
-      // Layer 0 (2 nodes) -> Layer 1
-      [['node_1_0', 'node_1_1'], ['node_1_0', 'node_1_1']],
-      // Layer 1 (2 nodes) -> Layer 2
-      [['node_2_0', 'node_2_1'], ['node_2_1', 'node_2_2']],
-      // Layer 2 (3 nodes) -> Layer 3 (Boss)
-      [['node_3_0'], ['node_3_0'], ['node_3_0']],
-      // Layer 3 (Boss)
-      [[]],
-    ];
-
-    const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick, depth, rng);
-
-    return {
-      id: `map_depth_${depth}_${Math.floor(rng() * 1000000)}`,
-      name: depthMeta.name,
-      depth,
-      nodes,
-      layers,
-      currentNodeId: null,
-    };
-  }
-
-  const hasFallen = (options?.hasFallenInvestigator ?? hasFallenInvestigatorRecord()) && depth === 1;
-
-  // Depths 1, 2, 3: 16 nodes DAG (6 layers: 2 + 3 + 3 + 4 + 3 + 1 = 16 nodes)
-  const layer1Choices: MapNodeType[][] = hasFallen
-    ? [
-        ['remains', 'combat', 'market'],
-        ['combat', 'remains', 'vault'],
-        ['event', 'remains', 'market'],
-      ]
-    : [
-        ['event', 'combat', 'vault'],
-        ['combat', 'event', 'market'],
-        ['event', 'vault', 'combat'],
-        ['combat', 'vault', 'market'],
-      ];
-
-  const layerTypePools: MapNodeType[][] = [
-    // Layer 0 (2 nodes: entry points)
-    rng() > 0.5 ? ['combat', 'event'] : ['event', 'combat'],
-    // Layer 1 (3 nodes: exploration & legacy)
-    pick(layer1Choices),
-    // Layer 2 (3 nodes: danger, refuge & altars)
-    pick([
-      ['combat', 'altar', 'sanctuary'],
-      ['blood_altar', 'combat', 'market'],
-      ['combat', 'event', 'blood_altar'],
-      ['event', 'combat', 'sanctuary'],
-    ]),
-    // Layer 3 (4 nodes: turning point & elite encounters)
-    pick([
-      ['elite', 'market', 'vault', 'sanctuary'],
-      ['altar', 'elite', 'market', 'combat'],
-      ['sanctuary', 'elite', 'market', 'blood_altar'],
-      ['event', 'altar', 'elite', 'market'],
-    ]),
-    // Layer 4 (3 nodes: final preparations)
-    pick([
-      ['sanctuary', 'blood_altar', 'altar'],
-      ['market', 'altar', 'combat'],
-      ['blood_altar', 'sanctuary', 'combat'],
-      ['event', 'combat', 'sanctuary'],
-    ]),
-    // Layer 5 (1 node: boss)
-    ['boss'],
-  ];
-
-  // Guaranteed reachability topology with zero dead ends
-  const outgoingEdges: string[][][] = [
-    // Layer 0 (2 nodes) -> Layer 1 (3 nodes)
-    [
-      ['node_1_0', 'node_1_1'],
-      ['node_1_1', 'node_1_2'],
-    ],
-    // Layer 1 (3 nodes) -> Layer 2 (3 nodes)
-    [
-      ['node_2_0', 'node_2_1'],
-      ['node_2_0', 'node_2_1', 'node_2_2'],
-      ['node_2_1', 'node_2_2'],
-    ],
-    // Layer 2 (3 nodes) -> Layer 3 (4 nodes)
-    [
-      ['node_3_0', 'node_3_1'],
-      ['node_3_0', 'node_3_1', 'node_3_2'],
-      ['node_3_2', 'node_3_3'],
-    ],
-    // Layer 3 (4 nodes) -> Layer 4 (3 nodes)
-    [
-      ['node_4_0', 'node_4_1'],
-      ['node_4_0', 'node_4_1'],
-      ['node_4_1', 'node_4_2'],
-      ['node_4_1', 'node_4_2'],
-    ],
-    // Layer 4 (3 nodes) -> Layer 5 (Boss)
-    [
-      ['node_5_0'],
-      ['node_5_0'],
-      ['node_5_0'],
-    ],
-    // Layer 5 (Boss)
-    [[]],
-  ];
-
-  const { nodes, layers } = buildNodesAndLayers(layerTypePools, outgoingEdges, pools, pick, depth, rng);
+  const mapName = options?.procedural && depth === 1 ? '阿卡姆封鎖區調查圖（隨機生成）' : depthMeta.name;
 
   return {
     id: `map_depth_${depth}_${Math.floor(rng() * 1000000)}`,
-    name: depthMeta.name,
+    name: mapName,
     depth,
     nodes,
     layers,
@@ -718,62 +801,11 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
 }
 
 /**
- * 產生調查地圖資料結構 (16+16+16+8 規格 · ADR-0015)
- * - 深度 1、2、3 一律產生 16 個節點（6 層：2+3+3+4+3+1）
- * - 深度 4 一律產生 8 個節點（4 層：2+2+3+1）
- * - 若未指定 options.procedural 且深度為 1，回傳確定性 16 節點基底範本
- * - 若指定 options.procedural 為 true，或深度 >= 2，則執行動態程序化隨機分佈生成
+ * 產生調查地圖資料結構 (16+16+16+8 規格 · ADR-0022)
+ * - 深度 1、2、3 一律產生 16 個樓層（Layers 0~15）
+ * - 深度 4 一律產生 8 個樓層（Layers 0~7）
+ * - 第 8 層保證為 Mid-Depth Haven (全安全避難所)
  */
 export function generateInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
-  const depth: DepthLevel = options?.depth ?? 1;
-  const isProcedural = options?.procedural ?? (depth > 1);
-
-  if (isProcedural) {
-    return generateProceduralInvestigationMap(options);
-  }
-
-  const nodes: Record<string, MapNode> = {};
-  const layersMap: Record<number, string[]> = {};
-
-  const hasFallen = (options?.hasFallenInvestigator ?? hasFallenInvestigatorRecord()) && depth === 1;
-
-  for (const raw of BASE_MAP_TEMPLATE) {
-    const isEntryLayer = raw.layer === 0;
-    nodes[raw.id] = {
-      ...raw,
-      enemyId: raw.enemyId,
-      status: isEntryLayer ? 'accessible' : 'unvisited',
-    };
-
-    if (!layersMap[raw.layer]) {
-      layersMap[raw.layer] = [];
-    }
-    layersMap[raw.layer].push(raw.id);
-  }
-
-  if (hasFallen && nodes['node_1_0']) {
-    const variant = DEPTH_METADATA[1].pools.remains.variants[0];
-    nodes['node_1_0'] = {
-      ...nodes['node_1_0'],
-      type: 'remains',
-      label: DEPTH_METADATA[1].pools.remains.label,
-      title: variant.title,
-      description: variant.desc,
-    };
-  }
-
-  const sortedLayerKeys = Object.keys(layersMap)
-    .map(Number)
-    .sort((a, b) => a - b);
-  const layers = sortedLayerKeys.map((k) => layersMap[k]);
-
-  return {
-    id: 'map_arkham_quarantine_01',
-    name: '阿卡姆封鎖區調查圖',
-    depth: 1,
-    nodes,
-    layers,
-    currentNodeId: null,
-  };
+  return generateProceduralInvestigationMap(options);
 }
-

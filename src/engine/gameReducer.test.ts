@@ -809,7 +809,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 
     expect(nextState.phase).toBe('map');
     expect(nextState.map).toBeDefined();
-    expect(nextState.map?.layers.length).toBe(6);
+    expect(nextState.map?.layers.length).toBe(16);
     expect(nextState.investigator.name).toBe('愛德華·皮爾斯');
     expect(nextState.investigator.occupation).toBe('私家偵探');
     expect(nextState.investigator.health).toBe(25);
@@ -1357,15 +1357,11 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
 });
 
 describe('Investigation Map & Mythos Events System (Issue #6)', () => {
-  it('generateInvestigationMap generates a valid 6-layer DAG with accessible entry nodes', () => {
+  it('generateInvestigationMap generates a valid 16-layer DAG with accessible entry nodes', () => {
     const map = generateInvestigationMap();
 
-    expect(map.id).toBe('map_arkham_quarantine_01');
-    expect(map.layers.length).toBe(6);
+    expect(map.layers.length).toBe(16);
     expect(map.currentNodeId).toBeNull();
-
-    const nodeIds = Object.keys(map.nodes);
-    expect(nodeIds.length).toBe(16);
 
     // Layer 0 nodes must be accessible; all others unvisited
     for (const nodeId of map.layers[0]) {
@@ -1382,7 +1378,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     // DAG integrity: nodes point only to the immediately next layer (except boss which has 0 nextNodes)
     for (const node of Object.values(map.nodes)) {
-      if (node.layer < 5) {
+      if (node.layer < 15) {
         expect(node.nextNodes.length).toBeGreaterThan(0);
         for (const nextId of node.nextNodes) {
           const nextNode = map.nodes[nextId];
@@ -1390,7 +1386,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           expect(nextNode.layer).toBe(node.layer + 1);
         }
       } else {
-        expect(node.layer).toBe(5);
+        expect(node.layer).toBe(15);
         expect(node.type).toBe('boss');
         expect(node.nextNodes.length).toBe(0);
       }
@@ -1412,7 +1408,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     expect(nextState.phase).toBe('map');
     expect(nextState.map).toBeDefined();
-    expect(nextState.map?.layers.length).toBe(6);
+    expect(nextState.map?.layers.length).toBe(16);
     expect(nextState.investigator.name).toContain('愛德華·皮爾斯');
     expect(nextState.investigator.health).toBe(25);
     expect(nextState.investigator.obols).toBe(15);
@@ -2186,11 +2182,10 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('supports procedural map generation with seedable and random variations', () => {
-      // 1. Procedural generation creates valid 6-layer 16-node DAG
+      // 1. Procedural generation creates valid 16-layer DAG
       const procMap = generateProceduralInvestigationMap();
-      expect(procMap.layers.length).toBe(6);
-      expect(procMap.nodes['node_5_0'].type).toBe('boss');
-      expect(Object.keys(procMap.nodes).length).toBe(16);
+      expect(procMap.layers.length).toBe(16);
+      expect(procMap.nodes[procMap.layers[15][0]].type).toBe('boss');
       expect(procMap.nodes['node_0_0'].status).toBe('accessible');
       expect(procMap.nodes['node_0_1'].status).toBe('accessible');
 
@@ -2408,8 +2403,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(state.phase).toBe('map');
       expect(state.map).toBeDefined();
       expect(state.map?.name).toBe('阿卡姆封鎖區調查圖（隨機生成）');
-      expect(state.map?.layers.length).toBe(6);
-      expect(Object.keys(state.map?.nodes ?? {}).length).toBe(16);
+      expect(state.map?.layers.length).toBe(16);
     });
 
     it('adheres to CONTEXT.md domain standards: zero occurrences of forbidden term 牌組', () => {
@@ -2513,27 +2507,18 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(selectState.currentDepth).toBe(1);
     });
 
-    it('generates 16 nodes across 6 layers for Depths 1, 2, 3 with zero dead ends', () => {
+    it('generates 16 layers for Depths 1, 2, 3 with zero dead ends', () => {
       for (const depth of [1, 2, 3] as const) {
         const map = generateProceduralInvestigationMap({ depth });
         expect(map.depth).toBe(depth);
-        expect(map.layers.length).toBe(6);
-        expect(Object.keys(map.nodes).length).toBe(16);
+        expect(map.layers.length).toBe(16);
 
-        // Verify layer node counts: 2 + 3 + 3 + 4 + 3 + 1 = 16
-        expect(map.layers[0].length).toBe(2);
-        expect(map.layers[1].length).toBe(3);
-        expect(map.layers[2].length).toBe(3);
-        expect(map.layers[3].length).toBe(4);
-        expect(map.layers[4].length).toBe(3);
-        expect(map.layers[5].length).toBe(1);
-
-        // Verify boss node is at layer 5
-        const bossNodeId = map.layers[5][0];
+        // Verify boss node is at layer 15
+        const bossNodeId = map.layers[15][0];
         expect(map.nodes[bossNodeId].type).toBe('boss');
 
         // Verify reachability: all non-boss nodes must have outgoing edges
-        for (let l = 0; l < 5; l++) {
+        for (let l = 0; l < 15; l++) {
           for (const nodeId of map.layers[l]) {
             const node = map.nodes[nodeId];
             expect(node.nextNodes.length).toBeGreaterThan(0);
@@ -2546,19 +2531,12 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       }
     });
 
-    it('generates 8 nodes across 4 layers for Depth 4', () => {
+    it('generates 8 layers for Depth 4', () => {
       const map = generateProceduralInvestigationMap({ depth: 4 });
       expect(map.depth).toBe(4);
-      expect(map.layers.length).toBe(4);
-      expect(Object.keys(map.nodes).length).toBe(8);
+      expect(map.layers.length).toBe(8);
 
-      // Verify layer node counts: 2 + 2 + 3 + 1 = 8
-      expect(map.layers[0].length).toBe(2);
-      expect(map.layers[1].length).toBe(2);
-      expect(map.layers[2].length).toBe(3);
-      expect(map.layers[3].length).toBe(1);
-
-      const bossNodeId = map.layers[3][0];
+      const bossNodeId = map.layers[7][0];
       expect(map.nodes[bossNodeId].type).toBe('boss');
     });
 
@@ -2618,7 +2596,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(depth2State.phase).toBe('map');
       expect(depth2State.currentDepth).toBe(2);
       expect(depth2State.map?.name).toBe('深潛者海蝕迷宮調查圖');
-      expect(Object.keys(depth2State.map?.nodes ?? {}).length).toBe(16);
+      expect(depth2State.map?.layers.length).toBe(16);
       expect(depth2State.battleLog.some((log) => log.includes('邁向新深淵'))).toBe(true);
     });
 
@@ -2646,7 +2624,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     it('correctly advances through Depth 2 boss and enters Depth 3', () => {
       const depth2Map = generateProceduralInvestigationMap({ depth: 2 });
-      const bossNodeId = depth2Map.layers[5][0];
+      const bossNodeId = depth2Map.layers[depth2Map.layers.length - 1][0];
 
       // Navigate to Depth 2 boss
       const depth2Combat = gameReducer(
@@ -2690,7 +2668,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(depth3State.phase).toBe('map');
       expect(depth3State.currentDepth).toBe(3);
       expect(depth3State.map?.name).toBe('無底深淵祭壇調查圖');
-      expect(Object.keys(depth3State.map?.nodes ?? {}).length).toBe(16);
+      expect(depth3State.map?.layers.length).toBe(16);
     });
 
     it('guards COMPLETE_DEPTH_TRANSITION against advancing beyond max depth 4 and completes map', () => {
@@ -2709,7 +2687,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     it('completes the entire adventure with map.isCompleted = true and transitions to map (Arkham Gazette victory) upon defeating Depth 4 final boss', () => {
       const depth4Map = generateProceduralInvestigationMap({ depth: 4 });
-      const bossNodeId = depth4Map.layers[3][0];
+      const bossNodeId = depth4Map.layers[depth4Map.layers.length - 1][0];
 
       // Navigate to Depth 4 boss
       const depth4Combat = gameReducer(
@@ -2752,29 +2730,24 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('handles generateInvestigationMap predicate correctly for deterministic vs procedural', () => {
-      // Default: deterministic 16-node base map template (Issue #26)
       const baseMap = generateInvestigationMap();
       expect(baseMap.depth).toBe(1);
-      expect(Object.keys(baseMap.nodes).length).toBe(16);
-      expect(baseMap.layers.length).toBe(6);
+      expect(baseMap.layers.length).toBe(16);
 
-      // Explicit procedural: true at depth 1 produces 16 nodes
+      // Explicit procedural: true at depth 1 produces 16 layers
       const procMapDepth1 = generateInvestigationMap({ depth: 1, procedural: true });
       expect(procMapDepth1.depth).toBe(1);
-      expect(Object.keys(procMapDepth1.nodes).length).toBe(16);
-      expect(procMapDepth1.layers.length).toBe(6);
+      expect(procMapDepth1.layers.length).toBe(16);
 
-      // Depth 2 without explicit procedural flag produces procedural 16 nodes
+      // Depth 2 produces procedural 16 layers
       const procMapDepth2 = generateInvestigationMap({ depth: 2 });
       expect(procMapDepth2.depth).toBe(2);
-      expect(Object.keys(procMapDepth2.nodes).length).toBe(16);
-      expect(procMapDepth2.layers.length).toBe(6);
+      expect(procMapDepth2.layers.length).toBe(16);
 
-      // Depth 4 produces 8 nodes across 4 layers
+      // Depth 4 produces 8 layers
       const procMapDepth4 = generateInvestigationMap({ depth: 4 });
       expect(procMapDepth4.depth).toBe(4);
-      expect(Object.keys(procMapDepth4.nodes).length).toBe(8);
-      expect(procMapDepth4.layers.length).toBe(4);
+      expect(procMapDepth4.layers.length).toBe(8);
     });
   });
 
