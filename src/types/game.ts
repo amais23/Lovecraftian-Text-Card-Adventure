@@ -76,6 +76,11 @@ export type EnemyCategory =
   | 'ancient_guardian'
   | 'boss';
 
+export interface EnemyIllustrationUrls {
+  cartoonUrl?: string;
+  realisticUrl?: string;
+}
+
 export interface Enemy {
   id: string;
   name: string;
@@ -89,6 +94,7 @@ export interface Enemy {
   currentIntentIndex?: number;
   statusEffects?: StatusEffect[];
   category?: EnemyCategory;
+  illustration?: EnemyIllustrationUrls;
 }
 
 export type OccupationId = 'investigator' | 'occultist';
