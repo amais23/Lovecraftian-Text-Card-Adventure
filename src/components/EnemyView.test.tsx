@@ -172,5 +172,32 @@ describe('EnemyView Component (ADR-0018)', () => {
       expect(screen.getByText('維度錨定咒縛')).toBeDefined();
       expect(screen.getByText('印記 +2')).toBeDefined();
     });
+
+    it('renders portrait stage, core safe area, and ambient glow (ADR-0021)', () => {
+      const bossEnemy: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_shoggoth_progeny',
+        name: '修格斯幼嗣',
+        category: 'boss',
+      };
+      render(<EnemyView enemy={bossEnemy} />);
+
+      const stage = screen.getByTestId('enemy-portrait-stage');
+      expect(stage).toBeDefined();
+      expect(stage.className).toContain('enemy-portrait-stage');
+      expect(stage.className).toContain('enemy-category-boss');
+
+      const safeArea = screen.getByTestId('enemy-safe-area');
+      expect(safeArea).toBeDefined();
+
+      const glow = screen.getByTestId('enemy-ambient-glow');
+      expect(glow).toBeDefined();
+      expect(glow.className).toContain('glow-boss');
+
+      // Fallback avatar wrapper remains inside safe area
+      const avatarWrapper = screen.getByTestId('enemy-avatar-wrapper');
+      expect(avatarWrapper).toBeDefined();
+      expect(safeArea.contains(avatarWrapper)).toBe(true);
+    });
   });
 });

@@ -97,13 +97,13 @@
   gap: 8px;
 }
 
-/* Upper Section: Enemy & Battle Log */
+/* Upper Section: Enemy & Battle Log (ADR-0021 Broadened Stage) */
 .combat-upper-section {
   position: relative;
   z-index: 10;
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.35fr 0.65fr;
   gap: clamp(8px, 1.2vw, 20px);
   padding: clamp(4px, 0.8dvh, 10px) clamp(10px, 1.5vw, 24px);
   min-height: 0;
@@ -183,6 +183,77 @@
   font-weight: 900;
   font-size: clamp(0.85rem, 1.5dvh, 1.05rem);
 }
+
+/* Enemy Visual Portrait Stage with Core Safe Area (ADR-0021) */
+.enemy-portrait-stage {
+  position: relative;
+  width: 100%;
+  max-width: clamp(180px, 30vw, 360px);
+  height: clamp(90px, 16dvh, 220px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(2px, 0.4dvh, 6px);
+  overflow: visible;
+}
+
+.enemy-safe-area {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.enemy-portrait-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 0 16px rgba(0, 0, 0, 0.85));
+  transition: transform 0.3s ease, filter 0.3s ease;
+  user-select: none;
+  pointer-events: none;
+  animation: breatheEnemy 4s ease-in-out infinite;
+}
+
+/* Category-specific Ambient Glowing Aura */
+.enemy-ambient-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(120px, 20vw, 240px);
+  height: clamp(70px, 12dvh, 160px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(28px);
+  opacity: 0.45;
+  transition: opacity 0.5s ease, background 0.5s ease;
+  animation: auraPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes auraPulse {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.35; }
+  100% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.6; }
+}
+
+.enemy-ambient-glow.glow-cultist { background: radial-gradient(circle, #f57c00 0%, #b71c1c 60%, transparent 80%); }
+.enemy-ambient-glow.glow-ghoul { background: radial-gradient(circle, #558b2f 0%, #2e7d32 60%, transparent 80%); }
+.enemy-ambient-glow.glow-nightgaunt { background: radial-gradient(circle, #5e35b1 0%, #311b92 60%, transparent 80%); }
+.enemy-ambient-glow.glow-deep_one { background: radial-gradient(circle, #00838f 0%, #006064 60%, transparent 80%); }
+.enemy-ambient-glow.glow-drowned { background: radial-gradient(circle, #0277bd 0%, #01579b 60%, transparent 80%); }
+.enemy-ambient-glow.glow-shoggoth { background: radial-gradient(circle, #8e24aa 0%, #4a148c 60%, transparent 80%); }
+.enemy-ambient-glow.glow-byakhee { background: radial-gradient(circle, #e65100 0%, #bf360c 60%, transparent 80%); }
+.enemy-ambient-glow.glow-formless { background: radial-gradient(circle, #37474f 0%, #212121 60%, transparent 80%); }
+.enemy-ambient-glow.glow-hound { background: radial-gradient(circle, #00b0ff 0%, #0091ea 60%, transparent 80%); }
+.enemy-ambient-glow.glow-star_spawn { background: radial-gradient(circle, #7c4dff 0%, #651fff 60%, transparent 80%); }
+.enemy-ambient-glow.glow-ancient_guardian { background: radial-gradient(circle, #ffb300 0%, #ff8f00 60%, transparent 80%); }
+.enemy-ambient-glow.glow-boss { background: radial-gradient(circle, #d50000 0%, #aa00ff 60%, transparent 80%); }
+.enemy-ambient-glow.glow-default { background: radial-gradient(circle, #b71c1c 0%, #421419 60%, transparent 80%); }
 
 .enemy-avatar-wrapper {
   position: relative;

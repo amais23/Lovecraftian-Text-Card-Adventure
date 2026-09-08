@@ -104,14 +104,25 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
         <span className="intent-val">{formatIntentValue(enemy.currentIntent)}</span>
       </div>
 
-      {/* Enemy Visual Avatar */}
+      {/* Enemy Visual Portrait Stage with Core Safe Area (ADR-0021) */}
       <div
-        key={`enemy-avatar-${shakeKey}`}
-        className={`enemy-avatar-wrapper ${isShaking ? 'trauma-shake' : ''}`}
-        data-testid="enemy-avatar-wrapper"
+        key={`enemy-portrait-${shakeKey}`}
+        className={`enemy-portrait-stage enemy-category-${enemy.category ?? 'default'} ${isShaking ? 'trauma-shake' : ''}`}
+        data-testid="enemy-portrait-stage"
       >
-        <div className={`enemy-avatar-circle enemy-avatar-${enemy.category ?? 'default'}`}>
-          {renderEnemyAvatarIcon(enemy)}
+        <div
+          className={`enemy-ambient-glow glow-${enemy.category ?? 'default'}`}
+          data-testid="enemy-ambient-glow"
+        />
+        <div className="enemy-safe-area" data-testid="enemy-safe-area">
+          <div
+            className="enemy-avatar-wrapper"
+            data-testid="enemy-avatar-wrapper"
+          >
+            <div className={`enemy-avatar-circle enemy-avatar-${enemy.category ?? 'default'}`}>
+              {renderEnemyAvatarIcon(enemy)}
+            </div>
+          </div>
         </div>
       </div>
 
