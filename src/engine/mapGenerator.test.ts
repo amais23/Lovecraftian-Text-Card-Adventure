@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   generateInvestigationMap,
   generateProceduralInvestigationMap,
-  BASE_MAP_TEMPLATE,
 } from './mapGenerator';
 import type { DepthLevel, InvestigationMap } from '../types/game';
 

@@ -1,402 +1,64 @@
 import type { Card, DepthLevel } from '../types/game';
 import { fisherYatesShuffle } from './initialData';
 
-/* =========================================================
-   Tier 1 Cards (阿卡姆封鎖區 · 基礎與進階獎勵卡庫)
-   ========================================================= */
+import { INVESTIGATOR_REWARD_CARDS } from './cards/investigator/rewards';
+import { OCCULTIST_REWARD_CARDS } from './cards/occultist/rewards';
+import { NEUTRAL_CARDS } from './cards/neutral/common';
 
-export const TIER_1_CARDS: Card[] = [
-  {
-    id: 'reward_shotgun_1',
-    name: '雙管獵槍',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 2,
-    isTemporary: false,
-    tier: 1,
-    effects: [{ type: 'damage', value: 14 }],
-    description: '造成 14 點物理傷害。',
-    flavorText: '「近距離的轟鳴撕裂了陰暗中的任何可怖實體。」',
-  },
-  {
-    id: 'reward_quick_draw_1',
-    name: '快速拔槍',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    effects: [{ type: 'damage', value: 7 }],
-    description: '造成 7 點物理傷害。',
-    flavorText: '「肌肉記憶超越了大腦對恐懼的本能遲疑。」',
-  },
-  {
-    id: 'reward_tactical_roll_1',
-    name: '戰術翻滾',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    effects: [
-      { type: 'armor', value: 4 },
-      { type: 'draw', value: 1 },
-    ],
-    description: '獲得 4 點護甲，抽取 1 張卡牌。',
-    flavorText: '「在碎石堆中翻滾尋找下一個反擊角度。」',
-  },
-  {
-    id: 'reward_ancient_amulet_1',
-    name: '遠古護身符',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    effects: [{ type: 'armor', value: 8 }],
-    description: '獲得 8 點護甲。',
-    flavorText: '「青銅上的深綠包漿散發著阻絕污穢的冰涼氣息。」',
-  },
-  {
-    id: 'reward_void_fire_1',
-    name: '虛空烈焰',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 2,
-    isTemporary: false,
-    tier: 1,
-    effects: [{ type: 'damage', value: 18 }],
-    description: '造成 18 點秘術傷害。',
-    flavorText: '「燃燒靈魂碎片釋放的星辰冷火。」',
-  },
-  {
-    id: 'reward_dread_whisper_1',
-    name: '恐懼低語',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    effects: [{ type: 'damage', value: 10 }],
-    description: '造成 10 點秘術傷害。',
-    flavorText: '「在敵人腦海中回放拉萊耶的潮汐聲。」',
-  },
-  {
-    id: 'reward_astral_insight_1',
-    name: '星界洞察',
-    category: 'truth',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    effects: [
-      { type: 'self_damage', value: 2 },
-      { type: 'add_to_deck', value: 3 },
-    ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
-    flavorText: '「意識升入無垠星穹，心智雖千瘡百孔，卻獲得浩瀚的安寧。」',
-  },
-  {
-    id: 'reward_first_aid_1',
-    name: '應急急救包',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    effects: [
-      { type: 'armor', value: 3 },
-      { type: 'restore_sanity', value: 2 },
-    ],
-    description: '獲得 3 點護甲，洗回 2 張卡牌。',
-    flavorText: '「酒精與繃帶能穩固搖搖欲墜的精神防線。」',
-  },
+const ALL_POOL: Card[] = [
+  ...INVESTIGATOR_REWARD_CARDS,
+  ...OCCULTIST_REWARD_CARDS,
+  ...NEUTRAL_CARDS,
 ];
+const cardMap = new Map<string, Card>(ALL_POOL.map((c) => [c.id, c]));
 
-/* =========================================================
-   Tier 2 Cards (深潛者海蝕迷宮 · 進階強力獎勵卡庫)
-   ========================================================= */
+function getCardsByIds(ids: string[]): Card[] {
+  return ids.map((id) => {
+    const card = cardMap.get(id);
+    if (!card) throw new Error(`Card ${id} not found in rewards pool`);
+    return card;
+  });
+}
 
-export const TIER_2_CARDS: Card[] = [
-  {
-    id: 'card_tier2_pump_shotgun',
-    name: '泵動式散彈槍',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 2,
-    isTemporary: false,
-    tier: 2,
-    effects: [{ type: 'damage', value: 20 }],
-    description: '造成 20 點物理傷害。',
-    flavorText: '「潮濕海風無法阻止機械撞針的咆哮，轟鳴聲在海蝕洞穴深處激起陣陣回音。」',
-  },
-  {
-    id: 'card_tier2_silver_blade',
-    name: '破魔銀質短刃',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 2,
-    effects: [{ type: 'damage', value: 10 }],
-    description: '造成 10 點物理傷害。',
-    flavorText: '「刀刃浸過聖水與秘銀，對深潛者的黏滑厚皮有著致命的破甲奇效。」',
-  },
-  {
-    id: 'card_tier2_iron_will',
-    name: '鋼鐵意志屏障',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 2,
-    effects: [{ type: 'armor', value: 12 }],
-    description: '獲得 12 點護甲。',
-    flavorText: '「在深海異形的非人注視下，緊握雙拳，以鋼鐵般的理智封鎖恐懼。」',
-  },
-  {
-    id: 'card_tier2_rapid_suture',
-    name: '戰地快速縫合',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 2,
-    effects: [
-      { type: 'armor', value: 6 },
-      { type: 'restore_sanity', value: 3 },
-    ],
-    description: '獲得 6 點護甲，洗回 3 張卡牌。',
-    flavorText: '「即便手指被寒風凍得發僵，依然熟練地穿針引線，穩住潰散的精神防線。」',
-  },
-  {
-    id: 'card_tier2_frost_grasp',
-    name: '深海冰霜之握',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 2,
-    isTemporary: false,
-    tier: 2,
-    effects: [{ type: 'damage', value: 25 }],
-    description: '造成 25 點秘術傷害。',
-    flavorText: '「冰冷徹骨的洋流自異次元裂隙倒灌，連空氣中的水氣都凝結成尖銳冰刺。」',
-  },
-  {
-    id: 'card_tier2_mind_shock',
-    name: '心靈震波',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 1,
-    isTemporary: false,
-    tier: 2,
-    effects: [
-      { type: 'damage', value: 14 },
-      { type: 'draw', value: 1 },
-    ],
-    description: '造成 14 點秘術傷害，抽取 1 張卡牌。',
-    flavorText: '「神經元在尖嘯中過載，將腦海中的混亂與回音直接烙印在敵人意識深處。」',
-  },
-  {
-    id: 'card_tier2_forbidden_tablet',
-    name: '禁忌海蝕石板殘卷',
-    category: 'truth',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 2,
-    effects: [
-      { type: 'self_damage', value: 2 },
-      { type: 'add_to_deck', value: 4 },
-    ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 4 張真相卡牌。',
-    flavorText: '「石板上的非歐幾何符文正向外滲出幽綠磷光，閱讀它需要承受難以言喻的痛楚。」',
-  },
-  {
-    id: 'card_tier2_silver_key_glow',
-    name: '銀鑰指引微光',
-    category: 'truth',
-    costType: 'free',
-    costValue: 0,
-    isTemporary: false,
-    tier: 2,
-    effects: [
-      { type: 'draw', value: 1 },
-      { type: 'add_to_deck', value: 2 },
-    ],
-    description: '抽取 1 張卡牌，向理智牌庫注入 2 張真相卡牌。',
-    flavorText: '「銀色鑰匙在虛空中劃過優雅弧線，照亮通往宇宙秩序的隱密回廊。」',
-  },
-];
+export const TIER_1_CARDS: Card[] = getCardsByIds([
+  'reward_shotgun_1',
+  'reward_quick_draw_1',
+  'reward_tactical_roll_1',
+  'reward_ancient_amulet_1',
+  'reward_void_fire_1',
+  'reward_dread_whisper_1',
+  'reward_astral_insight_1',
+  'reward_first_aid_1',
+]);
 
-/* =========================================================
-   Tier 3 Cards (無底深淵祭壇 · 大師級高階卡庫)
-   ========================================================= */
+export const TIER_2_CARDS: Card[] = getCardsByIds([
+  'card_tier2_pump_shotgun',
+  'card_tier2_silver_blade',
+  'card_tier2_iron_will',
+  'card_tier2_rapid_suture',
+  'card_tier2_frost_grasp',
+  'card_tier2_mind_shock',
+  'card_tier2_forbidden_tablet',
+  'card_tier2_silver_key_glow',
+]);
 
-export const TIER_3_CARDS: Card[] = [
-  {
-    id: 'card_tier3_dum_dum',
-    name: '達姆高爆彈連射',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 2,
-    isTemporary: false,
-    tier: 3,
-    effects: [{ type: 'damage', value: 26 }],
-    description: '造成 26 點物理傷害。',
-    flavorText: '「開花彈在接觸肉體的瞬間引爆，即便是舊日支配者的僕從亦難以承受此等破壞力。」',
-  },
-  {
-    id: 'card_tier3_demolition_pack',
-    name: '軍用特種炸藥包',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 3,
-    isTemporary: false,
-    tier: 3,
-    effects: [{ type: 'damage', value: 36 }],
-    description: '造成 36 點物理傷害。',
-    flavorText: '「凡人科技的極致破壞力，在太古黑石祭壇上炸出耀眼的硝煙火海。」',
-  },
-  {
-    id: 'card_tier3_impenetrable_bastion',
-    name: '不可侵犯之壁',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 2,
-    isTemporary: false,
-    tier: 3,
-    effects: [{ type: 'armor', value: 22 }],
-    description: '獲得 22 點護甲。',
-    flavorText: '「無懼非人泰克利利哀鳴，調查員築起凡人血肉所能構築的最堅固壁壘。」',
-  },
-  {
-    id: 'card_tier3_sanity_anchor',
-    name: '極限精神錨定',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 3,
-    effects: [
-      { type: 'armor', value: 8 },
-      { type: 'restore_sanity', value: 5 },
-    ],
-    description: '獲得 8 點護甲，洗回 5 張卡牌。',
-    flavorText: '「以古代舊印銘文將狂暴渙散的心靈死死固定在理性之錨上。」',
-  },
-  {
-    id: 'card_tier3_void_collapse',
-    name: '虛空黑洞坍縮',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 2,
-    isTemporary: false,
-    tier: 3,
-    effects: [{ type: 'damage', value: 34 }],
-    description: '造成 34 點秘術傷害。',
-    flavorText: '「空間維度在此處發生不可逆轉的扭曲，一切物質皆向著虛無的奇點崩陷。」',
-  },
-  {
-    id: 'card_tier3_psionic_cleave',
-    name: '深淵靈能撕裂',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 1,
-    isTemporary: false,
-    tier: 3,
-    effects: [{ type: 'damage', value: 20 }],
-    description: '造成 20 點秘術傷害。',
-    flavorText: '「靈能風暴猶如實質利刃，自神經深處劈開敵人的保護甲殼。」',
-  },
-  {
-    id: 'card_tier3_rlyeh_codex',
-    name: '拉萊耶原典啟示',
-    category: 'truth',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 3,
-    effects: [{ type: 'add_to_deck', value: 6 }],
-    description: '向理智牌庫注入 6 張真相卡牌。',
-    flavorText: '「沉睡千億年的深海真言在眼前展開，浩瀚的星辰秩序驅散了深淵狂亂。」',
-  },
-  {
-    id: 'card_tier3_star_resonance',
-    name: '超維星辰共鳴',
-    category: 'truth',
-    costType: 'free',
-    costValue: 0,
-    isTemporary: false,
-    tier: 3,
-    effects: [
-      { type: 'armor', value: 10 },
-      { type: 'add_to_deck', value: 3 },
-    ],
-    description: '獲得 10 點護甲，向理智牌庫注入 3 張真相卡牌。',
-    flavorText: '「群星在遙遠天穹正位共振，為調查員的心智披上一層不可穿透的星光紗幕。」',
-  },
-];
+export const TIER_3_CARDS: Card[] = getCardsByIds([
+  'card_tier3_dum_dum',
+  'card_tier3_demolition_pack',
+  'card_tier3_impenetrable_bastion',
+  'card_tier3_sanity_anchor',
+  'card_tier3_void_collapse',
+  'card_tier3_psionic_cleave',
+  'card_tier3_rlyeh_codex',
+  'card_tier3_star_resonance',
+]);
 
-/* =========================================================
-   Tier 4+ Exclusive Cards (第二深度首領專屬掉落 · 4 選 1 全遊戲唯一產出)
-   ========================================================= */
-
-export const TIER_4_EXCLUSIVE_CARDS: Card[] = [
-  {
-    id: 'card_tier4_god_slayer',
-    name: '屠神裁決爆轟',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 2,
-    isTemporary: false,
-    tier: 4,
-    effects: [{ type: 'damage', value: 34 }],
-    description: '造成 34 點物理傷害。',
-    flavorText: '「凡人的工藝與禁忌秘銀在此刻昇華，這一擊的威力足以讓舊日支配者的血脈為之顫慄。」',
-  },
-  {
-    id: 'card_tier4_elder_aegis',
-    name: '舊神庇護之陣',
-    category: 'skill',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 4,
-    effects: [
-      { type: 'armor', value: 24 },
-      { type: 'draw', value: 2 },
-    ],
-    description: '獲得 24 點護甲，抽取 2 張卡牌。',
-    flavorText: '「五芒星光在周身環繞，不可名狀的混沌污穢在光芒前如同初雪般消融。」',
-  },
-  {
-    id: 'card_tier4_void_annihilation',
-    name: '超維虛空湮滅',
-    category: 'magic',
-    costType: 'sanity',
-    costValue: 2,
-    isTemporary: false,
-    tier: 4,
-    effects: [{ type: 'damage', value: 42 }],
-    description: '造成 42 點秘術傷害。',
-    flavorText: '「宇宙黑洞深處的奇異點在眼前剎那綻放，將目光所及的一切狂暴異質徹底撕裂。」',
-  },
-  {
-    id: 'card_tier4_astral_revelation',
-    name: '源初星辰啟示',
-    category: 'truth',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 4,
-    effects: [
-      { type: 'add_to_deck', value: 8 },
-      { type: 'armor', value: 12 },
-    ],
-    description: '獲得 12 點護甲，向理智牌庫注入 8 張真相卡牌。',
-    flavorText: '「當意識凌駕於群星之上，深淵的詛咒與瘋狂皆化為無垠宇宙中的一粒微塵。」',
-  },
-];
+export const TIER_4_EXCLUSIVE_CARDS: Card[] = getCardsByIds([
+  'card_tier4_god_slayer',
+  'card_tier4_elder_aegis',
+  'card_tier4_void_annihilation',
+  'card_tier4_astral_revelation',
+]);
 
 export const ALL_TIERED_CARDS: Card[] = [
   ...TIER_1_CARDS,
