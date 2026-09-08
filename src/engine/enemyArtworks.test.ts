@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ENEMY_ARTWORKS_REGISTRY,
   getEnemyArtwork,
   getActiveEnemyIllustration,
 } from './enemyArtworks';
@@ -174,6 +173,32 @@ describe('Enemy Artworks Registry & Dual-Perception Engine (ADR-0021)', () => {
       expect(
         getActiveEnemyIllustration(overriddenEnemy, { isMadness: true })
       ).toBe('/custom/override_realistic.png');
+    });
+  });
+
+  describe('Physical Assets Existence (Depth 1 MVP - Issue #41)', () => {
+    it('ensures all 9 Depth 1 transparent PNG assets physically exist on disk in public/enemies/', () => {
+      const enemyImages = import.meta.glob('/public/enemies/**/*.{webp,png}');
+      const imagePaths = Object.keys(enemyImages);
+
+      const depth1EnemyIds = [
+        'enemy_arkham_cultist',
+        'enemy_ghoul_lurker',
+        'enemy_nightgaunt',
+        'enemy_ghoul_high_priest',
+      ];
+
+      for (const id of depth1EnemyIds) {
+        const art = getEnemyArtwork(id);
+        expect(art).toBeDefined();
+        expect(imagePaths).toContain(`/public${art!.cartoonUrl}`);
+        expect(imagePaths).toContain(`/public${art!.realisticUrl}`);
+      }
+
+      // Depth 1 Boss (Cute cartoon only)
+      const bossArt = getEnemyArtwork('enemy_shoggoth_progeny');
+      expect(bossArt).toBeDefined();
+      expect(imagePaths).toContain(`/public${bossArt!.cartoonUrl}`);
     });
   });
 });

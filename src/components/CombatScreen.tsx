@@ -139,7 +139,7 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
         <EnemyView
           enemy={state.currentEnemy}
           isMadness={state.isMadness}
-          sanityCount={state.deck?.length ?? 10}
+          sanityCount={state.sanityDeck?.length ?? 10}
         />
         <BattleLog logs={state.battleLog} />
       </section>
