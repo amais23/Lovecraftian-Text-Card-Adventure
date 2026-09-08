@@ -136,7 +136,11 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
 
       {/* Upper Split-Screen: Enemy & Literary Battle Log */}
       <section className="combat-upper-section">
-        <EnemyView enemy={state.currentEnemy} />
+        <EnemyView
+          enemy={state.currentEnemy}
+          isMadness={state.isMadness}
+          sanityCount={state.deck?.length ?? 10}
+        />
         <BattleLog logs={state.battleLog} />
       </section>
 

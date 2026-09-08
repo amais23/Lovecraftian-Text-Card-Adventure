@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import { EnemyView } from './EnemyView';
 import type { Enemy } from '../types/game';
 import { createStatusEffect } from '../engine/statusEffects';
@@ -67,11 +67,11 @@ describe('EnemyView Component (ADR-0018)', () => {
     expect(within(container).getByText('4')).toBeDefined();
   });
 
-  describe('Theme Categories & Avatars (Issue #29)', () => {
-    it('renders category-specific icons for various Mythos archetypes', () => {
+  describe('Theme Categories & Fallback Avatars (Issue #29)', () => {
+    it('renders category-specific icons for various Mythos archetypes when fallback is triggered', () => {
       const cultist: Enemy = {
         ...dummyEnemy,
-        id: 'enemy_arkham_cultist',
+        id: 'unregistered_cultist',
         name: '阿卡姆異教徒',
         category: 'cultist',
       };
@@ -80,7 +80,7 @@ describe('EnemyView Component (ADR-0018)', () => {
 
       const nightgaunt: Enemy = {
         ...dummyEnemy,
-        id: 'enemy_nightgaunt',
+        id: 'unregistered_nightgaunt',
         name: '夜魘',
         category: 'nightgaunt',
       };
@@ -89,7 +89,7 @@ describe('EnemyView Component (ADR-0018)', () => {
 
       const deepOne: Enemy = {
         ...dummyEnemy,
-        id: 'enemy_deep_one_warrior',
+        id: 'unregistered_deep_one',
         name: '深潛者戰士',
         category: 'deep_one',
       };
@@ -98,7 +98,7 @@ describe('EnemyView Component (ADR-0018)', () => {
 
       const hound: Enemy = {
         ...dummyEnemy,
-        id: 'enemy_hound_of_tindalos',
+        id: 'unregistered_hound',
         name: '廷達洛斯獵犬',
         category: 'hound',
       };
@@ -107,7 +107,7 @@ describe('EnemyView Component (ADR-0018)', () => {
 
       const starSpawn: Enemy = {
         ...dummyEnemy,
-        id: 'enemy_star_spawn_larva',
+        id: 'unregistered_star_spawn',
         name: '星之眷族幼體',
         category: 'star_spawn',
       };
@@ -172,15 +172,17 @@ describe('EnemyView Component (ADR-0018)', () => {
       expect(screen.getByText('維度錨定咒縛')).toBeDefined();
       expect(screen.getByText('印記 +2')).toBeDefined();
     });
+  });
 
-    it('renders portrait stage, core safe area, and ambient glow (ADR-0021)', () => {
-      const bossEnemy: Enemy = {
+  describe('Dual-Perception Illustration & Safe Area (Issue #40, ADR-0021)', () => {
+    it('renders portrait stage, core safe area, ambient glow, and fallback wrapper when unregistered', () => {
+      const unregisteredEnemy: Enemy = {
         ...dummyEnemy,
-        id: 'enemy_shoggoth_progeny',
-        name: '修格斯幼嗣',
+        id: 'unregistered_boss',
+        name: '未知首領',
         category: 'boss',
       };
-      render(<EnemyView enemy={bossEnemy} />);
+      render(<EnemyView enemy={unregisteredEnemy} />);
 
       const stage = screen.getByTestId('enemy-portrait-stage');
       expect(stage).toBeDefined();
@@ -194,10 +196,95 @@ describe('EnemyView Component (ADR-0018)', () => {
       expect(glow).toBeDefined();
       expect(glow.className).toContain('glow-boss');
 
-      // Fallback avatar wrapper remains inside safe area
       const avatarWrapper = screen.getByTestId('enemy-avatar-wrapper');
       expect(avatarWrapper).toBeDefined();
       expect(safeArea.contains(avatarWrapper)).toBe(true);
+    });
+
+    it('renders transparent portrait image for registered enemy in normal state', () => {
+      const cultist: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_arkham_cultist',
+        name: '阿卡姆異教徒',
+        category: 'cultist',
+      };
+      render(<EnemyView enemy={cultist} isMadness={false} />);
+
+      const image = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
+      expect(image).toBeDefined();
+      expect(image.src).toContain('/enemies/cartoon/enemy_arkham_cultist.png');
+      expect(image.className).toContain('state-normal');
+    });
+
+    it('switches to realistic illustration in madness state for regular enemies', () => {
+      const cultist: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_arkham_cultist',
+        name: '阿卡姆異教徒',
+        category: 'cultist',
+      };
+      render(<EnemyView enemy={cultist} isMadness={true} />);
+
+      const image = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
+      expect(image).toBeDefined();
+      expect(image.src).toContain('/enemies/realistic/enemy_arkham_cultist.png');
+      expect(image.className).toContain('state-madness');
+    });
+
+    it('maintains cartoon illustration for bosses in madness state (Boss Invariant Mask)', () => {
+      const boss: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_shoggoth_progeny',
+        name: '修格斯幼嗣',
+        category: 'boss',
+      };
+      render(<EnemyView enemy={boss} isMadness={true} />);
+
+      const image = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
+      expect(image).toBeDefined();
+      expect(image.src).toContain('/enemies/cartoon/enemy_shoggoth_progeny.png');
+    });
+
+    it('falls back to icon avatar when portrait image fails to load', () => {
+      const cultist: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_arkham_cultist',
+        name: '阿卡姆異教徒',
+        category: 'cultist',
+      };
+      render(<EnemyView enemy={cultist} />);
+
+      const image = screen.getByTestId('enemy-portrait-image');
+      expect(image).toBeDefined();
+
+      // Trigger image error event
+      fireEvent.error(image);
+
+      // Now fallback avatar wrapper should appear
+      expect(screen.getByTestId('enemy-avatar-wrapper')).toBeDefined();
+      expect(screen.getByTestId('enemy-icon-cultist')).toBeDefined();
+    });
+
+    it('triggers flicker when sanityCount decreases', () => {
+      const cultist: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_arkham_cultist',
+        name: '阿卡姆異教徒',
+        category: 'cultist',
+      };
+      const { rerender } = render(<EnemyView enemy={cultist} sanityCount={10} />);
+
+      const stageBefore = screen.getByTestId('enemy-portrait-stage');
+      expect(stageBefore.className).not.toContain('is-flickering');
+
+      // Sanity decreases to 8
+      rerender(<EnemyView enemy={cultist} sanityCount={8} />);
+
+      const stageAfter = screen.getByTestId('enemy-portrait-stage');
+      expect(stageAfter.className).toContain('is-flickering');
+
+      const image = screen.getByTestId('enemy-portrait-image');
+      expect(image.className).toContain('perception-flickering');
     });
   });
 });

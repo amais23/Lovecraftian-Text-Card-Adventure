@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Enemy, EnemyIntent } from '../types/game';
 import {
   Skull,
@@ -20,6 +20,8 @@ import {
   Crown,
 } from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
+import { useSanityFlicker } from '../hooks/useSanityFlicker';
+import { getActiveEnemyIllustration } from '../engine/enemyArtworks';
 import { StatusEffectBadge } from './StatusEffectBadge';
 
 function formatIntentValue(intent: EnemyIntent): string {
@@ -80,12 +82,30 @@ function renderEnemyAvatarIcon(enemy: Enemy) {
   }
 }
 
-interface EnemyViewProps {
+export interface EnemyViewProps {
   enemy: Enemy;
+  isMadness?: boolean;
+  sanityCount?: number;
 }
 
-export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
+export const EnemyView: React.FC<EnemyViewProps> = ({
+  enemy,
+  isMadness = false,
+  sanityCount = 10,
+}) => {
   const { isShaking, shakeKey } = useTraumaShake(enemy.health);
+  const { isFlickering, flickerKey } = useSanityFlicker(sanityCount);
+  const [imageFailed, setImageFailed] = useState<boolean>(false);
+
+  const illustrationUrl = getActiveEnemyIllustration(enemy, {
+    isMadness,
+    isFlickering,
+  });
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [enemy.id, illustrationUrl]);
+
   const healthPercent = Math.max(0, Math.min(100, (enemy.health / enemy.maxHealth) * 100));
   const statusEffects = enemy.statusEffects ?? [];
   const statusClass = enemy.currentIntent.statusType ? `status-${enemy.currentIntent.statusType}` : '';
@@ -106,8 +126,8 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
 
       {/* Enemy Visual Portrait Stage with Core Safe Area (ADR-0021) */}
       <div
-        key={`enemy-portrait-${shakeKey}`}
-        className={`enemy-portrait-stage enemy-category-${enemy.category ?? 'default'} ${isShaking ? 'trauma-shake' : ''}`}
+        key={`enemy-portrait-${shakeKey}-${flickerKey}`}
+        className={`enemy-portrait-stage enemy-category-${enemy.category ?? 'default'} ${isShaking ? 'trauma-shake' : ''} ${isFlickering ? 'is-flickering' : ''}`}
         data-testid="enemy-portrait-stage"
       >
         <div
@@ -115,14 +135,24 @@ export const EnemyView: React.FC<EnemyViewProps> = ({ enemy }) => {
           data-testid="enemy-ambient-glow"
         />
         <div className="enemy-safe-area" data-testid="enemy-safe-area">
-          <div
-            className="enemy-avatar-wrapper"
-            data-testid="enemy-avatar-wrapper"
-          >
-            <div className={`enemy-avatar-circle enemy-avatar-${enemy.category ?? 'default'}`}>
-              {renderEnemyAvatarIcon(enemy)}
+          {illustrationUrl && !imageFailed ? (
+            <img
+              src={illustrationUrl}
+              alt={enemy.name}
+              className={`enemy-portrait-img ${isFlickering ? 'perception-flickering' : ''} ${isMadness ? 'state-madness' : 'state-normal'}`}
+              data-testid="enemy-portrait-image"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <div
+              className="enemy-avatar-wrapper"
+              data-testid="enemy-avatar-wrapper"
+            >
+              <div className={`enemy-avatar-circle enemy-avatar-${enemy.category ?? 'default'}`}>
+                {renderEnemyAvatarIcon(enemy)}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

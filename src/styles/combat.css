@@ -255,6 +255,60 @@
 .enemy-ambient-glow.glow-boss { background: radial-gradient(circle, #d50000 0%, #aa00ff 60%, transparent 80%); }
 .enemy-ambient-glow.glow-default { background: radial-gradient(circle, #b71c1c 0%, #421419 60%, transparent 80%); }
 
+/* Sanity Flicker & Madness Transition Animations (ADR-0021) */
+@keyframes perceptionFlicker {
+  0% {
+    transform: scale(1) translate(0, 0);
+    filter: drop-shadow(0 0 16px rgba(0, 0, 0, 0.85));
+  }
+  20% {
+    transform: scale(1.04) translate(-3px, 1px);
+    filter: drop-shadow(0 0 25px rgba(255, 23, 68, 0.85)) hue-rotate(180deg) invert(0.2);
+  }
+  40% {
+    transform: scale(0.97) translate(2px, -2px);
+    filter: drop-shadow(0 0 22px rgba(213, 0, 249, 0.85)) contrast(1.4);
+  }
+  60% {
+    transform: scale(1.03) translate(-2px, 2px);
+    filter: drop-shadow(0 0 28px rgba(255, 0, 0, 0.9)) brightness(1.25);
+  }
+  80% {
+    transform: scale(1.01) translate(1px, -1px);
+    filter: drop-shadow(0 0 18px rgba(255, 60, 60, 0.65));
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+    filter: drop-shadow(0 0 16px rgba(0, 0, 0, 0.85));
+  }
+}
+
+.perception-flickering {
+  animation: perceptionFlicker 0.28s ease-in-out forwards !important;
+}
+
+.enemy-portrait-stage.is-flickering .enemy-ambient-glow {
+  filter: blur(35px);
+  opacity: 0.85;
+  background: radial-gradient(circle, #ff1744 0%, #d500f9 50%, transparent 80%) !important;
+}
+
+.enemy-portrait-img.state-madness {
+  filter: drop-shadow(0 0 22px rgba(213, 0, 0, 0.85)) contrast(1.1);
+  animation: breatheEnemyMadness 3s ease-in-out infinite;
+}
+
+@keyframes breatheEnemyMadness {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 20px rgba(183, 28, 28, 0.7));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 32px rgba(255, 23, 68, 0.95)) hue-rotate(-15deg);
+  }
+}
+
 .enemy-avatar-wrapper {
   position: relative;
   width: clamp(52px, 8dvh, 96px);
