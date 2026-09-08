@@ -2135,6 +2135,40 @@
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
 }
 
+.reward-actions-row {
+  margin-top: clamp(4px, 0.8dvh, 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.reward-field-dressing-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(5px, 0.8dvh, 8px) clamp(14px, 1.8vw, 24px);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(35, 18, 24, 0.9), rgba(55, 15, 20, 0.95));
+  border: 1px solid rgba(255, 77, 90, 0.6);
+  color: #ffccd5;
+  font-family: var(--font-title);
+  font-size: clamp(0.72rem, 1.2dvh, 0.85rem);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(255, 77, 90, 0.25);
+  transition: all 0.25s ease;
+}
+
+.reward-field-dressing-btn:hover {
+  background: linear-gradient(135deg, rgba(65, 20, 26, 0.95), rgba(95, 25, 30, 1));
+  border-color: #ff4d5a;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 77, 90, 0.5), 0 0 35px rgba(255, 77, 90, 0.25);
+  transform: translateY(-2px);
+}
+
 .reward-skip-container {
   margin-top: clamp(2px, 0.6dvh, 8px);
 }
@@ -3019,6 +3053,31 @@
   display: flex;
   flex-direction: column;
   gap: clamp(8px, 1.4dvh, 18px);
+}
+
+.sanctuary-card-panel.haven-panel {
+  border: 1px solid #52b788;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 45px rgba(116, 198, 157, 0.35);
+  background: radial-gradient(ellipse at top center, rgba(16, 28, 22, 0.96) 0%, rgba(10, 14, 20, 0.98) 100%);
+}
+
+.sanctuary-card-panel.haven-panel .sanctuary-title {
+  color: #95d5b2;
+  text-shadow: 0 0 14px rgba(116, 198, 157, 0.6);
+}
+
+.haven-icon-badge {
+  animation: havenPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes havenPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(116, 198, 157, 0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 18px rgba(116, 198, 157, 0.8)); }
+}
+
+.haven-option-card {
+  border-color: rgba(116, 198, 157, 0.45) !important;
+  background: rgba(18, 30, 24, 0.75) !important;
 }
 
 .sanctuary-header {

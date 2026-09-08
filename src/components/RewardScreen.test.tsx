@@ -105,4 +105,36 @@ describe('RewardScreen Component (Issue #21 / ADR-0015)', () => {
       screen.getByText(/三枚深淵封印殘片劇烈共鳴，昇華為終極白色真相卡【完整的深淵古印】/)
     ).toBeTruthy();
   });
+
+  it('renders field dressing button (戰地應急包紮) and dispatches CLAIM_FIELD_DRESSING on click (ADR-0023)', () => {
+    const map = generateInvestigationMap({ depth: 1 });
+    const normalNodeId = map.layers[0][0];
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      phase: 'reward',
+      currentDepth: 1,
+      rewardCards: [],
+      rewardObols: 15,
+      investigator: {
+        ...createInitialCombatState().investigator,
+        health: 14,
+        maxHealth: 25,
+      },
+      map: {
+        ...map,
+        currentNodeId: normalNodeId,
+      },
+    };
+
+    const dispatch = vi.fn();
+    render(<RewardScreen state={state} dispatch={dispatch} />);
+
+    const fieldDressingBtn = screen.getByRole('button', { name: /戰地應急包紮/ });
+    expect(fieldDressingBtn).toBeTruthy();
+    expect(screen.getByText(/恢復 4 點生命值 · 放棄卡牌/)).toBeTruthy();
+
+    fireEvent.click(fieldDressingBtn);
+    expect(dispatch).toHaveBeenCalledWith({ type: 'CLAIM_FIELD_DRESSING' });
+  });
 });

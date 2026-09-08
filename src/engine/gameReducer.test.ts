@@ -1791,6 +1791,139 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     expect(meditatedState.hand.length).toBe(0);
   });
 
+  describe('Long-Haul Survival Economy & Field Dressing (Issue #45 / ADR-0023)', () => {
+    it('CLAIM_FIELD_DRESSING recovers 4 health, discards card drafting, and collects obols', () => {
+      const cardA = createMockCard({ id: 'c1' });
+      const cardB = createMockCard({ id: 'c2' });
+      const rewardCard = createMockCard({ id: 'draft_card_1', name: '強力射擊' });
+
+      const rewardState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'reward',
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 14,
+          maxHealth: 25,
+          obols: 20,
+        },
+        rewardCards: [rewardCard],
+        rewardObols: 15,
+        sanityDeck: [cardA],
+        hand: [cardB],
+        discardPile: [],
+      };
+
+      const nextState = gameReducer(rewardState, {
+        type: 'CLAIM_FIELD_DRESSING',
+      });
+
+      // Recovers 4 health: 14 + 4 = 18
+      expect(nextState.investigator.health).toBe(18);
+      // Collects obols: 20 + 15 = 35
+      expect(nextState.investigator.obols).toBe(35);
+      // Does not draft the reward card
+      const allPermanentCards = [
+        ...nextState.hand,
+        ...nextState.sanityDeck,
+        ...nextState.discardPile,
+      ];
+      expect(allPermanentCards.some((c) => c.id.includes('draft_card_1'))).toBe(false);
+      expect(allPermanentCards.length).toBe(2);
+      // Battle log reflects field dressing
+      expect(nextState.battleLog.some((log) => log.includes('戰地應急包紮'))).toBe(true);
+      expect(nextState.battleLog.some((log) => log.includes('恢復 +4 點'))).toBe(true);
+    });
+
+    it('CLAIM_FIELD_DRESSING respects custom healAmount and caps at maxHealth', () => {
+      const rewardState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'reward',
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 23,
+          maxHealth: 25,
+        },
+        rewardCards: [],
+        rewardObols: 10,
+        sanityDeck: [],
+        hand: [],
+      };
+
+      const nextState = gameReducer(rewardState, {
+        type: 'CLAIM_FIELD_DRESSING',
+        payload: { healAmount: 4 },
+      });
+
+      // 23 + 4 = 27, capped at 25
+      expect(nextState.investigator.health).toBe(25);
+    });
+
+    it('CLAIM_FIELD_DRESSING on boss victory fully restores health to maxHealth (Heal to Full)', () => {
+      const map = generateInvestigationMap({ depth: 1 });
+      const bossNodeId = map.layers[map.layers.length - 1][0];
+
+      const rewardState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'reward',
+        currentDepth: 1,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 5,
+          maxHealth: 25,
+        },
+        map: {
+          ...map,
+          currentNodeId: bossNodeId,
+        },
+        rewardCards: [],
+        rewardObols: 50,
+      };
+
+      const nextState = gameReducer(rewardState, {
+        type: 'CLAIM_FIELD_DRESSING',
+      });
+
+      // Boss defeat heals to full!
+      expect(nextState.investigator.health).toBe(25);
+      expect(nextState.battleLog.some((log) => log.includes('首領決戰復甦'))).toBe(true);
+    });
+
+    it('USE_SANCTUARY provides 15 HP heavy healing at Mid-Depth Haven (Layer 8, Depths 1~3)', () => {
+      const map = generateInvestigationMap({ depth: 1 });
+      const havenNodeId = map.layers[8][0];
+
+      const havenState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        currentDepth: 1,
+        sanctuaryUsed: false,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 6,
+          maxHealth: 25,
+          obols: 10,
+        },
+        map: {
+          ...map,
+          currentNodeId: havenNodeId,
+        },
+      };
+
+      const healedState = gameReducer(havenState, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'bandage' },
+      });
+
+      // 6 + 15 = 21 HP!
+      expect(healedState.investigator.health).toBe(21);
+      expect(healedState.sanctuaryUsed).toBe(true);
+      expect(healedState.investigator.obols).toBe(5);
+      expect(healedState.battleLog[0]).toContain('第 8 層中繼避難所');
+      expect(healedState.battleLog[0]).toContain('進行重度休整與外科縫合');
+      expect(healedState.battleLog[0]).toContain('恢復了 15 點肉體生命值');
+    });
+  });
+
   it('Black Market allows purchasing cards and healing supplies with Ancient Obols', () => {
     const map = generateInvestigationMap();
     map.nodes['node_1_2'].status = 'accessible';

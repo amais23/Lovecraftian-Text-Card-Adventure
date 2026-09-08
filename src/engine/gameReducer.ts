@@ -1035,19 +1035,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
 
+      const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
+      const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
+      const isMidDepthHaven = Boolean(currentNode?.layer === 8 && currentDepth <= 3);
+      const healAmount = isMidDepthHaven ? 15 : 8;
+
       if (optionId === 'bandage') {
-        newHealth = Math.min(state.investigator.maxHealth, newHealth + 8);
+        const oldHealth = newHealth;
+        newHealth = Math.min(state.investigator.maxHealth, newHealth + healAmount);
+        const actualHealed = newHealth - oldHealth;
+        const havenPrefix = isMidDepthHaven ? '【第 8 層中繼避難所】' : '';
+        const havenActionText = isMidDepthHaven ? '進行重度休整與外科縫合' : '深層包紮';
+
         if (state.investigator.obols >= 5) {
           newObols = state.investigator.obols - 5;
           newLogs.push(
-            `在避難所消耗 5 枚古金幣購置急救藥品與防腐繃帶，深層包紮恢復了 8 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}，剩餘古金幣: ${newObols} 枚）。`
+            `${havenPrefix}在避難所消耗 5 枚古金幣購置急救藥品與防腐繃帶，${havenActionText}恢復了 ${actualHealed} 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}，剩餘古金幣: ${newObols} 枚）。`
           );
         } else {
           if (newSanityDeck.length > 0) {
             newSanityDeck = newSanityDeck.slice(1);
           }
           newLogs.push(
-            `因古金幣不足，調查員忍受劇痛強行縫合創口，損耗 1 點理智，深層包紮恢復了 8 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}）。`
+            `${havenPrefix}因古金幣不足，調查員忍受劇痛強行縫合創口，損耗 1 點理智，${havenActionText}恢復了 ${actualHealed} 點肉體生命值（當前生命值: ${newHealth} / ${state.investigator.maxHealth}）。`
           );
         }
       } else if (optionId === 'meditate') {
@@ -1294,6 +1304,94 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const nextEnemy = cloneEnemy(INITIAL_GHOUL);
 
       // Advance map if map is present, otherwise remain in combat
+      const updatedMap = advanceMapAfterNode(state.map);
+      const currentDepth = state.currentDepth ?? 1;
+      const isFinalBoss = isBossFight && currentDepth >= 4;
+      let nextPhase: GameState['phase'] = state.map ? 'map' : 'combat';
+      if (isBossFight && state.map) {
+        if (currentDepth === 3 && !state.abyssalSealFused) {
+          nextPhase = 'map';
+          if (updatedMap) updatedMap.isCompleted = true;
+          clearFallenInvestigator();
+        } else if (!isFinalBoss) {
+          nextPhase = 'depth_transition';
+        }
+      }
+
+      if (isFinalBoss) {
+        clearFallenInvestigator();
+      }
+
+      return {
+        ...state,
+        phase: nextPhase,
+        isTrueEnding: Boolean(state.isTrueEnding || isFinalBoss),
+        turn: 1,
+        investigator: updatedInvestigator,
+        sanityDeck,
+        hand,
+        discardPile: [],
+        isMadness: false,
+        rewardCards: undefined,
+        rewardObols: undefined,
+        currentEnemy: nextEnemy,
+        map: updatedMap,
+        adventureStats: updatedStats,
+        battleLog: [...newLogs, ...state.battleLog],
+        combatInitialHealth: undefined,
+      };
+    }
+
+    case 'CLAIM_FIELD_DRESSING': {
+      if (state.phase !== 'reward') return state;
+
+      const currentPermanentCards = getAllPermanentCards(state);
+      const newPermanentDeck = [...currentPermanentCards];
+
+      const addedObols = state.rewardObols ?? 15;
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + addedObols,
+      };
+
+      const isBossFight = Boolean(state.map?.currentNodeId && state.map.nodes[state.map.currentNodeId]?.type === 'boss');
+      const isHealingToFull = Boolean(isBossFight);
+      const healAmount = action.payload?.healAmount ?? 4;
+      const nextHealth = isHealingToFull
+        ? state.investigator.maxHealth
+        : Math.min(state.investigator.maxHealth, state.investigator.health + healAmount);
+      const actualHealed = nextHealth - state.investigator.health;
+
+      const updatedInvestigator: Investigator = {
+        ...state.investigator,
+        health: nextHealth,
+        armor: 0,
+        stamina: state.investigator.maxStamina,
+        obols: state.investigator.obols + addedObols,
+      };
+
+      const resetDeck = action.payload?.shuffledDeck
+        ? [...action.payload.shuffledDeck]
+        : fisherYatesShuffle(newPermanentDeck);
+
+      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY);
+
+      const newLogs: string[] = [];
+      newLogs.push(`戰後重整：所有一般卡洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
+      if (isHealingToFull) {
+        newLogs.push(
+          `【首領決戰復甦】古老宿敵伏誅，威壓短暫退散。調查員身體生命值全額恢復至上限（${updatedInvestigator.maxHealth} / ${updatedInvestigator.maxHealth}）！`
+        );
+      } else {
+        newLogs.push(
+          `【戰地應急包紮】放棄卡牌構築，專注縫合撕裂傷勢。身體生命值恢復 +${actualHealed} 點（當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}）。`
+        );
+      }
+      newLogs.push(`獲得古金幣 +${addedObols}（當前擁有: ${updatedInvestigator.obols} 枚）。`);
+
+      const nextEnemy = cloneEnemy(INITIAL_GHOUL);
+
       const updatedMap = advanceMapAfterNode(state.map);
       const currentDepth = state.currentDepth ?? 1;
       const isFinalBoss = isBossFight && currentDepth >= 4;

@@ -14,6 +14,11 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
   const isUsed = Boolean(state.sanctuaryUsed);
   const canAffordBandage = investigator.obols >= 5 || state.sanityDeck.length > 0;
 
+  const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
+  const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
+  const isMidDepthHaven = Boolean(currentNode?.layer === 8 && currentDepth <= 3);
+  const healAmount = isMidDepthHaven ? 15 : 8;
+
   const handleUseSanctuary = (optionId: 'bandage' | 'meditate') => {
     if (isUsed) return;
     if (optionId === 'bandage') {
@@ -37,17 +42,21 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
       <div className="vignette-overlay" />
       <div className="fog-layer" />
 
-      <div className="sanctuary-card-panel">
+      <div className={`sanctuary-card-panel ${isMidDepthHaven ? 'haven-panel' : ''}`}>
         <header className="sanctuary-header">
           <div className="sanctuary-header-top">
-            <div className="sanctuary-icon-badge">
-              <Tent size={36} color="#74c69d" />
+            <div className={`sanctuary-icon-badge ${isMidDepthHaven ? 'haven-icon-badge' : ''}`}>
+              {isMidDepthHaven ? <Sparkles size={36} color="#74c69d" /> : <Tent size={36} color="#74c69d" />}
             </div>
             <AudioToggle />
           </div>
-          <h1 className="sanctuary-title">安全避難所 · 守墓人小屋</h1>
+          <h1 className="sanctuary-title">
+            {isMidDepthHaven ? '【第 8 層中繼避難所 · 豐饒安全屋】' : '安全避難所 · 守墓人小屋'}
+          </h1>
           <p className="sanctuary-subtitle">
-            厚重的鐵栓阻絕了外界的瘋狂與低語。壁爐的餘火正噼啪作響，提供短暫的喘息與修整機會。
+            {isMidDepthHaven
+              ? '你在漫長的調查長征中抵達了第 8 層豐饒中繼站。溫暖的爐火驅散了深淵徹骨的寒意，充足的醫藥與補給為你提供深層重度休整。'
+              : '厚重的鐵栓阻絕了外界的瘋狂與低語。壁爐的餘火正噼啪作響，提供短暫的喘息與修整機會。'}
           </p>
         </header>
 
@@ -62,7 +71,10 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
 
           <div className="sanctuary-status-pill">
             <ShieldCheck size={18} color="#74c69d" />
-            <span>避難所修整：{isUsed ? '本次已修整完畢' : '可選 1 項行動'}</span>
+            <span>
+              {isMidDepthHaven ? '中繼避難所重度休整：' : '避難所修整：'}
+              {isUsed ? '本次已修整完畢' : '可選 1 項行動'}
+            </span>
           </div>
         </div>
 
@@ -71,15 +83,21 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
           {/* Option 1: Bandage Flesh */}
           <div
             id="sanctuary-bandage-card"
-            className={`sanctuary-option-card ${isUsed || investigator.health >= investigator.maxHealth || !canAffordBandage ? 'disabled' : ''}`}
+            className={`sanctuary-option-card ${isUsed || investigator.health >= investigator.maxHealth || !canAffordBandage ? 'disabled' : ''} ${
+              isMidDepthHaven ? 'haven-option-card' : ''
+            }`}
             onClick={() => handleUseSanctuary('bandage')}
           >
             <div className="sanctuary-card-icon health">
               <Heart size={28} color="#ff334b" />
             </div>
-            <h3 className="sanctuary-card-title">深層縫合與包紮</h3>
+            <h3 className="sanctuary-card-title">
+              {isMidDepthHaven ? '深層重度休整與外科縫合' : '深層縫合與包紮'}
+            </h3>
             <p className="sanctuary-card-desc">
-              在凡人極限下清洗撕裂的傷口並重新敷藥。消耗 5 枚古金幣購置急救藥品；若古金幣不足，將忍受劇痛損耗 1 點理智完成自救。恢復 8 點肉體生命值（上限 25 點）。
+              {isMidDepthHaven
+                ? `在安全屋中運用充裕的無菌藥品與高級敷料。消耗 5 枚古金幣購置急救補給；若古金幣不足，忍受劇痛損耗 1 點理智。深層重度縫合恢復 ${healAmount} 點肉體生命值（上限 25 點）。`
+                : `在凡人極限下清洗撕裂的傷口並重新敷藥。消耗 5 枚古金幣購置急救藥品；若古金幣不足，將忍受劇痛損耗 1 點理智完成自救。恢復 ${healAmount} 點肉體生命值（上限 25 點）。`}
             </p>
             <button
               id="sanctuary-bandage-btn"
@@ -91,7 +109,11 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
                 : !canAffordBandage
                 ? '代價不足 · 需 5 古金幣或 1 理智'
                 : investigator.obols >= 5
-                ? '執行包紮 · 耗 5 古金幣'
+                ? isMidDepthHaven
+                  ? '執行重度休整 · 耗 5 古金幣'
+                  : '執行包紮 · 耗 5 古金幣'
+                : isMidDepthHaven
+                ? '強行重度包紮 · 耗 1 理智'
                 : '強行包紮 · 耗 1 理智'}
             </button>
           </div>

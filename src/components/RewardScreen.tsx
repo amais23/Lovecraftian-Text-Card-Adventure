@@ -48,6 +48,13 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
     });
   };
 
+  const handleFieldDressing = () => {
+    soundEngine.playCardPlay('skill');
+    dispatch({
+      type: 'CLAIM_FIELD_DRESSING',
+    });
+  };
+
   return (
     <div className="reward-screen-container">
       <div className="vignette-overlay" />
@@ -158,8 +165,18 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({ state, dispatch }) =
             ))}
           </div>
 
-          {/* Skip Button */}
-          <div className="reward-skip-container">
+          {/* Triage & Skip Options */}
+          <div className="reward-actions-row">
+            <button
+              id="field-dressing-btn"
+              className="reward-field-dressing-btn"
+              onClick={handleFieldDressing}
+              title="放棄挑選新卡牌，專注處理傷勢應急包紮，恢復 4 點生命值（不超過上限）"
+            >
+              <Heart size={18} color="#ff4d5a" />
+              <span>戰地應急包紮（恢復 4 點生命值 · 放棄卡牌）</span>
+            </button>
+
             <button
               id="skip-reward-btn"
               className="reward-skip-btn"

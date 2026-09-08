@@ -270,6 +270,7 @@ export type GameAction =
   | { type: 'LEAVE_MARKET' }
   | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number; shuffledDeck?: Card[] } }
   | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }
+  | { type: 'CLAIM_FIELD_DRESSING'; payload?: { healAmount?: number; shuffledDeck?: Card[] } }
   | { type: 'CLAIM_ABYSSAL_SEAL'; payload?: { shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_DEPTH_TRANSITION' }
   | { type: 'RETURN_TO_TITLE' }
