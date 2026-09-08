@@ -171,7 +171,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <h3 className="section-title-sub">關於本調查手記</h3>
             <div className="about-details">
               <p>
-                <strong>《克蘇魯文字卡牌冒險》</strong> v0.2.0
+                <strong>《克蘇魯文字卡牌冒險》</strong> v0.2.1
               </p>
               <p className="about-flavor">
                 基於 H.P. 洛夫克拉夫特宇宙恐懼神話體系打造的文字冒險與卡牌對弈遊戲。
