@@ -66,7 +66,9 @@ jobs:
 
             跨平台獨立桌面版發布，請依作業系統下載對應檔案：
 
-            - 🪟 **Windows**：`LovecraftianCardAdventure___VERSION___x64-setup.exe`（安裝檔）
+            - 🪟 **Windows**：
+              - 💾 **免安裝綠色版**：`LovecraftianCardAdventure___VERSION___x64_portable.zip`（解壓縮直接開玩，無需安裝）
+              - 💿 **標準安裝版**：`LovecraftianCardAdventure___VERSION___x64-setup.exe`（自動建立桌面與開始功能表捷徑）
             - 🎮 **SteamOS / Linux (Steam Deck)**：`LovecraftianCardAdventure___VERSION___amd64.AppImage`（免安裝單檔）
             - 🐧 **Debian / Ubuntu**：`LovecraftianCardAdventure___VERSION___amd64.deb`
             - 🍏 **macOS**：`LovecraftianCardAdventure___VERSION___aarch64.dmg`（Apple Silicon M系列）
@@ -83,3 +85,32 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Package Windows Portable ZIP
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $VERSION = (Get-Content package.json | ConvertFrom-Json).version
+          if (-not (Test-Path "src-tauri/target/release/app.exe")) {
+            Write-Error "Binary app.exe not found!"
+            exit 1
+          }
+          $PORTABLE_DIR = "LovecraftianCardAdventure_${VERSION}_x64_portable"
+          New-Item -ItemType Directory -Force -Path $PORTABLE_DIR
+          Copy-Item "src-tauri/target/release/app.exe" -Destination "$PORTABLE_DIR/LovecraftianCardAdventure.exe"
+          @'
+          《克蘇魯文字卡牌冒險》免安裝綠色版 (Windows x64)
+
+          【使用說明】
+          1. 雙擊 LovecraftianCardAdventure.exe 即可直接開始遊戲。
+          2. 如需桌面捷徑，可對 LovecraftianCardAdventure.exe 點擊滑鼠右鍵 ->「傳送到」->「桌面快捷方式」。
+          3. 遊戲存檔將保存在系統的使用者設定檔目錄中（%APPDATA%/com.lovecraftian.cardadventure）。
+          4. 若在舊版 Windows 10 出現缺少 WebView2 提示，請前往微軟官網下載安裝「Microsoft Edge WebView2 Runtime」。
+          '@ | Out-File -FilePath "$PORTABLE_DIR/說明與捷徑教學.txt" -Encoding utf8
+          $ZIP_NAME = "LovecraftianCardAdventure_${VERSION}_x64_portable.zip"
+          Compress-Archive -Path $PORTABLE_DIR -DestinationPath $ZIP_NAME -Force
+          $TAG_NAME = if ($env:GITHUB_REF_NAME -like "v*") { $env:GITHUB_REF_NAME } else { "v$VERSION" }
+          gh release upload $TAG_NAME $ZIP_NAME --clobber
+
