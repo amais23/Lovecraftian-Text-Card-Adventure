@@ -164,25 +164,24 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
     return () => window.removeEventListener('resize', updatePositions);
   }, [updatePositions]);
 
+  const entryNodeId = map?.layers[0]?.[0];
+  const currentNodeId = map?.currentNodeId;
+  const depth = map?.depth;
+
   // 載入時平滑自動聚焦於當前所在層級（由底往上自動滾動至目標）
   useEffect(() => {
-    if (!map) return;
-    const targetId = map.currentNodeId
-      ? `map-node-${map.currentNodeId}`
-      : map.layers[0]?.[0]
-      ? `map-node-${map.layers[0][0]}`
-      : null;
+    const targetNodeId = currentNodeId ?? entryNodeId;
+    if (!targetNodeId) return;
 
-    if (targetId) {
-      const timer = setTimeout(() => {
-        const el = document.getElementById(targetId);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [map?.currentNodeId, map?.depth]);
+    const targetId = `map-node-${targetNodeId}`;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [currentNodeId, entryNodeId, depth]);
 
   const permanentDeckCapacity = [
     ...state.sanityDeck,
