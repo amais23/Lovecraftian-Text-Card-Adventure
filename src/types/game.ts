@@ -38,6 +38,9 @@ export interface CardEffect {
   target?: 'self' | 'enemy';
 }
 
+export type OccupationId = 'investigator' | 'occultist';
+export type CardKeyword = 'exhaust' | 'retain' | 'innate';
+
 export interface Card {
   id: string;
   name: string;
@@ -47,6 +50,9 @@ export interface Card {
   isTemporary: boolean;
   tier?: CardTier;
   isUnplayable?: boolean;
+  keywords?: CardKeyword[];
+  occupations?: OccupationId[];
+  artworkUrl?: string;
   effects: CardEffect[];
   description: string;
   flavorText: string;
@@ -97,7 +103,6 @@ export interface Enemy {
   illustration?: EnemyIllustrationUrls;
 }
 
-export type OccupationId = 'investigator' | 'occultist';
 
 export interface Investigator {
   name: string;

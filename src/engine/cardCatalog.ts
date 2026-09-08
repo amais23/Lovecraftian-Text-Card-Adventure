@@ -1,76 +1,11 @@
 import type { Card, CardCategory } from '../types/game';
-import {
-  INVESTIGATOR_DECK,
-  OCCULTIST_DECK,
-  REWARD_CARD_POOL,
-} from './initialData';
-import { MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from './cardFactory';
-import { TIER_2_CARDS, TIER_3_CARDS, TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
-import { ALL_ABYSSAL_CARDS } from './abyssalSeals';
+import { CardRegistry } from './cards/registry';
 
 /**
  * 完整典藏卡牌清單 (Card Compendium Catalog)
- * 收錄遊戲中所有 26 張獨立卡牌原型
+ * 收錄遊戲中所有 50 張獨立卡牌原型，委託 CardRegistry 提供單一資料源
  */
-const CARD_COMPENDIUM_REGISTRY: Card[] = (() => {
-  const seenNames = new Set<string>();
-  const catalog: Card[] = [];
-
-  const addUnique = (card: Card) => {
-    if (!seenNames.has(card.name)) {
-      seenNames.add(card.name);
-      catalog.push({ ...card });
-    }
-  };
-
-  // 1. 調查員起始牌組
-  for (const card of INVESTIGATOR_DECK) {
-    addUnique(card);
-  }
-
-  // 2. 秘術學者起始牌組
-  for (const card of OCCULTIST_DECK) {
-    addUnique(card);
-  }
-
-  // 3. 戰後與商人獎勵牌庫
-  for (const card of REWARD_CARD_POOL) {
-    addUnique(card);
-  }
-
-  // 4. 黑色瘋狂卡模板
-  const madnessIds = ['compendium_madness_claw', 'compendium_madness_howl', 'compendium_madness_blade'];
-  MADNESS_CARD_TEMPLATES.forEach((template, index) => {
-    addUnique({
-      ...template,
-      id: madnessIds[index] ?? `compendium_madness_${index}`,
-    });
-  });
-
-  // 5. 白色真相注入卡模板
-  addUnique({
-    ...TRUTH_INJECTED_TEMPLATE,
-    id: 'compendium_truth_glimmer',
-  });
-
-  // 6. 分階獎勵與首領專屬卡庫 (Tier 2, Tier 3, Tier 4+ Exclusive)
-  for (const card of TIER_2_CARDS) {
-    addUnique(card);
-  }
-  for (const card of TIER_3_CARDS) {
-    addUnique(card);
-  }
-  for (const card of TIER_4_EXCLUSIVE_CARDS) {
-    addUnique(card);
-  }
-
-  // 7. 深淵封印殘片與完整的深淵古印 (Issue #21)
-  for (const card of ALL_ABYSSAL_CARDS) {
-    addUnique(card);
-  }
-
-  return catalog;
-})();
+const CARD_COMPENDIUM_REGISTRY: Card[] = CardRegistry.getAllCompendiumCards();
 
 /**
  * 取得卡牌圖鑑所有卡牌
