@@ -4920,4 +4920,184 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
   });
 });
 
+describe('Composable Card Primitives & Occupation Filtering (Issue #46)', () => {
+  it('prioritizes innate cards into opening hand during combat deck setup', () => {
+    const regular1 = createMockCard({ id: 'reg_1', name: '一般牌1' });
+    const regular2 = createMockCard({ id: 'reg_2', name: '一般牌2' });
+    const regular3 = createMockCard({ id: 'reg_3', name: '一般牌3' });
+    const innateCard = createMockCard({
+      id: 'innate_test_card',
+      name: '老兵本能測試',
+      keywords: ['innate'],
+    });
+
+    const titleState = createInitialGameState();
+    const state: GameState = {
+      ...titleState,
+      phase: 'reward',
+      hand: [regular1, regular2],
+      sanityDeck: [regular3],
+      discardPile: [],
+      rewardCards: [innateCard],
+      rewardObols: 10,
+    };
+
+    const combatState = gameReducer(state, {
+      type: 'CLAIM_CARD_REWARD',
+      payload: { cardId: innateCard.id },
+    });
+
+    expect(combatState.phase).toBe('combat');
+    // Opening hand has 2 cards, and innateCard must be in opening hand
+    expect(combatState.hand.some((c) => c.name === '老兵本能測試')).toBe(true);
+  });
+
+  it('moves exhaust card to exhaustPile instead of discardPile upon playing', () => {
+    const exhaustCard: Card = {
+      id: 'exhaust_test_card',
+      name: '戰地急救測試',
+      category: 'skill',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: false,
+      keywords: ['exhaust'],
+      effects: [{ type: 'armor', value: 4 }],
+      description: '測試消耗',
+      flavorText: '「急救」',
+    };
+
+    const combatState: GameState = {
+      ...createInitialCombatState(),
+      hand: [exhaustCard],
+      discardPile: [],
+      exhaustPile: [],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        stamina: 3,
+        armor: 0,
+      },
+    };
+
+    const nextState = gameReducer(combatState, {
+      type: 'PLAY_CARD',
+      payload: { cardId: exhaustCard.id },
+    });
+
+    expect(nextState.hand.length).toBe(0);
+    expect(nextState.discardPile.length).toBe(0);
+    expect(nextState.exhaustPile).toBeDefined();
+    expect(nextState.exhaustPile?.length).toBe(1);
+    expect(nextState.exhaustPile?.[0].id).toBe('exhaust_test_card');
+    expect(nextState.battleLog.some((l) => l.includes('移入消耗堆'))).toBe(true);
+  });
+
+  it('excludes retain cards from hand capacity discard at end of turn', () => {
+    const retainCard1 = createMockCard({
+      id: 'retain_1',
+      name: '就地掩蔽',
+      keywords: ['retain'],
+    });
+    const retainCard2 = createMockCard({
+      id: 'retain_2',
+      name: '星界折射',
+      keywords: ['retain'],
+    });
+    const normalCard1 = createMockCard({ id: 'norm_1', name: '普通牌1' });
+    const normalCard2 = createMockCard({ id: 'norm_2', name: '普通牌2' });
+    const normalCard3 = createMockCard({ id: 'norm_3', name: '普通牌3' });
+
+    // Hand capacity is 4. Hand has 5 cards (2 retain + 3 normal).
+    // Non-retain cards (3) <= handCapacity (4).
+    // Should NOT trigger discard phase!
+    const combatState: GameState = {
+      ...createInitialCombatState(),
+      hand: [retainCard1, retainCard2, normalCard1, normalCard2, normalCard3],
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        handCapacity: 4,
+      },
+      currentEnemy: {
+        ...INITIAL_GHOUL,
+        currentIntent: { type: 'defend', value: 3, name: '護甲', description: '' },
+      },
+    };
+
+    const nextState = gameReducer(combatState, { type: 'END_TURN' });
+    expect(nextState.discardPhase).toBeUndefined();
+    // Both retain cards remain in hand
+    expect(nextState.hand.some((c) => c.id === 'retain_1')).toBe(true);
+    expect(nextState.hand.some((c) => c.id === 'retain_2')).toBe(true);
+  });
+
+  it('generates combat rewards strictly filtered by investigator occupation', () => {
+    // 1. Investigator occupation
+    const victoryInvestigator: GameState = {
+      ...createInitialCombatState(),
+      phase: 'victory',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        occupationId: 'investigator',
+      },
+    };
+
+    const rewardInvestigator = gameReducer(victoryInvestigator, { type: 'PROCEED_TO_REWARD' });
+    expect(rewardInvestigator.rewardCards).toBeDefined();
+    for (const card of rewardInvestigator.rewardCards!) {
+      const occupations = card.occupations;
+      const isValid = !occupations || occupations.length === 0 || occupations.includes('investigator');
+      expect(isValid).toBe(true);
+      expect(occupations?.includes('occultist') && !occupations?.includes('investigator')).toBeFalsy();
+    }
+
+    // 2. Occultist occupation
+    const victoryOccultist: GameState = {
+      ...createInitialCombatState(),
+      phase: 'victory',
+      investigator: {
+        ...INITIAL_INVESTIGATOR,
+        occupationId: 'occultist',
+      },
+    };
+
+    const rewardOccultist = gameReducer(victoryOccultist, { type: 'PROCEED_TO_REWARD' });
+    expect(rewardOccultist.rewardCards).toBeDefined();
+    for (const card of rewardOccultist.rewardCards!) {
+      const occupations = card.occupations;
+      const isValid = !occupations || occupations.length === 0 || occupations.includes('occultist');
+      expect(isValid).toBe(true);
+      expect(occupations?.includes('investigator') && !occupations?.includes('occultist')).toBeFalsy();
+    }
+  });
+
+  it('generates black market items strictly filtered by investigator occupation', () => {
+    const map = generateInvestigationMap();
+    const marketNodeId = Object.keys(map.nodes).find((id) => map.nodes[id].type === 'market')!;
+    map.nodes[marketNodeId].status = 'accessible';
+
+    // Occultist enters black market
+    const marketState = gameReducer(
+      {
+        ...createInitialCombatState(),
+        phase: 'map',
+        map,
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          occupationId: 'occultist',
+        },
+      },
+      { type: 'NAVIGATE_TO_NODE', payload: { nodeId: marketNodeId } }
+    );
+
+    expect(marketState.phase).toBe('market');
+    expect(marketState.marketItems).toBeDefined();
+    for (const item of marketState.marketItems!) {
+      if (item.card) {
+        const occupations = item.card.occupations;
+        const isValid = !occupations || occupations.length === 0 || occupations.includes('occultist');
+        expect(isValid).toBe(true);
+      }
+    }
+  });
+});
+
 

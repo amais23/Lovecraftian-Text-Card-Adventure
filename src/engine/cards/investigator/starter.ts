@@ -42,8 +42,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_punch.webp',
-    effects: [{ type: 'damage', value: 4 }],
-    description: '造成 4 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 4 },
+      { type: 'armor', value: 2 },
+    ],
+    description: '造成 4 點物理傷害，獲得 2 點護甲。',
     flavorText: '「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」',
   },
   {
@@ -56,8 +59,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_punch.webp',
-    effects: [{ type: 'damage', value: 4 }],
-    description: '造成 4 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 4 },
+      { type: 'armor', value: 2 },
+    ],
+    description: '造成 4 點物理傷害，獲得 2 點護甲。',
     flavorText: '「皮肉撞擊的沉悶聲響令人作嘔。」',
   },
   {
@@ -70,8 +76,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_punch.webp',
-    effects: [{ type: 'damage', value: 4 }],
-    description: '造成 4 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 4 },
+      { type: 'armor', value: 2 },
+    ],
+    description: '造成 4 點物理傷害，獲得 2 點護甲。',
     flavorText: '「凡人的關節在哀鳴，但你別無選擇。」',
   },
   {
@@ -124,10 +133,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     costValue: 1,
     isTemporary: false,
     tier: 1,
+    keywords: ['retain'],
     occupations: ['investigator'],
     artworkUrl: '/cards/skill/card_cover.webp',
     effects: [{ type: 'armor', value: 5 }],
-    description: '獲得 5 點護甲。',
+    description: '【保留】獲得 5 點護甲。',
     flavorText: '「翻倒厚重的橡木長桌，碎屑如驟雨般飛濺。」',
   },
   {

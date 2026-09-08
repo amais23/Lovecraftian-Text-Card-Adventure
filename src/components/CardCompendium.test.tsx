@@ -121,4 +121,45 @@ describe('CardCompendium Component', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('filters cards by occupation (all, investigator, occultist, neutral)', () => {
+    const onClose = vi.fn();
+    const { container } = render(<CardCompendium onClose={onClose} />);
+
+    // Check that occupation filter tabs are present
+    const investigatorTab = screen.getByText(/私家偵探/);
+    const occultistTab = screen.getByText(/秘術學者/);
+    const neutralTab = screen.getByText(/中立通用/);
+    const allOccTab = screen.getByText(/全部職業/);
+
+    expect(investigatorTab).toBeDefined();
+    expect(occultistTab).toBeDefined();
+    expect(neutralTab).toBeDefined();
+    expect(allOccTab).toBeDefined();
+
+    // Click "私家偵探"
+    fireEvent.click(investigatorTab);
+    const investigatorCards = container.querySelectorAll('.compendium-card-wrapper');
+    expect(investigatorCards.length).toBeGreaterThan(0);
+    expect(investigatorCards.length).toBeLessThan(52);
+
+    // Click "秘術學者"
+    fireEvent.click(occultistTab);
+    const occultistCards = container.querySelectorAll('.compendium-card-wrapper');
+    expect(occultistCards.length).toBeGreaterThan(0);
+    expect(occultistCards.length).toBeLessThan(52);
+
+    // Click "中立通用"
+    fireEvent.click(neutralTab);
+    const neutralCards = container.querySelectorAll('.compendium-card-wrapper');
+    expect(neutralCards.length).toBeGreaterThan(0);
+    expect(neutralCards.length).toBeLessThan(52);
+
+    // Investigator + Occultist + Neutral counts should sum to >= 52
+    expect(investigatorCards.length + occultistCards.length + neutralCards.length).toBeGreaterThanOrEqual(52);
+
+    // Reset to "全部職業"
+    fireEvent.click(allOccTab);
+    expect(container.querySelectorAll('.compendium-card-wrapper').length).toBe(52);
+  });
 });

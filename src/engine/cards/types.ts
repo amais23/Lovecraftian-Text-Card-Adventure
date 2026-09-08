@@ -37,6 +37,7 @@ export interface CardPlayContext {
   hand: Card[];
   sanityDeck: Card[];
   discardPile: Card[];
+  exhaustPile?: Card[];
   turn: number;
   isMadness: boolean;
 }

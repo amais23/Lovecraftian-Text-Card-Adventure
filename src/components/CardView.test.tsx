@@ -213,6 +213,32 @@ describe('CardView Component (Unplayable Cards & ADR-0015)', () => {
     // which previously overrode .hand-area .card-item absolute positioning and pushed cards downwards
     expect(combatCss).not.toMatch(/\.card-item\.tier-madness\s*\{[^}]*position:\s*relative/);
   });
+
+  it('renders innate, retain, and exhaust badges when keywords are present', () => {
+    const keywordCard: Card = {
+      ...mockPlayableCard,
+      id: 'keyword_card',
+      name: '戰術測試卡',
+      keywords: ['innate', 'retain', 'exhaust'],
+    };
+
+    render(
+      <CardView
+        card={keywordCard}
+        currentStamina={2}
+      />
+    );
+
+    const cardElement = screen.getByText('戰術測試卡').closest('.card-item');
+    expect(cardElement?.querySelector('.card-tag-badge.innate')).toBeDefined();
+    expect(screen.getByText('固有')).toBeDefined();
+
+    expect(cardElement?.querySelector('.card-tag-badge.retain')).toBeDefined();
+    expect(screen.getByText('保留')).toBeDefined();
+
+    expect(cardElement?.querySelector('.card-tag-badge.exhaust')).toBeDefined();
+    expect(screen.getByText('消耗')).toBeDefined();
+  });
 });
 
 

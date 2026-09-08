@@ -77,9 +77,22 @@ export function splitDeckToHandAndSanity(
   deck: Card[],
   handSize: number = DEFAULT_HAND_CAPACITY
 ): { hand: Card[]; sanityDeck: Card[] } {
+  // 固有（innate）卡牌與完整的深淵古印必定優先抽入起手手牌
+  const innateCards: Card[] = [];
+  const normalCards: Card[] = [];
+
+  for (const card of deck) {
+    if (card.keywords?.includes('innate') || isCompleteAncientSeal(card)) {
+      innateCards.push(card);
+    } else {
+      normalCards.push(card);
+    }
+  }
+
+  const sortedDeck = [...innateCards, ...normalCards];
   return {
-    hand: deck.slice(0, handSize),
-    sanityDeck: deck.slice(handSize),
+    hand: sortedDeck.slice(0, handSize),
+    sanityDeck: sortedDeck.slice(handSize),
   };
 }
 
@@ -103,14 +116,12 @@ export function setupCombatDeck(
     ? permanentCards
     : occ.deck.map((c) => ({ ...c }));
   const sanitizedPool = ensureUniqueCardIds(pool);
-  const shuffledDeck = fisherYatesShuffle(sanitizedPool);
+  let shuffledDeck = fisherYatesShuffle(sanitizedPool);
 
-  // ADR-0015: 固有抽牌 - 身為真相卡的「完整的深淵古印」必定為第一張起手手牌
-  const sealIdx = shuffledDeck.findIndex(isCompleteAncientSeal);
-  if (sealIdx > 0) {
-    const [sealCard] = shuffledDeck.splice(sealIdx, 1);
-    shuffledDeck.unshift(sealCard);
-  }
+  // 固有抽牌：完整的深淵古印或標記有 innate 的卡牌優先移至牌頂
+  const innateCards = shuffledDeck.filter((c) => c.keywords?.includes('innate') || isCompleteAncientSeal(c));
+  const otherCards = shuffledDeck.filter((c) => !c.keywords?.includes('innate') && !isCompleteAncientSeal(c));
+  shuffledDeck = [...innateCards, ...otherCards];
 
   return splitDeckToHandAndSanity(shuffledDeck, handCapacity);
 }
@@ -267,6 +278,7 @@ export function createInitialCombatState(
     sanityDeck,
     hand,
     discardPile: [],
+    exhaustPile: [],
     isMadness: sanityDeck.length === 0,
     currentEnemy: enemy,
     adventureStats: createInitialAdventureStats(investigator),
@@ -748,7 +760,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           phase: 'market',
           map: updatedMap,
-          marketItems: generateMarketItemsForDepth(state.currentDepth ?? state.map?.depth ?? 1),
+          marketItems: generateMarketItemsForDepth(
+            state.currentDepth ?? state.map?.depth ?? 1,
+            state.investigator.occupationId ?? 'investigator'
+          ),
           adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！進入黑市商鋪。`,
@@ -1157,7 +1172,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const currentPermanentCards = getAllPermanentCards(state);
           const withFrag3 = [...currentPermanentCards, { ...ABYSSAL_FRAGMENT_3 }];
           const { newDeck } = fuseAbyssalFragments(withFrag3);
-          const rewardCards = action.payload?.rewardCards ?? generateRewardCardsForDepth(3, true);
+          const rewardCards =
+            action.payload?.rewardCards ??
+            generateRewardCardsForDepth(3, true, 3, Math.random, state.investigator.occupationId ?? 'investigator');
           const rewardObols = action.payload?.rewardObols ?? 50;
 
           return {
@@ -1181,7 +1198,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const baseObols = isBossFight ? 50 : isElite ? 25 : 15;
       const rewardObols = action.payload?.rewardObols ?? baseObols;
       const rewardCards =
-        action.payload?.rewardCards ?? generateRewardCardsForDepth(currentDepth, isBossFight);
+        action.payload?.rewardCards ??
+        generateRewardCardsForDepth(currentDepth, isBossFight, 3, Math.random, state.investigator.occupationId ?? 'investigator');
 
       return {
         ...state,
@@ -1582,6 +1600,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck,
         hand,
         discardPile: [],
+        exhaustPile: [],
         isMadness: false,
         currentEnemy: enemy,
         map: state.map,
@@ -1607,6 +1626,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         hand: state.hand,
         sanityDeck: state.sanityDeck,
         discardPile: state.discardPile,
+        exhaustPile: state.exhaustPile,
         turn: state.turn,
         isMadness: state.isMadness,
       };
@@ -1652,6 +1672,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: ensureUniqueCardIds(result.sanityDeck),
         hand: ensureUniqueCardIds(result.hand),
         discardPile: result.discardPile,
+        exhaustPile: result.exhaustPile,
         isMadness: result.isMadness,
         currentEnemy: {
           ...state.currentEnemy,
@@ -1668,10 +1689,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'combat' || Boolean(state.discardPhase)) return state;
 
       const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+      const nonRetainHand = state.hand.filter((c) => !c.keywords?.includes('retain'));
 
-      // 若未打出手牌數量大於手牌容量上限，切換至主動棄牌階段
-      if (state.hand.length > capacity) {
-        const requiredDiscardCount = state.hand.length - capacity;
+      // 若未打出之非保留手牌數量大於手牌容量上限，切換至主動棄牌階段
+      if (nonRetainHand.length > capacity) {
+        const requiredDiscardCount = nonRetainHand.length - capacity;
         return {
           ...state,
           discardPhase: {
@@ -1679,7 +1701,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             selectedDiscardIds: [],
           },
           battleLog: [
-            `【手牌超出容量】未打出手牌（${state.hand.length} 張）超出容量上限（${capacity} 張），請挑選並棄置 ${requiredDiscardCount} 張卡牌。`,
+            `【手牌超出容量】未打出手牌（非保留 ${nonRetainHand.length} 張）超出容量上限（${capacity} 張），請挑選並棄置 ${requiredDiscardCount} 張卡牌。`,
             ...state.battleLog,
           ],
         };
@@ -1731,7 +1753,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'combat' || !state.discardPhase) return state;
       const cardIdsToDiscard = action.payload?.cardIds ?? state.discardPhase.selectedDiscardIds;
       const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
-      const requiredDiscardCount = state.hand.length - capacity;
+      const nonRetainHand = state.hand.filter((c) => !c.keywords?.includes('retain'));
+      const requiredDiscardCount = Math.max(0, nonRetainHand.length - capacity);
 
       return executeCardDiscardAndAdvanceTurn(state, cardIdsToDiscard, requiredDiscardCount);
     }
@@ -1740,7 +1763,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'combat') return state;
       const cardIdsToDiscard = action.payload.cardIds;
       const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
-      const requiredDiscardCount = Math.max(0, state.hand.length - capacity);
+      const nonRetainHand = state.hand.filter((c) => !c.keywords?.includes('retain'));
+      const requiredDiscardCount = Math.max(0, nonRetainHand.length - capacity);
 
       return executeCardDiscardAndAdvanceTurn(state, cardIdsToDiscard, requiredDiscardCount);
     }

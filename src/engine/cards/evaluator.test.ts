@@ -3,6 +3,7 @@ import { evaluateCardPlay } from './evaluator';
 import type { CardPlayContext } from './types';
 import type { Card } from '../../types/game';
 import { COMPLETE_ANCIENT_SEAL, ABYSSAL_FRAGMENT_1 } from './special/abyssal';
+import { createStatusEffect } from '../statusEffects';
 
 describe('CardEvaluator (Seam 1)', () => {
   const createBaseContext = (overrides?: Partial<CardPlayContext>): CardPlayContext => ({
@@ -481,6 +482,276 @@ describe('CardEvaluator (Seam 1)', () => {
       expect(result.investigator.health).toBe(0);
       expect(result.combatOutcome).toBe('defeat');
       expect(result.investigator.statusEffects).toHaveLength(0);
+    });
+  });
+
+  describe('Four Composable Primitives & Card Lifecycle (Issue #46 / ADR-0024)', () => {
+    it('scales damage dynamically based on investigator armor (Armor Scaling)', () => {
+      const card: Card = {
+        id: 'shield_slam',
+        name: '護甲猛擊',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage', value: 4, scaleFrom: 'armor', scaleMultiplier: 1.0 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      const context = createBaseContext({
+        investigator: {
+          ...createBaseContext().investigator,
+          armor: 15,
+        },
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 50,
+          armor: 0,
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // 4 base + 15 armor bonus = 19 damage
+      expect(result.enemy.health).toBe(31);
+      expect(result.logs.some((log) => log.includes('護甲加成 +15'))).toBe(true);
+    });
+
+    it('scales damage dynamically inversely to sanity deck (Sanity Inverse Scaling)', () => {
+      const card: Card = {
+        id: 'whispers',
+        name: '狂亂低語',
+        category: 'magic',
+        costType: 'sanity',
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage', value: 8, scaleFrom: 'sanity_inverse', scaleMultiplier: 1.0 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      // Context has 3 sanity cards; 1 burned for cost leaves 2 sanity cards in deck
+      const context = createBaseContext({
+        sanityDeck: [
+          { id: 's1', name: 'S1', category: 'combat', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+          { id: 's2', name: 'S2', category: 'combat', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+          { id: 's3', name: 'S3', category: 'combat', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+        ],
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 50,
+          armor: 0,
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // 10 - 2 remaining sanity = 8 missing sanity * 1.0 = +8 bonus
+      // 8 base + 8 bonus = 16 damage
+      expect(result.enemy.health).toBe(34);
+      expect(result.logs.some((log) => log.includes('心智虧蝕加成 +8'))).toBe(true);
+    });
+
+    it('scales damage dynamically based on enemy status stacks (Status Stack Multiplier)', () => {
+      const card: Card = {
+        id: 'abyssal_detonation',
+        name: '深淵引爆',
+        category: 'magic',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage', value: 10, scaleFrom: 'status_stacks', scaleMultiplier: 3.0 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 50,
+          armor: 0,
+          statusEffects: [
+            createStatusEffect('bleed', 3),
+            createStatusEffect('horror', 2),
+          ],
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // total stacks = 3 bleed + 2 horror = 5 * 3 = 15 bonus damage
+      // 10 base + 15 bonus = 25 damage
+      expect(result.enemy.health).toBe(25);
+      expect(result.logs.some((log) => log.includes('印記共鳴加成 +15'))).toBe(true);
+    });
+
+    it('executes multi-hit attack where each hit independently benefits from might and vulnerable', () => {
+      const card: Card = {
+        id: 'double_tap',
+        name: '雙發速射',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage', value: 4, hitCount: 2 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      const context = createBaseContext({
+        investigator: {
+          ...createBaseContext().investigator,
+          statusEffects: [createStatusEffect('might', 2)],
+        },
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 50,
+          armor: 0,
+          statusEffects: [createStatusEffect('vulnerable', 1)],
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // Each hit: (4 base + 2 might) * 1.5 vulnerable = 6 * 1.5 = 9 damage
+      // 2 hits = 18 total damage!
+      expect(result.enemy.health).toBe(32);
+      expect(result.logs.some((log) => log.includes('2 連擊') && log.includes('18 點傷害'))).toBe(true);
+    });
+
+    it('pierces armor completely when piercing is true', () => {
+      const card: Card = {
+        id: 'piercing_strike',
+        name: '破甲穿刺',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage', value: 12, piercing: true },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 30,
+          armor: 20,
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // Piercing damage bypasses 20 armor completely: armor stays 20, health becomes 30 - 12 = 18
+      expect(result.enemy.armor).toBe(20);
+      expect(result.enemy.health).toBe(18);
+      expect(result.logs.some((log) => log.includes('真實穿刺無視護甲'))).toBe(true);
+    });
+
+    it('triggers conditional double damage when target has vulnerable status', () => {
+      const card: Card = {
+        id: 'weakpoint_snipe',
+        name: '弱點狙擊',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 2,
+        isTemporary: false,
+        effects: [
+          {
+            type: 'damage',
+            value: 12,
+            condition: { type: 'target_has_status', statusType: 'vulnerable', multiplier: 2 },
+          },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 50,
+          armor: 0,
+          statusEffects: [createStatusEffect('vulnerable', 1)],
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // Base 12 * 2 (condition) = 24. Then vulnerable multiplies attack damage by 1.5 -> 36!
+      expect(result.enemy.health).toBe(14);
+      expect(result.logs.some((log) => log.includes('破綻狙擊翻倍 ×2'))).toBe(true);
+    });
+
+    it('triggers conditional low sanity bonus when remaining sanity is below threshold', () => {
+      const card: Card = {
+        id: 'desperate_strike',
+        name: '瀕死反撲',
+        category: 'magic',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          {
+            type: 'damage',
+            value: 6,
+            condition: { type: 'low_sanity', threshold: 4, bonusValue: 10 },
+          },
+        ],
+        description: '',
+        flavorText: '',
+      };
+      // Context has 2 sanity cards (<= 4)
+      const context = createBaseContext({
+        sanityDeck: [
+          { id: 's1', name: 'S1', category: 'combat', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+          { id: 's2', name: 'S2', category: 'combat', costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+        ],
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 30,
+          armor: 0,
+        },
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      // 6 base + 10 bonus = 16 damage
+      expect(result.enemy.health).toBe(14);
+      expect(result.logs.some((log) => log.includes('低理智爆發 +10'))).toBe(true);
+    });
+
+    it('moves card to exhaustPile instead of discardPile when card has exhaust keyword', () => {
+      const card: Card = {
+        id: 'field_bandage',
+        name: '戰地急救繃帶',
+        category: 'skill',
+        costType: 'stamina',
+        costValue: 1,
+        keywords: ['exhaust'],
+        isTemporary: false,
+        effects: [{ type: 'heal', value: 4 }],
+        description: '',
+        flavorText: '',
+      };
+      const context = createBaseContext({
+        hand: [card],
+        discardPile: [],
+        exhaustPile: [],
+      });
+
+      const result = evaluateCardPlay(card, context);
+      expect(result.success).toBe(true);
+      expect(result.hand).toHaveLength(0);
+      expect(result.discardPile).toHaveLength(0);
+      expect(result.exhaustPile).toHaveLength(1);
+      expect(result.exhaustPile![0].id).toBe('field_bandage');
+      expect(result.logs.some((log) => log.includes('【卡牌消耗】'))).toBe(true);
     });
   });
 });

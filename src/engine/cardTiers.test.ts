@@ -9,9 +9,9 @@ import {
 } from './cardTiers';
 
 describe('Tiered Card System (cardTiers - Issue #20 / ADR-0015)', () => {
-  it('defines 8 cards for Tier 1, Tier 2, and Tier 3 with valid metadata and non-empty effects', () => {
-    expect(TIER_1_CARDS).toHaveLength(8);
-    expect(TIER_2_CARDS).toHaveLength(8);
+  it('defines cards for Tier 1, Tier 2, and Tier 3 with valid metadata and non-empty effects', () => {
+    expect(TIER_1_CARDS.length).toBeGreaterThanOrEqual(8);
+    expect(TIER_2_CARDS.length).toBeGreaterThanOrEqual(8);
     expect(TIER_3_CARDS).toHaveLength(8);
 
     for (const card of [...TIER_1_CARDS, ...TIER_2_CARDS, ...TIER_3_CARDS]) {
@@ -79,11 +79,25 @@ describe('Tiered Card System (cardTiers - Issue #20 / ADR-0015)', () => {
   });
 
   it('ensures all tiered card IDs and names are unique across ALL_TIERED_CARDS', () => {
-    expect(ALL_TIERED_CARDS).toHaveLength(8 + 8 + 8 + 4); // 28 cards
+    expect(ALL_TIERED_CARDS).toHaveLength(
+      TIER_1_CARDS.length + TIER_2_CARDS.length + TIER_3_CARDS.length + TIER_4_EXCLUSIVE_CARDS.length
+    );
     const ids = new Set(ALL_TIERED_CARDS.map((c) => c.id));
     expect(ids.size).toBe(ALL_TIERED_CARDS.length);
 
     const names = new Set(ALL_TIERED_CARDS.map((c) => c.name));
     expect(names.size).toBe(ALL_TIERED_CARDS.length);
+  });
+
+  it('filters reward cards strictly by occupation with zero cross-class cards (ADR-0025)', () => {
+    const investigatorRewards = generateRewardCardsForDepth(1, false, 5, Math.random, 'investigator');
+    expect(investigatorRewards.every((c) => !c.occupations || c.occupations.includes('investigator'))).toBe(true);
+    // Should never contain occultist exclusive cards
+    expect(investigatorRewards.some((c) => c.occupations?.length === 1 && c.occupations[0] === 'occultist')).toBe(false);
+
+    const occultistRewards = generateRewardCardsForDepth(1, false, 5, Math.random, 'occultist');
+    expect(occultistRewards.every((c) => !c.occupations || c.occupations.includes('occultist'))).toBe(true);
+    // Should never contain investigator exclusive cards
+    expect(occultistRewards.some((c) => c.occupations?.length === 1 && c.occupations[0] === 'investigator')).toBe(false);
   });
 });

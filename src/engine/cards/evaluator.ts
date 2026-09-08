@@ -30,8 +30,20 @@ export interface DamageResult {
  */
 export function applyDamage(
   target: { health: number; armor: number },
-  damageAmount: number
+  damageAmount: number,
+  piercing: boolean = false
 ): DamageResult {
+  if (piercing) {
+    const effectiveDamage = damageAmount;
+    const newHealth = Math.max(0, target.health - effectiveDamage);
+    return {
+      newHealth,
+      newArmor: target.armor,
+      absorbed: 0,
+      effectiveDamage,
+    };
+  }
+
   const absorbed = Math.min(target.armor, damageAmount);
   const effectiveDamage = damageAmount - absorbed;
   const newArmor = Math.max(0, target.armor - absorbed);
@@ -95,6 +107,7 @@ export function evaluateCardPlay(
     hand: [...hand],
     sanityDeck: [...sanityDeck],
     discardPile: [...discardPile],
+    exhaustPile: context.exhaustPile ? [...context.exhaustPile] : [],
     logs: [],
     isMadness,
     combatOutcome: 'none',
@@ -178,28 +191,117 @@ export function evaluateCardPlay(
   // 執行原子卡牌效果
   for (const effect of card.effects) {
     if (effect.type === 'damage') {
-      const finalDamage = calculateAttackDamage(effect.value, investigatorStatusEffects, enemyStatusEffects);
-      const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, finalDamage);
-      if (isDivineEnemy && !isAncientSeal && dmg.newHealth < 1) {
-        // Divine Immortality locks health at minimum 1
-        enemyHealth = 1;
-        enemyArmor = dmg.newArmor;
+      let baseVal = effect.value;
+
+      // 1. 條件判定 (Condition Check)
+      let conditionDesc = '';
+      if (effect.condition) {
+        if (effect.condition.type === 'low_sanity') {
+          const threshold = effect.condition.threshold ?? 4;
+          if (newSanityDeck.length <= threshold) {
+            if (effect.condition.multiplier) {
+              baseVal = Math.floor(baseVal * effect.condition.multiplier);
+              conditionDesc = `瀕死狂亂增傷 ×${effect.condition.multiplier}`;
+            }
+            if (effect.condition.bonusValue) {
+              baseVal += effect.condition.bonusValue;
+              conditionDesc = `低理智爆發 +${effect.condition.bonusValue}`;
+            }
+          }
+        } else if (effect.condition.type === 'target_has_status') {
+          const sType = effect.condition.statusType ?? 'vulnerable';
+          const stacks = getStatusStacks(enemyStatusEffects, sType);
+          if (stacks > 0) {
+            if (effect.condition.multiplier) {
+              baseVal = Math.floor(baseVal * effect.condition.multiplier);
+              conditionDesc = `破綻狙擊翻倍 ×${effect.condition.multiplier}`;
+            }
+            if (effect.condition.bonusValue) {
+              baseVal += effect.condition.bonusValue;
+              conditionDesc = `目標帶有【${sType}】+${effect.condition.bonusValue}`;
+            }
+          }
+        }
+      }
+
+      // 2. 動態數值縮放 (Dynamic Scaling)
+      let dynamicBonus = 0;
+      let scalingDesc = '';
+      if (effect.scaleFrom === 'armor') {
+        const mult = effect.scaleMultiplier ?? 1.0;
+        dynamicBonus = Math.floor(investigatorArmor * mult);
+        if (dynamicBonus > 0) {
+          scalingDesc = `護甲加成 +${dynamicBonus}`;
+        }
+      } else if (effect.scaleFrom === 'sanity_inverse') {
+        const missingSanity = Math.max(0, 10 - newSanityDeck.length);
+        const mult = effect.scaleMultiplier ?? 1.0;
+        dynamicBonus = Math.floor(missingSanity * mult);
+        if (dynamicBonus > 0) {
+          scalingDesc = `心智虧蝕加成 +${dynamicBonus}`;
+        }
+      } else if (effect.scaleFrom === 'status_stacks') {
+        const mult = effect.scaleMultiplier ?? 2.0;
+        if (effect.scaleStatusType) {
+          const stacks = getStatusStacks(enemyStatusEffects, effect.scaleStatusType);
+          dynamicBonus = Math.floor(stacks * mult);
+          if (dynamicBonus > 0) {
+            scalingDesc = `【${effect.scaleStatusType}】加成 +${dynamicBonus}`;
+          }
+        } else {
+          const bleed = getStatusStacks(enemyStatusEffects, 'bleed');
+          const horror = getStatusStacks(enemyStatusEffects, 'horror');
+          const totalStacks = bleed + horror;
+          dynamicBonus = Math.floor(totalStacks * mult);
+          if (dynamicBonus > 0) {
+            scalingDesc = `印記共鳴加成 +${dynamicBonus}`;
+          }
+        }
+      }
+
+      const singleHitBase = baseVal + dynamicBonus;
+      const hitCount = Math.max(1, effect.hitCount ?? 1);
+      const isPiercing = Boolean(effect.piercing);
+
+      const hitDamages: number[] = [];
+      let totalEffectiveDamage = 0;
+
+      for (let h = 0; h < hitCount; h++) {
+        const singleHitFinal = calculateAttackDamage(singleHitBase, investigatorStatusEffects, enemyStatusEffects);
+        hitDamages.push(singleHitFinal);
+        const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, singleHitFinal, isPiercing);
+
+        if (isDivineEnemy && !isAncientSeal && dmg.newHealth < 1) {
+          enemyHealth = 1;
+          enemyArmor = dmg.newArmor;
+        } else {
+          enemyHealth = dmg.newHealth;
+          enemyArmor = dmg.newArmor;
+        }
+        totalEffectiveDamage += dmg.effectiveDamage;
+      }
+
+      if (isDivineEnemy && !isAncientSeal && enemyHealth === 1 && totalEffectiveDamage >= enemy.health) {
         newLogs.push(
           `調查員打出【${card.name}】，對 ${enemy.name} 造成打擊！但【神性不朽】抵禦了致命傷，生命值被鎖定在 1 點！唯有【完整的深淵古印】方能將其終極封滅！`
         );
       } else {
-        enemyHealth = dmg.newHealth;
-        enemyArmor = dmg.newArmor;
         const mightBonus = getStatusStacks(investigatorStatusEffects, 'might');
         const vulnBonus = getStatusStacks(enemyStatusEffects, 'vulnerable');
-        let bonusDesc = '';
-        if (mightBonus > 0 || vulnBonus > 0) {
-          const parts: string[] = [];
-          if (mightBonus > 0) parts.push(`力量 +${mightBonus}`);
-          if (vulnBonus > 0) parts.push(`易傷增傷`);
-          bonusDesc = `（${parts.join('，')}）`;
+        const parts: string[] = [];
+        if (mightBonus > 0) parts.push(`力量 +${mightBonus}`);
+        if (vulnBonus > 0) parts.push(`易傷增傷`);
+        if (conditionDesc) parts.push(conditionDesc);
+        if (scalingDesc) parts.push(scalingDesc);
+        if (isPiercing) parts.push(`真實穿刺無視護甲`);
+        const bonusDesc = parts.length > 0 ? `（${parts.join('，')}）` : '';
+
+        if (hitCount > 1) {
+          const totalDmg = hitDamages.reduce((a, b) => a + b, 0);
+          newLogs.push(`調查員打出【${card.name}】，對 ${enemy.name} 發動 ${hitCount} 連擊，造成總計 ${totalDmg} 點傷害${bonusDesc}！`);
+        } else {
+          newLogs.push(`調查員打出【${card.name}】，對 ${enemy.name} 造成 ${hitDamages[0]} 點傷害${bonusDesc}！`);
         }
-        newLogs.push(`調查員打出【${card.name}】，對 ${enemy.name} 造成 ${finalDamage} 點傷害${bonusDesc}！`);
       }
     } else if (effect.type === 'armor') {
       const finalArmor = calculateArmorGain(effect.value, investigatorStatusEffects);
@@ -291,8 +393,18 @@ export function evaluateCardPlay(
     }
   }
 
-  // 卡牌生命週期：臨時卡消散不入棄牌堆，一般卡入棄牌堆
-  const finalDiscardPile = card.isTemporary ? [...pastDiscardPile] : [...pastDiscardPile, card];
+  // 卡牌生命週期：消耗卡移入消耗堆、臨時卡消散不入棄牌堆、一般卡入棄牌堆
+  const isExhaust = Boolean(card.keywords?.includes('exhaust'));
+  const currentExhaustPile = context.exhaustPile ? [...context.exhaustPile] : [];
+  let finalExhaustPile = currentExhaustPile;
+  let finalDiscardPile = pastDiscardPile;
+
+  if (isExhaust) {
+    finalExhaustPile = [...currentExhaustPile, card];
+    newLogs.push(`【卡牌消耗】打出【${card.name}】後，該卡牌化為飛灰移入消耗堆！`);
+  } else if (!card.isTemporary) {
+    finalDiscardPile = [...pastDiscardPile, card];
+  }
 
   // 評估瘋狂狀態轉移
   const madnessEval = evaluateMadnessTransition(isMadness, newSanityDeck.length);
@@ -337,6 +449,7 @@ export function evaluateCardPlay(
     hand: newHand,
     sanityDeck: newSanityDeck,
     discardPile: finalDiscardPile,
+    exhaustPile: finalExhaustPile,
     logs: newLogs,
     isMadness: isMadnessNow,
     combatOutcome,

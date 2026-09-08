@@ -281,9 +281,24 @@ export const CardView: React.FC<CardViewProps> = ({
         <span className="card-title-text">{card.name}</span>
       </div>
 
-      {/* Badges row (Temporary / Recoil / Unplayable / Seal Status) */}
-      {(card.isTemporary || selfDamageEffect || card.isUnplayable || isSealLocked || isSealUnlocked) && (
+      {/* Badges row (Temporary / Recoil / Unplayable / Seal Status / Keywords) */}
+      {(card.isTemporary || selfDamageEffect || card.isUnplayable || isSealLocked || isSealUnlocked || (card.keywords && card.keywords.length > 0)) && (
         <div className="card-badges-row">
+          {card.keywords?.includes('innate') && (
+            <span className="card-tag-badge innate" title="戰鬥開始時必置於初始手牌">
+              固有
+            </span>
+          )}
+          {card.keywords?.includes('retain') && (
+            <span className="card-tag-badge retain" title="回合結束時保留於手牌中，不受手牌上限棄牌影響">
+              保留
+            </span>
+          )}
+          {card.keywords?.includes('exhaust') && (
+            <span className="card-tag-badge exhaust" title="打出後移入消耗堆，本場戰鬥無法再次抽取">
+              消耗
+            </span>
+          )}
           {isSealLocked && (
             <span
               className="card-tag-badge seal-locked"

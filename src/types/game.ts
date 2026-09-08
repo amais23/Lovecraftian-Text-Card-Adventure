@@ -36,6 +36,18 @@ export interface CardEffect {
   value: number;
   statusType?: StatusEffectType;
   target?: 'self' | 'enemy';
+  hitCount?: number;
+  piercing?: boolean;
+  scaleFrom?: 'armor' | 'sanity_inverse' | 'status_stacks';
+  scaleMultiplier?: number;
+  scaleStatusType?: StatusEffectType;
+  condition?: {
+    type: 'low_sanity' | 'target_has_status';
+    threshold?: number;
+    statusType?: StatusEffectType;
+    bonusValue?: number;
+    multiplier?: number;
+  };
 }
 
 export type OccupationId = 'investigator' | 'occultist';
@@ -236,6 +248,7 @@ export interface GameState {
   sanityDeck: Card[]; // 牌庫剩餘數量即等同於當前理智值 (Sanity)
   hand: Card[];       // 當前手牌
   discardPile: Card[];
+  exhaustPile?: Card[]; // 消耗堆（本場戰鬥移出循環牌庫）
   isMadness: boolean;
   currentEnemy: Enemy;
   battleLog: string[];

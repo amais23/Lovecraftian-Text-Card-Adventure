@@ -1456,6 +1456,24 @@
   border: 1px solid rgba(148, 163, 184, 0.45);
 }
 
+.card-tag-badge.innate {
+  background: rgba(67, 56, 202, 0.8);
+  color: #c7d2fe;
+  border: 1px solid rgba(99, 102, 241, 0.75);
+}
+
+.card-tag-badge.retain {
+  background: rgba(15, 118, 110, 0.8);
+  color: #99f6e4;
+  border: 1px solid rgba(20, 184, 166, 0.75);
+}
+
+.card-tag-badge.exhaust {
+  background: rgba(180, 83, 9, 0.8);
+  color: #fed7aa;
+  border: 1px solid rgba(249, 115, 22, 0.75);
+}
+
 .card-tag-badge.recoil {
   background: rgba(153, 27, 27, 0.7);
   color: #fca5a5;

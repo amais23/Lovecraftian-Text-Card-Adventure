@@ -1,4 +1,4 @@
-import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent } from '../types/game';
+import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent, OccupationId } from '../types/game';
 import { TIER_2_CARDS, TIER_3_CARDS } from './cardTiers';
 
 /* =========================================================
@@ -502,27 +502,53 @@ export const TRUTH_CARD_BREAKWATER: Omit<Card, 'id'> = {
    Black Market Stock Generator
    ========================================================= */
 
-export function generateDefaultMarketItems(): MarketItem[] {
+export function generateDefaultMarketItems(occupationId?: OccupationId): MarketItem[] {
+  const isOccultist = occupationId === 'occultist';
+
+  const primaryCardItem: MarketItem = isOccultist
+    ? {
+        id: 'market_item_dread_whisper',
+        name: '異度恐懼低語',
+        type: 'card',
+        price: 20,
+        description: '強大的星空秘術，燃燒 1 點理智造成 10 點秘術傷害。',
+        card: {
+          id: 'card_market_dread_whisper',
+          name: '恐懼低語',
+          category: 'magic',
+          costType: 'sanity',
+          costValue: 1,
+          isTemporary: false,
+          tier: 1,
+          occupations: ['occultist'],
+          effects: [{ type: 'damage', value: 10 }],
+          description: '造成 10 點秘術傷害。',
+          flavorText: '「在敵人腦海中回放拉萊耶的潮汐聲。」',
+        },
+      }
+    : {
+        id: 'market_item_trench_gun',
+        name: '戰壕雙管獵槍',
+        type: 'card',
+        price: 20,
+        description: '強大的物理重型武器，造成 14 點巨大物理傷害。',
+        card: {
+          id: 'card_market_shotgun',
+          name: '雙管獵槍',
+          category: 'combat',
+          costType: 'stamina',
+          costValue: 2,
+          isTemporary: false,
+          tier: 1,
+          occupations: ['investigator'],
+          effects: [{ type: 'damage', value: 14 }],
+          description: '造成 14 點物理傷害。',
+          flavorText: '「12號口徑鹿彈撕裂腐肉的轟鳴，足以撕裂最深沉的夢魘。」',
+        },
+      };
+
   return [
-    {
-      id: 'market_item_trench_gun',
-      name: '戰壕雙管獵槍',
-      type: 'card',
-      price: 20,
-      description: '強大的物理重型武器，造成 14 點巨大物理傷害。',
-      card: {
-        id: 'card_market_shotgun',
-        name: '雙管獵槍',
-        category: 'combat',
-        costType: 'stamina',
-        costValue: 2,
-        isTemporary: false,
-        tier: 1,
-        effects: [{ type: 'damage', value: 14 }],
-        description: '造成 14 點物理傷害。',
-        flavorText: '「12號口徑鹿彈撕裂腐肉的轟鳴，足以撕裂最深沉的夢魘。」',
-      },
-    },
+    primaryCardItem,
     {
       id: 'market_item_amulet',
       name: '遠古青銅護身符',
@@ -537,6 +563,7 @@ export function generateDefaultMarketItems(): MarketItem[] {
         costValue: 1,
         isTemporary: false,
         tier: 1,
+        occupations: ['investigator', 'occultist'],
         effects: [{ type: 'armor', value: 8 }],
         description: '獲得 8 點護甲。',
         flavorText: '「青銅上的深綠包漿散發著阻絕污穢的冰涼氣息。」',
@@ -578,34 +605,47 @@ export function generateDefaultMarketItems(): MarketItem[] {
  * - Depth 1: Tier 1 裝備與常規醫療品
  * - Depth 2: Tier 2 進階裝備與深度防護血清
  * - Depth 3: Tier 3 大師級秘寶與禁忌復甦針劑
+ * - 若傳入 occupationId，依據職業過濾商品卡牌
  */
-export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[] {
+export function generateMarketItemsForDepth(depth: DepthLevel = 1, occupationId?: OccupationId): MarketItem[] {
   switch (depth) {
-    case 2:
+    case 2: {
+      const card1: Card = occupationId === 'occultist'
+        ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' }
+        : { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_pump_shotgun')!, id: 'card_market_pump_shotgun' };
+      const card2: Card = occupationId === 'occultist'
+        ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_mind_shock')!, id: 'card_market_mind_shock' }
+        : { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_iron_will')!, id: 'card_market_iron_will' };
+      const card3: Card = occupationId === 'occultist'
+        ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
+        : (occupationId === 'investigator'
+            ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
+            : { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' });
+
       return [
         {
-          id: 'market_item_pump_shotgun_d2',
-          name: '泵動式散彈槍',
+          id: card1.id === 'card_market_frost_grasp' ? 'market_item_frost_grasp_d2' : 'market_item_pump_shotgun_d2',
+          name: card1.name,
           type: 'card',
           price: 28,
-          description: '進階重型火器，造成 20 點猛烈物理傷害。',
-          card: { ...TIER_2_CARDS[0], id: 'card_market_pump_shotgun' },
+          description: card1.description,
+          card: card1,
         },
         {
-          id: 'market_item_iron_will_d2',
-          name: '鋼鐵意志屏障',
+          id: card2.id === 'card_market_mind_shock' ? 'market_item_mind_shock_d2' : 'market_item_iron_will_d2',
+          name: card2.name,
           type: 'card',
           price: 25,
-          description: '凝聚凡人鋼鐵意志，獲得 12 點護甲。',
-          card: { ...TIER_2_CARDS[2], id: 'card_market_iron_will' },
+          description: card2.description,
+          card: card2,
         },
         {
-          id: 'market_item_frost_grasp_d2',
-          name: '深海冰霜之握',
+          id: card3.id === 'card_market_rapid_suture' ? 'market_item_rapid_suture_d2' : 'market_item_frost_grasp_d2',
+          name: card3.name,
           type: 'card',
           price: 24,
-          description: '召喚深海極寒洋流，造成 25 點秘術傷害。',
-          card: { ...TIER_2_CARDS[4], id: 'card_market_frost_grasp' },
+          description: card3.description,
+          card: card3,
         },
         {
           id: 'market_item_surgery_kit_d2',
@@ -624,33 +664,46 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[]
           description: '提取自深潛者分泌物的解毒血清，立即恢復 8 點生命值。',
         },
       ];
+    }
 
     case 3:
-    case 4:
+    case 4: {
+      const card1: Card = occupationId === 'occultist'
+        ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_void_collapse')!, id: 'card_market_void_collapse' }
+        : { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_dum_dum')!, id: 'card_market_dum_dum' };
+      const card2: Card = occupationId === 'occultist'
+        ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_psionic_cleave')!, id: 'card_market_psionic_cleave' }
+        : { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_impenetrable_bastion')!, id: 'card_market_bastion' };
+      const card3: Card = occupationId === 'occultist'
+        ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_star_resonance')!, id: 'card_market_star_resonance' }
+        : (occupationId === 'investigator'
+            ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_demolition_pack')!, id: 'card_market_demolition_pack' }
+            : { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_void_collapse')!, id: 'card_market_void_collapse' });
+
       return [
         {
-          id: 'market_item_dum_dum_d3',
-          name: '達姆高爆彈連射',
+          id: card1.id === 'card_market_void_collapse' ? 'market_item_void_collapse_d3' : 'market_item_dum_dum_d3',
+          name: card1.name,
           type: 'card',
           price: 38,
-          description: '太古破甲高爆彈，造成 26 點物理傷害。',
-          card: { ...TIER_3_CARDS[0], id: 'card_market_dum_dum' },
+          description: card1.description,
+          card: card1,
         },
         {
-          id: 'market_item_impenetrable_bastion_d3',
-          name: '不可侵犯之壁',
+          id: card2.id === 'card_market_psionic_cleave' ? 'market_item_psionic_cleave_d3' : 'market_item_impenetrable_bastion_d3',
+          name: card2.name,
           type: 'card',
           price: 35,
-          description: '不可摧毀的終極防禦，獲得 22 點護甲。',
-          card: { ...TIER_3_CARDS[2], id: 'card_market_bastion' },
+          description: card2.description,
+          card: card2,
         },
         {
-          id: 'market_item_void_collapse_d3',
-          name: '虛空黑洞坍縮',
+          id: card3.id === 'card_market_star_resonance' ? 'market_item_star_resonance_d3' : (card3.id === 'card_market_demolition_pack' ? 'market_item_demolition_pack_d3' : 'market_item_void_collapse_d3'),
+          name: card3.name,
           type: 'card',
           price: 36,
-          description: '引發時空引力黑洞，造成 34 點秘術傷害。',
-          card: { ...TIER_3_CARDS[4], id: 'card_market_void_collapse' },
+          description: card3.description,
+          card: card3,
         },
         {
           id: 'market_item_revival_injection_d3',
@@ -669,10 +722,11 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1): MarketItem[]
           description: '盛放在純金酒樽中的驅邪聖水，立即恢復 10 點生命值。',
         },
       ];
+    }
 
     case 1:
     default:
-      return generateDefaultMarketItems();
+      return generateDefaultMarketItems(occupationId);
   }
 }
 

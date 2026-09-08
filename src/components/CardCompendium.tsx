@@ -3,12 +3,13 @@ import type { CardCategory, Card } from '../types/game';
 import { ALL_CARD_ARTWORKS, type CardArtworkInfo } from '../engine/cardArtworks';
 import { CardView } from './CardView';
 import { soundEngine } from '../engine/audioManager';
-import { X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame } from 'lucide-react';
+import { X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame, Users, Search, Scroll, Compass } from 'lucide-react';
 
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
 import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER, generateDefaultMarketItems } from '../engine/eventData';
 import { ALL_TIERED_CARDS } from '../engine/cardTiers';
 import { ALL_ABYSSAL_CARDS } from '../engine/abyssalSeals';
+import { getAllCompendiumCards } from '../engine/cards/registry';
 
 const CATEGORY_NAMES: Record<CardCategory, string> = {
   combat: '紅色戰鬥卡',
@@ -41,12 +42,28 @@ const CATEGORY_TABS: CategoryTabConfig[] = [
   { category: 'madness', name: '黑色瘋狂', sub: '深淵異化', icon: <Flame size={14} /> },
 ];
 
+export type OccupationFilter = 'all' | 'investigator' | 'occultist' | 'neutral';
+
+interface OccupationTabConfig {
+  id: OccupationFilter;
+  label: string;
+  icon: React.ReactNode;
+}
+
+const OCCUPATION_TABS: OccupationTabConfig[] = [
+  { id: 'all', label: '全部職業', icon: <Users size={14} /> },
+  { id: 'investigator', label: '私家偵探', icon: <Search size={14} /> },
+  { id: 'occultist', label: '秘術學者', icon: <Scroll size={14} /> },
+  { id: 'neutral', label: '中立通用', icon: <Compass size={14} /> },
+];
+
 interface CardCompendiumProps {
   onClose: () => void;
 }
 
 export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
   const [selectedCategory, setSelectedCategory] = useState<CardCategory | 'all'>('all');
+  const [selectedOccupation, setSelectedOccupation] = useState<OccupationFilter>('all');
   const [activeDetailCard, setActiveDetailCard] = useState<CardArtworkInfo | null>(null);
 
   // Keyboard Escape support to close modal
@@ -74,6 +91,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
       }
     };
 
+    getAllCompendiumCards().forEach(registerCard);
     INVESTIGATOR_DECK.forEach(registerCard);
     OCCULTIST_DECK.forEach(registerCard);
     REWARD_CARD_POOL.forEach(registerCard);
@@ -118,9 +136,26 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
   }, [cardMap]);
 
   const filteredArtworks = useMemo(() => {
-    if (selectedCategory === 'all') return sortedArtworks;
-    return sortedArtworks.filter((art) => art.category === selectedCategory);
-  }, [selectedCategory, sortedArtworks]);
+    return sortedArtworks.filter((art) => {
+      // Category filter
+      if (selectedCategory !== 'all' && art.category !== selectedCategory) {
+        return false;
+      }
+      // Occupation filter
+      if (selectedOccupation !== 'all') {
+        const card = cardMap[art.name];
+        const occupations = card?.occupations;
+        if (selectedOccupation === 'investigator') {
+          if (!occupations || !occupations.includes('investigator')) return false;
+        } else if (selectedOccupation === 'occultist') {
+          if (!occupations || !occupations.includes('occultist')) return false;
+        } else if (selectedOccupation === 'neutral') {
+          if (occupations && occupations.length > 0) return false;
+        }
+      }
+      return true;
+    });
+  }, [selectedCategory, selectedOccupation, sortedArtworks, cardMap]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<CardCategory, number> = {
@@ -138,9 +173,37 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
     return counts;
   }, []);
 
-  const handleFilterClick = (cat: CardCategory | 'all') => {
+  const occupationCounts = useMemo(() => {
+    const counts: Record<OccupationFilter, number> = {
+      all: ALL_CARD_ARTWORKS.length,
+      investigator: 0,
+      occultist: 0,
+      neutral: 0,
+    };
+    for (const art of ALL_CARD_ARTWORKS) {
+      const card = cardMap[art.name];
+      const occupations = card?.occupations;
+      if (occupations?.includes('investigator')) {
+        counts.investigator++;
+      }
+      if (occupations?.includes('occultist')) {
+        counts.occultist++;
+      }
+      if (!occupations || occupations.length === 0) {
+        counts.neutral++;
+      }
+    }
+    return counts;
+  }, [cardMap]);
+
+  const handleCategoryClick = (cat: CardCategory | 'all') => {
     soundEngine.playClick();
     setSelectedCategory(cat);
+  };
+
+  const handleOccupationClick = (occ: OccupationFilter) => {
+    soundEngine.playClick();
+    setSelectedOccupation(occ);
   };
 
   const handleCardClick = (art: CardArtworkInfo) => {
@@ -199,32 +262,55 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
           </button>
         </header>
 
-        {/* Toolbar: Category Filters */}
+        {/* Toolbar: Occupation & Category Filters */}
         <div className="compendium-toolbar">
-          <div className="compendium-filter-tabs" role="tablist" aria-label="卡牌類別篩選">
-            <button
-              role="tab"
-              aria-selected={selectedCategory === 'all'}
-              className={`compendium-tab-btn ${selectedCategory === 'all' ? 'active' : ''}`}
-              onClick={() => handleFilterClick('all')}
-            >
-              <Filter size={14} />
-              <span>全部 ({ALL_CARD_ARTWORKS.length})</span>
-            </button>
-            {CATEGORY_TABS.map(({ category, name, sub, icon }) => (
+          <div className="compendium-toolbar-row">
+            <span className="compendium-filter-label">職業流派：</span>
+            <div className="compendium-filter-tabs occupation-tabs" role="tablist" aria-label="職業流派篩選">
+              {OCCUPATION_TABS.map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={selectedOccupation === id}
+                  className={`compendium-tab-btn occupation ${id} ${selectedOccupation === id ? 'active' : ''}`}
+                  onClick={() => handleOccupationClick(id)}
+                >
+                  {icon}
+                  <span>
+                    {label} ({occupationCounts[id]})
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="compendium-toolbar-row">
+            <span className="compendium-filter-label">卡牌類別：</span>
+            <div className="compendium-filter-tabs" role="tablist" aria-label="卡牌類別篩選">
               <button
-                key={category}
                 role="tab"
-                aria-selected={selectedCategory === category}
-                className={`compendium-tab-btn ${category} ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => handleFilterClick(category)}
+                aria-selected={selectedCategory === 'all'}
+                className={`compendium-tab-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+                onClick={() => handleCategoryClick('all')}
               >
-                {icon}
-                <span>
-                  {name} ({categoryCounts[category]} · {sub})
-                </span>
+                <Filter size={14} />
+                <span>全部 ({ALL_CARD_ARTWORKS.length})</span>
               </button>
-            ))}
+              {CATEGORY_TABS.map(({ category, name, sub, icon }) => (
+                <button
+                  key={category}
+                  role="tab"
+                  aria-selected={selectedCategory === category}
+                  className={`compendium-tab-btn ${category} ${selectedCategory === category ? 'active' : ''}`}
+                  onClick={() => handleCategoryClick(category)}
+                >
+                  {icon}
+                  <span>
+                    {name} ({categoryCounts[category]} · {sub})
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -299,6 +385,15 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
                   <span className={`detail-category-badge ${activeDetailCard.category}`}>
                     {CATEGORY_NAMES[activeDetailCard.category]}
                   </span>
+                  {cardMap[activeDetailCard.name]?.occupations?.includes('investigator') && (
+                    <span className="detail-occupation-badge investigator">私家偵探</span>
+                  )}
+                  {cardMap[activeDetailCard.name]?.occupations?.includes('occultist') && (
+                    <span className="detail-occupation-badge occultist">秘術學者</span>
+                  )}
+                  {(!cardMap[activeDetailCard.name]?.occupations || cardMap[activeDetailCard.name]?.occupations?.length === 0) && (
+                    <span className="detail-occupation-badge neutral">中立通用</span>
+                  )}
                   <span className="detail-style-badge">
                     {activeDetailCard.styleName}
                   </span>

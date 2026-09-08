@@ -137,13 +137,27 @@
 /* Compendium Toolbar */
 .compendium-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 12px 28px;
   background: rgba(14, 18, 26, 0.9);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  gap: 16px;
+  gap: 10px;
+}
+
+.compendium-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
+}
+
+.compendium-filter-label {
+  font-size: 0.78rem;
+  color: var(--text-gold, #ffd700);
+  font-weight: 600;
+  min-width: 68px;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
 }
 
 .compendium-filter-tabs {
@@ -157,7 +171,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: var(--radius-sm);
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -177,6 +191,24 @@
   background: rgba(212, 175, 55, 0.2);
   color: #ffd700;
   font-weight: 600;
+}
+
+.compendium-tab-btn.investigator.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+}
+
+.compendium-tab-btn.occultist.active {
+  border-color: #c084fc;
+  background: rgba(192, 132, 252, 0.2);
+  color: #e9d5ff;
+}
+
+.compendium-tab-btn.neutral.active {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
 }
 
 .compendium-tab-btn.combat.active {
@@ -403,6 +435,33 @@
   background: #18181b;
   border: 1px solid #52525b;
   color: #f4f4f5;
+}
+
+.detail-occupation-badge {
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.5px;
+}
+
+.detail-occupation-badge.investigator {
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+}
+
+.detail-occupation-badge.occultist {
+  background: rgba(192, 132, 252, 0.2);
+  color: #e9d5ff;
+  border: 1px solid rgba(192, 132, 252, 0.5);
+}
+
+.detail-occupation-badge.neutral {
+  background: rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
+  border: 1px solid rgba(52, 211, 153, 0.5);
 }
 
 /* True Color Artwork Preservation (Card Compendium & Standalone Cards) */
