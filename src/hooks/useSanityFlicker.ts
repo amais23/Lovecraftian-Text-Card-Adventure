@@ -7,12 +7,12 @@ export interface SanityFlickerResult {
 
 /**
  * 自訂 Hook：監聽理智牌庫張數（Sanity Deck Count）扣減或侵蝕，
- * 自動觸發短暫的認知濾鏡驚悚閃爍狀態（Sanity Flicker），約 280ms (ADR-0021)。
+ * 自動觸發短暫的認知濾鏡驚悚閃爍狀態（Sanity Flicker），約 850ms (ADR-0021)。
  *
  * @param sanityCount 當前理智牌庫張數
- * @param duration 閃爍持續毫秒數（預設 280ms）
+ * @param duration 閃爍持續毫秒數（預設 850ms）
  */
-export function useSanityFlicker(sanityCount: number, duration = 280): SanityFlickerResult {
+export function useSanityFlicker(sanityCount: number, duration = 850): SanityFlickerResult {
   const [isFlickering, setIsFlickering] = useState<boolean>(false);
   const [flickerKey, setFlickerKey] = useState<number>(0);
   const prevCountRef = useRef<number>(sanityCount);
