@@ -2434,9 +2434,6 @@
   padding: 30px 0 80px;
 }
 
-.current-scroll-target {
-  scroll-initial-target: nearest;
-}
 
 .map-connections-svg {
   position: absolute;

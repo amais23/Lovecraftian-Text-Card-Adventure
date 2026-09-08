@@ -114,16 +114,16 @@ const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = 
 };
 
 /**
- * 計算地圖節點在 SVG 畫布中的相對百分比與縱向像素座標（無 DOM 測量時的平滑降級）
+ * 計算地圖節點在 SVG 畫布中的相對像素座標（無 DOM 測量時的平滑降級）
  */
-function getNodeCoordinates(node: MapNode, map: InvestigationMap): { x: string; y: string } {
+function getNodeCoordinates(node: MapNode, map: InvestigationMap, canvasWidth = 800): { x: number; y: number } {
   const layerLength = map.layers[node.layer]?.length ?? 1;
   const totalLayers = map.layers.length;
   // 縱向翻轉：Layer 0 在底，Layer totalLayers-1 在頂
   const visualRow = totalLayers - 1 - node.layer;
   return {
-    x: `${(node.col + 1) * (100 / (layerLength + 1))}%`,
-    y: `${visualRow * 140 + 70}px`,
+    x: Math.round((node.col + 1) * (canvasWidth / (layerLength + 1))),
+    y: visualRow * 140 + 70,
   };
 }
 
@@ -134,7 +134,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
 
-  // 滑鼠拖曳卷軸手勢狀態
+  // 滑鼠與觸控拖曳卷軸手勢狀態
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
   const [scrollStartY, setScrollStartY] = useState(0);
@@ -182,7 +182,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [map?.currentNodeId, map?.depth]);
+  }, [map]);
 
   const permanentDeckCapacity = [
     ...state.sanityDeck,
@@ -200,7 +200,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
     }
   };
 
-  // 支援拖曳瀏覽縱向卷軸
+  // 支援滑鼠與觸控拖曳瀏覽縱向卷軸
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.map-node-card.accessible')) return;
     if (!viewportRef.current) return;
@@ -216,6 +216,24 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   };
 
   const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('.map-node-card.accessible')) return;
+    if (!viewportRef.current || e.touches.length === 0) return;
+    setIsDragging(true);
+    setDragStartY(e.touches[0].clientY);
+    setScrollStartY(viewportRef.current.scrollTop);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !viewportRef.current || e.touches.length === 0) return;
+    const deltaY = e.touches[0].clientY - dragStartY;
+    viewportRef.current.scrollTop = scrollStartY - deltaY;
+  };
+
+  const handleTouchEnd = () => {
     setIsDragging(false);
   };
 
@@ -307,6 +325,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
       >
         <div ref={canvasRef} className="map-canvas parchment-canvas">
           {/* SVG Connecting Bezier Ink Curves between reachable nodes */}
@@ -335,18 +357,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                   const sourcePos = nodePositions[node.id];
                   const targetPos = nodePositions[target.id];
 
-                  const sourceCoord = sourcePos
-                    ? { x: sourcePos.x, y: sourcePos.y }
-                    : {
-                        x: parseFloat(getNodeCoordinates(node, map).x),
-                        y: parseFloat(getNodeCoordinates(node, map).y),
-                      };
-                  const targetCoord = targetPos
-                    ? { x: targetPos.x, y: targetPos.y }
-                    : {
-                        x: parseFloat(getNodeCoordinates(target, map).x),
-                        y: parseFloat(getNodeCoordinates(target, map).y),
-                      };
+                  const sourceCoord = sourcePos ?? getNodeCoordinates(node, map);
+                  const targetCoord = targetPos ?? getNodeCoordinates(target, map);
 
                   // 墨水三次貝茲曲線 (Cubic Bezier S-Curve)
                   const deltaY = targetCoord.y - sourceCoord.y;
@@ -355,27 +367,17 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                   }, ${targetCoord.x} ${sourceCoord.y + deltaY * 0.5}, ${targetCoord.x} ${targetCoord.y}`;
 
                   return (
-                    <g key={`${node.id}->${target.id}`}>
-                      {/* Base Retro Ink Curve */}
-                      <path
-                        d={curveD}
-                        className={
-                          isPathAvailable
-                            ? 'map-ink-path map-ink-path-active'
-                            : node.status === 'visited'
-                            ? 'map-ink-path map-ink-path-visited'
-                            : 'map-ink-path'
-                        }
-                      />
-                      {/* Backward-compatibility line for coordinate testing */}
-                      <line
-                        x1={sourceCoord.x}
-                        y1={sourceCoord.y}
-                        x2={targetCoord.x}
-                        y2={targetCoord.y}
-                        style={{ display: 'none' }}
-                      />
-                    </g>
+                    <path
+                      key={`${node.id}->${target.id}`}
+                      d={curveD}
+                      className={
+                        isPathAvailable
+                          ? 'map-ink-path map-ink-path-active'
+                          : node.status === 'visited'
+                          ? 'map-ink-path map-ink-path-visited'
+                          : 'map-ink-path'
+                      }
+                    />
                   );
                 });
               })

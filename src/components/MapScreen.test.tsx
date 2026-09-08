@@ -114,4 +114,26 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
     const bgImage = screen.getByTestId('map-screen-bg-image');
     expect(bgImage).toBeDefined();
   });
+
+  it('supports touch drag gestures for vertical parchment scrolling (ADR-0022)', () => {
+    const state = createMockMapState(1);
+    const dispatch = vi.fn();
+    const { container } = render(<MapScreen state={state} dispatch={dispatch} />);
+
+    const viewport = container.querySelector('.map-viewport.vertical-parchment-scroll');
+    expect(viewport).toBeDefined();
+
+    // Trigger touch start, move, and end
+    fireEvent.touchStart(viewport!, {
+      touches: [{ clientY: 300 }],
+    });
+    expect(viewport?.classList.contains('is-dragging')).toBe(true);
+
+    fireEvent.touchMove(viewport!, {
+      touches: [{ clientY: 200 }],
+    });
+
+    fireEvent.touchEnd(viewport!);
+    expect(viewport?.classList.contains('is-dragging')).toBe(false);
+  });
 });
