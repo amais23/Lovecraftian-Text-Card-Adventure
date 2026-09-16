@@ -311,6 +311,12 @@ export function evaluateCardPlay(
           investigatorHealth = Math.max(0, investigatorHealth - interceptRes.reflectedDamageToInvestigator);
         }
         enemyStatusEffects = interceptRes.newEnemyStatusEffects;
+        if (interceptRes.statusToInvestigator) {
+          investigatorStatusEffects = addStatusEffect(
+            investigatorStatusEffects,
+            interceptRes.statusToInvestigator
+          );
+        }
 
         const effectiveDmgAmount = interceptRes.modifiedDamage;
         hitDamages.push(effectiveDmgAmount);
@@ -349,7 +355,14 @@ export function evaluateCardPlay(
         }
       }
     } else if (effect.type === 'armor') {
-      const finalArmor = calculateArmorGain(effect.value, investigatorStatusEffects);
+      let finalArmor = calculateArmorGain(effect.value, investigatorStatusEffects);
+      if (card.keywords?.includes('charge_growth')) {
+        const retainBonus = Math.min(6, (card.retainedTurns ?? 0) * 2);
+        finalArmor += retainBonus;
+        if (retainBonus > 0) {
+          newLogs.push(`【工事加固】掩體經耐心理智留存加固，額外獲得 ${retainBonus} 點護甲！`);
+        }
+      }
       investigatorArmor += finalArmor;
       const resilienceBonus = getStatusStacks(investigatorStatusEffects, 'resilience');
       const bonusDesc = resilienceBonus > 0 ? `（堅韌 +${resilienceBonus}）` : '';
@@ -370,6 +383,11 @@ export function evaluateCardPlay(
       } else {
         newLogs.push(`調查員打出【${card.name}】，調勻氣息，但身上無可淨化之負面印記。`);
       }
+    } else if (effect.type === 'gain_stamina') {
+      const maxStam = investigator.maxStamina ?? 3;
+      const gained = Math.min(maxStam - newStamina, effect.value);
+      newStamina = Math.min(maxStam, newStamina + effect.value);
+      newLogs.push(`調查員打出【${card.name}】，敏銳把握先機，返還 ${gained} 點精力！`);
     } else if (effect.type === 'apply_status' && effect.statusType) {
       if (effect.target === 'enemy' && hasTrait(enemy, 'amorphous_body') && (effect.statusType === 'bleed' || effect.statusType === 'vulnerable')) {
         newLogs.push(`【非歐流體】${enemy.name} 為非歐幾里得原生質，完全免疫【${effect.statusType}】印記！`);
@@ -384,10 +402,6 @@ export function evaluateCardPlay(
         }
       }
     } else if (effect.type === 'draw') {
-      if (effect.condition?.type === 'first_card_played' && conditionMatched) {
-        newStamina = Math.min(investigator.maxStamina ?? 3, newStamina + 1);
-        newLogs.push(`【先機返還】打出本回合首張卡牌，敏銳把握先機，返還 1 點精力！`);
-      }
       const cardsNeeded = effect.value;
       if (cardsNeeded > 0) {
         if (isMadness || newSanityDeck.length === 0) {

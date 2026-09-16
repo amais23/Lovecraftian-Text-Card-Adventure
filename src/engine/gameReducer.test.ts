@@ -3862,7 +3862,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
       bossD1.health = 1;
       const pristineBossD1 = getBossByDepth(1);
-      expect(pristineBossD1.health).toBe(60);
+      expect(pristineBossD1.health).toBe(INITIAL_SHOGGOTH.health);
       expect(pristineBossD1.category).toBe('boss');
     });
 
@@ -5310,6 +5310,95 @@ describe('Composable Card Primitives & Occupation Filtering (Issue #46)', () => 
       // 10 damage + 50% bonus = 15 damage! Health: 80 - 15 = 65.
       expect(afterPlay.currentEnemy.health).toBe(65);
       expect(afterPlay.battleLog.some((log) => log.includes('【蓄力破綻】'))).toBe(true);
+    });
+
+    it('tide_of_dagon consumes remaining armor on even turn tsunami attack in gameReducer', () => {
+      const baseState = createInitialCombatState();
+      const dagonEnemy: Enemy = {
+        ...baseState.currentEnemy,
+        id: 'enemy_dagon',
+        name: '大袞深淵祭司',
+        armor: 14,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.tide_of_dagon],
+        currentIntent: {
+          type: 'attack',
+          value: 0,
+          name: '海嘯',
+          description: '',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        turn: 2, // Even turn -> Ebb tide
+        currentEnemy: dagonEnemy,
+      };
+
+      const afterTurn = gameReducer(combatState, { type: 'END_TURN' });
+      // Tsunami dealt 14 damage and armor was consumed
+      expect(afterTurn.currentEnemy.armor).toBe(0);
+      expect(afterTurn.battleLog.some((log) => log.includes('【大袞潮汐·海嘯】'))).toBe(true);
+    });
+
+    it('divine_immortality injects madness card into sanity deck on even turn in gameReducer', () => {
+      const baseState = createInitialCombatState();
+      const starSpawnEnemy: Enemy = {
+        ...baseState.currentEnemy,
+        id: 'enemy_star_spawn',
+        name: '克蘇魯星之眷族',
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.divine_immortality],
+        currentIntent: {
+          type: 'attack',
+          value: 10,
+          name: '星辰握擊',
+          description: '',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        turn: 2, // Even turn -> pollution
+        currentEnemy: starSpawnEnemy,
+      };
+
+      const afterTurn = gameReducer(combatState, { type: 'END_TURN' });
+      const injectedWhispers = [
+        ...afterTurn.sanityDeck,
+        ...afterTurn.hand,
+        ...afterTurn.discardPile,
+      ].filter((c) => c.name === '星辰碎裂之囈語');
+      expect(injectedWhispers.length).toBeGreaterThanOrEqual(1);
+      expect(afterTurn.battleLog.some((log) => log.includes('星辰碎裂之囈語'))).toBe(true);
+    });
+
+    it('increments retainedTurns on cards kept in hand across turns', () => {
+      const baseState = createInitialCombatState();
+      const retainCard: Card = {
+        id: 'test_retain_card',
+        name: '保留測試卡',
+        category: 'skill',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        keywords: ['retain'],
+        effects: [{ type: 'armor', value: 5 }],
+        description: '',
+        flavorText: '',
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        turn: 1,
+        hand: [retainCard],
+      };
+
+      const afterTurn1 = gameReducer(combatState, { type: 'END_TURN' });
+      const keptCard = afterTurn1.hand.find((c) => c.id === retainCard.id);
+      expect(keptCard?.retainedTurns).toBe(1);
+
+      const afterTurn2 = gameReducer(afterTurn1, { type: 'END_TURN' });
+      const keptCard2 = afterTurn2.hand.find((c) => c.id === retainCard.id);
+      expect(keptCard2?.retainedTurns).toBe(2);
     });
   });
 });

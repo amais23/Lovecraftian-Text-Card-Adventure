@@ -287,7 +287,7 @@ describe('EnemyView Component (ADR-0018)', () => {
       expect(image.className).toContain('perception-flickering');
     });
 
-    it('renders eldritch trait badges and shoggoth charging stance', () => {
+    it('renders eldritch trait badges and shoggoth stances (charging, eyes, claws, hide)', () => {
       const shoggothWithTraits: Enemy = {
         ...dummyEnemy,
         id: 'enemy_shoggoth',
@@ -303,13 +303,28 @@ describe('EnemyView Component (ADR-0018)', () => {
         shoggothStance: 'charging',
       };
 
-      render(<EnemyView enemy={shoggothWithTraits} />);
+      const { rerender } = render(<EnemyView enemy={shoggothWithTraits} />);
 
       expect(screen.getByTestId('enemy-traits-list')).toBeDefined();
       expect(screen.getByTestId('trait-badge-organ_proliferation')).toBeDefined();
       expect(screen.getByText('器官增生')).toBeDefined();
       expect(screen.getByTestId('shoggoth-charging-badge')).toBeDefined();
       expect(screen.getByText(/Tekeli-li 蓄力中/)).toBeDefined();
+
+      // Test eyes stance
+      rerender(<EnemyView enemy={{ ...shoggothWithTraits, shoggothStance: 'eyes' }} />);
+      expect(screen.getByTestId('shoggoth-eyes-badge')).toBeDefined();
+      expect(screen.getByText(/巨目凝視/)).toBeDefined();
+
+      // Test claws stance
+      rerender(<EnemyView enemy={{ ...shoggothWithTraits, shoggothStance: 'claws' }} />);
+      expect(screen.getByTestId('shoggoth-claws-badge')).toBeDefined();
+      expect(screen.getByText(/重爪增生/)).toBeDefined();
+
+      // Test hide stance
+      rerender(<EnemyView enemy={{ ...shoggothWithTraits, shoggothStance: 'hide' }} />);
+      expect(screen.getByTestId('shoggoth-hide-badge')).toBeDefined();
+      expect(screen.getByText(/厚皮硬化/)).toBeDefined();
     });
   });
 });

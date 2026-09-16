@@ -1,4 +1,5 @@
 import type {
+  Card,
   Enemy,
   EnemyIntent,
   EnemyTrait,
@@ -6,6 +7,7 @@ import type {
   Investigator,
   StatusEffect,
 } from '../types/game';
+import { createWhispersOfShatteredStarsCard } from './cards/special/madness';
 import { calculateAttackDamage, createStatusEffect, addStatusEffect } from './statusEffects';
 
 /**
@@ -82,6 +84,7 @@ export interface EnemyDamageInterceptResult {
   modifiedDamage: number;
   reflectedDamageToInvestigator: number;
   newEnemyStatusEffects: StatusEffect[];
+  statusToInvestigator?: StatusEffect;
   accumulatedDamageTaken: number;
   logs: string[];
 }
@@ -106,6 +109,7 @@ export function interceptEnemyDamage(
   let reflectedDamageToInvestigator = 0;
   let newEnemyStatusEffects = enemy.statusEffects ? [...enemy.statusEffects] : [];
   let accumulatedDamageTaken = enemy.accumulatedDamageTaken ?? 0;
+  let statusToInvestigator: StatusEffect | undefined;
 
   // 1. 滑膩黏液 (slippery_mucus)：單次傷害 <= 4 點完全無效化
   if (hasTrait(enemy, 'slippery_mucus') && modifiedDamage <= 4) {
@@ -149,10 +153,19 @@ export function interceptEnemyDamage(
     }
   }
 
+  // 5. 白骨聚生 (ossuary_summoning)：若骨甲被完全打破則引發屍氣爆裂使調查員獲得 1 層【易傷】
+  if (hasTrait(enemy, 'ossuary_summoning') && enemy.armor > 0 && modifiedDamage >= enemy.armor) {
+    statusToInvestigator = createStatusEffect('vulnerable', 1);
+    logs.push(
+      `【屍氣爆裂】${enemy.name} 披覆的堅固白骨護甲被完全擊碎，四濺的骸骨釋放屍氣瘴毒，調查員獲得 1 層【易傷】！`
+    );
+  }
+
   return {
     modifiedDamage,
     reflectedDamageToInvestigator,
     newEnemyStatusEffects,
+    statusToInvestigator,
     accumulatedDamageTaken,
     logs,
   };
@@ -210,11 +223,13 @@ export interface EnemyActResult {
   damageToInvestigator: number;
   healToEnemy: number;
   armorGainToEnemy: number;
+  armorLossToEnemy?: number;
   erodeToInvestigator: number;
   statusToInvestigator?: StatusEffect;
   nextTurnReducedDraw?: number;
   nextTurnDrainedStamina?: number;
   selfDamageToEnemy?: number;
+  madnessCardsToDeck?: Card[];
   logs: string[];
 }
 
@@ -231,11 +246,13 @@ export function resolveEnemyAction(
   let damageToInvestigator = 0;
   let healToEnemy = 0;
   let armorGainToEnemy = 0;
+  let armorLossToEnemy = 0;
   let erodeToInvestigator = 0;
   let statusToInvestigator: StatusEffect | undefined;
   let nextTurnReducedDraw: number | undefined;
   let nextTurnDrainedStamina: number | undefined;
   let selfDamageToEnemy: number | undefined;
+  let madnessCardsToDeck: Card[] | undefined;
 
   // 1. 防拖延深淵狂暴 (Turn >= 6 傷害提升 50%)
   const isEnraged = turn >= 6;
@@ -285,7 +302,7 @@ export function resolveEnemyAction(
   }
 
   // 4. 大袞潮汐 (tide_of_dagon)
-  // 奇數回合潮漲獲得 14 潮汐護甲；偶數回合潮退將剩餘潮汐護甲轉為海嘯衝擊傷害
+  // 奇數回合潮漲獲得 14 潮汐護甲；偶數回合潮退將剩餘潮汐護甲轉為海嘯衝擊傷害並清空護甲
   if (hasTrait(enemy, 'tide_of_dagon')) {
     if (turn % 2 === 1) {
       // 潮漲 (High Tide)
@@ -296,6 +313,7 @@ export function resolveEnemyAction(
       const remainingTidalArmor = enemy.armor;
       if (remainingTidalArmor > 0) {
         damageToInvestigator += remainingTidalArmor;
+        armorLossToEnemy = remainingTidalArmor;
         logs.push(
           `【大袞潮汐·海嘯】潮水退去！${enemy.name} 將殘留的 ${remainingTidalArmor} 點潮汐護甲全額轉化為狂暴的【海嘯衝擊】，直撲調查員！`
         );
@@ -303,15 +321,34 @@ export function resolveEnemyAction(
     }
   }
 
+  // 5. 白骨聚生 (ossuary_summoning)
+  // 每 3 回合自地底召喚死人顱骨，披上 10 點堅固骨甲
+  if (hasTrait(enemy, 'ossuary_summoning') && turn % 3 === 1) {
+    armorGainToEnemy += 10;
+    logs.push(`【白骨聚生】${enemy.name} 念動褻瀆咒文，自地底死土中喚起死人顱骨，披上 10 點堅固骨甲！`);
+  }
+
+  // 6. 神性不滅 (divine_immortality)
+  // 每 2 回合將 1 張【星辰碎裂之囈語】瘋狂卡洗入調查員的理智牌庫
+  if (hasTrait(enemy, 'divine_immortality') && turn % 2 === 0) {
+    const whispersCard = createWhispersOfShatteredStarsCard(turn);
+    madnessCardsToDeck = [whispersCard];
+    logs.push(
+      `【神性不滅】不可名狀的星辰囈語侵蝕虛空，一張【星辰碎裂之囈語】瘋狂卡被強行洗入你的理智牌庫！`
+    );
+  }
+
   return {
     damageToInvestigator,
     healToEnemy,
     armorGainToEnemy,
+    armorLossToEnemy,
     erodeToInvestigator,
     statusToInvestigator,
     nextTurnReducedDraw,
     nextTurnDrainedStamina,
     selfDamageToEnemy,
+    madnessCardsToDeck,
     logs,
   };
 }
@@ -381,17 +418,31 @@ export function advanceCanonicalIntent(
         newShoggothStance: 'eyes',
       };
     } else {
-      // 重爪多段撕咬
-      return {
-        nextIntent: {
-          type: 'attack',
-          value: 12,
-          name: '原生質重爪撕裂',
-          description: '異化出數根重爪猛烈撕咬，預告造成 12 點傷害！',
-        },
-        nextIntentIndex: 2,
-        newShoggothStance: 'claws',
-      };
+      // cycle === 2: 交替出現重爪多段撕咬 (claws) 或太古厚皮硬化 (hide)
+      const isHideTurn = Math.floor(nextTurn / 4) % 2 === 1;
+      if (isHideTurn) {
+        return {
+          nextIntent: {
+            type: 'defend',
+            value: 14,
+            name: '太古厚皮硬化',
+            description: '原生質黑泥急劇角質硬化，預告獲得 14 點厚皮護甲！',
+          },
+          nextIntentIndex: 4,
+          newShoggothStance: 'hide',
+        };
+      } else {
+        return {
+          nextIntent: {
+            type: 'attack',
+            value: 12,
+            name: '原生質重爪撕裂',
+            description: '異化出數根重爪猛烈撕咬，預告造成 12 點傷害！',
+          },
+          nextIntentIndex: 2,
+          newShoggothStance: 'claws',
+        };
+      }
     }
   }
 

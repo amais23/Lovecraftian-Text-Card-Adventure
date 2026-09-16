@@ -35,6 +35,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     effects: [
       { type: 'damage', value: 6 },
       { type: 'draw', value: 1, condition: { type: 'first_card_played' } },
+      { type: 'gain_stamina', value: 1, condition: { type: 'first_card_played' } },
     ],
     description: '造成 6 點物理傷害；若為本回合打出的首張卡牌，返還 1 點精力並抽 1 張牌。',
     flavorText: '「肌肉記憶超越了大腦對恐懼的本能遲疑。」',

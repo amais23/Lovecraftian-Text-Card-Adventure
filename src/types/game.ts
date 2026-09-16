@@ -44,7 +44,8 @@ export interface CardEffect {
     | 'apply_status'
     | 'lose_armor'
     | 'cleanse_debuffs'
-    | 'break_armor';
+    | 'break_armor'
+    | 'gain_stamina';
   value: number;
   statusType?: StatusEffectType;
   target?: 'self' | 'enemy';
@@ -63,7 +64,7 @@ export interface CardEffect {
 }
 
 export type OccupationId = 'investigator' | 'occultist';
-export type CardKeyword = 'exhaust' | 'retain' | 'innate';
+export type CardKeyword = 'exhaust' | 'retain' | 'innate' | 'charge_growth';
 
 export interface Card {
   id: string;
@@ -80,6 +81,7 @@ export interface Card {
   effects: CardEffect[];
   description: string;
   flavorText: string;
+  retainedTurns?: number;
 }
 
 export type EnemyIntentType = 'attack' | 'erode' | 'defend' | 'apply_status' | 'charge';
@@ -94,7 +96,6 @@ export interface EnemyIntent {
   reduceDraw?: number;
   isCharge?: boolean;
   selfDamage?: number;
-  isTidalBurst?: boolean;
 }
 
 export type EnemyTraitId =
@@ -153,8 +154,7 @@ export interface Enemy {
   accumulatedDamageTaken?: number;
   tidalArmor?: number;
   shoggothStance?: 'normal' | 'eyes' | 'claws' | 'hide' | 'charging';
-  shoggothChargeTurn?: number;
-  ossuaryCooldown?: number;
+  boneArmor?: number;
 }
 
 

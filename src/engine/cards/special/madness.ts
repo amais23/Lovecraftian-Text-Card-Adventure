@@ -65,3 +65,25 @@ export const COMPENDIUM_MADNESS_CARDS: Card[] = [
     id: 'compendium_madness_blade',
   },
 ];
+
+/**
+ * 克蘇魯星之眷族【神性不滅】專屬污染瘋狂卡 (ADR-0026)
+ */
+export const CARD_WHISPERS_OF_SHATTERED_STARS: Omit<Card, 'id'> = {
+  name: '星辰碎裂之囈語',
+  category: 'madness',
+  costType: 'stamina',
+  costValue: 1,
+  isTemporary: true,
+  artworkUrl: '/cards/madness/card_screaming_howl.webp',
+  effects: [{ type: 'erode_sanity', value: 2 }],
+  description: '不可名狀之星辰囈語；打出時侵蝕自身 2 點理智牌庫。',
+  flavorText: '「不可名狀的舊日私語在意識深處回盪，粉碎凡人最後的理性。」',
+};
+
+export function createWhispersOfShatteredStarsCard(turn: number, index: number = 0): Card {
+  return {
+    ...CARD_WHISPERS_OF_SHATTERED_STARS,
+    id: `temp_madness_whispers_t${turn}_${index}_${Date.now()}`,
+  };
+}

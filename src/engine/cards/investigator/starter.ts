@@ -170,11 +170,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     costValue: 1,
     isTemporary: false,
     tier: 1,
-    keywords: ['retain'],
+    keywords: ['retain', 'charge_growth'],
     occupations: ['investigator'],
     artworkUrl: '/cards/skill/card_cover.webp',
     effects: [{ type: 'armor', value: 5 }],
-    description: '【保留】獲得 5 點護甲；在手中每保留 1 回合，打出時額外獲得 +2 護甲。',
+    description: '【保留】獲得 5 點護甲；在手中每保留 1 回合，打出時額外獲得 +2 護甲（至多 +6 點護甲）。',
     flavorText: '「翻倒厚重的橡木長桌，碎屑如驟雨般飛濺。」',
   },
   {

@@ -863,6 +863,7 @@ describe('CardEvaluator (Seam 1)', () => {
         effects: [
           { type: 'damage' as const, value: 6 },
           { type: 'draw' as const, value: 1, condition: { type: 'first_card_played' as const } },
+          { type: 'gain_stamina' as const, value: 1, condition: { type: 'first_card_played' as const } },
         ],
         description: '',
         flavorText: '',
@@ -878,6 +879,29 @@ describe('CardEvaluator (Seam 1)', () => {
       // Cost 1, then refunded 1 -> stamina remains 3
       expect(res.investigator.stamina).toBe(3);
       expect(res.hand).toHaveLength(1);
+    });
+
+    it('card_cover with charge_growth grants +2 armor per retained turn up to +6', () => {
+      const coverCard: Card = {
+        id: 'card_cover_1',
+        name: '就地掩蔽',
+        category: 'skill' as const,
+        costType: 'stamina' as const,
+        costValue: 1,
+        isTemporary: false,
+        keywords: ['retain' as const, 'charge_growth' as const],
+        retainedTurns: 2, // 2 turns retained -> +4 bonus
+        effects: [{ type: 'armor' as const, value: 5 }],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext();
+      const res = evaluateCardPlay(coverCard, context);
+      expect(res.success).toBe(true);
+      // 5 base + (2 * 2) = 9 armor
+      expect(res.investigator.armor).toBe(9);
+      expect(res.logs.some((l) => l.includes('工事加固'))).toBe(true);
     });
 
     it('pump shotgun completely breaks enemy armor', () => {

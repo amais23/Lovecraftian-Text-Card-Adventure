@@ -387,6 +387,14 @@ export function resolveTurnEndAndFixedDraw(
     );
   }
 
+  if (enemyActionResult.armorLossToEnemy && enemyActionResult.armorLossToEnemy > 0) {
+    enemyArmor = Math.max(0, enemyArmor - enemyActionResult.armorLossToEnemy);
+  }
+
+  if (enemyActionResult.madnessCardsToDeck && enemyActionResult.madnessCardsToDeck.length > 0) {
+    sanityDeck = [...sanityDeck, ...enemyActionResult.madnessCardsToDeck];
+  }
+
   if (enemyActionResult.selfDamageToEnemy && enemyActionResult.selfDamageToEnemy > 0) {
     const isDivineEnemy = Boolean(enemy.divineImmortality);
     enemyHealth = Math.max(isDivineEnemy ? 1 : 0, enemyHealth - enemyActionResult.selfDamageToEnemy);
@@ -503,25 +511,29 @@ export function resolveTurnEndAndFixedDraw(
   const capacity = Math.max(1, baseCapacity - reducedDraw);
 
   // Fixed draw of capacity cards
-  let newHand = [...remainingHand];
+  const updatedRemainingHand = remainingHand.map((c) => ({
+    ...c,
+    retainedTurns: (c.retainedTurns ?? 0) + 1,
+  }));
+  let newHand = [...updatedRemainingHand];
   let drawnCardsCount = 0;
 
   if (isMadnessNow) {
     // In madness state, drawn cards are transformed into temporary black madness cards!
     const existingTurnMadnessCount = [
-      ...remainingHand,
+      ...updatedRemainingHand,
       ...sanityDeck,
       ...discardPile,
     ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
     const madnessCards = createMadnessCards(capacity, nextTurn, existingTurnMadnessCount);
-    newHand = [...remainingHand, ...madnessCards];
+    newHand = [...updatedRemainingHand, ...madnessCards];
     drawnCardsCount = capacity;
     newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵力量轉化為 ${capacity} 張臨時黑色瘋狂卡！`);
   } else {
     const cardsToDraw = Math.min(sanityDeck.length, capacity);
     const drawnCards = sanityDeck.slice(0, cardsToDraw);
     sanityDeck = sanityDeck.slice(cardsToDraw);
-    newHand = [...remainingHand, ...drawnCards];
+    newHand = [...updatedRemainingHand, ...drawnCards];
     drawnCardsCount = cardsToDraw;
 
     if (cardsToDraw < capacity && sanityDeck.length === 0) {

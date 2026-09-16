@@ -195,7 +195,7 @@ export const ENEMY_GHOUL_HIGH_PRIEST: Enemy = {
   maxHealth: 48,
   armor: 5,
   category: 'ghoul',
-  traits: [ELDRITCH_TRAIT_DEFINITIONS.carrion_feeder],
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.ossuary_summoning],
   currentIntent: GHOUL_HIGH_PRIEST_INTENTS[0],
   intentSequence: GHOUL_HIGH_PRIEST_INTENTS,
   currentIntentIndex: 0,

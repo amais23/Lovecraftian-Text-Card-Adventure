@@ -5217,6 +5217,24 @@
   animation: pulseCharge 1.5s infinite alternate;
 }
 
+.shoggoth-stance-badge.eyes {
+  background: rgba(156, 39, 176, 0.2);
+  border: 1px solid rgba(156, 39, 176, 0.6);
+  color: #ce93d8;
+}
+
+.shoggoth-stance-badge.claws {
+  background: rgba(255, 87, 34, 0.2);
+  border: 1px solid rgba(255, 87, 34, 0.6);
+  color: #ff8a65;
+}
+
+.shoggoth-stance-badge.hide {
+  background: rgba(33, 150, 243, 0.2);
+  border: 1px solid rgba(33, 150, 243, 0.6);
+  color: #90caf9;
+}
+
 @keyframes pulseCharge {
   0% {
     box-shadow: 0 0 4px rgba(220, 53, 69, 0.4);

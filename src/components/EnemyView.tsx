@@ -216,6 +216,33 @@ export const EnemyView: React.FC<EnemyViewProps> = ({
           ⚠️ Tekeli-li 蓄力中（承受傷害 +50%）
         </div>
       )}
+      {enemy.shoggothStance === 'eyes' && (
+        <div
+          className="shoggoth-stance-badge eyes"
+          data-testid="shoggoth-eyes-badge"
+          title="深淵巨目增生：凝視侵蝕理智牌庫"
+        >
+          👁️ 巨目凝視（理智侵蝕）
+        </div>
+      )}
+      {enemy.shoggothStance === 'claws' && (
+        <div
+          className="shoggoth-stance-badge claws"
+          data-testid="shoggoth-claws-badge"
+          title="原生質重爪撕裂：異化重爪猛烈打擊"
+        >
+          🦀 重爪增生（猛烈撕咬）
+        </div>
+      )}
+      {enemy.shoggothStance === 'hide' && (
+        <div
+          className="shoggoth-stance-badge hide"
+          data-testid="shoggoth-hide-badge"
+          title="太古厚皮硬化：原生質角質硬化凝聚護甲"
+        >
+          🛡️ 厚皮硬化（堅實防護）
+        </div>
+      )}
     </div>
   );
 };
