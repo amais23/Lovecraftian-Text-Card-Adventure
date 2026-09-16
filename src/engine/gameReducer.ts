@@ -9,11 +9,9 @@ import type {
   InvestigationMap,
   MapNode,
   MythosEvent,
-  OccupationId,
 } from '../types/game';
 import {
   INITIAL_GHOUL,
-  INITIAL_INVESTIGATOR,
   OCCUPATIONS,
   fisherYatesShuffle,
 } from './initialData';
@@ -24,7 +22,6 @@ import {
   getBossByDepth,
 } from './enemyCatalog';
 import {
-  createMadnessCards,
   ensureUniqueCardIds,
 } from './cardFactory';
 import { generateInvestigationMap, generateProceduralInvestigationMap } from './mapGenerator';
@@ -41,7 +38,6 @@ import {
   hasBothAbyssalFragments,
   fuseAbyssalFragments,
   getAllPermanentCards,
-  isCompleteAncientSeal,
 } from './abyssalSeals';
 import {
   evaluateCardPlay,
@@ -58,75 +54,15 @@ import {
   isInheritableCard,
 } from './remainsInheritance';
 import {
-  resolveEnemyAction,
-  resolveTurnStartTraits,
-  advanceCanonicalIntent,
-} from './enemyTraits';
-import {
-  addStatusEffect,
-  calculateArmorGain,
-  resolveTurnEndStatusEffects,
-} from './statusEffects';
+  resolveCombatTurnEnd,
+  initializeCombatSession,
+  splitDeckToHandAndSanity,
+  setupCombatDeck,
+  DEFAULT_HAND_CAPACITY,
+} from './combat';
+import { addStatusEffect } from './statusEffects';
 
-export const DEFAULT_HAND_CAPACITY = 2;
-
-export { cloneEnemy };
-
-/**
- * 將完整卡牌清單切分為起始手牌（預設 2 張）與理智牌庫（其餘張數）之共用純函式
- */
-export function splitDeckToHandAndSanity(
-  deck: Card[],
-  handSize: number = DEFAULT_HAND_CAPACITY
-): { hand: Card[]; sanityDeck: Card[] } {
-  // 固有（innate）卡牌與完整的深淵古印必定優先抽入起手手牌
-  const innateCards: Card[] = [];
-  const normalCards: Card[] = [];
-
-  for (const card of deck) {
-    if (card.keywords?.includes('innate') || isCompleteAncientSeal(card)) {
-      innateCards.push(card);
-    } else {
-      normalCards.push(card);
-    }
-  }
-
-  const sortedDeck = [...innateCards, ...normalCards];
-  return {
-    hand: sortedDeck.slice(0, handSize),
-    sanityDeck: sortedDeck.slice(handSize),
-  };
-}
-
-export { ensureUniqueCardIds };
-
-/**
- * 戰鬥卡牌構建與洗牌純函式（消除重複代碼，支援洗牌覆寫以利確定性測試）
- */
-export function setupCombatDeck(
-  cards: Card[],
-  occupationId: OccupationId = 'investigator',
-  overrideDeck?: Card[],
-  handCapacity: number = DEFAULT_HAND_CAPACITY
-): { hand: Card[]; sanityDeck: Card[] } {
-  if (overrideDeck && overrideDeck.length > 0) {
-    return splitDeckToHandAndSanity(ensureUniqueCardIds(overrideDeck), handCapacity);
-  }
-  const permanentCards = cards.filter((c) => !c.isTemporary);
-  const occ = OCCUPATIONS[occupationId] ?? OCCUPATIONS.investigator;
-  const pool: Card[] = permanentCards.length > 0
-    ? permanentCards
-    : occ.deck.map((c) => ({ ...c }));
-  const sanitizedPool = ensureUniqueCardIds(pool);
-  let shuffledDeck = fisherYatesShuffle(sanitizedPool);
-
-  // 固有抽牌：完整的深淵古印或標記有 innate 的卡牌優先移至牌頂
-  const innateCards = shuffledDeck.filter((c) => c.keywords?.includes('innate') || isCompleteAncientSeal(c));
-  const otherCards = shuffledDeck.filter((c) => !c.keywords?.includes('innate') && !isCompleteAncientSeal(c));
-  shuffledDeck = [...innateCards, ...otherCards];
-
-  return splitDeckToHandAndSanity(shuffledDeck, handCapacity);
-}
+export { cloneEnemy, ensureUniqueCardIds, splitDeckToHandAndSanity, setupCombatDeck, DEFAULT_HAND_CAPACITY };
 
 /**
  * 節點結算後推進地圖：將當前節點標記為 visited，將其連通的下一層節點解鎖為 accessible。
@@ -237,380 +173,98 @@ export function createInitialCombatState(
   customInvestigator?: Investigator,
   initialPhase: GameState['phase'] = 'combat'
 ): GameState {
-  const occId = customInvestigator?.occupationId ?? 'investigator';
-  const occ = OCCUPATIONS[occId] ?? OCCUPATIONS.investigator;
-  const handCapacity = customInvestigator?.handCapacity ?? occ.stats.handCapacity ?? DEFAULT_HAND_CAPACITY;
-  const baseInvestigator = customInvestigator ?? {
-    ...INITIAL_INVESTIGATOR,
-    handCapacity,
-  };
-  const relicStart = applyRelicCombatStart(baseInvestigator, customInvestigator?.stamina ?? occ.stats.stamina);
-  const investigator: Investigator = {
-    ...baseInvestigator,
-    handCapacity,
-    armor: relicStart.armor,
-    stamina: relicStart.stamina,
-    statusEffects: relicStart.statusEffects,
-    relics: baseInvestigator.relics ? [...baseInvestigator.relics] : [],
-  };
-
-  const enemy: Enemy = customEnemy
-    ? cloneEnemy(customEnemy)
-    : cloneEnemy(INITIAL_GHOUL);
-  if (!enemy.statusEffects) {
-    enemy.statusEffects = [];
-  }
-
-  const allCards: Card[] = customDeck
-    ? [...customDeck]
-    : occ.deck.map((c) => ({ ...c }));
-
-  const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, handCapacity);
-
-  const startTraitRes = resolveTurnStartTraits(enemy, investigator, 0, 0);
-  investigator.statusEffects = startTraitRes.investigatorStatusEffects;
-
-  const initialLogs = [
-    ...relicStart.logs,
-    `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
-    ...startTraitRes.logs,
-  ];
+  const initResult = initializeCombatSession({
+    enemy: customEnemy,
+    deck: customDeck,
+    investigator: customInvestigator,
+  });
 
   return {
     phase: initialPhase,
     currentDepth: 1,
-    turn: 1,
-    investigator,
-    sanityDeck,
-    hand,
-    discardPile: [],
-    exhaustPile: [],
-    isMadness: sanityDeck.length === 0,
-    currentEnemy: enemy,
-    adventureStats: createInitialAdventureStats(investigator),
-    battleLog: initialLogs,
-    combatInitialHealth: investigator.health,
+    turn: initResult.turn,
+    investigator: initResult.investigator,
+    sanityDeck: initResult.sanityDeck,
+    hand: initResult.hand,
+    discardPile: initResult.discardPile,
+    exhaustPile: initResult.exhaustPile,
+    isMadness: initResult.isMadness,
+    currentEnemy: initResult.enemy,
+    adventureStats: createInitialAdventureStats(initResult.investigator),
+    battleLog: initResult.logs,
+    combatInitialHealth: initResult.investigator.health,
     cardsPlayedThisTurn: 0,
   };
 }
 
 /**
- * 戰鬥回合結束結算純函式：結算敵怪意圖、狂亂狀態、回合計數、精力重置，並依據手牌容量固定抽取卡牌
+ * 戰鬥回合結束結算純函式：委託 combat/turnResolver 進行深層結算，並處理全域遊戲存檔與統計副作用
  */
 export function resolveTurnEndAndFixedDraw(
   state: GameState,
   remainingHand: Card[],
   initialLogs: string[] = []
 ): GameState {
-  const enemy = state.currentEnemy;
-  const intent = enemy.currentIntent;
-  let investigatorHealth = state.investigator.health;
-  let investigatorArmor = state.investigator.armor;
-  let enemyHealth = enemy.health;
-  let enemyArmor = enemy.armor;
-  let sanityDeck = [...state.sanityDeck];
-  let discardPile = [...state.discardPile];
-  const newLogs: string[] = [...initialLogs];
+  const result = resolveCombatTurnEnd({
+    investigator: state.investigator,
+    enemy: state.currentEnemy,
+    turn: state.turn,
+    retainedHand: remainingHand,
+    sanityDeck: state.sanityDeck,
+    discardPile: state.discardPile,
+    exhaustPile: state.exhaustPile,
+    isMadness: state.isMadness,
+    initialLogs,
+    cardsPlayedThisTurn: state.cardsPlayedThisTurn ?? 0,
+    handCapacity: state.investigator.handCapacity,
+  });
 
-  let investigatorStatusEffects = state.investigator.statusEffects ? [...state.investigator.statusEffects] : [];
-  let enemyStatusEffects = enemy.statusEffects ? [...enemy.statusEffects] : [];
-
-  // 1. 敵怪執行意圖與原著特質行動結算
-  const currentEnemyForAction: Enemy = {
-    ...enemy,
-    health: enemyHealth,
-    armor: enemyArmor,
-    statusEffects: enemyStatusEffects,
-  };
-  const currentInvestigatorForAction: Investigator = {
-    ...state.investigator,
-    health: investigatorHealth,
-    armor: investigatorArmor,
-    statusEffects: investigatorStatusEffects,
-  };
-  const enemyActionResult = resolveEnemyAction(
-    currentEnemyForAction,
-    intent,
-    currentInvestigatorForAction,
-    state.turn
-  );
-  newLogs.push(...enemyActionResult.logs);
-
-  if (enemyActionResult.damageToInvestigator > 0) {
-    if (enemyActionResult.hitCount && enemyActionResult.hitCount > 1 && enemyActionResult.singleHitDamage !== undefined) {
-      let totalAbsorbed = 0;
-      let totalEffective = 0;
-      for (let h = 0; h < enemyActionResult.hitCount; h++) {
-        const dmg = applyDamage(
-          { health: investigatorHealth, armor: investigatorArmor },
-          enemyActionResult.singleHitDamage
-        );
-        totalAbsorbed += dmg.absorbed;
-        totalEffective += dmg.effectiveDamage;
-        investigatorHealth = dmg.newHealth;
-        investigatorArmor = dmg.newArmor;
-      }
-      if (totalAbsorbed > 0) {
-        newLogs.push(`護甲替你抵擋了 ${totalAbsorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
-      }
-      if (totalEffective > 0) {
-        newLogs.push(
-          `${enemy.name} 施展【${intent.name}】，連續狂暴撕咬 ${enemyActionResult.hitCount} 次，造成共計 ${totalEffective} 點肉體傷害！`
-        );
-      } else {
-        newLogs.push(`${enemy.name} 施展【${intent.name}】，但連續打擊被你的厚重護甲完全抵擋！`);
-      }
-    } else {
-      const dmg = applyDamage(
-        { health: investigatorHealth, armor: investigatorArmor },
-        enemyActionResult.damageToInvestigator
-      );
-      investigatorHealth = dmg.newHealth;
-      investigatorArmor = dmg.newArmor;
-
-      if (dmg.absorbed > 0) {
-        newLogs.push(`護甲替你抵擋了 ${dmg.absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
-      }
-      if (dmg.effectiveDamage > 0) {
-        newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${dmg.effectiveDamage} 點肉體傷害！`);
-      } else {
-        newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
-      }
-    }
-  }
-
-  if (enemyActionResult.healToEnemy > 0) {
-    enemyHealth = Math.min(enemy.maxHealth, enemyHealth + enemyActionResult.healToEnemy);
-  }
-
-  if (enemyActionResult.armorGainToEnemy > 0) {
-    const finalArmor = calculateArmorGain(enemyActionResult.armorGainToEnemy, enemyStatusEffects);
-    enemyArmor += finalArmor;
-    if (intent.type === 'defend') {
-      newLogs.push(`${enemy.name} 施展【${intent.name}】，凝聚異質防護獲得 ${finalArmor} 點護甲！`);
-    }
-  }
-
-  if (enemyActionResult.erodeToInvestigator > 0) {
-    const erodeCount = Math.min(sanityDeck.length, enemyActionResult.erodeToInvestigator);
-    if (erodeCount > 0) {
-      const eroded = sanityDeck.slice(0, erodeCount);
-      sanityDeck = sanityDeck.slice(erodeCount);
-      discardPile.push(...eroded);
-      newLogs.push(`${enemy.name} 施展精神恐懼，侵蝕了你 ${erodeCount} 點理智牌庫！`);
-    } else {
-      newLogs.push(`${enemy.name} 施展精神恐懼，但你的心智已徹底陷入瘋狂崩潰，無更多理智可被侵蝕！`);
-    }
-  }
-
-  const statusesToApply = enemyActionResult.statusesToInvestigator ?? (
-    enemyActionResult.statusToInvestigator ? [enemyActionResult.statusToInvestigator] : []
-  );
-  for (const status of statusesToApply) {
-    investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
-    newLogs.push(
-      `${enemy.name} 施展【${intent.name}】，向你施加了 ${status.stacks} 層【${status.name}】印記！`
-    );
-  }
-
-  if (enemyActionResult.armorLossToEnemy && enemyActionResult.armorLossToEnemy > 0) {
-    enemyArmor = Math.max(0, enemyArmor - enemyActionResult.armorLossToEnemy);
-  }
-
-  if (enemyActionResult.madnessCardsToDeck && enemyActionResult.madnessCardsToDeck.length > 0) {
-    sanityDeck = [...sanityDeck, ...enemyActionResult.madnessCardsToDeck];
-  }
-
-  if (enemyActionResult.selfDamageToEnemy && enemyActionResult.selfDamageToEnemy > 0) {
-    const isDivineEnemy = Boolean(enemy.divineImmortality);
-    enemyHealth = Math.max(isDivineEnemy ? 1 : 0, enemyHealth - enemyActionResult.selfDamageToEnemy);
-  }
-
-  // 結算回合結束狀態印記（流血生命扣減、恐慌理智侵蝕）與印記衰減
-  const invStatusRes = resolveTurnEndStatusEffects(
-    { health: investigatorHealth, sanityDeck, discardPile },
-    investigatorStatusEffects,
-    '調查員'
-  );
-  investigatorHealth = invStatusRes.newHealth;
-  sanityDeck = invStatusRes.newSanityDeck;
-  discardPile = invStatusRes.newDiscardPile;
-  investigatorStatusEffects = invStatusRes.decayedEffects;
-  newLogs.push(...invStatusRes.logs);
-
-  const enemyStatusRes = resolveTurnEndStatusEffects(
-    { health: enemyHealth },
-    enemyStatusEffects,
-    enemy.name
-  );
-  enemyHealth = enemyStatusRes.newHealth;
-  const isDivineEnemy = Boolean(enemy.divineImmortality);
-  if (isDivineEnemy && enemyHealth < 1) {
-    enemyHealth = 1;
-  }
-  enemyStatusEffects = enemyStatusRes.decayedEffects;
-  newLogs.push(...enemyStatusRes.logs);
-
-  // Check GameOver / Victory
-  if (investigatorHealth <= 0) {
-    newLogs.unshift(`【調查員殞命】你的視線被血污模糊，神識散盡倒在血泊中……未知之物將你吞噬。`);
+  if (result.outcome === 'defeat') {
     const gameoverState: GameState = {
       ...state,
       phase: 'gameover',
-      hand: remainingHand,
-      sanityDeck,
-      discardPile,
+      hand: result.hand,
+      sanityDeck: result.sanityDeck,
+      discardPile: result.discardPile,
+      exhaustPile: result.exhaustPile,
       discardPhase: undefined,
       adventureStats: ensureAdventureStats(state),
-      investigator: {
-        ...state.investigator,
-        health: 0,
-        armor: investigatorArmor,
-        statusEffects: [],
-      },
-      battleLog: [...newLogs, ...state.battleLog],
+      investigator: result.investigator,
+      battleLog: [...result.logs, ...state.battleLog],
     };
-    saveFallenInvestigatorFromState(gameoverState, `遭${enemy.name}擊殺殞命`);
+    saveFallenInvestigatorFromState(gameoverState, `遭${state.currentEnemy.name}擊殺殞命`);
     return gameoverState;
   }
 
-  if (enemyHealth <= 0) {
-    newLogs.unshift(`【戰鬥勝利】${enemy.name} 在流血與創傷中發出臨死哀嚎，化為一灘黑水消滅了！`);
+  if (result.outcome === 'victory') {
     const stats = ensureAdventureStats(state);
     return {
       ...state,
       phase: 'victory',
       discardPhase: undefined,
-      investigator: {
-        ...state.investigator,
-        health: investigatorHealth,
-        armor: investigatorArmor,
-        statusEffects: [], // clear status effects on combat victory
-      },
-      currentEnemy: {
-        ...enemy,
-        health: 0,
-        armor: enemyArmor,
-        statusEffects: [],
-      },
+      investigator: result.investigator,
+      currentEnemy: result.enemy,
       adventureStats: {
         ...stats,
         enemiesDefeated: stats.enemiesDefeated + 1,
       },
-      battleLog: [...newLogs, ...state.battleLog],
+      battleLog: [...result.logs, ...state.battleLog],
     };
   }
 
-  // Check madness state transition
-  const madnessEval = evaluateMadnessTransition(state.isMadness, sanityDeck.length);
-  let isMadnessNow = madnessEval.isMadness;
-  if (madnessEval.logMessage) {
-    newLogs.push(madnessEval.logMessage);
-  }
-
-  // 結算下回合開始時原著特質（水下寒骨施加恐慌、腐泥少抽牌、溺水扣精力）
-  const startTraitRes = resolveTurnStartTraits(
-    enemy,
-    { ...state.investigator, statusEffects: investigatorStatusEffects },
-    enemyActionResult.nextTurnReducedDraw ?? 0,
-    enemyActionResult.nextTurnDrainedStamina ?? 0
-  );
-  newLogs.push(...startTraitRes.logs);
-  investigatorStatusEffects = startTraitRes.investigatorStatusEffects;
-  const reducedDraw = startTraitRes.reducedDrawCount;
-  const drainedStamina = startTraitRes.drainedStaminaCount;
-
-  // Advance enemy intent sequence with dynamic canonical logic
-  const nextTurn = state.turn + 1;
-  const currentEnemyForNextIntent: Enemy = {
-    ...enemy,
-    health: enemyHealth,
-    armor: enemyArmor,
-    statusEffects: enemyStatusEffects,
-  };
-  const { nextIntent, nextIntentIndex, newShoggothStance } = advanceCanonicalIntent(
-    currentEnemyForNextIntent,
-    nextTurn
-  );
-
-  const baseCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
-  const capacity = Math.max(1, baseCapacity - reducedDraw);
-
-  // Fixed draw of capacity cards
-  const updatedRemainingHand = remainingHand.map((c) => ({
-    ...c,
-    retainedTurns: (c.retainedTurns ?? 0) + 1,
-  }));
-  let newHand = [...updatedRemainingHand];
-  let drawnCardsCount = 0;
-
-  if (isMadnessNow) {
-    // In madness state, drawn cards are transformed into temporary black madness cards!
-    const existingTurnMadnessCount = [
-      ...updatedRemainingHand,
-      ...sanityDeck,
-      ...discardPile,
-    ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
-    const madnessCards = createMadnessCards(capacity, nextTurn, existingTurnMadnessCount);
-    newHand = [...updatedRemainingHand, ...madnessCards];
-    drawnCardsCount = capacity;
-    newLogs.push(`【瘋狂抽牌】處於瘋狂狀態！深淵力量轉化為 ${capacity} 張臨時黑色瘋狂卡！`);
-  } else {
-    const cardsToDraw = Math.min(sanityDeck.length, capacity);
-    const drawnCards = sanityDeck.slice(0, cardsToDraw);
-    sanityDeck = sanityDeck.slice(cardsToDraw);
-    newHand = [...updatedRemainingHand, ...drawnCards];
-    drawnCardsCount = cardsToDraw;
-
-    if (cardsToDraw < capacity && sanityDeck.length === 0) {
-      isMadnessNow = true;
-      const deficit = capacity - cardsToDraw;
-      const existingTurnMadnessCount = [
-        ...newHand,
-        ...sanityDeck,
-        ...discardPile,
-      ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
-      const madnessCards = createMadnessCards(deficit, nextTurn, existingTurnMadnessCount);
-      newHand = [...newHand, ...madnessCards];
-      drawnCardsCount += deficit;
-      newLogs.push(
-        `【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」，手牌缺額立即補入 ${deficit} 張臨時黑色瘋狂卡！`
-      );
-    } else if (sanityDeck.length === 0 && !isMadnessNow) {
-      isMadnessNow = true;
-      newLogs.push(`【理智告急】理智牌庫已抽空！調查員進入「瘋狂狀態」！`);
-    }
-  }
-
-  const actualStamina = Math.max(0, state.investigator.maxStamina - drainedStamina);
-  newLogs.push(`回合結束。未打出的 ${remainingHand.length} 張手牌予以保留，固定抽取 ${drawnCardsCount} 張卡牌。精力已重置回 ${actualStamina}。`);
-
   return {
     ...state,
-    turn: nextTurn,
+    turn: result.turn,
     discardPhase: undefined,
     cardsPlayedThisTurn: 0,
-    investigator: {
-      ...state.investigator,
-      health: investigatorHealth,
-      armor: investigatorArmor,
-      stamina: actualStamina,
-      statusEffects: investigatorStatusEffects,
-    },
-    sanityDeck: ensureUniqueCardIds(sanityDeck),
-    hand: ensureUniqueCardIds(newHand),
-    discardPile,
-    isMadness: isMadnessNow,
-    currentEnemy: {
-      ...enemy,
-      health: enemyHealth,
-      armor: enemyArmor,
-      currentIntent: nextIntent,
-      currentIntentIndex: nextIntentIndex,
-      shoggothStance: newShoggothStance ?? enemy.shoggothStance,
-      statusEffects: enemyStatusEffects,
-    },
-    battleLog: [...newLogs, ...state.battleLog],
+    investigator: result.investigator,
+    sanityDeck: result.sanityDeck,
+    hand: result.hand,
+    discardPile: result.discardPile,
+    exhaustPile: result.exhaustPile,
+    isMadness: result.isMadness,
+    currentEnemy: result.enemy,
+    battleLog: [...result.logs, ...state.battleLog],
   };
 }
 
