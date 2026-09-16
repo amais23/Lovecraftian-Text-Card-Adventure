@@ -92,6 +92,8 @@ export interface EnemyIntent {
   name: string;
   description: string;
   statusType?: StatusEffectType;
+  additionalStatuses?: StatusEffect[];
+  hitCount?: number;
   drainStamina?: number;
   reduceDraw?: number;
   isCharge?: boolean;
@@ -152,9 +154,7 @@ export interface Enemy {
   illustration?: EnemyIllustrationUrls;
   traits?: EnemyTrait[];
   accumulatedDamageTaken?: number;
-  tidalArmor?: number;
   shoggothStance?: 'normal' | 'eyes' | 'claws' | 'hide' | 'charging';
-  boneArmor?: number;
 }
 
 
@@ -171,8 +171,6 @@ export interface Investigator {
   handCapacity?: number; // 可變動手牌容量（開局基準值 2，抽牌數 = 手牌保留數）
   relics?: Relic[];      // 持有之舊日遺物（跨戰鬥永久生效）
   statusEffects?: StatusEffect[]; // 戰鬥內暫態印記（戰後清空）
-  reducedDrawNextTurn?: number;   // 下回合減少抽牌數（如食屍鬼墓泥）
-  drainedStaminaNextTurn?: number; // 下回合減少精力（如溺亡者窒息）
 }
 
 export type MapNodeType =
@@ -316,6 +314,7 @@ export interface GameState {
     selectedDiscardIds: string[];
   };
   combatInitialHealth?: number; // 踏入當前戰鬥時的初始生命值快照（重試戰鬥時精確還原）
+  cardsPlayedThisTurn?: number; // 本回合內已打出的卡牌總數（用於先手拔槍等條件判斷）
 }
 
 export type GameAction =

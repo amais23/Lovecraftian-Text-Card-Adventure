@@ -879,6 +879,47 @@ describe('CardEvaluator (Seam 1)', () => {
       // Cost 1, then refunded 1 -> stamina remains 3
       expect(res.investigator.stamina).toBe(3);
       expect(res.hand).toHaveLength(1);
+
+      // When played second (cardsPlayedThisTurn = 1), no refund or draw
+      const contextSecond = createBaseContext({
+        cardsPlayedThisTurn: 1,
+      });
+      const resSecond = evaluateCardPlay(quickDraw, contextSecond);
+      expect(resSecond.success).toBe(true);
+      expect(resSecond.enemy.health).toBe(24);
+      // Cost 1, no refund -> stamina drops to 2
+      expect(resSecond.investigator.stamina).toBe(2);
+      expect(resSecond.hand).toHaveLength(0);
+    });
+
+    it('magic damage cards do not trigger amorphous_body physical contact reflection', () => {
+      const magicCard = {
+        id: 'test_magic_shriveling',
+        name: '凋死術',
+        category: 'magic' as const,
+        costType: 'sanity' as const,
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'damage' as const, value: 8 }],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          traits: [{
+            id: 'amorphous_body',
+            name: '非歐流體',
+            description: '',
+          }],
+        },
+      });
+
+      const res = evaluateCardPlay(magicCard, context);
+      expect(res.success).toBe(true);
+      // Investigator should not suffer 2 contact damage from magic spell
+      expect(res.investigator.health).toBe(25);
     });
 
     it('card_cover with charge_growth grants +2 armor per retained turn up to +6', () => {

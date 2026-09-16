@@ -303,7 +303,7 @@ export function evaluateCardPlay(
           armor: enemyArmor,
           statusEffects: enemyStatusEffects,
         };
-        const interceptRes = interceptEnemyDamage(currentEnemySnapshot, singleHitFinal, isPiercing);
+        const interceptRes = interceptEnemyDamage(currentEnemySnapshot, singleHitFinal, isPiercing, card.category);
         if (interceptRes.logs.length > 0) {
           newLogs.push(...interceptRes.logs);
         }

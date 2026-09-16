@@ -54,15 +54,21 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
       expect(resLarge.modifiedDamage).toBe(5);
     });
 
-    it('amorphous_body reflects 2 damage back to investigator', () => {
+    it('amorphous_body reflects 2 damage back to investigator on physical combat cards but not magic', () => {
       const spawn = createTestEnemy({
         traits: [ELDRITCH_TRAIT_DEFINITIONS.amorphous_body],
       });
 
-      const res = interceptEnemyDamage(spawn, 8);
-      expect(res.modifiedDamage).toBe(8);
-      expect(res.reflectedDamageToInvestigator).toBe(2);
-      expect(res.logs[0]).toContain('非歐流體');
+      // Combat physical card -> reflects 2 damage
+      const resCombat = interceptEnemyDamage(spawn, 8, false, 'combat');
+      expect(resCombat.modifiedDamage).toBe(8);
+      expect(resCombat.reflectedDamageToInvestigator).toBe(2);
+      expect(resCombat.logs[0]).toContain('非歐流體');
+
+      // Magic occult card -> does not reflect contact damage
+      const resMagic = interceptEnemyDamage(spawn, 8, false, 'magic');
+      expect(resMagic.modifiedDamage).toBe(8);
+      expect(resMagic.reflectedDamageToInvestigator).toBe(0);
     });
 
     it('charging stance increases damage taken by 50%', () => {
@@ -102,12 +108,9 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
 
     it('processes reduced draw count and drained stamina', () => {
       const enemy = createTestEnemy();
-      const inv = createTestInvestigator({
-        reducedDrawNextTurn: 1,
-        drainedStaminaNextTurn: 1,
-      });
+      const inv = createTestInvestigator();
 
-      const res = resolveTurnStartTraits(enemy, inv);
+      const res = resolveTurnStartTraits(enemy, inv, 1, 1);
       expect(res.reducedDrawCount).toBe(1);
       expect(res.drainedStaminaCount).toBe(1);
     });
@@ -225,7 +228,7 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
   });
 
   describe('advanceCanonicalIntent', () => {
-    it('switches Cultist to blind blood sacrifice when HP <= 40%', () => {
+    it('switches Cultist to blind blood sacrifice when HP <= 40% with bleed, vulnerable, and no HP acronym', () => {
       const cultist = createTestEnemy({
         health: 10,
         maxHealth: 30, // 10/30 = 33% <= 40%
@@ -236,9 +239,19 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
       expect(nextIntent.name).toBe('盲目血祭');
       expect(nextIntent.selfDamage).toBe(4);
       expect(nextIntent.statusType).toBe('bleed');
+      expect(nextIntent.value).toBe(3);
+      expect(nextIntent.additionalStatuses?.find((s) => s.type === 'vulnerable')?.stacks).toBe(2);
+      expect(nextIntent.description).not.toContain('HP');
+      expect(nextIntent.description).toContain('點生命值');
+
+      // Test resolveEnemyAction with this intent to ensure both statuses are returned
+      const inv = createTestInvestigator();
+      const actionRes = resolveEnemyAction(cultist, nextIntent, inv, 2);
+      expect(actionRes.statusesToInvestigator?.some((s) => s.type === 'bleed')).toBe(true);
+      expect(actionRes.statusesToInvestigator?.some((s) => s.type === 'vulnerable')).toBe(true);
     });
 
-    it('cycles Shoggoth intents between mutation forms, hide stance, and Tekeli-li crush', () => {
+    it('cycles Shoggoth intents between mutation forms, hide stance, and Tekeli-li crush with 4-hit claws', () => {
       const shoggoth = createTestEnemy({
         traits: [ELDRITCH_TRAIT_DEFINITIONS.organ_proliferation],
       });
@@ -248,10 +261,19 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
       expect(t1.newShoggothStance).toBe('eyes');
       expect(t1.nextIntent.type).toBe('erode');
 
-      // Turn 2: claws
+      // Turn 2: claws (4 multi-hits of 3 dmg = 12 total)
       const t2 = advanceCanonicalIntent(shoggoth, 2);
       expect(t2.newShoggothStance).toBe('claws');
       expect(t2.nextIntent.type).toBe('attack');
+      expect(t2.nextIntent.value).toBe(3);
+      expect(t2.nextIntent.hitCount).toBe(4);
+
+      // Verify resolveEnemyAction multi-hit damage
+      const inv = createTestInvestigator();
+      const clawsAction = resolveEnemyAction(shoggoth, t2.nextIntent, inv, 2);
+      expect(clawsAction.hitCount).toBe(4);
+      expect(clawsAction.singleHitDamage).toBe(3);
+      expect(clawsAction.damageToInvestigator).toBe(12);
 
       // Turn 3: charging
       const t3 = advanceCanonicalIntent(shoggoth, 3);

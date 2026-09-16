@@ -290,6 +290,7 @@ export function createInitialCombatState(
     adventureStats: createInitialAdventureStats(investigator),
     battleLog: initialLogs,
     combatInitialHealth: investigator.health,
+    cardsPlayedThisTurn: 0,
   };
 }
 
@@ -336,20 +337,45 @@ export function resolveTurnEndAndFixedDraw(
   newLogs.push(...enemyActionResult.logs);
 
   if (enemyActionResult.damageToInvestigator > 0) {
-    const dmg = applyDamage(
-      { health: investigatorHealth, armor: investigatorArmor },
-      enemyActionResult.damageToInvestigator
-    );
-    investigatorHealth = dmg.newHealth;
-    investigatorArmor = dmg.newArmor;
-
-    if (dmg.absorbed > 0) {
-      newLogs.push(`護甲替你抵擋了 ${dmg.absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
-    }
-    if (dmg.effectiveDamage > 0) {
-      newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${dmg.effectiveDamage} 點肉體傷害！`);
+    if (enemyActionResult.hitCount && enemyActionResult.hitCount > 1 && enemyActionResult.singleHitDamage !== undefined) {
+      let totalAbsorbed = 0;
+      let totalEffective = 0;
+      for (let h = 0; h < enemyActionResult.hitCount; h++) {
+        const dmg = applyDamage(
+          { health: investigatorHealth, armor: investigatorArmor },
+          enemyActionResult.singleHitDamage
+        );
+        totalAbsorbed += dmg.absorbed;
+        totalEffective += dmg.effectiveDamage;
+        investigatorHealth = dmg.newHealth;
+        investigatorArmor = dmg.newArmor;
+      }
+      if (totalAbsorbed > 0) {
+        newLogs.push(`護甲替你抵擋了 ${totalAbsorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
+      }
+      if (totalEffective > 0) {
+        newLogs.push(
+          `${enemy.name} 施展【${intent.name}】，連續狂暴撕咬 ${enemyActionResult.hitCount} 次，造成共計 ${totalEffective} 點肉體傷害！`
+        );
+      } else {
+        newLogs.push(`${enemy.name} 施展【${intent.name}】，但連續打擊被你的厚重護甲完全抵擋！`);
+      }
     } else {
-      newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
+      const dmg = applyDamage(
+        { health: investigatorHealth, armor: investigatorArmor },
+        enemyActionResult.damageToInvestigator
+      );
+      investigatorHealth = dmg.newHealth;
+      investigatorArmor = dmg.newArmor;
+
+      if (dmg.absorbed > 0) {
+        newLogs.push(`護甲替你抵擋了 ${dmg.absorbed} 點傷害（剩餘護甲: ${investigatorArmor}）。`);
+      }
+      if (dmg.effectiveDamage > 0) {
+        newLogs.push(`${enemy.name} 施展【${intent.name}】，鋒利的爪牙重創了你，造成 ${dmg.effectiveDamage} 點肉體傷害！`);
+      } else {
+        newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
+      }
     }
   }
 
@@ -377,13 +403,13 @@ export function resolveTurnEndAndFixedDraw(
     }
   }
 
-  if (enemyActionResult.statusToInvestigator) {
-    investigatorStatusEffects = addStatusEffect(
-      investigatorStatusEffects,
-      enemyActionResult.statusToInvestigator
-    );
+  const statusesToApply = enemyActionResult.statusesToInvestigator ?? (
+    enemyActionResult.statusToInvestigator ? [enemyActionResult.statusToInvestigator] : []
+  );
+  for (const status of statusesToApply) {
+    investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
     newLogs.push(
-      `${enemy.name} 施展【${intent.name}】，向你施加了 ${enemyActionResult.statusToInvestigator.stacks} 層【${enemyActionResult.statusToInvestigator.name}】印記！`
+      `${enemy.name} 施展【${intent.name}】，向你施加了 ${status.stacks} 層【${status.name}】印記！`
     );
   }
 
@@ -563,6 +589,7 @@ export function resolveTurnEndAndFixedDraw(
     ...state,
     turn: nextTurn,
     discardPhase: undefined,
+    cardsPlayedThisTurn: 0,
     investigator: {
       ...state.investigator,
       health: investigatorHealth,
@@ -803,6 +830,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           adventureStats: updatedStats,
           battleLog: [logMsg, ...relicStart.logs, ...state.battleLog],
           combatInitialHealth: state.investigator.health,
+          cardsPlayedThisTurn: 0,
         };
       }
 
@@ -1045,6 +1073,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           adventureStats: updatedStats,
           battleLog: outcomeTexts.concat(state.battleLog),
           combatInitialHealth: updatedInvestigator.health,
+          cardsPlayedThisTurn: 0,
         };
       }
 
@@ -1689,6 +1718,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         abyssalSealFused: state.abyssalSealFused,
         combatInitialHealth: state.combatInitialHealth ?? restoredHealth,
         discardPhase: undefined,
+        cardsPlayedThisTurn: 0,
       };
     }
 
@@ -1709,6 +1739,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         exhaustPile: state.exhaustPile,
         turn: state.turn,
         isMadness: state.isMadness,
+        cardsPlayedThisTurn: state.cardsPlayedThisTurn ?? 0,
       };
 
       const result = evaluateCardPlay(card, context);
@@ -1742,6 +1773,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         phase,
         isTrueEnding,
+        cardsPlayedThisTurn: (state.cardsPlayedThisTurn ?? 0) + 1,
         investigator: {
           ...state.investigator,
           stamina: result.investigator.stamina,

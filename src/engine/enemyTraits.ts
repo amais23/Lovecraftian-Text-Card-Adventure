@@ -1,5 +1,6 @@
 import type {
   Card,
+  CardCategory,
   Enemy,
   EnemyIntent,
   EnemyTrait,
@@ -102,7 +103,8 @@ export function interceptEnemyDamage(
     accumulatedDamageTaken?: number;
   },
   rawDamage: number,
-  isPiercing: boolean = false
+  isPiercing: boolean = false,
+  cardCategory?: CardCategory
 ): EnemyDamageInterceptResult {
   const logs: string[] = [];
   let modifiedDamage = rawDamage;
@@ -123,8 +125,9 @@ export function interceptEnemyDamage(
     };
   }
 
-  // 2. 非歐流體 (amorphous_body)：受到物理攻擊反彈 2 點接觸傷害
-  if (hasTrait(enemy, 'amorphous_body') && modifiedDamage > 0) {
+  // 2. 非歐流體 (amorphous_body)：受到物理肉搏攻擊反彈 2 點接觸傷害（僅限 combat 卡牌，不包含 magic 秘術）
+  const isPhysicalContact = !cardCategory || cardCategory === 'combat';
+  if (hasTrait(enemy, 'amorphous_body') && modifiedDamage > 0 && isPhysicalContact) {
     reflectedDamageToInvestigator += 2;
     logs.push(`【非歐流體】攻擊觸及黏液原生質，分裂的酸蝕黏液反彈造成調查員 2 點接觸傷害！`);
   }
@@ -189,8 +192,8 @@ export function resolveTurnStartTraits(
 ): TurnStartTraitResult {
   const logs: string[] = [];
   let investigatorStatusEffects = investigator.statusEffects ? [...investigator.statusEffects] : [];
-  let reducedDrawCount = overrideReducedDraw ?? investigator.reducedDrawNextTurn ?? 0;
-  let drainedStaminaCount = overrideDrainedStamina ?? investigator.drainedStaminaNextTurn ?? 0;
+  let reducedDrawCount = overrideReducedDraw ?? 0;
+  let drainedStaminaCount = overrideDrainedStamina ?? 0;
 
   // 水下寒骨 (waterlogged_grip)：每回合開始調查員獲得 1 層恐慌
   if (hasTrait(enemy, 'waterlogged_grip')) {
@@ -221,11 +224,14 @@ export function resolveTurnStartTraits(
 
 export interface EnemyActResult {
   damageToInvestigator: number;
+  hitCount?: number;
+  singleHitDamage?: number;
   healToEnemy: number;
   armorGainToEnemy: number;
   armorLossToEnemy?: number;
   erodeToInvestigator: number;
   statusToInvestigator?: StatusEffect;
+  statusesToInvestigator?: StatusEffect[];
   nextTurnReducedDraw?: number;
   nextTurnDrainedStamina?: number;
   selfDamageToEnemy?: number;
@@ -244,6 +250,8 @@ export function resolveEnemyAction(
 ): EnemyActResult {
   const logs: string[] = [];
   let damageToInvestigator = 0;
+  let hitCount = intent.hitCount ?? 1;
+  let singleHitDamage: number | undefined;
   let healToEnemy = 0;
   let armorGainToEnemy = 0;
   let armorLossToEnemy = 0;
@@ -264,11 +272,15 @@ export function resolveEnemyAction(
   // 2. 結算意圖基礎值
   if (intent.type === 'attack') {
     const rawVal = Math.floor(intent.value * enrageMultiplier);
-    damageToInvestigator = calculateAttackDamage(
+    const singleHitFinal = calculateAttackDamage(
       rawVal,
       enemy.statusEffects ?? [],
       investigator.statusEffects ?? []
     );
+    damageToInvestigator = singleHitFinal * hitCount;
+    if (hitCount > 1) {
+      singleHitDamage = singleHitFinal;
+    }
 
     // 食腐本能 (carrion_feeder)：命中帶有流血的調查員吸血 50%
     const hasBleed = (investigator.statusEffects ?? []).some((s) => s.type === 'bleed' && s.stacks > 0);
@@ -287,6 +299,14 @@ export function resolveEnemyAction(
     }
   } else if (intent.type === 'apply_status' && intent.statusType) {
     statusToInvestigator = createStatusEffect(intent.statusType, intent.value);
+  }
+
+  const statusesToInvestigator: StatusEffect[] = [];
+  if (statusToInvestigator) {
+    statusesToInvestigator.push(statusToInvestigator);
+  }
+  if (intent.additionalStatuses && intent.additionalStatuses.length > 0) {
+    statusesToInvestigator.push(...intent.additionalStatuses);
   }
 
   // 3. 特殊情境意圖附加屬性
@@ -340,11 +360,14 @@ export function resolveEnemyAction(
 
   return {
     damageToInvestigator,
+    hitCount: hitCount > 1 ? hitCount : undefined,
+    singleHitDamage,
     healToEnemy,
     armorGainToEnemy,
     armorLossToEnemy,
     erodeToInvestigator,
     statusToInvestigator,
+    statusesToInvestigator: statusesToInvestigator.length > 0 ? statusesToInvestigator : undefined,
     nextTurnReducedDraw,
     nextTurnDrainedStamina,
     selfDamageToEnemy,
@@ -369,9 +392,10 @@ export function advanceCanonicalIntent(
           type: 'apply_status',
           statusType: 'bleed',
           value: 3,
+          additionalStatuses: [createStatusEffect('vulnerable', 2)],
           selfDamage: 4,
           name: '盲目血祭',
-          description: '異教徒陷入瘋狂自殘，扣減自身 4 HP，向你施加 3 層【流血】！',
+          description: '異教徒陷入瘋狂自殘，扣減自身 4 點生命值，向你施加 3 層【流血】與 2 層【易傷】！',
         },
         nextIntentIndex: 99,
       };
@@ -435,9 +459,10 @@ export function advanceCanonicalIntent(
         return {
           nextIntent: {
             type: 'attack',
-            value: 12,
+            value: 3,
+            hitCount: 4,
             name: '原生質重爪撕裂',
-            description: '異化出數根重爪猛烈撕咬，預告造成 12 點傷害！',
+            description: '異化出數根重爪發動 4 次狂暴撕咬，每次造成 3 點傷害（共 12 點）！',
           },
           nextIntentIndex: 2,
           newShoggothStance: 'claws',

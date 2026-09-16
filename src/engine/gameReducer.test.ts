@@ -5400,6 +5400,129 @@ describe('Composable Card Primitives & Occupation Filtering (Issue #46)', () => 
       const keptCard2 = afterTurn2.hand.find((c) => c.id === retainCard.id);
       expect(keptCard2?.retainedTurns).toBe(2);
     });
+
+    it('tracks cardsPlayedThisTurn across card plays within a turn and resets on END_TURN', () => {
+      const baseState = createInitialCombatState();
+      expect(baseState.cardsPlayedThisTurn).toBe(0);
+
+      const playableCard1: Card = {
+        id: 'play_1',
+        name: '卡牌1',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'damage', value: 4 }],
+        description: '',
+        flavorText: '',
+      };
+      const playableCard2: Card = {
+        id: 'play_2',
+        name: '卡牌2',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'damage', value: 4 }],
+        description: '',
+        flavorText: '',
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        hand: [playableCard1, playableCard2],
+        investigator: {
+          ...baseState.investigator,
+          stamina: 3,
+        },
+      };
+
+      const afterCard1 = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: playableCard1.id },
+      });
+      expect(afterCard1.cardsPlayedThisTurn).toBe(1);
+
+      const afterCard2 = gameReducer(afterCard1, {
+        type: 'PLAY_CARD',
+        payload: { cardId: playableCard2.id },
+      });
+      expect(afterCard2.cardsPlayedThisTurn).toBe(2);
+
+      // Advance turn -> cardsPlayedThisTurn resets to 0
+      const afterTurn = gameReducer(afterCard2, { type: 'END_TURN' });
+      expect(afterTurn.cardsPlayedThisTurn).toBe(0);
+    });
+
+    it('resolves multi-hit enemy attack against investigator armor and health accurately', () => {
+      const baseState = createInitialCombatState();
+      const multiHitEnemy: Enemy = {
+        ...baseState.currentEnemy,
+        currentIntent: {
+          type: 'attack',
+          value: 3,
+          hitCount: 4,
+          name: '原生質重爪撕裂',
+          description: '',
+        },
+      };
+
+      // Investigator has 5 armor and 25 health.
+      // Attack is 4 hits of 3 damage:
+      // Hit 1: 3 damage against 5 armor -> 2 armor left, 0 HP dmg
+      // Hit 2: 3 damage against 2 armor -> 0 armor left, 1 HP dmg -> 24 HP
+      // Hit 3: 3 damage against 0 armor -> 0 armor left, 3 HP dmg -> 21 HP
+      // Hit 4: 3 damage against 0 armor -> 0 armor left, 3 HP dmg -> 18 HP
+      // Total: 7 HP damage, 18 HP remaining, 0 armor remaining
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: multiHitEnemy,
+        investigator: {
+          ...baseState.investigator,
+          armor: 5,
+          health: 25,
+          statusEffects: [],
+        },
+      };
+
+      const afterTurn = gameReducer(combatState, { type: 'END_TURN' });
+      expect(afterTurn.investigator.armor).toBe(0);
+      expect(afterTurn.investigator.health).toBe(18);
+      expect(afterTurn.battleLog.some((log) => log.includes('連續狂暴撕咬 4 次'))).toBe(true);
+    });
+
+    it('applies multiple statuses from enemy intent (such as blind blood sacrifice) to investigator', () => {
+      const baseState = createInitialCombatState();
+      const sacrificeEnemy: Enemy = {
+        ...baseState.currentEnemy,
+        currentIntent: {
+          type: 'apply_status',
+          statusType: 'bleed',
+          value: 3,
+          additionalStatuses: [createStatusEffect('vulnerable', 2)],
+          selfDamage: 4,
+          name: '盲目血祭',
+          description: '',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: sacrificeEnemy,
+        investigator: {
+          ...baseState.investigator,
+          statusEffects: [],
+        },
+      };
+
+      const afterTurn = gameReducer(combatState, { type: 'END_TURN' });
+      // 3 bleed inflicted, 1 stack decays at turn end -> 2 remaining (and 3 bleed damage taken)
+      expect(afterTurn.investigator.statusEffects?.find((s) => s.type === 'bleed')?.stacks).toBe(2);
+      // 2 vulnerable inflicted, 1 stack decays at turn end -> 1 remaining
+      expect(afterTurn.investigator.statusEffects?.find((s) => s.type === 'vulnerable')?.stacks).toBe(1);
+      expect(afterTurn.battleLog.some((log) => log.includes('3 層【流血】'))).toBe(true);
+      expect(afterTurn.battleLog.some((log) => log.includes('2 層【易傷】'))).toBe(true);
+    });
   });
 });
 
