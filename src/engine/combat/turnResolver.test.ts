@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { resolveCombatTurnEnd, initializeCombatSession } from './turnResolver';
+import {
+  resolveCombatTurnEnd,
+  initializeCombatSession,
+  setupCombatDeck,
+} from './turnResolver';
 import type { Card, Enemy, Investigator } from '../../types/game';
 import type { CombatTurnContext } from './types';
 
@@ -82,6 +86,7 @@ describe('CombatTurnResolver (Pure Functional Combat Lifecycle)', () => {
     expect(result.investigator.health).toBe(23); // 25 - (6 - 4) = 23
     expect(result.turn).toBe(2);
     expect(result.investigator.stamina).toBe(3); // Reset to maxStamina
+    expect(result.cardsPlayedThisTurn).toBe(0);
   });
 
   it('handles multi-hit claw attacks absorbing armor across hits', () => {
@@ -173,6 +178,7 @@ describe('CombatTurnResolver (Pure Functional Combat Lifecycle)', () => {
 
     expect(result.outcome).toBe('defeat');
     expect(result.investigator.health).toBe(0);
+    expect(result.cardsPlayedThisTurn).toBe(0);
     expect(result.logs.some((l) => l.includes('調查員殞命'))).toBe(true);
   });
 
@@ -207,6 +213,7 @@ describe('CombatTurnResolver (Pure Functional Combat Lifecycle)', () => {
 
     expect(result.outcome).toBe('victory');
     expect(result.enemy.health).toBe(0);
+    expect(result.cardsPlayedThisTurn).toBe(0);
     expect(result.investigator.statusEffects).toEqual([]);
     expect(result.logs.some((l) => l.includes('戰鬥勝利'))).toBe(true);
   });
@@ -316,5 +323,24 @@ describe('CombatTurnResolver (Pure Functional Combat Lifecycle)', () => {
     expect(initResult.discardPile).toEqual([]);
     expect(initResult.exhaustPile).toEqual([]);
     expect(initResult.isMadness).toBe(false);
+  });
+
+  it('setupCombatDeck filters out temporary cards and ensures innate cards appear in opening hand', () => {
+    const rawDeck = [
+      createMockCard({ id: 'temp_1', isTemporary: true }),
+      createMockCard({ id: 'norm_1' }),
+      createMockCard({ id: 'norm_2' }),
+      createMockCard({ id: 'innate_alpha', keywords: ['innate'] }),
+    ];
+
+    const result = setupCombatDeck(rawDeck, 'investigator', undefined, 2);
+
+    expect(result.hand.length).toBe(2);
+    // Temporary cards must be excluded
+    expect(result.hand.some((c) => c.id === 'temp_1')).toBe(false);
+    expect(result.sanityDeck.some((c) => c.id === 'temp_1')).toBe(false);
+    // Innate card must be prioritized into the opening hand
+    expect(result.hand.some((c) => c.id === 'innate_alpha')).toBe(true);
+    expect(result.sanityDeck.length).toBe(1);
   });
 });

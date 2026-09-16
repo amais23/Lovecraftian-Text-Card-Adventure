@@ -78,11 +78,7 @@ export function setupCombatDeck(
     ? permanentCards
     : occ.deck.map((c) => ({ ...c }));
   const sanitizedPool = ensureUniqueCardIds(pool);
-  let shuffledDeck = fisherYatesShuffle(sanitizedPool);
-
-  const innateCards = shuffledDeck.filter((c) => c.keywords?.includes('innate') || isCompleteAncientSeal(c));
-  const otherCards = shuffledDeck.filter((c) => !c.keywords?.includes('innate') && !isCompleteAncientSeal(c));
-  shuffledDeck = [...innateCards, ...otherCards];
+  const shuffledDeck = fisherYatesShuffle(sanitizedPool);
 
   return splitDeckToHandAndSanity(shuffledDeck, handCapacity);
 }
@@ -167,6 +163,11 @@ export function initializeCombatSession(context: CombatInitContext): CombatInitR
  * 7. 手牌保留更新與固定容量抽牌（瘋狂狀態缺額生成臨時黑卡）
  * 8. 精力刷新重置
  */
+function countExistingTurnMadness(cards: Card[], turn: number): number {
+  const prefix = `temp_madness_t${turn}_`;
+  return cards.filter((c) => c.id.startsWith(prefix)).length;
+}
+
 export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResult {
   const {
     enemy,
@@ -175,7 +176,9 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
     retainedHand,
     exhaustPile = [],
     initialLogs = [],
+    cardsPlayedThisTurn = 0,
   } = context;
+  void cardsPlayedThisTurn;
 
   const intent = enemy.currentIntent;
   let investigatorHealth = investigator.health;
@@ -356,6 +359,7 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
       isMadness: context.isMadness,
       logs: newLogs,
       drawnCardsCount: 0,
+      cardsPlayedThisTurn: 0,
     };
   }
 
@@ -383,6 +387,7 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
       isMadness: context.isMadness,
       logs: newLogs,
       drawnCardsCount: 0,
+      cardsPlayedThisTurn: 0,
     };
   }
 
@@ -430,11 +435,10 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
   let drawnCardsCount = 0;
 
   if (isMadnessNow) {
-    const existingTurnMadnessCount = [
-      ...updatedRemainingHand,
-      ...sanityDeck,
-      ...discardPile,
-    ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
+    const existingTurnMadnessCount = countExistingTurnMadness(
+      [...updatedRemainingHand, ...sanityDeck, ...discardPile],
+      nextTurn
+    );
     const madnessCards = createMadnessCards(capacity, nextTurn, existingTurnMadnessCount);
     newHand = [...updatedRemainingHand, ...madnessCards];
     drawnCardsCount = capacity;
@@ -449,11 +453,10 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
     if (cardsToDraw < capacity && sanityDeck.length === 0) {
       isMadnessNow = true;
       const deficit = capacity - cardsToDraw;
-      const existingTurnMadnessCount = [
-        ...newHand,
-        ...sanityDeck,
-        ...discardPile,
-      ].filter((c) => c.id.startsWith(`temp_madness_t${nextTurn}_`)).length;
+      const existingTurnMadnessCount = countExistingTurnMadness(
+        [...newHand, ...sanityDeck, ...discardPile],
+        nextTurn
+      );
       const madnessCards = createMadnessCards(deficit, nextTurn, existingTurnMadnessCount);
       newHand = [...newHand, ...madnessCards];
       drawnCardsCount += deficit;
@@ -498,5 +501,6 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
     isMadness: isMadnessNow,
     logs: newLogs,
     drawnCardsCount,
+    cardsPlayedThisTurn: 0,
   };
 }

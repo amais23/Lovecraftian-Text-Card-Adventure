@@ -256,7 +256,7 @@ export function resolveTurnEndAndFixedDraw(
     ...state,
     turn: result.turn,
     discardPhase: undefined,
-    cardsPlayedThisTurn: 0,
+    cardsPlayedThisTurn: result.cardsPlayedThisTurn,
     investigator: result.investigator,
     sanityDeck: result.sanityDeck,
     hand: result.hand,

@@ -50,10 +50,23 @@ export function resolveCombatTurnEnd(
 export function initializeCombatSession(
   context: CombatInitContext
 ): CombatInitResult;
+
+// 輔助卡牌準備函式
+export function splitDeckToHandAndSanity(
+  deck: Card[],
+  handSize?: number
+): { hand: Card[]; sanityDeck: Card[] };
+
+export function setupCombatDeck(
+  cards: Card[],
+  occupationId?: OccupationId,
+  overrideDeck?: Card[],
+  handCapacity?: number
+): { hand: Card[]; sanityDeck: Card[] };
 ```
 
 - **輸入**：極小化戰鬥快照（`investigator`, `enemy`, `turn`, `retainedHand`, `sanityDeck`, `discardPile`, `cardsPlayedThisTurn`, `handCapacity`）。
-- **輸出**：確定性結果（`nextInvestigator`, `nextEnemy`, `nextHand`, `nextSanityDeck`, `nextDiscardPile`, `outcome: 'ongoing' | 'victory' | 'defeat'`, `logs`, `isMadness`）。
+- **輸出**：確定性結果（`investigator`, `enemy`, `turn`, `hand`, `sanityDeck`, `discardPile`, `outcome: 'ongoing' | 'victory' | 'defeat'`, `logs`, `isMadness`, `drawnCardsCount`, `cardsPlayedThisTurn`）。
 - **副作用隔離**：模組內部 100% 保持純粹無副作用，不讀寫 `localStorage`，不觸發全域導航；持久化存檔（如 `saveFallenInvestigatorFromState`）由外層 Reducer 根據 `outcome` 統一處理。
 
 ### 3. 內部縫隙封裝 (Internal Seams Encapsulation)

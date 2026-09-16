@@ -34,6 +34,7 @@ export interface CombatTurnResult {
   isMadness: boolean;
   logs: string[];
   drawnCardsCount: number;
+  cardsPlayedThisTurn: number;
 }
 
 /**
