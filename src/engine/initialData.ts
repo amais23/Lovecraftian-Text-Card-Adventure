@@ -73,25 +73,15 @@ export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinit
 
 export const REWARD_CARD_POOL: Card[] = TIER_1_CARDS;
 
-/**
- * Fisher-Yates 洗牌演算法（均勻無偏隨機）
- * 支援注入自訂 randomFn，確保測試與模擬的純度與可重現性
- */
-export function fisherYatesShuffle<T>(items: readonly T[], randomFn: () => number = Math.random): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(randomFn() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+import { fisherYatesShuffle } from './shuffleUtils';
+export { fisherYatesShuffle };
 
 /**
  * 隨機抽取 count 張不重複的戰後獎勵卡牌（使用 Fisher-Yates 無偏洗牌）
  */
 export function generateRewardCards(count: number = 3, randomFn: () => number = Math.random): Card[] {
   const shuffled = fisherYatesShuffle(REWARD_CARD_POOL, randomFn);
-  return shuffled.slice(0, Math.min(count, shuffled.length)).map((c) => ({ ...c }));
+  return shuffled.slice(0, Math.min(count, shuffled.length)).map((c: Card) => ({ ...c }));
 }
 
 // Temporary card factories and templates are defined in cardFactory.ts

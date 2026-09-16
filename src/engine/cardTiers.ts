@@ -1,5 +1,5 @@
 import type { Card, DepthLevel, OccupationId } from '../types/game';
-import { fisherYatesShuffle } from './initialData';
+import { fisherYatesShuffle } from './shuffleUtils';
 
 import { INVESTIGATOR_REWARD_CARDS } from './cards/investigator/rewards';
 import { OCCULTIST_REWARD_CARDS } from './cards/occultist/rewards';

@@ -8,16 +8,26 @@ import { SettingsModal } from './modals/SettingsModal';
 import { ExitEasterEggModal } from './modals/ExitEasterEggModal';
 import { AbyssBloodOverlay } from './AbyssBloodOverlay';
 import { AbyssDeathScreen } from './AbyssDeathScreen';
+import { CardReviewLab } from './CardReviewLab';
 
 interface TitleScreenProps {
   dispatch: React.Dispatch<GameAction>;
   onAbyssDeath?: () => void;
 }
 
-type ModalType = 'manual' | 'compendium' | 'settings' | 'exit' | null;
+type ModalType = 'manual' | 'compendium' | 'settings' | 'exit' | 'card_review' | null;
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch, onAbyssDeath }) => {
-  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [activeModal, setActiveModal] = useState<ModalType>(() => {
+    if (typeof window !== 'undefined') {
+      const search = window.location.search;
+      const hash = window.location.hash;
+      if (search.includes('review') || hash.includes('review')) {
+        return 'card_review';
+      }
+    }
+    return null;
+  });
   const [abyssCount, setAbyssCount] = useState<number>(0);
   const [isDying, setIsDying] = useState<boolean>(false);
   const [isAbyssDead, setIsAbyssDead] = useState<boolean>(() => {
@@ -117,6 +127,10 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch, onAbyssDeath
         onOpenCompendium={handleOpenCompendium}
         onOpenSettings={handleOpenSettings}
         onOpenExit={handleOpenExit}
+        onOpenCardReview={() => {
+          resetAbyss();
+          setActiveModal('card_review');
+        }}
       />
 
       {/* Blood Overlay for Stages 1 ~ 3 */}
@@ -129,6 +143,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch, onAbyssDeath
       />
       {activeModal === 'compendium' && (
         <CardCompendium onClose={handleCloseModal} />
+      )}
+      {activeModal === 'card_review' && (
+        <CardReviewLab onClose={handleCloseModal} />
       )}
       <SettingsModal
         isOpen={activeModal === 'settings'}

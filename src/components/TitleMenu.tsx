@@ -7,6 +7,7 @@ import {
   Settings,
   Skull,
   ChevronRight,
+  Scale,
 } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
@@ -17,6 +18,7 @@ export interface TitleMenuProps {
   onOpenCompendium: () => void;
   onOpenSettings: () => void;
   onOpenExit: () => void;
+  onOpenCardReview?: () => void;
 }
 
 export const TitleMenu: React.FC<TitleMenuProps> = ({
@@ -25,6 +27,7 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
   onOpenCompendium,
   onOpenSettings,
   onOpenExit,
+  onOpenCardReview,
 }) => {
   const handleItemClick = (action: () => void) => {
     soundEngine.playClick();
@@ -108,6 +111,26 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             </div>
             <ChevronRight size={18} className="btn-arrow" />
           </button>
+
+          {/* 3.5. Card Balance & Review Lab */}
+          {onOpenCardReview && (
+            <button
+              id="menu-card-review-btn"
+              className="title-menu-btn"
+              onClick={() => handleItemClick(onOpenCardReview)}
+              style={{ borderColor: 'rgba(207, 168, 102, 0.4)' }}
+            >
+              <div className="btn-icon-wrap">
+                <Scale size={20} color="#ffd700" />
+              </div>
+              <div className="btn-text-group">
+                <span className="btn-main-text" style={{ color: '#ffd700' }}>
+                  卡牌改動審查室
+                </span>
+              </div>
+              <ChevronRight size={18} className="btn-arrow" />
+            </button>
+          )}
 
           {/* 4. Settings */}
           <button
