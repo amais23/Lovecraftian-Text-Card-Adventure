@@ -7,6 +7,7 @@ import {
   calculateAttackDamage,
   calculateArmorGain,
   resolveTurnEndStatusEffects,
+  cleanseDebuffs,
 } from './statusEffects';
 import type { Card, StatusEffect } from '../types/game';
 
@@ -82,6 +83,30 @@ describe('Status Effects System (ADR-0018)', () => {
     });
   });
 
+  describe('cleanseDebuffs', () => {
+    it('reduces all debuffs by 1 stack and removes depleted ones', () => {
+      const effects = [
+        createStatusEffect('might', 2),
+        createStatusEffect('vulnerable', 1),
+        createStatusEffect('bleed', 2),
+        createStatusEffect('horror', 1),
+        createStatusEffect('weak', 2),
+      ];
+      const { cleansedEffects, removedDebuffs } = cleanseDebuffs(effects, 1);
+      expect(removedDebuffs).toEqual([
+        '【易傷】-1層',
+        '【流血】-1層',
+        '【恐慌】-1層',
+        '【破勢】-1層',
+      ]);
+      expect(getStatusStacks(cleansedEffects, 'might')).toBe(2);
+      expect(getStatusStacks(cleansedEffects, 'vulnerable')).toBe(0);
+      expect(getStatusStacks(cleansedEffects, 'bleed')).toBe(1);
+      expect(getStatusStacks(cleansedEffects, 'horror')).toBe(0);
+      expect(getStatusStacks(cleansedEffects, 'weak')).toBe(1);
+    });
+  });
+
   describe('calculateAttackDamage', () => {
     it('returns base damage without any status effects', () => {
       expect(calculateAttackDamage(6)).toBe(6);
@@ -92,21 +117,27 @@ describe('Status Effects System (ADR-0018)', () => {
       expect(calculateAttackDamage(6, attackerEffects)).toBe(9);
     });
 
-    it('increases damage by 50% when defender has vulnerable', () => {
-      const defenderEffects = [createStatusEffect('vulnerable', 1)];
-      // 6 * 1.5 = 9
-      expect(calculateAttackDamage(6, undefined, defenderEffects)).toBe(9);
-      // 5 * 1.5 = 7.5 -> 7
-      expect(calculateAttackDamage(5, undefined, defenderEffects)).toBe(7);
-      // 1 * 1.5 = 1.5 -> 1 + at least 1 extra damage = 2
-      expect(calculateAttackDamage(1, undefined, defenderEffects)).toBe(2);
+    it('reduces damage by 50% when attacker has weak', () => {
+      const attackerEffects = [createStatusEffect('weak', 1)];
+      expect(calculateAttackDamage(6, attackerEffects)).toBe(3);
+      expect(calculateAttackDamage(7, attackerEffects)).toBe(3); // Math.floor(7 * 0.5)
     });
 
-    it('combines might and vulnerable correctly', () => {
-      const attackerEffects = [createStatusEffect('might', 2)];
+    it('increases damage by 1 per stack when defender has vulnerable', () => {
+      const defenderEffects1 = [createStatusEffect('vulnerable', 1)];
+      expect(calculateAttackDamage(6, undefined, defenderEffects1)).toBe(7);
+      const defenderEffects2 = [createStatusEffect('vulnerable', 3)];
+      expect(calculateAttackDamage(6, undefined, defenderEffects2)).toBe(9);
+    });
+
+    it('combines might, weak, and vulnerable correctly', () => {
+      // (6 base + 2 might) = 8 -> weak (50%) = 4 -> vulnerable +2 = 6
+      const attackerEffects = [
+        createStatusEffect('might', 2),
+        createStatusEffect('weak', 1),
+      ];
       const defenderEffects = [createStatusEffect('vulnerable', 2)];
-      // (6 + 2) * 1.5 = 12
-      expect(calculateAttackDamage(6, attackerEffects, defenderEffects)).toBe(12);
+      expect(calculateAttackDamage(6, attackerEffects, defenderEffects)).toBe(6);
     });
 
     it('never drops damage below 0', () => {

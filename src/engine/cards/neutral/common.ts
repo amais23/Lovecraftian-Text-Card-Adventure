@@ -65,10 +65,9 @@ export const NEUTRAL_CARDS: Card[] = [
     occupations: ['investigator', 'occultist'],
     artworkUrl: '/cards/combat/card_tactical_feint.png',
     effects: [
-      { type: 'damage', value: 5 },
       { type: 'apply_status', statusType: 'vulnerable', value: 2, target: 'enemy' },
     ],
-    description: '造成 5 點物理傷害，並使目標陷入 2 層【易傷】破綻狀態。',
+    description: '使目標陷入 2 層【易傷】破綻狀態。',
     flavorText: '「虛晃一招誘敵深入，撕開怪物厚重防禦下的致命死角。」',
   },
   {

@@ -12,11 +12,13 @@ import {
   createStatusEffect,
   addStatusEffect,
   getStatusStacks,
+  cleanseDebuffs,
 } from '../statusEffects';
 import {
   createMadnessCards,
   createTruthInjectedCards,
 } from '../cardFactory';
+import { hasTrait, interceptEnemyDamage } from '../enemyTraits';
 
 export interface DamageResult {
   newHealth: number;
@@ -151,7 +153,7 @@ export function evaluateCardPlay(
   }
 
   // 扣除精力資源
-  const newStamina =
+  let newStamina =
     card.costType === 'stamina'
       ? investigator.stamina - card.costValue
       : investigator.stamina;
@@ -190,37 +192,62 @@ export function evaluateCardPlay(
 
   // 執行原子卡牌效果
   for (const effect of card.effects) {
+    // 條件判定
+    let conditionMatched = true;
+    let conditionDesc = '';
+    if (effect.condition) {
+      const cond = effect.condition;
+      conditionMatched = false;
+      if (cond.type === 'low_sanity') {
+        const threshold = cond.threshold ?? 4;
+        conditionMatched = newSanityDeck.length <= threshold;
+        if (conditionMatched) {
+          conditionDesc = cond.multiplier
+            ? `瀕死狂亂增傷 ×${cond.multiplier}`
+            : `低理智爆發 +${cond.bonusValue ?? 0}`;
+        }
+      } else if (cond.type === 'low_health') {
+        const thresholdRatio = cond.threshold ?? 0.5;
+        conditionMatched = (investigatorHealth / investigator.maxHealth) <= thresholdRatio;
+        if (conditionMatched) {
+          conditionDesc = `殘血絕地求生`;
+        }
+      } else if (cond.type === 'target_has_status') {
+        const sType = cond.statusType ?? 'vulnerable';
+        const stacks = getStatusStacks(enemyStatusEffects, sType);
+        conditionMatched = stacks > 0;
+        if (conditionMatched) {
+          conditionDesc = cond.multiplier
+            ? `破綻狙擊翻倍 ×${cond.multiplier}`
+            : `目標帶有【${sType}】+${cond.bonusValue ?? 0}`;
+        }
+      } else if (cond.type === 'enemy_intent_is_attack') {
+        conditionMatched = enemy.currentIntent?.type === 'attack';
+        if (conditionMatched) {
+          conditionDesc = `破勢敵怪攻擊意圖`;
+        }
+      } else if (cond.type === 'first_card_played') {
+        conditionMatched = (context.cardsPlayedThisTurn ?? 0) === 0;
+        if (conditionMatched) {
+          conditionDesc = `先手拔槍把握先機`;
+        }
+      }
+
+      // 非傷害類效果若未滿足條件，直接跳過執行
+      if (effect.type !== 'damage' && !conditionMatched) {
+        continue;
+      }
+    }
+
     if (effect.type === 'damage') {
       let baseVal = effect.value;
 
-      // 1. 條件判定 (Condition Check)
-      let conditionDesc = '';
-      if (effect.condition) {
-        if (effect.condition.type === 'low_sanity') {
-          const threshold = effect.condition.threshold ?? 4;
-          if (newSanityDeck.length <= threshold) {
-            if (effect.condition.multiplier) {
-              baseVal = Math.floor(baseVal * effect.condition.multiplier);
-              conditionDesc = `瀕死狂亂增傷 ×${effect.condition.multiplier}`;
-            }
-            if (effect.condition.bonusValue) {
-              baseVal += effect.condition.bonusValue;
-              conditionDesc = `低理智爆發 +${effect.condition.bonusValue}`;
-            }
-          }
-        } else if (effect.condition.type === 'target_has_status') {
-          const sType = effect.condition.statusType ?? 'vulnerable';
-          const stacks = getStatusStacks(enemyStatusEffects, sType);
-          if (stacks > 0) {
-            if (effect.condition.multiplier) {
-              baseVal = Math.floor(baseVal * effect.condition.multiplier);
-              conditionDesc = `破綻狙擊翻倍 ×${effect.condition.multiplier}`;
-            }
-            if (effect.condition.bonusValue) {
-              baseVal += effect.condition.bonusValue;
-              conditionDesc = `目標帶有【${sType}】+${effect.condition.bonusValue}`;
-            }
-          }
+      if (effect.condition && conditionMatched) {
+        if (effect.condition.multiplier) {
+          baseVal = Math.floor(baseVal * effect.condition.multiplier);
+        }
+        if (effect.condition.bonusValue) {
+          baseVal += effect.condition.bonusValue;
         }
       }
 
@@ -268,8 +295,26 @@ export function evaluateCardPlay(
 
       for (let h = 0; h < hitCount; h++) {
         const singleHitFinal = calculateAttackDamage(singleHitBase, investigatorStatusEffects, enemyStatusEffects);
-        hitDamages.push(singleHitFinal);
-        const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, singleHitFinal, isPiercing);
+
+        // 敵怪特質攔截結算 (如滑膩黏液免輕傷、非歐流體反彈、Tekeli-li 蓄力增傷、狂熱血契疊力量)
+        const currentEnemySnapshot = {
+          ...enemy,
+          health: enemyHealth,
+          armor: enemyArmor,
+          statusEffects: enemyStatusEffects,
+        };
+        const interceptRes = interceptEnemyDamage(currentEnemySnapshot, singleHitFinal, isPiercing);
+        if (interceptRes.logs.length > 0) {
+          newLogs.push(...interceptRes.logs);
+        }
+        if (interceptRes.reflectedDamageToInvestigator > 0) {
+          investigatorHealth = Math.max(0, investigatorHealth - interceptRes.reflectedDamageToInvestigator);
+        }
+        enemyStatusEffects = interceptRes.newEnemyStatusEffects;
+
+        const effectiveDmgAmount = interceptRes.modifiedDamage;
+        hitDamages.push(effectiveDmgAmount);
+        const dmg = applyDamage({ health: enemyHealth, armor: enemyArmor }, effectiveDmgAmount, isPiercing);
 
         if (isDivineEnemy && !isAncientSeal && dmg.newHealth < 1) {
           enemyHealth = 1;
@@ -309,16 +354,40 @@ export function evaluateCardPlay(
       const resilienceBonus = getStatusStacks(investigatorStatusEffects, 'resilience');
       const bonusDesc = resilienceBonus > 0 ? `（堅韌 +${resilienceBonus}）` : '';
       newLogs.push(`調查員打出【${card.name}】，構築掩體獲得 ${finalArmor} 點護甲${bonusDesc}！`);
-    } else if (effect.type === 'apply_status' && effect.statusType) {
-      const status = createStatusEffect(effect.statusType, effect.value);
-      if (effect.target === 'enemy') {
-        enemyStatusEffects = addStatusEffect(enemyStatusEffects, status);
-        newLogs.push(`調查員打出【${card.name}】，向 ${enemy.name} 施加了 ${effect.value} 層【${status.name}】印記！`);
+    } else if (effect.type === 'break_armor') {
+      const broken = enemyArmor;
+      enemyArmor = 0;
+      newLogs.push(`調查員打出【${card.name}】，重擊完全擊碎了 ${enemy.name} 的全部 ${broken} 點護甲！`);
+    } else if (effect.type === 'lose_armor') {
+      const lost = Math.min(investigatorArmor, effect.value);
+      investigatorArmor = Math.max(0, investigatorArmor - effect.value);
+      newLogs.push(`【強烈後座力】打出【${card.name}】後自身失去了 ${lost} 點護甲！`);
+    } else if (effect.type === 'cleanse_debuffs') {
+      const { cleansedEffects, removedDebuffs } = cleanseDebuffs(investigatorStatusEffects, effect.value || 1);
+      investigatorStatusEffects = cleansedEffects;
+      if (removedDebuffs.length > 0) {
+        newLogs.push(`調查員打出【${card.name}】，淨化自身負面狀態：${removedDebuffs.join('、')}！`);
       } else {
-        investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
-        newLogs.push(`調查員打出【${card.name}】，為自身賦予了 ${effect.value} 層【${status.name}】印記！`);
+        newLogs.push(`調查員打出【${card.name}】，調勻氣息，但身上無可淨化之負面印記。`);
+      }
+    } else if (effect.type === 'apply_status' && effect.statusType) {
+      if (effect.target === 'enemy' && hasTrait(enemy, 'amorphous_body') && (effect.statusType === 'bleed' || effect.statusType === 'vulnerable')) {
+        newLogs.push(`【非歐流體】${enemy.name} 為非歐幾里得原生質，完全免疫【${effect.statusType}】印記！`);
+      } else {
+        const status = createStatusEffect(effect.statusType, effect.value);
+        if (effect.target === 'enemy') {
+          enemyStatusEffects = addStatusEffect(enemyStatusEffects, status);
+          newLogs.push(`調查員打出【${card.name}】，向 ${enemy.name} 施加了 ${effect.value} 層【${status.name}】印記！`);
+        } else {
+          investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
+          newLogs.push(`調查員打出【${card.name}】，為自身賦予了 ${effect.value} 層【${status.name}】印記！`);
+        }
       }
     } else if (effect.type === 'draw') {
+      if (effect.condition?.type === 'first_card_played' && conditionMatched) {
+        newStamina = Math.min(investigator.maxStamina ?? 3, newStamina + 1);
+        newLogs.push(`【先機返還】打出本回合首張卡牌，敏銳把握先機，返還 1 點精力！`);
+      }
       const cardsNeeded = effect.value;
       if (cardsNeeded > 0) {
         if (isMadness || newSanityDeck.length === 0) {

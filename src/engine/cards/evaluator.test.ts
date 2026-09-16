@@ -231,12 +231,12 @@ describe('CardEvaluator (Seam 1)', () => {
         },
       });
 
-      // Base 4 + 2 (might) = 6 * 1.5 (vulnerable) = 9 damage.
-      // Enemy has 2 armor, so 2 absorbed, 7 to health -> 20 - 7 = 13 health, 0 armor.
+      // Base 4 + 2 (might) = 6 + 1 (vulnerable) = 7 damage.
+      // Enemy has 2 armor, so 2 absorbed, 5 to health -> 20 - 5 = 15 health, 0 armor.
       const result = evaluateCardPlay(card, context);
       expect(result.success).toBe(true);
       expect(result.enemy.armor).toBe(0);
-      expect(result.enemy.health).toBe(13);
+      expect(result.enemy.health).toBe(15);
     });
 
     it('locks divine enemy health at minimum 1 for non-seal fatal attacks', () => {
@@ -618,10 +618,10 @@ describe('CardEvaluator (Seam 1)', () => {
 
       const result = evaluateCardPlay(card, context);
       expect(result.success).toBe(true);
-      // Each hit: (4 base + 2 might) * 1.5 vulnerable = 6 * 1.5 = 9 damage
-      // 2 hits = 18 total damage!
-      expect(result.enemy.health).toBe(32);
-      expect(result.logs.some((log) => log.includes('2 連擊') && log.includes('18 點傷害'))).toBe(true);
+      // Each hit: (4 base + 2 might) + 1 vulnerable = 7 damage
+      // 2 hits = 14 total damage!
+      expect(result.enemy.health).toBe(36);
+      expect(result.logs.some((log) => log.includes('2 連擊') && log.includes('14 點傷害'))).toBe(true);
     });
 
     it('pierces armor completely when piercing is true', () => {
@@ -683,8 +683,8 @@ describe('CardEvaluator (Seam 1)', () => {
 
       const result = evaluateCardPlay(card, context);
       expect(result.success).toBe(true);
-      // Base 12 * 2 (condition) = 24. Then vulnerable multiplies attack damage by 1.5 -> 36!
-      expect(result.enemy.health).toBe(14);
+      // Base 12 * 2 (condition) = 24. Then vulnerable adds 1 damage per stack -> 25!
+      expect(result.enemy.health).toBe(25);
       expect(result.logs.some((log) => log.includes('破綻狙擊翻倍 ×2'))).toBe(true);
     });
 
@@ -752,6 +752,223 @@ describe('CardEvaluator (Seam 1)', () => {
       expect(result.exhaustPile).toHaveLength(1);
       expect(result.exhaustPile![0].id).toBe('field_bandage');
       expect(result.logs.some((log) => log.includes('【卡牌消耗】'))).toBe(true);
+    });
+  });
+
+  describe('User Card Review Feedback Implementations', () => {
+    it('starter_revolver draws 1 card when target is vulnerable', () => {
+      const revolver = {
+        id: 'test_revolver',
+        name: '左輪射擊',
+        category: 'combat' as const,
+        costType: 'stamina' as const,
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage' as const, value: 5 },
+          { type: 'draw' as const, value: 1, condition: { type: 'target_has_status' as const, statusType: 'vulnerable' as const } },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const contextWithVuln = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          statusEffects: [createStatusEffect('vulnerable', 1)],
+        },
+      });
+
+      const res = evaluateCardPlay(revolver, contextWithVuln);
+      expect(res.success).toBe(true);
+      // 5 base + 1 vulnerable stack = 6 damage -> enemy HP: 30 - 6 = 24
+      expect(res.enemy.health).toBe(24);
+      // Should have drawn 1 card from sanity deck
+      expect(res.hand).toHaveLength(1);
+      expect(res.sanityDeck).toHaveLength(1);
+    });
+
+    it('starter_heavy_punch applies weak when enemy intent is attack', () => {
+      const punch = {
+        id: 'test_punch',
+        name: '重拳壓制',
+        category: 'combat' as const,
+        costType: 'stamina' as const,
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage' as const, value: 4 },
+          {
+            type: 'apply_status' as const,
+            target: 'enemy' as const,
+            statusType: 'weak' as const,
+            value: 1,
+            condition: { type: 'enemy_intent_is_attack' as const },
+          },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          currentIntent: { type: 'attack', value: 8, name: '猛擊', description: '' },
+        },
+      });
+
+      const res = evaluateCardPlay(punch, context);
+      expect(res.success).toBe(true);
+      expect(res.enemy.health).toBe(26);
+      expect(res.enemy.statusEffects.find((s) => s.type === 'weak')?.stacks).toBe(1);
+    });
+
+    it('reward_shotgun causes investigator to lose 5 armor', () => {
+      const shotgun = {
+        id: 'test_shotgun',
+        name: '雙管獵槍',
+        category: 'combat' as const,
+        costType: 'stamina' as const,
+        costValue: 2,
+        isTemporary: false,
+        effects: [
+          { type: 'damage' as const, value: 16 },
+          { type: 'lose_armor' as const, value: 5 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        investigator: {
+          ...createBaseContext().investigator,
+          armor: 8,
+        },
+      });
+
+      const res = evaluateCardPlay(shotgun, context);
+      expect(res.success).toBe(true);
+      expect(res.enemy.health).toBe(14); // 30 - 16 = 14
+      expect(res.investigator.armor).toBe(3); // 8 - 5 = 3
+    });
+
+    it('reward_quick_draw refunds 1 stamina and draws 1 card when played first', () => {
+      const quickDraw = {
+        id: 'test_quick_draw',
+        name: '快速拔槍',
+        category: 'combat' as const,
+        costType: 'stamina' as const,
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'damage' as const, value: 6 },
+          { type: 'draw' as const, value: 1, condition: { type: 'first_card_played' as const } },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        cardsPlayedThisTurn: 0,
+      });
+
+      const res = evaluateCardPlay(quickDraw, context);
+      expect(res.success).toBe(true);
+      expect(res.enemy.health).toBe(24);
+      // Cost 1, then refunded 1 -> stamina remains 3
+      expect(res.investigator.stamina).toBe(3);
+      expect(res.hand).toHaveLength(1);
+    });
+
+    it('pump shotgun completely breaks enemy armor', () => {
+      const pump = {
+        id: 'test_pump',
+        name: '泵動式散彈槍',
+        category: 'combat' as const,
+        costType: 'stamina' as const,
+        costValue: 2,
+        isTemporary: false,
+        effects: [
+          { type: 'damage' as const, value: 12 },
+          { type: 'break_armor' as const, value: 0 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          armor: 15,
+        },
+      });
+
+      const res = evaluateCardPlay(pump, context);
+      expect(res.success).toBe(true);
+      expect(res.enemy.armor).toBe(0);
+    });
+
+    it('god slayer deals 5 piercing damage across 6 hits (30 total)', () => {
+      const godSlayer = {
+        id: 'test_god_slayer',
+        name: '屠神裁決爆轟',
+        category: 'combat' as const,
+        costType: 'stamina' as const,
+        costValue: 2,
+        isTemporary: false,
+        effects: [{ type: 'damage' as const, value: 5, hitCount: 6, piercing: true }],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        enemy: {
+          ...createBaseContext().enemy,
+          health: 50,
+          maxHealth: 50,
+          armor: 20,
+        },
+      });
+
+      const res = evaluateCardPlay(godSlayer, context);
+      expect(res.success).toBe(true);
+      // 5 * 6 = 30 piercing damage ignores armor
+      expect(res.enemy.health).toBe(20);
+      expect(res.enemy.armor).toBe(20);
+    });
+
+    it('sedative cleanses 1 stack of all debuffs', () => {
+      const sedative = {
+        id: 'test_sedative',
+        name: '醫療鎮定劑',
+        category: 'skill' as const,
+        costType: 'stamina' as const,
+        costValue: 1,
+        isTemporary: false,
+        effects: [
+          { type: 'restore_sanity' as const, value: 2 },
+          { type: 'cleanse_debuffs' as const, value: 1 },
+        ],
+        description: '',
+        flavorText: '',
+      };
+
+      const context = createBaseContext({
+        investigator: {
+          ...createBaseContext().investigator,
+          statusEffects: [
+            createStatusEffect('bleed', 2),
+            createStatusEffect('horror', 1),
+            createStatusEffect('vulnerable', 1),
+          ],
+        },
+      });
+
+      const res = evaluateCardPlay(sedative, context);
+      expect(res.success).toBe(true);
+      expect(res.investigator.statusEffects.find((s) => s.type === 'bleed')?.stacks).toBe(1);
+      expect(res.investigator.statusEffects.find((s) => s.type === 'horror')).toBeUndefined();
+      expect(res.investigator.statusEffects.find((s) => s.type === 'vulnerable')).toBeUndefined();
     });
   });
 });

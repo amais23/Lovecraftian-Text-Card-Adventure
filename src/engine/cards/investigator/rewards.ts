@@ -15,8 +15,11 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 14 }],
-    description: '造成 14 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 16 },
+      { type: 'lose_armor', value: 5 },
+    ],
+    description: '造成 16 點物理傷害；【強烈後座力】打出後自身失去 5 點護甲。',
     flavorText: '「近距離的轟鳴撕裂了陰暗中的任何可怖實體。」',
   },
   {
@@ -29,8 +32,11 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 7 }],
-    description: '造成 7 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 6 },
+      { type: 'draw', value: 1, condition: { type: 'first_card_played' } },
+    ],
+    description: '造成 6 點物理傷害；若為本回合打出的首張卡牌，返還 1 點精力並抽 1 張牌。',
     flavorText: '「肌肉記憶超越了大腦對恐懼的本能遲疑。」',
   },
   {
@@ -61,7 +67,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_double_tap.png',
     effects: [{ type: 'damage', value: 4, hitCount: 2 }],
-    description: '造成 4 點物理傷害。連續射擊 2 次，每段獨立享受力量與易傷加成。',
+    description: '造成 4 點物理傷害 × 2 段（每段獨立享受力量與易傷加成）。',
     flavorText: '「在怪物撲上前，兩顆子彈已帶著火光精準破膛而出。」',
   },
   {
@@ -95,7 +101,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_shield_slam.png',
     effects: [{ type: 'damage', value: 4, scaleFrom: 'armor', scaleMultiplier: 1.0 }],
-    description: '造成 4 點物理傷害，並附加等同於當前護甲的衝擊傷害。',
+    description: '造成 4 點物理傷害，並附加等同於當前護甲的 100% 衝擊傷害。',
     flavorText: '「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」',
   },
   {
@@ -128,8 +134,11 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 2,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 20 }],
-    description: '造成 20 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 12 },
+      { type: 'break_armor', value: 0 },
+    ],
+    description: '造成 12 點物理傷害，並【擊碎目標所有當前護甲】。',
     flavorText: '「潮濕海風無法阻止機械撞針的咆哮，轟鳴聲在海蝕洞穴深處激起陣陣回音。」',
   },
   {
@@ -158,8 +167,11 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 3,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 26 }],
-    description: '造成 26 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 6, hitCount: 4 },
+      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 2 },
+    ],
+    description: '造成 6 點物理傷害 × 4 段（共 24 傷）；並使目標陷入 2 層【易傷】狀態。',
     flavorText: '「開花彈在接觸肉體的瞬間引爆，即便是舊日支配者的僕從亦難以承受此等破壞力。」',
   },
   {
@@ -170,10 +182,15 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     costValue: 3,
     isTemporary: false,
     tier: 3,
+    keywords: ['exhaust'],
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 36 }],
-    description: '造成 36 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 40 },
+      { type: 'apply_status', target: 'enemy', statusType: 'bleed', value: 3 },
+      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 2 },
+    ],
+    description: '造成 40 點物理傷害，並對目標施加 3 層【流血】與 2 層【易傷】。',
     flavorText: '「凡人科技的極致破壞力，在太古黑石祭壇上炸出耀眼的硝煙火海。」',
   },
   {
@@ -202,8 +219,8 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 4,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 34 }],
-    description: '造成 34 點物理傷害。',
+    effects: [{ type: 'damage', value: 5, hitCount: 6, piercing: true }],
+    description: '造成 5 點物理傷害 × 6 段（真實穿刺，無視護甲直扣生命）。',
     flavorText: '「凡人的工藝與禁忌秘銀在此刻昇華，這一擊的威力足以讓舊日支配者的血脈為之顫慄。」',
   },
 ];

@@ -6,6 +6,8 @@ import type {
   CardKeyword,
   OccupationId,
   StatusEffect,
+  EnemyIntent,
+  EnemyTrait,
 } from '../../types/game';
 
 export type { CardKeyword, OccupationId };
@@ -21,18 +23,23 @@ export interface CardPlayContext {
     health: number;
     maxHealth: number;
     stamina: number;
+    maxStamina?: number;
     armor: number;
     statusEffects?: StatusEffect[];
     handCapacity?: number;
     occupationId?: OccupationId;
   };
   enemy: {
+    id?: string;
+    name: string;
+    title?: string;
     health: number;
     maxHealth: number;
     armor: number;
-    name: string;
     divineImmortality?: boolean;
     statusEffects?: StatusEffect[];
+    currentIntent?: EnemyIntent;
+    traits?: EnemyTrait[];
   };
   hand: Card[];
   sanityDeck: Card[];
@@ -40,6 +47,7 @@ export interface CardPlayContext {
   exhaustPile?: Card[];
   turn: number;
   isMadness: boolean;
+  cardsPlayedThisTurn?: number;
 }
 
 export interface CardPlayResult {

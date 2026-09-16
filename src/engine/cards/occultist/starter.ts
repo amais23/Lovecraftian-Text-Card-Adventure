@@ -160,8 +160,11 @@ export const OCCULTIST_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['occultist'],
     artworkUrl: '/cards/combat/card_ritual_dagger.webp',
-    effects: [{ type: 'damage', value: 5 }],
-    description: '造成 5 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 3 },
+      { type: 'armor', value: 3 },
+    ],
+    description: '造成 3 點物理傷害，獲得 3 點護甲。',
     flavorText: '「刀柄刻滿如尼守護文的銀質短刀，防身亦可用於刻印儀式。」',
   },
   {
@@ -174,8 +177,11 @@ export const OCCULTIST_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['occultist'],
     artworkUrl: '/cards/combat/card_ritual_dagger.webp',
-    effects: [{ type: 'damage', value: 5 }],
-    description: '造成 5 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 3 },
+      { type: 'armor', value: 3 },
+    ],
+    description: '造成 3 點物理傷害，獲得 3 點護甲。',
     flavorText: '「在近身肉搏中精準刺向敵人的致命關節。」',
   },
 ];

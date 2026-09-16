@@ -19,7 +19,7 @@ export const STATUS_EFFECT_METADATA: Record<StatusEffectType, StatusMetadata> = 
   },
   vulnerable: {
     name: '易傷',
-    description: '受到攻擊傷害時提升 50%（至少 +1 點）。回合結束時衰減 1 層。',
+    description: '每層使受到的物理攻擊傷害增加 1 點。回合結束時衰減 1 層。',
     icon: 'AlertCircle',
   },
   bleed: {
@@ -32,7 +32,39 @@ export const STATUS_EFFECT_METADATA: Record<StatusEffectType, StatusMetadata> = 
     description: '回合結束時自理智牌庫頂侵蝕等同於層數的卡牌。回合結束時衰減 1 層。',
     icon: 'Ghost',
   },
+  weak: {
+    name: '破勢',
+    description: '每層使造成的攻擊傷害降低 50%。回合結束時衰減 1 層。',
+    icon: 'ShieldAlert',
+  },
 };
+
+export const DEBUFF_TYPES: StatusEffectType[] = ['vulnerable', 'bleed', 'horror', 'weak'];
+
+/**
+ * 淨化負面印記（所有負面印記各扣減指定層數）
+ */
+export function cleanseDebuffs(
+  effects: StatusEffect[] = [],
+  stacksPerDebuff: number = 1
+): { cleansedEffects: StatusEffect[]; removedDebuffs: string[] } {
+  const removedDebuffs: string[] = [];
+  const cleansedEffects: StatusEffect[] = [];
+
+  for (const eff of effects) {
+    if (DEBUFF_TYPES.includes(eff.type)) {
+      const remaining = eff.stacks - stacksPerDebuff;
+      removedDebuffs.push(`【${eff.name}】-${Math.min(eff.stacks, stacksPerDebuff)}層`);
+      if (remaining > 0) {
+        cleansedEffects.push({ ...eff, stacks: remaining });
+      }
+    } else {
+      cleansedEffects.push({ ...eff });
+    }
+  }
+
+  return { cleansedEffects, removedDebuffs };
+}
 
 /**
  * 建立指定類型與層數的狀態印記
@@ -89,7 +121,7 @@ export function decayStatusEffects(effects: StatusEffect[] = []): StatusEffect[]
 }
 
 /**
- * 計入攻擊方【力量】與防禦方【易傷】後之實際攻擊傷害純函式
+ * 計入攻擊方【力量】/【破勢】與防禦方【易傷】後之實際攻擊傷害純函式
  */
 export function calculateAttackDamage(
   baseDamage: number,
@@ -101,10 +133,16 @@ export function calculateAttackDamage(
   const mightStacks = getStatusStacks(attackerEffects, 'might');
   let damage = baseDamage + mightStacks;
 
+  // 破勢 (Weak)：造成的攻擊傷害降低 50%
+  const weakStacks = getStatusStacks(attackerEffects, 'weak');
+  if (weakStacks > 0 && damage > 0) {
+    damage = Math.floor(damage * 0.5);
+  }
+
+  // 易傷 (Vulnerable)：每層受到的物理攻擊傷害 +1
   const vulnerableStacks = getStatusStacks(defenderEffects, 'vulnerable');
   if (vulnerableStacks > 0 && damage > 0) {
-    const bonus = Math.max(1, Math.floor(damage * 0.5));
-    damage += bonus;
+    damage += vulnerableStacks;
   }
 
   return Math.max(0, damage);

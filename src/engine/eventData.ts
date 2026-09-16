@@ -1,5 +1,6 @@
 import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent, OccupationId } from '../types/game';
 import { TIER_2_CARDS, TIER_3_CARDS } from './cardTiers';
+import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
 
 /* =========================================================
    Elite & Boss Enemies
@@ -19,9 +20,15 @@ export const DEEP_ONE_INTENTS: EnemyIntent[] = [
     description: '深潛者長老張開鰓裂發出刺耳音波，預告侵蝕 3 點理智牌庫。',
   },
   {
+    type: 'defend',
+    value: 8,
+    name: '大袞庇護水盾',
+    description: '調動深海黑水環繞周身，預告獲得 8 點護甲。',
+  },
+  {
     type: 'attack',
     value: 12,
-    name: '深淵拍擊',
+    name: '巨尾橫掃',
     description: '沉重的海獸鱗尾橫掃而來，預告造成 12 點傷害。',
   },
 ];
@@ -36,6 +43,7 @@ export const INITIAL_DEEP_ONE: Enemy = {
   currentIntent: DEEP_ONE_INTENTS[0],
   intentSequence: DEEP_ONE_INTENTS,
   currentIntentIndex: 0,
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.slippery_mucus],
 };
 
 export const SHOGGOTH_INTENTS: EnemyIntent[] = [
@@ -69,6 +77,7 @@ export const INITIAL_SHOGGOTH: Enemy = {
   currentIntent: SHOGGOTH_INTENTS[0],
   intentSequence: SHOGGOTH_INTENTS,
   currentIntentIndex: 0,
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.organ_proliferation],
 };
 
 export const DAGON_PRIEST_INTENTS: EnemyIntent[] = [
@@ -102,6 +111,7 @@ export const INITIAL_DAGON_PRIEST: Enemy = {
   currentIntent: DAGON_PRIEST_INTENTS[0],
   intentSequence: DAGON_PRIEST_INTENTS,
   currentIntentIndex: 0,
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.tide_of_dagon],
 };
 
 export const COLOSSAL_SHOGGOTH_INTENTS: EnemyIntent[] = [
@@ -135,6 +145,7 @@ export const INITIAL_COLOSSAL_SHOGGOTH: Enemy = {
   currentIntent: COLOSSAL_SHOGGOTH_INTENTS[0],
   intentSequence: COLOSSAL_SHOGGOTH_INTENTS,
   currentIntentIndex: 0,
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.organ_proliferation],
 };
 
 export const STAR_SPAWN_INTENTS: EnemyIntent[] = [
@@ -166,6 +177,7 @@ export const INITIAL_STAR_SPAWN: Enemy = {
   maxHealth: 150,
   armor: 12,
   divineImmortality: true,
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.divine_immortality],
   currentIntent: STAR_SPAWN_INTENTS[0],
   intentSequence: STAR_SPAWN_INTENTS,
   currentIntentIndex: 0,

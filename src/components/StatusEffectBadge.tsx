@@ -1,6 +1,6 @@
 import React from 'react';
 import type { StatusEffect, StatusEffectType } from '../types/game';
-import { Swords, Shield, AlertCircle, Droplets, Ghost } from 'lucide-react';
+import { Swords, Shield, AlertCircle, Droplets, Ghost, TrendingDown } from 'lucide-react';
 
 const STATUS_ICONS: Record<StatusEffectType, React.FC<{ size?: number; className?: string }>> = {
   might: Swords,
@@ -8,6 +8,7 @@ const STATUS_ICONS: Record<StatusEffectType, React.FC<{ size?: number; className
   vulnerable: AlertCircle,
   bleed: Droplets,
   horror: Ghost,
+  weak: TrendingDown,
 };
 
 export interface StatusEffectBadgeProps {

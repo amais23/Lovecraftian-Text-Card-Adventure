@@ -49,6 +49,7 @@ import {
   ELDRITCH_LANTERN,
 } from './relics';
 import { createStatusEffect } from './statusEffects';
+import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
 import { getEnemyTemplateById, getBossByDepth } from './enemyCatalog';
 import { getFreshEnemyTemplate } from './gameReducer';
 import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent } from '../types/game';
@@ -3023,8 +3024,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         payload: { cardId: godSlayerCard.id },
       });
 
-      // 50 - 34 damage = 16 health, 3 - 2 stamina = 1 stamina
-      expect(afterPlay.currentEnemy.health).toBe(16);
+      // 50 - 30 damage (6 x 5 piercing) = 20 health, 3 - 2 stamina = 1 stamina
+      expect(afterPlay.currentEnemy.health).toBe(20);
       expect(afterPlay.investigator.stamina).toBe(1);
       expect(afterPlay.discardPile).toHaveLength(1);
       expect(afterPlay.discardPile[0].name).toBe('屠神裁決爆轟');
@@ -3524,14 +3525,14 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         },
       };
 
-      // (6 base + 2 might) * 1.5 vulnerable = 12 damage!
+      // (6 base + 2 might) + 1 vulnerable = 9 damage!
       const afterPlay = gameReducer(stateWithStatus, {
         type: 'PLAY_CARD',
         payload: { cardId: 'test_strike' },
       });
 
-      expect(afterPlay.currentEnemy.health).toBe(18); // 30 - 12
-      expect(afterPlay.battleLog[0]).toContain('12 點傷害');
+      expect(afterPlay.currentEnemy.health).toBe(21); // 30 - 9
+      expect(afterPlay.battleLog[0]).toContain('9 點傷害');
       expect(afterPlay.battleLog[0]).toContain('力量 +2');
       expect(afterPlay.battleLog[0]).toContain('易傷增傷');
     });
@@ -5097,6 +5098,219 @@ describe('Composable Card Primitives & Occupation Filtering (Issue #46)', () => 
         expect(isValid).toBe(true);
       }
     }
+  });
+
+  describe('Canonical Enemy Traits & Dynamic Tactical AI (Issue #47 / ADR-0026)', () => {
+    it('triggers Turn 6 anti-stall Enrage (+50% attack damage) on enemy attack', () => {
+      const baseState = createInitialCombatState();
+      const stateTurn6: GameState = {
+        ...baseState,
+        turn: 6,
+        investigator: {
+          ...baseState.investigator,
+          health: 30,
+          armor: 0,
+        },
+        currentEnemy: {
+          ...baseState.currentEnemy,
+          currentIntent: {
+            type: 'attack',
+            value: 10,
+            name: '狂亂重擊',
+            description: '',
+          },
+        },
+      };
+
+      const nextState = gameReducer(stateTurn6, { type: 'END_TURN' });
+
+      // Turn 6 Enrage: 10 * 1.5 = 15 damage. Investigator health: 30 - 15 = 15
+      expect(nextState.investigator.health).toBe(15);
+      expect(nextState.battleLog.some((log) => log.includes('【深淵狂暴】'))).toBe(true);
+      expect(nextState.battleLog.some((log) => log.includes('造成 15 點肉體傷害'))).toBe(true);
+    });
+
+    it('triggers carrion_feeder leech healing 50% of damage against bleeding investigator', () => {
+      const baseState = createInitialCombatState();
+      const ghoulWithFeeder: Enemy = {
+        ...baseState.currentEnemy,
+        health: 20,
+        maxHealth: 30,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.carrion_feeder],
+        currentIntent: {
+          type: 'attack',
+          value: 8,
+          name: '腐臭爪擊',
+          description: '',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        turn: 2,
+        currentEnemy: ghoulWithFeeder,
+        investigator: {
+          ...baseState.investigator,
+          health: 30,
+          armor: 0,
+          statusEffects: [createStatusEffect('bleed', 2)],
+        },
+      };
+
+      const nextState = gameReducer(combatState, { type: 'END_TURN' });
+
+      // Damage dealt: 8. Ghoul heals 50% = 4 HP. Ghoul health: 20 + 4 = 24.
+      // (Ghoul took no bleed damage itself).
+      expect(nextState.currentEnemy.health).toBe(24);
+      expect(nextState.battleLog.some((log) => log.includes('【食腐本能】'))).toBe(true);
+    });
+
+    it('slippery_mucus negates card physical damage <= 4', () => {
+      const baseState = createInitialCombatState();
+      const deepOne: Enemy = {
+        ...baseState.currentEnemy,
+        health: 40,
+        maxHealth: 40,
+        armor: 0,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.slippery_mucus],
+      };
+
+      const weakStrikeCard: Card = {
+        id: 'test_weak_strike',
+        name: '輕巧刺擊',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'damage', value: 4 }],
+        description: '造成 4 點物理傷害。',
+        flavorText: '',
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: deepOne,
+        hand: [weakStrikeCard],
+        investigator: {
+          ...baseState.investigator,
+          stamina: 3,
+        },
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: weakStrikeCard.id },
+      });
+
+      // 4 damage negated by slippery_mucus -> enemy health remains 40
+      expect(afterPlay.currentEnemy.health).toBe(40);
+      expect(afterPlay.battleLog.some((log) => log.includes('【滑膩黏液】'))).toBe(true);
+    });
+
+    it('waterlogged_grip inflicts horror at combat start and erode intent drains stamina', () => {
+      const drownedSoul: Enemy = {
+        id: 'enemy_drowned_soul',
+        name: '溺死亡魂',
+        title: '冰冷潮汐的哀鳴者',
+        health: 38,
+        maxHealth: 38,
+        armor: 0,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.waterlogged_grip],
+        currentIntent: {
+          type: 'erode',
+          value: 3,
+          drainStamina: 1,
+          name: '窒息溺亡幻象',
+          description: '',
+        },
+      };
+
+      // 1. Check combat start: waterlogged_grip applies 1 horror
+      const startState = createInitialCombatState(drownedSoul);
+      expect(startState.investigator.statusEffects?.some((s) => s.type === 'horror')).toBe(true);
+      expect(startState.battleLog.some((log) => log.includes('【水下寒骨】'))).toBe(true);
+
+      // 2. Check turn end with drainStamina
+      const nextState = gameReducer(startState, { type: 'END_TURN' });
+      // Investigator stamina recovers to maxStamina - 1 (3 - 1 = 2)
+      expect(nextState.investigator.stamina).toBe(2);
+      expect(nextState.battleLog.some((log) => log.includes('【溺水窒息】'))).toBe(true);
+    });
+
+    it('cultist dynamically switches to blind sacrifice when health drops to <= 40%', () => {
+      const baseState = createInitialCombatState();
+      const cultist: Enemy = {
+        ...baseState.currentEnemy,
+        id: 'enemy_arkham_cultist',
+        name: '阿卡姆異教徒',
+        health: 10,
+        maxHealth: 28, // 10 / 28 = 35.7% <= 40%
+        armor: 0,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.zealous_blood_oath],
+        currentIntent: {
+          type: 'defend',
+          value: 6,
+          name: '狂信護身',
+          description: '',
+        },
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: cultist,
+      };
+
+      const nextTurnState = gameReducer(combatState, { type: 'END_TURN' });
+
+      // Cultist switches intent to 盲目血祭
+      expect(nextTurnState.currentEnemy.currentIntent.name).toBe('盲目血祭');
+      expect(nextTurnState.currentEnemy.currentIntent.selfDamage).toBe(4);
+    });
+
+    it('shoggoth charging stance increases card damage taken by 50%', () => {
+      const baseState = createInitialCombatState();
+      const chargingShoggoth: Enemy = {
+        ...baseState.currentEnemy,
+        id: 'enemy_shoggoth',
+        name: '修格斯',
+        health: 80,
+        maxHealth: 80,
+        armor: 0,
+        shoggothStance: 'charging',
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.organ_proliferation],
+      };
+
+      const strikeCard: Card = {
+        id: 'test_strike_10',
+        name: '強力射擊',
+        category: 'combat',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'damage', value: 10 }],
+        description: '造成 10 點物理傷害。',
+        flavorText: '',
+      };
+
+      const combatState: GameState = {
+        ...baseState,
+        currentEnemy: chargingShoggoth,
+        hand: [strikeCard],
+        investigator: {
+          ...baseState.investigator,
+          stamina: 3,
+        },
+      };
+
+      const afterPlay = gameReducer(combatState, {
+        type: 'PLAY_CARD',
+        payload: { cardId: strikeCard.id },
+      });
+
+      // 10 damage + 50% bonus = 15 damage! Health: 80 - 15 = 65.
+      expect(afterPlay.currentEnemy.health).toBe(65);
+      expect(afterPlay.battleLog.some((log) => log.includes('【蓄力破綻】'))).toBe(true);
+    });
   });
 });
 

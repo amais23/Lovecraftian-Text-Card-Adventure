@@ -2,7 +2,7 @@ export type CardCategory = 'combat' | 'skill' | 'magic' | 'truth' | 'madness';
 export type CostType = 'stamina' | 'sanity' | 'free';
 export type CardTier = 1 | 2 | 3 | 4;
 
-export type StatusEffectType = 'might' | 'resilience' | 'vulnerable' | 'bleed' | 'horror';
+export type StatusEffectType = 'might' | 'resilience' | 'vulnerable' | 'bleed' | 'horror' | 'weak';
 
 export interface StatusEffect {
   type: StatusEffectType;
@@ -32,7 +32,19 @@ export interface Relic {
 }
 
 export interface CardEffect {
-  type: 'damage' | 'armor' | 'heal' | 'draw' | 'erode_sanity' | 'restore_sanity' | 'self_damage' | 'add_to_deck' | 'apply_status';
+  type:
+    | 'damage'
+    | 'armor'
+    | 'heal'
+    | 'draw'
+    | 'erode_sanity'
+    | 'restore_sanity'
+    | 'self_damage'
+    | 'add_to_deck'
+    | 'apply_status'
+    | 'lose_armor'
+    | 'cleanse_debuffs'
+    | 'break_armor';
   value: number;
   statusType?: StatusEffectType;
   target?: 'self' | 'enemy';
@@ -42,7 +54,7 @@ export interface CardEffect {
   scaleMultiplier?: number;
   scaleStatusType?: StatusEffectType;
   condition?: {
-    type: 'low_sanity' | 'target_has_status';
+    type: 'low_sanity' | 'low_health' | 'target_has_status' | 'enemy_intent_is_attack' | 'first_card_played';
     threshold?: number;
     statusType?: StatusEffectType;
     bonusValue?: number;
@@ -70,7 +82,7 @@ export interface Card {
   flavorText: string;
 }
 
-export type EnemyIntentType = 'attack' | 'erode' | 'defend' | 'apply_status';
+export type EnemyIntentType = 'attack' | 'erode' | 'defend' | 'apply_status' | 'charge';
 
 export interface EnemyIntent {
   type: EnemyIntentType;
@@ -78,6 +90,30 @@ export interface EnemyIntent {
   name: string;
   description: string;
   statusType?: StatusEffectType;
+  drainStamina?: number;
+  reduceDraw?: number;
+  isCharge?: boolean;
+  selfDamage?: number;
+  isTidalBurst?: boolean;
+}
+
+export type EnemyTraitId =
+  | 'zealous_blood_oath'      // 阿卡姆異教徒：狂熱血契
+  | 'carrion_feeder'          // 食屍鬼潛伏者：食腐本能
+  | 'faceless_terror'         // 夜魘：無貌深淵
+  | 'ossuary_summoning'       // 食屍鬼大祭司：白骨聚生
+  | 'slippery_mucus'          // 深潛者戰士：滑膩黏液
+  | 'waterlogged_grip'        // 溺亡者魂魄：水下寒骨
+  | 'tide_of_dagon'           // 大袞深淵祭司：大袞潮汐
+  | 'amorphous_body'          // 無定形原生質僕從：非歐流體
+  | 'organ_proliferation'     // 修格斯：器官增生 & Tekeli-li 碾壓
+  | 'divine_immortality';     // 克蘇魯星之眷族：神性不滅
+
+export interface EnemyTrait {
+  id: EnemyTraitId;
+  name: string;
+  description: string;
+  icon?: string;
 }
 
 export type EnemyCategory =
@@ -113,6 +149,12 @@ export interface Enemy {
   statusEffects?: StatusEffect[];
   category?: EnemyCategory;
   illustration?: EnemyIllustrationUrls;
+  traits?: EnemyTrait[];
+  accumulatedDamageTaken?: number;
+  tidalArmor?: number;
+  shoggothStance?: 'normal' | 'eyes' | 'claws' | 'hide' | 'charging';
+  shoggothChargeTurn?: number;
+  ossuaryCooldown?: number;
 }
 
 
@@ -129,6 +171,8 @@ export interface Investigator {
   handCapacity?: number; // 可變動手牌容量（開局基準值 2，抽牌數 = 手牌保留數）
   relics?: Relic[];      // 持有之舊日遺物（跨戰鬥永久生效）
   statusEffects?: StatusEffect[]; // 戰鬥內暫態印記（戰後清空）
+  reducedDrawNextTurn?: number;   // 下回合減少抽牌數（如食屍鬼墓泥）
+  drainedStaminaNextTurn?: number; // 下回合減少精力（如溺亡者窒息）
 }
 
 export type MapNodeType =

@@ -188,6 +188,34 @@ export const EnemyView: React.FC<EnemyViewProps> = ({
           />
         </div>
       </div>
+
+      {/* Eldritch Trait Badges (Issue #47 / ADR-0026) */}
+      {enemy.traits && enemy.traits.length > 0 && (
+        <div className="enemy-traits-list" data-testid="enemy-traits-list">
+          {enemy.traits.map((trait) => (
+            <div
+              key={trait.id}
+              className="enemy-trait-badge"
+              data-testid={`trait-badge-${trait.id}`}
+              title={`【原著特質：${trait.name}】\n${trait.description}`}
+            >
+              <span className="trait-dot" />
+              <span className="trait-name">{trait.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Shoggoth Stance Indicator */}
+      {enemy.shoggothStance === 'charging' && (
+        <div
+          className="shoggoth-stance-badge charging"
+          data-testid="shoggoth-charging-badge"
+          title="蓄力破綻：承受卡牌傷害增加 50%"
+        >
+          ⚠️ Tekeli-li 蓄力中（承受傷害 +50%）
+        </div>
+      )}
     </div>
   );
 };

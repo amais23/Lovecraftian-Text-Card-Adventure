@@ -286,5 +286,31 @@ describe('EnemyView Component (ADR-0018)', () => {
       const image = screen.getByTestId('enemy-portrait-image');
       expect(image.className).toContain('perception-flickering');
     });
+
+    it('renders eldritch trait badges and shoggoth charging stance', () => {
+      const shoggothWithTraits: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_shoggoth',
+        name: '修格斯 (Shoggoth)',
+        category: 'shoggoth',
+        traits: [
+          {
+            id: 'organ_proliferation',
+            name: '器官增生',
+            description: '體表隨機增生巨目、重爪或厚皮',
+          },
+        ],
+        shoggothStance: 'charging',
+      };
+
+      render(<EnemyView enemy={shoggothWithTraits} />);
+
+      expect(screen.getByTestId('enemy-traits-list')).toBeDefined();
+      expect(screen.getByTestId('trait-badge-organ_proliferation')).toBeDefined();
+      expect(screen.getByText('器官增生')).toBeDefined();
+      expect(screen.getByTestId('shoggoth-charging-badge')).toBeDefined();
+      expect(screen.getByText(/Tekeli-li 蓄力中/)).toBeDefined();
+    });
   });
 });
+

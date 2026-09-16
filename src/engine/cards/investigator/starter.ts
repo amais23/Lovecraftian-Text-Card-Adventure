@@ -14,8 +14,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 6 }],
-    description: '造成 6 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 5 },
+      { type: 'draw', value: 1, condition: { type: 'target_has_status', statusType: 'vulnerable' } },
+    ],
+    description: '造成 5 點物理傷害；若目標處於【易傷】狀態，立即抽取 1 張卡牌。',
     flavorText: '「點38子彈出膛的火光，是這座潮濕地窖中唯一的真實。」',
   },
   {
@@ -28,8 +31,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [{ type: 'damage', value: 6 }],
-    description: '造成 6 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 5 },
+      { type: 'draw', value: 1, condition: { type: 'target_has_status', statusType: 'vulnerable' } },
+    ],
+    description: '造成 5 點物理傷害；若目標處於【易傷】狀態，立即抽取 1 張卡牌。',
     flavorText: '「清脆的擊錘聲在腐臭的空氣中迴盪。」',
   },
   {
@@ -44,9 +50,15 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     artworkUrl: '/cards/combat/card_punch.webp',
     effects: [
       { type: 'damage', value: 4 },
-      { type: 'armor', value: 2 },
+      {
+        type: 'apply_status',
+        target: 'enemy',
+        statusType: 'weak',
+        value: 1,
+        condition: { type: 'enemy_intent_is_attack' },
+      },
     ],
-    description: '造成 4 點物理傷害，獲得 2 點護甲。',
+    description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
     flavorText: '「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」',
   },
   {
@@ -61,9 +73,15 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     artworkUrl: '/cards/combat/card_punch.webp',
     effects: [
       { type: 'damage', value: 4 },
-      { type: 'armor', value: 2 },
+      {
+        type: 'apply_status',
+        target: 'enemy',
+        statusType: 'weak',
+        value: 1,
+        condition: { type: 'enemy_intent_is_attack' },
+      },
     ],
-    description: '造成 4 點物理傷害，獲得 2 點護甲。',
+    description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
     flavorText: '「皮肉撞擊的沉悶聲響令人作嘔。」',
   },
   {
@@ -78,9 +96,15 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     artworkUrl: '/cards/combat/card_punch.webp',
     effects: [
       { type: 'damage', value: 4 },
-      { type: 'armor', value: 2 },
+      {
+        type: 'apply_status',
+        target: 'enemy',
+        statusType: 'weak',
+        value: 1,
+        condition: { type: 'enemy_intent_is_attack' },
+      },
     ],
-    description: '造成 4 點物理傷害，獲得 2 點護甲。',
+    description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
     flavorText: '「凡人的關節在哀鳴，但你別無選擇。」',
   },
   {
@@ -93,8 +117,15 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_bayonet.webp',
-    effects: [{ type: 'damage', value: 11 }],
-    description: '造成 11 點物理傷害。',
+    effects: [
+      {
+        type: 'damage',
+        value: 9,
+        piercing: true,
+        condition: { type: 'target_has_status', statusType: 'vulnerable', bonusValue: 4 },
+      },
+    ],
+    description: '造成 9 點物理傷害（真實穿刺，無視護甲直扣生命）；若目標帶有【易傷】，傷害提升至 13 點。',
     flavorText: '「帶著軍旅生涯的殘留記憶，你將鋒利的刺刀狠命扎入敵人的腐肉。」',
   },
   {
@@ -107,8 +138,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_cane.webp',
-    effects: [{ type: 'damage', value: 5 }],
-    description: '造成 5 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 4 },
+      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 1 },
+    ],
+    description: '造成 4 點物理傷害，施加 1 層【易傷】（每層使受到的物理傷害 +1）。',
     flavorText: '「紳士的防身行頭，手杖內部灌滿了實心黑鉛。」',
   },
   {
@@ -121,8 +155,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_cane.webp',
-    effects: [{ type: 'damage', value: 5 }],
-    description: '造成 5 點物理傷害。',
+    effects: [
+      { type: 'damage', value: 4 },
+      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 1 },
+    ],
+    description: '造成 4 點物理傷害，施加 1 層【易傷】（每層使受到的物理傷害 +1）。',
     flavorText: '「精準打擊關節，讓畸形軀體為之頓挫。」',
   },
   {
@@ -137,7 +174,7 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/skill/card_cover.webp',
     effects: [{ type: 'armor', value: 5 }],
-    description: '【保留】獲得 5 點護甲。',
+    description: '【保留】獲得 5 點護甲；在手中每保留 1 回合，打出時額外獲得 +2 護甲。',
     flavorText: '「翻倒厚重的橡木長桌，碎屑如驟雨般飛濺。」',
   },
   {
@@ -150,8 +187,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/skill/card_breathe.webp',
-    effects: [{ type: 'restore_sanity', value: 1 }],
-    description: '洗回 1 張卡牌。',
+    effects: [
+      { type: 'restore_sanity', value: 2 },
+      { type: 'heal', value: 4, condition: { type: 'low_health', threshold: 0.5 } },
+    ],
+    description: '洗回 2 張卡牌至理智牌庫；若當前生命值不高於 50%，額外恢復 4 點肉體生命值。',
     flavorText: '「緊閉雙眼，強迫狂亂跳動的心臟放緩節奏。」',
   },
   {
@@ -164,8 +204,11 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     tier: 1,
     occupations: ['investigator'],
     artworkUrl: '/cards/skill/card_sedative.webp',
-    effects: [{ type: 'restore_sanity', value: 2 }],
-    description: '洗回 2 張卡牌。',
+    effects: [
+      { type: 'restore_sanity', value: 2 },
+      { type: 'cleanse_debuffs', value: 1 },
+    ],
+    description: '洗回 2 張卡牌至理智牌庫，並淨化自身所有負面印記各 1 層。',
     flavorText: '「刺鼻的化學藥劑推入靜脈，混亂的囈語暫時歸於死寂。」',
   },
   {

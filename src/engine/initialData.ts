@@ -1,4 +1,5 @@
 import type { Card, Enemy, EnemyIntent, Investigator } from '../types/game';
+import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
 
 export const INITIAL_INVESTIGATOR: Investigator = {
   name: '愛德華·皮爾斯',
@@ -124,5 +125,6 @@ export const INITIAL_GHOUL: Enemy = {
   currentIntent: GHOUL_INTENTS[0],
   intentSequence: GHOUL_INTENTS,
   currentIntentIndex: 0,
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.carrion_feeder],
 };
 

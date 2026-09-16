@@ -3,7 +3,6 @@ import type {
   Card,
   DepthLevel,
   Enemy,
-  EnemyIntent,
   GameAction,
   GameState,
   Investigator,
@@ -59,10 +58,13 @@ import {
   isInheritableCard,
 } from './remainsInheritance';
 import {
+  resolveEnemyAction,
+  resolveTurnStartTraits,
+  advanceCanonicalIntent,
+} from './enemyTraits';
+import {
   addStatusEffect,
   calculateArmorGain,
-  calculateAttackDamage,
-  createStatusEffect,
   resolveTurnEndStatusEffects,
 } from './statusEffects';
 
@@ -265,9 +267,13 @@ export function createInitialCombatState(
 
   const { hand, sanityDeck } = splitDeckToHandAndSanity(allCards, handCapacity);
 
+  const startTraitRes = resolveTurnStartTraits(enemy, investigator, 0, 0);
+  investigator.statusEffects = startTraitRes.investigatorStatusEffects;
+
   const initialLogs = [
     ...relicStart.logs,
     `遭遇 ${enemy.name}（${enemy.title}）！惡臭與潮濕的黑暗籠罩四周，你握緊武器展開搏殺……`,
+    ...startTraitRes.logs,
   ];
 
   return {
@@ -308,10 +314,32 @@ export function resolveTurnEndAndFixedDraw(
   let investigatorStatusEffects = state.investigator.statusEffects ? [...state.investigator.statusEffects] : [];
   let enemyStatusEffects = enemy.statusEffects ? [...enemy.statusEffects] : [];
 
-  // Enemy performs intent action
-  if (intent.type === 'attack') {
-    const finalDamage = calculateAttackDamage(intent.value, enemyStatusEffects, investigatorStatusEffects);
-    const dmg = applyDamage({ health: investigatorHealth, armor: investigatorArmor }, finalDamage);
+  // 1. 敵怪執行意圖與原著特質行動結算
+  const currentEnemyForAction: Enemy = {
+    ...enemy,
+    health: enemyHealth,
+    armor: enemyArmor,
+    statusEffects: enemyStatusEffects,
+  };
+  const currentInvestigatorForAction: Investigator = {
+    ...state.investigator,
+    health: investigatorHealth,
+    armor: investigatorArmor,
+    statusEffects: investigatorStatusEffects,
+  };
+  const enemyActionResult = resolveEnemyAction(
+    currentEnemyForAction,
+    intent,
+    currentInvestigatorForAction,
+    state.turn
+  );
+  newLogs.push(...enemyActionResult.logs);
+
+  if (enemyActionResult.damageToInvestigator > 0) {
+    const dmg = applyDamage(
+      { health: investigatorHealth, armor: investigatorArmor },
+      enemyActionResult.damageToInvestigator
+    );
     investigatorHealth = dmg.newHealth;
     investigatorArmor = dmg.newArmor;
 
@@ -323,12 +351,22 @@ export function resolveTurnEndAndFixedDraw(
     } else {
       newLogs.push(`${enemy.name} 施展【${intent.name}】，但被你的厚重護甲完全抵擋！`);
     }
-  } else if (intent.type === 'defend') {
-    const finalArmor = calculateArmorGain(intent.value, enemyStatusEffects);
+  }
+
+  if (enemyActionResult.healToEnemy > 0) {
+    enemyHealth = Math.min(enemy.maxHealth, enemyHealth + enemyActionResult.healToEnemy);
+  }
+
+  if (enemyActionResult.armorGainToEnemy > 0) {
+    const finalArmor = calculateArmorGain(enemyActionResult.armorGainToEnemy, enemyStatusEffects);
     enemyArmor += finalArmor;
-    newLogs.push(`${enemy.name} 施展【${intent.name}】，凝聚異質防護獲得 ${finalArmor} 點護甲！`);
-  } else if (intent.type === 'erode') {
-    const erodeCount = Math.min(sanityDeck.length, intent.value);
+    if (intent.type === 'defend') {
+      newLogs.push(`${enemy.name} 施展【${intent.name}】，凝聚異質防護獲得 ${finalArmor} 點護甲！`);
+    }
+  }
+
+  if (enemyActionResult.erodeToInvestigator > 0) {
+    const erodeCount = Math.min(sanityDeck.length, enemyActionResult.erodeToInvestigator);
     if (erodeCount > 0) {
       const eroded = sanityDeck.slice(0, erodeCount);
       sanityDeck = sanityDeck.slice(erodeCount);
@@ -337,10 +375,21 @@ export function resolveTurnEndAndFixedDraw(
     } else {
       newLogs.push(`${enemy.name} 施展精神恐懼，但你的心智已徹底陷入瘋狂崩潰，無更多理智可被侵蝕！`);
     }
-  } else if (intent.type === 'apply_status' && intent.statusType) {
-    const status = createStatusEffect(intent.statusType, intent.value);
-    investigatorStatusEffects = addStatusEffect(investigatorStatusEffects, status);
-    newLogs.push(`${enemy.name} 施展【${intent.name}】，向你施加了 ${intent.value} 層【${status.name}】印記！`);
+  }
+
+  if (enemyActionResult.statusToInvestigator) {
+    investigatorStatusEffects = addStatusEffect(
+      investigatorStatusEffects,
+      enemyActionResult.statusToInvestigator
+    );
+    newLogs.push(
+      `${enemy.name} 施展【${intent.name}】，向你施加了 ${enemyActionResult.statusToInvestigator.stacks} 層【${enemyActionResult.statusToInvestigator.name}】印記！`
+    );
+  }
+
+  if (enemyActionResult.selfDamageToEnemy && enemyActionResult.selfDamageToEnemy > 0) {
+    const isDivineEnemy = Boolean(enemy.divineImmortality);
+    enemyHealth = Math.max(isDivineEnemy ? 1 : 0, enemyHealth - enemyActionResult.selfDamageToEnemy);
   }
 
   // 結算回合結束狀態印記（流血生命扣減、恐慌理智侵蝕）與印記衰減
@@ -425,16 +474,33 @@ export function resolveTurnEndAndFixedDraw(
     newLogs.push(madnessEval.logMessage);
   }
 
-  // Advance enemy intent sequence
-  let nextIntentIndex = 0;
-  let nextIntent: EnemyIntent = intent;
-  if (enemy.intentSequence && enemy.intentSequence.length > 0) {
-    nextIntentIndex = ((enemy.currentIntentIndex ?? 0) + 1) % enemy.intentSequence.length;
-    nextIntent = enemy.intentSequence[nextIntentIndex];
-  }
+  // 結算下回合開始時原著特質（水下寒骨施加恐慌、腐泥少抽牌、溺水扣精力）
+  const startTraitRes = resolveTurnStartTraits(
+    enemy,
+    { ...state.investigator, statusEffects: investigatorStatusEffects },
+    enemyActionResult.nextTurnReducedDraw ?? 0,
+    enemyActionResult.nextTurnDrainedStamina ?? 0
+  );
+  newLogs.push(...startTraitRes.logs);
+  investigatorStatusEffects = startTraitRes.investigatorStatusEffects;
+  const reducedDraw = startTraitRes.reducedDrawCount;
+  const drainedStamina = startTraitRes.drainedStaminaCount;
 
+  // Advance enemy intent sequence with dynamic canonical logic
   const nextTurn = state.turn + 1;
-  const capacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+  const currentEnemyForNextIntent: Enemy = {
+    ...enemy,
+    health: enemyHealth,
+    armor: enemyArmor,
+    statusEffects: enemyStatusEffects,
+  };
+  const { nextIntent, nextIntentIndex, newShoggothStance } = advanceCanonicalIntent(
+    currentEnemyForNextIntent,
+    nextTurn
+  );
+
+  const baseCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+  const capacity = Math.max(1, baseCapacity - reducedDraw);
 
   // Fixed draw of capacity cards
   let newHand = [...remainingHand];
@@ -478,7 +544,8 @@ export function resolveTurnEndAndFixedDraw(
     }
   }
 
-  newLogs.push(`回合結束。未打出的 ${remainingHand.length} 張手牌予以保留，固定抽取 ${drawnCardsCount} 張卡牌。精力已重置回 ${state.investigator.maxStamina}。`);
+  const actualStamina = Math.max(0, state.investigator.maxStamina - drainedStamina);
+  newLogs.push(`回合結束。未打出的 ${remainingHand.length} 張手牌予以保留，固定抽取 ${drawnCardsCount} 張卡牌。精力已重置回 ${actualStamina}。`);
 
   return {
     ...state,
@@ -488,7 +555,7 @@ export function resolveTurnEndAndFixedDraw(
       ...state.investigator,
       health: investigatorHealth,
       armor: investigatorArmor,
-      stamina: state.investigator.maxStamina,
+      stamina: actualStamina,
       statusEffects: investigatorStatusEffects,
     },
     sanityDeck: ensureUniqueCardIds(sanityDeck),
@@ -501,6 +568,7 @@ export function resolveTurnEndAndFixedDraw(
       armor: enemyArmor,
       currentIntent: nextIntent,
       currentIntentIndex: nextIntentIndex,
+      shoggothStance: newShoggothStance ?? enemy.shoggothStance,
       statusEffects: enemyStatusEffects,
     },
     battleLog: [...newLogs, ...state.battleLog],
