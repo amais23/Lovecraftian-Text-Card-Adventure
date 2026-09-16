@@ -63,6 +63,7 @@ import {
   generateCombatReward,
   resolveSurvivalSettlement,
   type SurvivalSettlementContext,
+  type SurvivalSettlementResult,
 } from './survival';
 
 export {
@@ -282,6 +283,43 @@ export function executeCardDiscardAndAdvanceTurn(
     remainingHand,
     discardLog ? [discardLog] : []
   );
+}
+
+/**
+ * 將生存結算產出套用至全域 GameState，統一處理古金幣累加與殉職紀錄實體清理等副作用
+ */
+export function applySurvivalSettlementResult(
+  state: GameState,
+  result: SurvivalSettlementResult
+): GameState {
+  if (result.clearFallenRecord) {
+    clearFallenInvestigator();
+  }
+
+  const currentStats = ensureAdventureStats(state);
+  const updatedStats: AdventureStats = {
+    ...currentStats,
+    totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
+  };
+
+  return {
+    ...state,
+    phase: result.nextPhase,
+    isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
+    turn: 1,
+    investigator: result.investigator,
+    sanityDeck: result.sanityDeck,
+    hand: result.hand,
+    discardPile: result.discardPile,
+    isMadness: false,
+    rewardCards: undefined,
+    rewardObols: undefined,
+    currentEnemy: cloneEnemy(INITIAL_GHOUL),
+    map: result.map,
+    adventureStats: updatedStats,
+    battleLog: [...result.logs, ...state.battleLog],
+    combatInitialHealth: undefined,
+  };
 }
 
 export function createInitialGameState(): GameState {
@@ -956,34 +994,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         context
       );
 
-      if (result.clearFallenRecord) {
-        clearFallenInvestigator();
-      }
-
-      const currentStats = ensureAdventureStats(state);
-      const updatedStats: AdventureStats = {
-        ...currentStats,
-        totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
-      };
-
-      return {
-        ...state,
-        phase: result.nextPhase,
-        isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
-        turn: 1,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        hand: result.hand,
-        discardPile: result.discardPile,
-        isMadness: false,
-        rewardCards: undefined,
-        rewardObols: undefined,
-        currentEnemy: cloneEnemy(INITIAL_GHOUL),
-        map: result.map,
-        adventureStats: updatedStats,
-        battleLog: [...result.logs, ...state.battleLog],
-        combatInitialHealth: undefined,
-      };
+      return applySurvivalSettlementResult(state, result);
     }
 
     case 'CLAIM_FIELD_DRESSING': {
@@ -1005,34 +1016,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         context
       );
 
-      if (result.clearFallenRecord) {
-        clearFallenInvestigator();
-      }
-
-      const currentStats = ensureAdventureStats(state);
-      const updatedStats: AdventureStats = {
-        ...currentStats,
-        totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
-      };
-
-      return {
-        ...state,
-        phase: result.nextPhase,
-        isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
-        turn: 1,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        hand: result.hand,
-        discardPile: result.discardPile,
-        isMadness: false,
-        rewardCards: undefined,
-        rewardObols: undefined,
-        currentEnemy: cloneEnemy(INITIAL_GHOUL),
-        map: result.map,
-        adventureStats: updatedStats,
-        battleLog: [...result.logs, ...state.battleLog],
-        combatInitialHealth: undefined,
-      };
+      return applySurvivalSettlementResult(state, result);
     }
 
     case 'CLAIM_ABYSSAL_SEAL': {
@@ -1061,34 +1045,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         context
       );
 
-      if (result.clearFallenRecord) {
-        clearFallenInvestigator();
-      }
-
-      const currentStats = ensureAdventureStats(state);
-      const updatedStats: AdventureStats = {
-        ...currentStats,
-        totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
-      };
-
-      return {
-        ...state,
-        phase: result.nextPhase,
-        isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
-        turn: 1,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        hand: result.hand,
-        discardPile: result.discardPile,
-        isMadness: false,
-        rewardCards: undefined,
-        rewardObols: undefined,
-        currentEnemy: cloneEnemy(INITIAL_GHOUL),
-        map: result.map,
-        adventureStats: updatedStats,
-        battleLog: [...result.logs, ...state.battleLog],
-        combatInitialHealth: undefined,
-      };
+      return applySurvivalSettlementResult(state, result);
     }
 
     case 'COMPLETE_DEPTH_TRANSITION': {

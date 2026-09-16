@@ -334,5 +334,28 @@ describe('Survival Settlement Pure Engine (ADR-0030)', () => {
       expect(result.hand[0].id).toBe(CARD_B.id);
       expect(result.sanityDeck[0].id).toBe(CARD_A.id);
     });
+
+    it('clears temporary battle status effects upon settlement per CONTEXT.md', () => {
+      const investigatorWithBuffs: Investigator = {
+        ...MOCK_INVESTIGATOR,
+        statusEffects: [
+          { type: 'bleed', stacks: 2, name: '流血', description: '每回合扣除生命' },
+          { type: 'vulnerable', stacks: 1, name: '易傷', description: '受到傷害加深' },
+        ],
+      };
+
+      const result = resolveSurvivalSettlement(
+        { type: 'skip' },
+        {
+          investigator: investigatorWithBuffs,
+          currentCards: [CARD_A, CARD_B],
+          currentNodeType: 'combat',
+          currentDepth: 1,
+          map: MOCK_MAP,
+        }
+      );
+
+      expect(result.investigator.statusEffects).toEqual([]);
+    });
   });
 });

@@ -167,12 +167,13 @@ export function resolveSurvivalSettlement(
   let nextPhase: 'map' | 'depth_transition' | 'combat' = context.map ? 'map' : 'combat';
   let clearFallenRecord = false;
   let isTrueEnding = Boolean(isFinalBoss);
+  let finalMap = updatedMap;
 
   if (isBossFight && context.map) {
     if (currentDepth === 3 && !context.abyssalSealFused) {
       // 第 3 深度擊敗原生修格斯但未湊齊兩枚殘片 -> 普通結局
       nextPhase = 'map';
-      if (updatedMap) updatedMap.isCompleted = true;
+      finalMap = updatedMap ? { ...updatedMap, isCompleted: true } : undefined;
       clearFallenRecord = true;
     } else if (!isFinalBoss) {
       // 第 1、2 深度或第 3 深度已融合古印 -> 進入深度過渡演出
@@ -190,6 +191,7 @@ export function resolveSurvivalSettlement(
     armor: 0,
     stamina: context.investigator.maxStamina,
     obols: nextObols,
+    statusEffects: [],
   };
 
   return {
@@ -198,7 +200,7 @@ export function resolveSurvivalSettlement(
     hand,
     discardPile: [],
     isMadness: false,
-    map: updatedMap,
+    map: finalMap,
     nextPhase,
     isTrueEnding,
     clearFallenRecord,
