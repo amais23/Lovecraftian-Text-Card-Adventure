@@ -13,7 +13,6 @@ import type {
 import {
   INITIAL_GHOUL,
   OCCUPATIONS,
-  fisherYatesShuffle,
 } from './initialData';
 import {
   cloneEnemy,
@@ -24,19 +23,18 @@ import {
 import {
   ensureUniqueCardIds,
 } from './cardFactory';
-import { generateInvestigationMap, generateProceduralInvestigationMap } from './mapGenerator';
+import {
+  generateInvestigationMap,
+  generateProceduralInvestigationMap,
+  advanceMapAfterNode,
+} from './mapGenerator';
 import {
   getMythosEventForNode,
   generateMarketItemsForDepth,
   TRUTH_CARD_BREAKWATER,
 } from './eventData';
-import { generateRewardCardsForDepth } from './cardTiers';
 import {
-  ABYSSAL_FRAGMENT_1,
-  ABYSSAL_FRAGMENT_2,
-  ABYSSAL_FRAGMENT_3,
   hasBothAbyssalFragments,
-  fuseAbyssalFragments,
   getAllPermanentCards,
 } from './abyssalSeals';
 import {
@@ -61,37 +59,20 @@ import {
   DEFAULT_HAND_CAPACITY,
 } from './combat';
 import { addStatusEffect } from './statusEffects';
+import {
+  generateCombatReward,
+  resolveSurvivalSettlement,
+  type SurvivalSettlementContext,
+} from './survival';
 
-export { cloneEnemy, ensureUniqueCardIds, splitDeckToHandAndSanity, setupCombatDeck, DEFAULT_HAND_CAPACITY };
-
-/**
- * 節點結算後推進地圖：將當前節點標記為 visited，將其連通的下一層節點解鎖為 accessible。
- * 若當前節點為宿敵（boss），標記調查地圖為已破關（isCompleted = true）。
- */
-export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | undefined {
-  if (!map || !map.currentNodeId) return map;
-  const currentNode = map.nodes[map.currentNodeId];
-  if (!currentNode) return map;
-
-  const updatedNodes: Record<string, MapNode> = {};
-  for (const [id, node] of Object.entries(map.nodes)) {
-    if (id === currentNode.id) {
-      updatedNodes[id] = { ...node, status: 'visited' };
-    } else if (currentNode.nextNodes.includes(id)) {
-      updatedNodes[id] = { ...node, status: 'accessible' };
-    } else {
-      updatedNodes[id] = { ...node };
-    }
-  }
-
-  const isCompleted = currentNode.type === 'boss' || Boolean(map.isCompleted);
-
-  return {
-    ...map,
-    nodes: updatedNodes,
-    isCompleted,
-  };
-}
+export {
+  cloneEnemy,
+  ensureUniqueCardIds,
+  splitDeckToHandAndSanity,
+  setupCombatDeck,
+  DEFAULT_HAND_CAPACITY,
+  advanceMapAfterNode,
+};
 
 
 /**
@@ -895,84 +876,60 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
       const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
       const isBossFight = currentNode?.type === 'boss';
-      const isElite = currentNode?.type === 'elite';
 
-      // ADR-0015: 第三深度首領戰勝分歧
-      if (isBossFight && currentDepth === 3) {
-        if (!hasBothAbyssalFragments(state)) {
-          // 未湊齊前兩枚殘片：直接進入普通結局（Arkham Gazette）
-          const updatedMap = advanceMapAfterNode(state.map);
-          const currentPermanentCards = getAllPermanentCards(state);
-          const resetDeck = action.payload?.shuffledDeck
-            ? [...action.payload.shuffledDeck]
-            : fisherYatesShuffle(currentPermanentCards);
-          const handCapacity = state.investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
-          const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, handCapacity);
+      // ADR-0015: 第三深度首領戰勝分歧（未湊齊前兩枚殘片直接進入普通結局）
+      if (isBossFight && currentDepth === 3 && !hasBothAbyssalFragments(state)) {
+        const context: SurvivalSettlementContext = {
+          investigator: state.investigator,
+          currentCards: getAllPermanentCards(state),
+          currentNodeType: 'boss',
+          currentDepth: 3,
+          abyssalSealFused: false,
+          rewardObols: 0,
+          map: state.map,
+          shuffledDeck: action.payload?.shuffledDeck,
+        };
+        const result = resolveSurvivalSettlement({ type: 'skip' }, context);
+        if (result.clearFallenRecord) {
           clearFallenInvestigator();
-          return {
-            ...state,
-            phase: 'map',
-            map: updatedMap ? { ...updatedMap, isCompleted: true } : undefined,
-            investigator: {
-              ...state.investigator,
-              health: state.investigator.maxHealth,
-              armor: 0,
-              stamina: state.investigator.maxStamina,
-            },
-            sanityDeck,
-            hand,
-            discardPile: [],
-            isMadness: false,
-            rewardCards: undefined,
-            rewardObols: undefined,
-            battleLog: [
-              '【阿卡姆常規終局】第三深度原生巨型修格斯伏誅！未湊齊深淵古印殘片，深淵裂隙漸漸平息，調查員逃離深淵……',
-              ...state.battleLog,
-            ],
-          };
-        } else {
-          // 持有前兩枚殘片：解鎖第三殘片，三殘片共鳴融合為白色真相卡「完整的深淵古印」，解鎖第四深度！
-          const currentPermanentCards = getAllPermanentCards(state);
-          const withFrag3 = [...currentPermanentCards, { ...ABYSSAL_FRAGMENT_3 }];
-          const { newDeck } = fuseAbyssalFragments(withFrag3);
-          const rewardCards =
-            action.payload?.rewardCards ??
-            generateRewardCardsForDepth(3, true, 3, Math.random, state.investigator.occupationId ?? 'investigator');
-          const rewardObols = action.payload?.rewardObols ?? 50;
-
-          return {
-            ...state,
-            phase: 'reward',
-            abyssalSealFused: true,
-            sanityDeck: newDeck,
-            hand: [],
-            discardPile: [],
-            rewardCards,
-            rewardObols,
-            battleLog: [
-              '【白色真理共鳴】第三深度原生巨型修格斯崩解！三枚深淵封印殘片劇烈震顫、光芒大盛，融合為至高真理【完整的深淵古印】！通往第四深度的虛空裂隙已然開闢！',
-              `戰鬥結算：獲得 ${rewardObols} 古金幣！請挑選 1 張專屬第四階構築卡牌或跳過以精簡牌庫。`,
-              ...state.battleLog,
-            ],
-          };
         }
+        return {
+          ...state,
+          phase: result.nextPhase,
+          map: result.map,
+          investigator: result.investigator,
+          sanityDeck: result.sanityDeck,
+          hand: result.hand,
+          discardPile: [],
+          isMadness: false,
+          rewardCards: undefined,
+          rewardObols: undefined,
+          battleLog: [
+            '【阿卡姆常規終局】第三深度原生巨型修格斯伏誅！未湊齊深淵古印殘片，深淵裂隙漸漸平息，調查員逃離深淵……',
+            ...state.battleLog,
+          ],
+        };
       }
 
-      const baseObols = isBossFight ? 50 : isElite ? 25 : 15;
-      const rewardObols = action.payload?.rewardObols ?? baseObols;
-      const rewardCards =
-        action.payload?.rewardCards ??
-        generateRewardCardsForDepth(currentDepth, isBossFight, 3, Math.random, state.investigator.occupationId ?? 'investigator');
+      const reward = generateCombatReward({
+        currentNodeType: currentNode?.type,
+        currentDepth,
+        occupationId: state.investigator.occupationId,
+        currentCards: getAllPermanentCards(state),
+        overrideCards: action.payload?.rewardCards,
+        overrideObols: action.payload?.rewardObols,
+      });
 
       return {
         ...state,
         phase: 'reward',
-        rewardCards,
-        rewardObols,
-        battleLog: [
-          `戰鬥結算：獲得 ${rewardObols} 古金幣！請挑選 1 張卡牌構築獎勵或選擇跳過以精簡牌庫。`,
-          ...state.battleLog,
-        ],
+        abyssalSealFused: Boolean(state.abyssalSealFused || reward.abyssalSealFused),
+        sanityDeck: reward.updatedDeck ?? state.sanityDeck,
+        hand: reward.updatedDeck ? [] : state.hand,
+        discardPile: reward.updatedDeck ? [] : state.discardPile,
+        rewardCards: reward.rewardCards,
+        rewardObols: reward.rewardObols,
+        battleLog: [...reward.logs, ...state.battleLog],
       };
     }
 
@@ -982,190 +939,98 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ? state.rewardCards.find((c) => c.id === action.payload?.cardId)
         : undefined;
 
-      // 1. Gather all permanent cards across current battle state (temporary cards discarded)
-      const currentPermanentCards = getAllPermanentCards(state);
-
-      const newPermanentDeck = selectedCard
-        ? [
-            ...currentPermanentCards,
-            {
-              ...selectedCard,
-              id: `${selectedCard.id}_drafted_${currentPermanentCards.length + 1}`,
-              isTemporary: false,
-            },
-          ]
-        : [...currentPermanentCards];
-
-      const addedObols = state.rewardObols ?? 15;
-      const currentStats = ensureAdventureStats(state);
-      const updatedStats: AdventureStats = {
-        ...currentStats,
-        totalObolsCollected: currentStats.totalObolsCollected + addedObols,
+      const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
+      const context: SurvivalSettlementContext = {
+        investigator: state.investigator,
+        currentCards: getAllPermanentCards(state),
+        currentNodeType: currentNode?.type,
+        currentDepth: state.currentDepth ?? state.map?.depth ?? 1,
+        abyssalSealFused: state.abyssalSealFused,
+        rewardObols: state.rewardObols ?? 15,
+        map: state.map,
+        shuffledDeck: action.payload?.shuffledDeck,
       };
 
-      const isBossFight = Boolean(state.map?.currentNodeId && state.map.nodes[state.map.currentNodeId]?.type === 'boss');
+      const result = resolveSurvivalSettlement(
+        { type: 'card', cardId: action.payload?.cardId, card: selectedCard },
+        context
+      );
 
-      // 2. Persistent health: investigator.health does NOT heal normally, EXCEPT on Boss defeat!
-      const isHealingToFull = Boolean(isBossFight);
-      const nextHealth = isHealingToFull ? state.investigator.maxHealth : state.investigator.health;
-
-      const updatedInvestigator: Investigator = {
-        ...state.investigator,
-        health: nextHealth,
-        armor: 0,
-        stamina: state.investigator.maxStamina,
-        obols: state.investigator.obols + addedObols,
-      };
-
-      // 3. Reset full sanity deck with all permanent cards shuffled (temporary cards dissolved)
-      // Support optional payload.shuffledDeck for 100% deterministic test replay
-      const resetDeck = action.payload?.shuffledDeck
-        ? [...action.payload.shuffledDeck]
-        : fisherYatesShuffle(newPermanentDeck);
-
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY);
-
-      const newLogs: string[] = [];
-      newLogs.push(`戰後重整：所有一般卡洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
-      if (selectedCard) {
-        newLogs.push(`獲得一般卡【${selectedCard.name}】納入理智牌庫！`);
-      } else {
-        newLogs.push(`跳過卡牌構築獎勵，維持牌庫精簡。`);
-      }
-      newLogs.push(`獲得古金幣 +${addedObols}（當前擁有: ${updatedInvestigator.obols} 枚）。`);
-      if (isHealingToFull) {
-        newLogs.push(
-          `【首領決戰復甦】古老宿敵伏誅，威壓短暫退散。調查員身體生命值全額恢復至上限（${updatedInvestigator.maxHealth} / ${updatedInvestigator.maxHealth}）！`
-        );
-      } else {
-        newLogs.push(`【肉體傷勢保留】當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}。`);
-      }
-
-      const nextEnemy = cloneEnemy(INITIAL_GHOUL);
-
-      // Advance map if map is present, otherwise remain in combat
-      const updatedMap = advanceMapAfterNode(state.map);
-      const currentDepth = state.currentDepth ?? 1;
-      const isFinalBoss = isBossFight && currentDepth >= 4;
-      let nextPhase: GameState['phase'] = state.map ? 'map' : 'combat';
-      if (isBossFight && state.map) {
-        if (currentDepth === 3 && !state.abyssalSealFused) {
-          nextPhase = 'map';
-          if (updatedMap) updatedMap.isCompleted = true;
-          clearFallenInvestigator();
-        } else if (!isFinalBoss) {
-          nextPhase = 'depth_transition';
-        }
-      }
-
-      if (isFinalBoss) {
+      if (result.clearFallenRecord) {
         clearFallenInvestigator();
       }
 
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
+      };
+
       return {
         ...state,
-        phase: nextPhase,
-        isTrueEnding: Boolean(state.isTrueEnding || isFinalBoss),
+        phase: result.nextPhase,
+        isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
         turn: 1,
-        investigator: updatedInvestigator,
-        sanityDeck,
-        hand,
-        discardPile: [],
+        investigator: result.investigator,
+        sanityDeck: result.sanityDeck,
+        hand: result.hand,
+        discardPile: result.discardPile,
         isMadness: false,
         rewardCards: undefined,
         rewardObols: undefined,
-        currentEnemy: nextEnemy,
-        map: updatedMap,
+        currentEnemy: cloneEnemy(INITIAL_GHOUL),
+        map: result.map,
         adventureStats: updatedStats,
-        battleLog: [...newLogs, ...state.battleLog],
+        battleLog: [...result.logs, ...state.battleLog],
         combatInitialHealth: undefined,
       };
     }
 
     case 'CLAIM_FIELD_DRESSING': {
       if (state.phase !== 'reward') return state;
-
-      const currentPermanentCards = getAllPermanentCards(state);
-      const newPermanentDeck = [...currentPermanentCards];
-
-      const addedObols = state.rewardObols ?? 15;
-      const currentStats = ensureAdventureStats(state);
-      const updatedStats: AdventureStats = {
-        ...currentStats,
-        totalObolsCollected: currentStats.totalObolsCollected + addedObols,
+      const currentNode = state.map?.currentNodeId ? state.map.nodes[state.map.currentNodeId] : undefined;
+      const context: SurvivalSettlementContext = {
+        investigator: state.investigator,
+        currentCards: getAllPermanentCards(state),
+        currentNodeType: currentNode?.type,
+        currentDepth: state.currentDepth ?? state.map?.depth ?? 1,
+        abyssalSealFused: state.abyssalSealFused,
+        rewardObols: state.rewardObols ?? 15,
+        map: state.map,
+        shuffledDeck: action.payload?.shuffledDeck,
       };
 
-      const isBossFight = Boolean(state.map?.currentNodeId && state.map.nodes[state.map.currentNodeId]?.type === 'boss');
-      const isHealingToFull = Boolean(isBossFight);
-      const healAmount = action.payload?.healAmount ?? 4;
-      const nextHealth = isHealingToFull
-        ? state.investigator.maxHealth
-        : Math.min(state.investigator.maxHealth, state.investigator.health + healAmount);
-      const actualHealed = nextHealth - state.investigator.health;
+      const result = resolveSurvivalSettlement(
+        { type: 'field_dressing', healAmount: action.payload?.healAmount ?? 4 },
+        context
+      );
 
-      const updatedInvestigator: Investigator = {
-        ...state.investigator,
-        health: nextHealth,
-        armor: 0,
-        stamina: state.investigator.maxStamina,
-        obols: state.investigator.obols + addedObols,
-      };
-
-      const resetDeck = action.payload?.shuffledDeck
-        ? [...action.payload.shuffledDeck]
-        : fisherYatesShuffle(newPermanentDeck);
-
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY);
-
-      const newLogs: string[] = [];
-      newLogs.push(`戰後重整：所有一般卡洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。戰鬥臨時卡已消散。`);
-      if (isHealingToFull) {
-        newLogs.push(
-          `【首領決戰復甦】古老宿敵伏誅，威壓短暫退散。調查員身體生命值全額恢復至上限（${updatedInvestigator.maxHealth} / ${updatedInvestigator.maxHealth}）！`
-        );
-      } else {
-        newLogs.push(
-          `【戰地應急包紮】放棄卡牌構築，專注縫合撕裂傷勢。身體生命值恢復 +${actualHealed} 點（當前生命值: ${updatedInvestigator.health} / ${updatedInvestigator.maxHealth}）。`
-        );
-      }
-      newLogs.push(`獲得古金幣 +${addedObols}（當前擁有: ${updatedInvestigator.obols} 枚）。`);
-
-      const nextEnemy = cloneEnemy(INITIAL_GHOUL);
-
-      const updatedMap = advanceMapAfterNode(state.map);
-      const currentDepth = state.currentDepth ?? 1;
-      const isFinalBoss = isBossFight && currentDepth >= 4;
-      let nextPhase: GameState['phase'] = state.map ? 'map' : 'combat';
-      if (isBossFight && state.map) {
-        if (currentDepth === 3 && !state.abyssalSealFused) {
-          nextPhase = 'map';
-          if (updatedMap) updatedMap.isCompleted = true;
-          clearFallenInvestigator();
-        } else if (!isFinalBoss) {
-          nextPhase = 'depth_transition';
-        }
-      }
-
-      if (isFinalBoss) {
+      if (result.clearFallenRecord) {
         clearFallenInvestigator();
       }
 
+      const currentStats = ensureAdventureStats(state);
+      const updatedStats: AdventureStats = {
+        ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
+      };
+
       return {
         ...state,
-        phase: nextPhase,
-        isTrueEnding: Boolean(state.isTrueEnding || isFinalBoss),
+        phase: result.nextPhase,
+        isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
         turn: 1,
-        investigator: updatedInvestigator,
-        sanityDeck,
-        hand,
-        discardPile: [],
+        investigator: result.investigator,
+        sanityDeck: result.sanityDeck,
+        hand: result.hand,
+        discardPile: result.discardPile,
         isMadness: false,
         rewardCards: undefined,
         rewardObols: undefined,
-        currentEnemy: nextEnemy,
-        map: updatedMap,
+        currentEnemy: cloneEnemy(INITIAL_GHOUL),
+        map: result.map,
         adventureStats: updatedStats,
-        battleLog: [...newLogs, ...state.battleLog],
+        battleLog: [...result.logs, ...state.battleLog],
         combatInitialHealth: undefined,
       };
     }
@@ -1180,53 +1045,48 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return state;
       }
 
-      const fragmentCard: Card = currentDepth === 1
-        ? { ...ABYSSAL_FRAGMENT_1 }
-        : { ...ABYSSAL_FRAGMENT_2 };
+      const context: SurvivalSettlementContext = {
+        investigator: state.investigator,
+        currentCards: getAllPermanentCards(state),
+        currentNodeType: 'boss',
+        currentDepth,
+        abyssalSealFused: state.abyssalSealFused,
+        rewardObols: state.rewardObols,
+        map: state.map,
+        shuffledDeck: action.payload?.shuffledDeck,
+      };
 
-      const currentPermanentCards = getAllPermanentCards(state);
-      const newPermanentDeck = [...currentPermanentCards, fragmentCard];
+      const result = resolveSurvivalSettlement(
+        { type: 'abyssal_seal' },
+        context
+      );
+
+      if (result.clearFallenRecord) {
+        clearFallenInvestigator();
+      }
 
       const currentStats = ensureAdventureStats(state);
       const updatedStats: AdventureStats = {
         ...currentStats,
+        totalObolsCollected: currentStats.totalObolsCollected + result.addedObols,
       };
-
-      const updatedInvestigator: Investigator = {
-        ...state.investigator,
-        health: state.investigator.maxHealth,
-        armor: 0,
-        stamina: state.investigator.maxStamina,
-      };
-
-      const resetDeck = action.payload?.shuffledDeck
-        ? [...action.payload.shuffledDeck]
-        : fisherYatesShuffle(newPermanentDeck);
-
-      const { hand, sanityDeck } = splitDeckToHandAndSanity(resetDeck, updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY);
-      const updatedMap = advanceMapAfterNode(state.map);
-
-      const newLogs: string[] = [
-        `【承受深淵封印】調查員放棄常規構築獎勵與古金幣，自首領殘骸中拾取【${fragmentCard.name}】！漆黑詛咒烙印在理智深處。`,
-        `【首領決戰復甦】古老宿敵伏誅，威壓短暫退散。調查員身體生命值全額恢復至上限（${updatedInvestigator.maxHealth} / ${updatedInvestigator.maxHealth}）！`,
-        `戰後重整：所有一般卡（含深淵封印殘片）洗回理智牌庫，理智回滿至 ${newPermanentDeck.length} 點。`,
-      ];
 
       return {
         ...state,
-        phase: 'depth_transition',
+        phase: result.nextPhase,
+        isTrueEnding: Boolean(state.isTrueEnding || result.isTrueEnding),
         turn: 1,
-        investigator: updatedInvestigator,
-        sanityDeck,
-        hand,
-        discardPile: [],
+        investigator: result.investigator,
+        sanityDeck: result.sanityDeck,
+        hand: result.hand,
+        discardPile: result.discardPile,
         isMadness: false,
         rewardCards: undefined,
         rewardObols: undefined,
         currentEnemy: cloneEnemy(INITIAL_GHOUL),
-        map: updatedMap,
+        map: result.map,
         adventureStats: updatedStats,
-        battleLog: [...newLogs, ...state.battleLog],
+        battleLog: [...result.logs, ...state.battleLog],
         combatInitialHealth: undefined,
       };
     }

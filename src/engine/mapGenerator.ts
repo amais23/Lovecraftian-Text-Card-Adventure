@@ -809,3 +809,33 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
 export function generateInvestigationMap(options?: MapGenerationOptions): InvestigationMap {
   return generateProceduralInvestigationMap(options);
 }
+
+/**
+ * 節點結算後推進地圖：將當前節點標記為 visited，將其連通的下一層節點解鎖為 accessible。
+ * 若當前節點為宿敵（boss），標記調查地圖為已破關（isCompleted = true）。
+ */
+export function advanceMapAfterNode(map?: InvestigationMap): InvestigationMap | undefined {
+  if (!map || !map.currentNodeId) return map;
+  const currentNode = map.nodes[map.currentNodeId];
+  if (!currentNode) return map;
+
+  const updatedNodes: Record<string, MapNode> = {};
+  for (const [id, node] of Object.entries(map.nodes)) {
+    if (id === currentNode.id) {
+      updatedNodes[id] = { ...node, status: 'visited' };
+    } else if (currentNode.nextNodes.includes(id)) {
+      updatedNodes[id] = { ...node, status: 'accessible' };
+    } else {
+      updatedNodes[id] = { ...node };
+    }
+  }
+
+  const isCompleted = currentNode.type === 'boss' || Boolean(map.isCompleted);
+
+  return {
+    ...map,
+    nodes: updatedNodes,
+    isCompleted,
+  };
+}
+
