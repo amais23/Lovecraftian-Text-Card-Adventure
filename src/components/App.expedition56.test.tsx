@@ -4,10 +4,29 @@ import App from '../App';
 import { soundEngine } from '../engine/audioManager';
 import { gameReducer, createInitialGameState } from '../engine/gameReducer';
 import { resolveSurvivalSettlement } from '../engine/survival/settlementResolver';
-import { interceptEnemyDamage, resolveEnemyAction } from '../engine/enemyTraits';
+import { advanceCanonicalIntent, interceptEnemyDamage, resolveEnemyAction } from '../engine/enemyTraits';
 import { getEnemyTemplateById } from '../engine/enemyCatalog';
 import { createStatusEffect } from '../engine/statusEffects';
+import { evaluateCardPlay } from '../engine/cards/evaluator';
+import { OCCULTIST_REWARD_CARDS } from '../engine/cards/occultist/rewards';
+import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
+import type { CardPlayContext } from '../engine/cards/types';
 import type { Enemy, Investigator } from '../types/game';
+
+function createBaseInvestigator(overrides: Partial<Investigator> = {}): Investigator {
+  return {
+    name: '愛德華·皮爾斯',
+    occupation: '私家偵探',
+    health: 25,
+    maxHealth: 25,
+    stamina: 3,
+    maxStamina: 3,
+    armor: 0,
+    obols: 10,
+    statusEffects: [],
+    ...overrides,
+  };
+}
 
 describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)', () => {
   describe('1. Private Investigator 16-Floor Expedition & Haven Rest', () => {
@@ -149,7 +168,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
   });
 
   describe('2. Occultist Cosmic Tactics vs Deep Ones & Dagon Priest', () => {
-    it('demonstrates Eleanor Vance truth loop, seal detonation, and magic damage', () => {
+    it('demonstrates Eleanor Vance truth loop, seal detonation, and low-sanity burst', () => {
       let state = createInitialGameState();
       state = gameReducer(state, {
         type: 'SELECT_OCCUPATION',
@@ -162,6 +181,79 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       const hasTruthCard = state.sanityDeck.some((c) => c.category === 'truth');
       expect(hasMagicCard).toBe(true);
       expect(hasTruthCard).toBe(true);
+
+      const occultistInvestigator: Investigator = {
+        name: '艾蓮諾·凡斯',
+        occupation: '秘術學者',
+        health: 20,
+        maxHealth: 22,
+        stamina: 3,
+        maxStamina: 3,
+        armor: 0,
+        obols: 20,
+        statusEffects: [],
+      };
+
+      const baseEnemy: Enemy = {
+        id: 'test_deep_one',
+        name: '深潛者戰士',
+        title: '印斯茅斯哨兵',
+        health: 30,
+        maxHealth: 30,
+        armor: 0,
+        statusEffects: [createStatusEffect('bleed', 2), createStatusEffect('horror', 1)], // 3 total status stacks
+        currentIntent: { type: 'attack', value: 8, name: '三叉戟刺擊', description: '刺擊' },
+      };
+
+      // 1. Truth Injection / Cycle (銀鑰儀式): Injects truth cards to sustain sanity deck
+      const silverKeyCard = OCCULTIST_STARTER_CARDS.find((c) => c.id === 'card_silver_key_1')!;
+      const truthContext: CardPlayContext = {
+        investigator: occultistInvestigator,
+        enemy: baseEnemy,
+        hand: [silverKeyCard],
+        sanityDeck: [],
+        discardPile: [],
+        turn: 1,
+        isMadness: true,
+      };
+      const truthResult = evaluateCardPlay(silverKeyCard, truthContext);
+      expect(truthResult.success).toBe(true);
+      expect(truthResult.sanityDeck.length).toBe(2); // Injected 2 truth cards
+      expect(truthResult.logs.some((l) => l.includes('注入') || l.includes('銀鑰'))).toBe(true);
+
+      // 2. Curse Seal Detonation (深淵引爆): Scales from enemy status stacks (bleed + horror)
+      const detonationCard = OCCULTIST_REWARD_CARDS.find((c) => c.id === 'reward_abyssal_detonation')!;
+      const detonationContext: CardPlayContext = {
+        investigator: { ...occultistInvestigator, stamina: 3 },
+        enemy: baseEnemy,
+        hand: [detonationCard],
+        sanityDeck: [silverKeyCard, silverKeyCard],
+        discardPile: [],
+        turn: 2,
+        isMadness: false,
+      };
+      const detonationResult = evaluateCardPlay(detonationCard, detonationContext);
+      expect(detonationResult.success).toBe(true);
+      // Base 10 + 3 stacks * 3 = 19 magic damage
+      expect(detonationResult.enemy.health).toBe(30 - 19);
+      expect(detonationResult.logs.some((l) => l.includes('印記共鳴加成') || l.includes('深淵引爆'))).toBe(true);
+
+      // 3. Low-Sanity Burst (狂亂低語): Deals higher damage when sanity deck is depleted
+      const whispersCard = OCCULTIST_REWARD_CARDS.find((c) => c.id === 'reward_whispers_of_madness')!;
+      const lowSanityContext: CardPlayContext = {
+        investigator: occultistInvestigator,
+        enemy: { ...baseEnemy, health: 30 },
+        hand: [whispersCard],
+        sanityDeck: [silverKeyCard], // 1 card remaining (missingSanity = 10 - 1 = 9; <= 4 gives +6 bonus)
+        discardPile: [],
+        turn: 3,
+        isMadness: false,
+      };
+      const whispersResult = evaluateCardPlay(whispersCard, lowSanityContext);
+      expect(whispersResult.success).toBe(true);
+      // Base 8 + missing 10 (1 sanity cost consumed remaining card: 10 - 0 = 10) + low-sanity bonus 6 = 24 damage
+      expect(whispersResult.enemy.health).toBe(30 - 24);
+      expect(whispersResult.logs.some((l) => l.includes('心智虧蝕加成'))).toBe(true);
     });
 
     it('verifies Deep One slippery mucus absorbs physical damage <= 4, while high damage bypasses', () => {
@@ -216,17 +308,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
 
   describe('3. Post-Combat Field Dressing Survival Triage', () => {
     it('executes Field Dressing: restores 4 HP while skipping card draft to keep deck lean', () => {
-      const investigator: Investigator = {
-        name: '愛德華·皮爾斯',
-        occupation: '私家偵探',
-        health: 15,
-        maxHealth: 25,
-        stamina: 3,
-        maxStamina: 3,
-        armor: 0,
-        obols: 30,
-        statusEffects: [],
-      };
+      const investigator = createBaseInvestigator({ health: 15, maxHealth: 25, obols: 30 });
 
       const settlement = resolveSurvivalSettlement(
         { type: 'field_dressing', healAmount: 4 },
@@ -243,17 +325,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
     });
 
     it('caps Field Dressing healing at investigator maxHealth', () => {
-      const investigator: Investigator = {
-        name: '愛德華·皮爾斯',
-        occupation: '私家偵探',
-        health: 24,
-        maxHealth: 25,
-        stamina: 3,
-        maxStamina: 3,
-        armor: 0,
-        obols: 30,
-        statusEffects: [],
-      };
+      const investigator = createBaseInvestigator({ health: 24, maxHealth: 25, obols: 30 });
 
       const settlement = resolveSurvivalSettlement(
         { type: 'field_dressing', healAmount: 4 },
@@ -271,7 +343,12 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
 
   describe('4. Responsive Vertical Parchment Scroll Map & Candle Navigation', () => {
     it('renders scroll map with accessible nodes and candle breathing markers in standard & narrow viewports', () => {
-      render(<App />);
+      // 1. Desktop standard viewport
+      window.innerWidth = 1280;
+      window.innerHeight = 800;
+      window.dispatchEvent(new Event('resize'));
+
+      const { rerender } = render(<App />);
 
       // Advance to map
       fireEvent.click(screen.getByRole('button', { name: /開啟新調查/i }));
@@ -279,7 +356,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       fireEvent.click(screen.getByRole('button', { name: /啟程調查/i }));
       fireEvent.click(screen.getByRole('button', { name: /踏入調查地圖/i }));
 
-      // Verify map layout structure
+      // Verify map layout structure in standard viewport
       const scrollContainer = document.querySelector('.map-scroll-container');
       expect(scrollContainer).toBeDefined();
 
@@ -293,22 +370,23 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       // Verify SVG paths exist connecting the layers
       const svgPaths = document.querySelectorAll('.map-connections-svg path');
       expect(svgPaths.length).toBeGreaterThan(0);
+
+      // 2. Responsive narrow mobile viewport simulation
+      window.innerWidth = 375;
+      window.innerHeight = 667;
+      window.dispatchEvent(new Event('resize'));
+
+      rerender(<App />);
+
+      // Re-verify that the responsive scroll container and candle navigation remain fully functional
+      const narrowScrollContainer = document.querySelector('.map-scroll-container');
+      expect(narrowScrollContainer).toBeDefined();
+      const narrowAccessibleCandles = document.querySelectorAll('.map-node-card.accessible.candle-breathing');
+      expect(narrowAccessibleCandles.length).toBeGreaterThan(0);
     });
   });
 
   describe('5. Canonical Monster Traits & Battle Log Verification', () => {
-    const createBaseInvestigator = (): Investigator => ({
-      name: '愛德華·皮爾斯',
-      occupation: '私家偵探',
-      health: 25,
-      maxHealth: 25,
-      stamina: 3,
-      maxStamina: 3,
-      armor: 0,
-      obols: 10,
-      statusEffects: [],
-    });
-
     it('Arkham Cultist: Zealot Blood Oath stacks strength upon taking damage', () => {
       const cultist = getEnemyTemplateById('enemy_arkham_cultist');
       expect(cultist).toBeDefined();
@@ -358,10 +436,31 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(action.logs.some((l) => l.includes('陰影滑翔'))).toBe(true);
     });
 
-    it('Shoggoth: Organ Proliferation charges Tekeli-li crush', () => {
+    it('Shoggoth: Organ Proliferation charges Tekeli-li crush with vulnerable charging stance and devastating strike', () => {
       const shoggoth = getEnemyTemplateById('enemy_colossal_shoggoth');
       expect(shoggoth).toBeDefined();
       expect(shoggoth!.traits?.some((t) => t.id === 'organ_proliferation')).toBe(true);
+
+      // Turn 3: Shoggoth tactical AI enters charging stance
+      const turn3Tactics = advanceCanonicalIntent(shoggoth!, 3);
+      expect(turn3Tactics.newShoggothStance).toBe('charging');
+      expect(turn3Tactics.nextIntent.isCharge).toBe(true);
+      expect(turn3Tactics.nextIntent.name).toContain('Tekeli-li 蓄力碾壓');
+
+      // During charging stance, investigator attacks deal +50% damage (蓄力破綻)
+      const chargingShoggoth: Enemy = {
+        ...shoggoth!,
+        shoggothStance: 'charging',
+      };
+      const hitRes = interceptEnemyDamage(chargingShoggoth, 10, false, 'combat');
+      expect(hitRes.modifiedDamage).toBe(15); // 10 * 1.5
+      expect(hitRes.logs.some((l) => l.includes('蓄力破綻'))).toBe(true);
+
+      // Turn 4: Shoggoth delivers devastating Tekeli-li crush attack (20 damage)
+      const turn4Tactics = advanceCanonicalIntent(shoggoth!, 4);
+      expect(turn4Tactics.newShoggothStance).toBe('normal');
+      expect(turn4Tactics.nextIntent.value).toBe(20);
+      expect(turn4Tactics.nextIntent.name).toContain('Tekeli-li 毀滅重壓');
     });
 
     it('Enforces turn 6 anti-stall enrage timer: +50% attack damage', () => {
