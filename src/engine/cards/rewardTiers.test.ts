@@ -56,7 +56,7 @@ describe('Card Tier & Reward System (CardRegistry - ADR-0031)', () => {
     expect(rewards.every((c) => c.tier === 2)).toBe(true);
   });
 
-  it('generates Tier 3 cards for normal combat in Depth 3 and 4', () => {
+  it('generates Tier 3 cards for normal combat in Depth 3, 4, and higher depths (ADR-0031 Depth >= 3 rule)', () => {
     const rewardsD3 = CardRegistry.generateRewardCards({ depth: 3, isBoss: false, count: 3 });
     expect(rewardsD3).toHaveLength(3);
     expect(rewardsD3.every((c) => c.tier === 3)).toBe(true);
@@ -64,6 +64,11 @@ describe('Card Tier & Reward System (CardRegistry - ADR-0031)', () => {
     const rewardsD4 = CardRegistry.generateRewardCards({ depth: 4, isBoss: false, count: 3 });
     expect(rewardsD4).toHaveLength(3);
     expect(rewardsD4.every((c) => c.tier === 3)).toBe(true);
+
+    // Any depth >= 3 should strictly produce Tier 3 cards according to ADR-0031
+    const rewardsD5 = CardRegistry.generateRewardCards({ depth: 5 as any, isBoss: false, count: 3 });
+    expect(rewardsD5).toHaveLength(3);
+    expect(rewardsD5.every((c) => c.tier === 3)).toBe(true);
   });
 
   it('generates Tier 3 cards for Depth 1 Boss defeat (越階獎勵 3 選 1，排除 Tier 4+ 專屬卡)', () => {

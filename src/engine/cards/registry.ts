@@ -122,6 +122,15 @@ const ALL_REWARD_CARDS: Card[] = [
 ];
 
 /**
+ * 依冒險深度計算常態卡牌獎勵階級（Depth 1 -> Tier 1, Depth 2 -> Tier 2, Depth >= 3 -> Tier 3）
+ */
+function getRewardTierForDepth(depth: DepthLevel): CardTier {
+  if (depth === 2) return 2;
+  if (depth >= 3) return 3;
+  return 1;
+}
+
+/**
  * 深度模組：CardRegistry
  * 集中封裝卡牌庫查詢、職業過濾、獎勵池計算與圖鑑檢索
  */
@@ -211,29 +220,9 @@ export class CardRegistry {
       return shuffled.slice(0, Math.min(targetCount, shuffled.length)).map((c) => ({ ...c }));
     }
 
-    let pool: Card[];
-    if (isBoss) {
-      // 第一深度首領：越階抽取 Tier 3 卡牌（3 選 1）
-      pool = ALL_REWARD_CARDS.filter((c) => c.tier === 3);
-    } else {
-      switch (depth) {
-        case 2:
-          pool = ALL_REWARD_CARDS.filter((c) => c.tier === 2);
-          break;
-        case 3:
-        case 4:
-          pool = ALL_REWARD_CARDS.filter((c) => c.tier === 3);
-          break;
-        case 1:
-        default:
-          pool = ALL_REWARD_CARDS.filter((c) => c.tier === 1);
-          break;
-      }
-    }
-
-    if (occupationId) {
-      pool = pool.filter((c) => !c.occupations || c.occupations.includes(occupationId));
-    }
+    // 第一深度首領越階抽取 Tier 3；常態戰鬥依深度階梯產出 (Depth 1 -> Tier 1, Depth 2 -> Tier 2, Depth >= 3 -> Tier 3)
+    const targetTier: CardTier = isBoss ? 3 : getRewardTierForDepth(depth);
+    const pool = CardRegistry.getCardsByTier(targetTier, occupationId);
 
     const targetCount = options?.count ?? Math.min(3, pool.length);
     const shuffled = fisherYatesShuffle(pool, randomFn);
@@ -247,29 +236,8 @@ export class CardRegistry {
     occupationId: OccupationId,
     depth: DepthLevel
   ): Card[] {
-    let targetTier: CardTier = 1;
-    if (depth === 2) {
-      targetTier = 2;
-    } else if (depth >= 3) {
-      targetTier = 3;
-    }
-
-    const pool = ALL_REWARD_CARDS.filter((card) => {
-      if (card.occupations && !card.occupations.includes(occupationId)) {
-        return false;
-      }
-      return card.tier === targetTier;
-    });
-
-    const seenNames = new Set<string>();
-    const uniquePool: Card[] = [];
-    for (const card of pool) {
-      if (!seenNames.has(card.name)) {
-        seenNames.add(card.name);
-        uniquePool.push({ ...card });
-      }
-    }
-    return uniquePool;
+    const targetTier = getRewardTierForDepth(depth);
+    return CardRegistry.getCardsByTier(targetTier, occupationId);
   }
 
   /**

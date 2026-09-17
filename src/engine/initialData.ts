@@ -76,12 +76,6 @@ export const REWARD_CARD_POOL: Card[] = CardRegistry.getCardsByTier(1);
 import { fisherYatesShuffle } from './shuffleUtils';
 export { fisherYatesShuffle };
 
-/**
- * 隨機抽取 count 張不重複的戰後獎勵卡牌（委託 CardRegistry）
- */
-export function generateRewardCards(count: number = 3, randomFn: () => number = Math.random): Card[] {
-  return CardRegistry.generateRewardCards({ depth: 1, count, randomFn });
-}
 
 // Temporary card factories and templates are defined in cardFactory.ts
 export { MADNESS_CARD_TEMPLATES, createMadnessCards, TRUTH_INJECTED_TEMPLATE } from './cardFactory';
