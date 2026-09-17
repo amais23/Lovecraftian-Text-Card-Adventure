@@ -7,9 +7,8 @@ import { X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame, Users,
 
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
 import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER, generateDefaultMarketItems } from '../engine/eventData';
-import { ALL_TIERED_CARDS } from '../engine/cardTiers';
 import { ALL_ABYSSAL_CARDS } from '../engine/abyssalSeals';
-import { getAllCompendiumCards } from '../engine/cards/registry';
+import { getAllCompendiumCards, getAllTieredCards } from '../engine/cards/registry';
 
 const CATEGORY_NAMES: Record<CardCategory, string> = {
   combat: '紅色戰鬥卡',
@@ -114,7 +113,7 @@ export const CardCompendium: React.FC<CardCompendiumProps> = ({ onClose }) => {
     });
 
     // Tiered, Boss Exclusive, and Abyssal Seal cards
-    ALL_TIERED_CARDS.forEach(registerCard);
+    getAllTieredCards().forEach(registerCard);
     ALL_ABYSSAL_CARDS.forEach(registerCard);
 
     return map;

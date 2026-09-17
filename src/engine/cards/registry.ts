@@ -1,5 +1,6 @@
 import type { Card, CardTier, DepthLevel, OccupationId } from '../../types/game';
-import type { CardFilterOptions } from './types';
+import type { CardFilterOptions, GenerateRewardCardsOptions } from './types';
+import { fisherYatesShuffle } from '../shuffleUtils';
 import { INVESTIGATOR_STARTER_CARDS } from './investigator/starter';
 import { INVESTIGATOR_REWARD_CARDS } from './investigator/rewards';
 import { OCCULTIST_STARTER_CARDS } from './occultist/starter';
@@ -111,6 +112,16 @@ for (const card of [
 }
 
 /**
+ * 全域階級獎勵卡牌清單 (Tier 1 ~ 4)
+ * 單一真理源（Single Source of Truth），直接自各職業與中立獎勵檔案聚合
+ */
+const ALL_REWARD_CARDS: Card[] = [
+  ...INVESTIGATOR_REWARD_CARDS,
+  ...OCCULTIST_REWARD_CARDS,
+  ...NEUTRAL_CARDS,
+];
+
+/**
  * 深度模組：CardRegistry
  * 集中封裝卡牌庫查詢、職業過濾、獎勵池計算與圖鑑檢索
  */
@@ -161,41 +172,95 @@ export class CardRegistry {
   }
 
   /**
-   * 取得指定深度與職業之獎勵卡庫池
+   * 依階級取得可用卡牌（支援可選職業過濾）
+   */
+  static getCardsByTier(tier: CardTier, occupationId?: OccupationId): Card[] {
+    return ALL_REWARD_CARDS.filter((card) => {
+      if (card.tier !== tier) return false;
+      if (occupationId && card.occupations && !card.occupations.includes(occupationId)) {
+        return false;
+      }
+      return true;
+    }).map((c) => ({ ...c }));
+  }
+
+  /**
+   * 取得全域所有帶有階級（Tier 1~4）的獎勵卡牌清單
+   */
+  static getAllTieredCards(): Card[] {
+    return ALL_REWARD_CARDS.map((c) => ({ ...c }));
+  }
+
+  /**
+   * 統一戰後卡牌獎勵生成（ADR-0015, ADR-0022, ADR-0031）
+   * - 首領戰（isBoss）：Depth >= 2 產出全部 4 張 Tier 4+ 專屬神話卡（4 選 1）；Depth 1 產出 Tier 3 越階卡牌（3 選 1）
+   * - 常態戰鬥：Depth 1 產出 Tier 1、Depth 2 產出 Tier 2、Depth >= 3 產出 Tier 3
+   * - 支援 occupationId 嚴格適配過濾與 randomFn 注入
+   */
+  static generateRewardCards(options?: GenerateRewardCardsOptions): Card[] {
+    const depth = options?.depth ?? 1;
+    const isBoss = options?.isBoss ?? false;
+    const randomFn = options?.randomFn ?? Math.random;
+    const occupationId = options?.occupationId;
+
+    if (isBoss && depth >= 2) {
+      // 第二深度以上首領：限定產出 Tier 4+ 專屬神話卡（4 選 1，不限職業）
+      const tier4Cards = ALL_REWARD_CARDS.filter((c) => c.tier === 4);
+      const shuffled = fisherYatesShuffle(tier4Cards, randomFn);
+      const targetCount = options?.count ?? tier4Cards.length;
+      return shuffled.slice(0, Math.min(targetCount, shuffled.length)).map((c) => ({ ...c }));
+    }
+
+    let pool: Card[];
+    if (isBoss) {
+      // 第一深度首領：越階抽取 Tier 3 卡牌（3 選 1）
+      pool = ALL_REWARD_CARDS.filter((c) => c.tier === 3);
+    } else {
+      switch (depth) {
+        case 2:
+          pool = ALL_REWARD_CARDS.filter((c) => c.tier === 2);
+          break;
+        case 3:
+        case 4:
+          pool = ALL_REWARD_CARDS.filter((c) => c.tier === 3);
+          break;
+        case 1:
+        default:
+          pool = ALL_REWARD_CARDS.filter((c) => c.tier === 1);
+          break;
+      }
+    }
+
+    if (occupationId) {
+      pool = pool.filter((c) => !c.occupations || c.occupations.includes(occupationId));
+    }
+
+    const targetCount = options?.count ?? Math.min(3, pool.length);
+    const shuffled = fisherYatesShuffle(pool, randomFn);
+    return shuffled.slice(0, Math.min(targetCount, shuffled.length)).map((c) => ({ ...c }));
+  }
+
+  /**
+   * 取得指定深度與職業之常態獎勵候選卡庫池（去重）
    */
   static getRewardPool(
     occupationId: OccupationId,
     depth: DepthLevel
   ): Card[] {
-    // 依據深度篩選相應階級
-    let allowedTiers: CardTier[] = [1];
-    if (depth === 1) {
-      allowedTiers = [1, 2];
-    } else if (depth === 2) {
-      allowedTiers = [1, 2, 3];
-    } else if (depth === 3) {
-      allowedTiers = [2, 3, 4];
-    } else if (depth === 4) {
-      allowedTiers = [3, 4];
+    let targetTier: CardTier = 1;
+    if (depth === 2) {
+      targetTier = 2;
+    } else if (depth >= 3) {
+      targetTier = 3;
     }
 
-    const allRewardCandidates = [
-      ...INVESTIGATOR_REWARD_CARDS,
-      ...OCCULTIST_REWARD_CARDS,
-      ...NEUTRAL_CARDS,
-    ];
-
-    const pool = allRewardCandidates.filter((card) => {
+    const pool = ALL_REWARD_CARDS.filter((card) => {
       if (card.occupations && !card.occupations.includes(occupationId)) {
         return false;
       }
-      if (card.tier && !allowedTiers.includes(card.tier)) {
-        return false;
-      }
-      return true;
+      return card.tier === targetTier;
     });
 
-    // 去重回傳
     const seenNames = new Set<string>();
     const uniquePool: Card[] = [];
     for (const card of pool) {
@@ -222,3 +287,6 @@ export const getStarterDeck = CardRegistry.getStarterDeck;
 export const getCardsForOccupation = CardRegistry.getCardsForOccupation;
 export const getRewardPool = CardRegistry.getRewardPool;
 export const getCardById = CardRegistry.getCardById;
+export const getCardsByTier = CardRegistry.getCardsByTier;
+export const getAllTieredCards = CardRegistry.getAllTieredCards;
+export const generateRewardCards = CardRegistry.generateRewardCards;

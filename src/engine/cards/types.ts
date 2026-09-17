@@ -3,6 +3,7 @@ import type {
   CardCategory,
   CardTier,
   CostType,
+  DepthLevel,
   CardKeyword,
   OccupationId,
   StatusEffect,
@@ -16,6 +17,14 @@ export interface CardFilterOptions {
   tier?: CardTier;
   category?: CardCategory;
   costType?: CostType;
+}
+
+export interface GenerateRewardCardsOptions {
+  depth?: DepthLevel;
+  isBoss?: boolean;
+  count?: number;
+  occupationId?: OccupationId;
+  randomFn?: () => number;
 }
 
 export interface CardPlayContext {

@@ -32,7 +32,7 @@ import {
   INITIAL_COLOSSAL_SHOGGOTH,
   INITIAL_STAR_SPAWN,
 } from './eventData';
-import { TIER_4_EXCLUSIVE_CARDS } from './cardTiers';
+import { getCardsByTier } from './cards/registry';
 import {
   ABYSSAL_FRAGMENT_1,
   ABYSSAL_FRAGMENT_2,
@@ -2997,7 +2997,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('claims Tier 4+ card and executes its combat effect accurately', () => {
-      const godSlayerCard = TIER_4_EXCLUSIVE_CARDS.find((c) => c.name === '屠神裁決爆轟')!;
+      const godSlayerCard = getCardsByTier(4).find((c) => c.name === '屠神裁決爆轟')!;
       expect(godSlayerCard).toBeDefined();
 
       const combatState: GameState = {

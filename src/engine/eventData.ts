@@ -1,5 +1,5 @@
 import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent, OccupationId } from '../types/game';
-import { TIER_2_CARDS, TIER_3_CARDS } from './cardTiers';
+import { CardRegistry } from './cards/registry';
 import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
 
 /* =========================================================
@@ -623,16 +623,16 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1, occupationId?
   switch (depth) {
     case 2: {
       const card1: Card = occupationId === 'occultist'
-        ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' }
-        : { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_pump_shotgun')!, id: 'card_market_pump_shotgun' };
+        ? { ...CardRegistry.getCardById('card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' }
+        : { ...CardRegistry.getCardById('card_tier2_pump_shotgun')!, id: 'card_market_pump_shotgun' };
       const card2: Card = occupationId === 'occultist'
-        ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_mind_shock')!, id: 'card_market_mind_shock' }
-        : { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_iron_will')!, id: 'card_market_iron_will' };
+        ? { ...CardRegistry.getCardById('card_tier2_mind_shock')!, id: 'card_market_mind_shock' }
+        : { ...CardRegistry.getCardById('card_tier2_iron_will')!, id: 'card_market_iron_will' };
       const card3: Card = occupationId === 'occultist'
-        ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
+        ? { ...CardRegistry.getCardById('card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
         : (occupationId === 'investigator'
-            ? { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
-            : { ...TIER_2_CARDS.find((c) => c.id === 'card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' });
+            ? { ...CardRegistry.getCardById('card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
+            : { ...CardRegistry.getCardById('card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' });
 
       return [
         {
@@ -681,16 +681,16 @@ export function generateMarketItemsForDepth(depth: DepthLevel = 1, occupationId?
     case 3:
     case 4: {
       const card1: Card = occupationId === 'occultist'
-        ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_void_collapse')!, id: 'card_market_void_collapse' }
-        : { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_dum_dum')!, id: 'card_market_dum_dum' };
+        ? { ...CardRegistry.getCardById('card_tier3_void_collapse')!, id: 'card_market_void_collapse' }
+        : { ...CardRegistry.getCardById('card_tier3_dum_dum')!, id: 'card_market_dum_dum' };
       const card2: Card = occupationId === 'occultist'
-        ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_psionic_cleave')!, id: 'card_market_psionic_cleave' }
-        : { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_impenetrable_bastion')!, id: 'card_market_bastion' };
+        ? { ...CardRegistry.getCardById('card_tier3_psionic_cleave')!, id: 'card_market_psionic_cleave' }
+        : { ...CardRegistry.getCardById('card_tier3_impenetrable_bastion')!, id: 'card_market_bastion' };
       const card3: Card = occupationId === 'occultist'
-        ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_star_resonance')!, id: 'card_market_star_resonance' }
+        ? { ...CardRegistry.getCardById('card_tier3_star_resonance')!, id: 'card_market_star_resonance' }
         : (occupationId === 'investigator'
-            ? { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_demolition_pack')!, id: 'card_market_demolition_pack' }
-            : { ...TIER_3_CARDS.find((c) => c.id === 'card_tier3_void_collapse')!, id: 'card_market_void_collapse' });
+            ? { ...CardRegistry.getCardById('card_tier3_demolition_pack')!, id: 'card_market_demolition_pack' }
+            : { ...CardRegistry.getCardById('card_tier3_void_collapse')!, id: 'card_market_void_collapse' });
 
       return [
         {

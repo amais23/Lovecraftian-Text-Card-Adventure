@@ -15,7 +15,6 @@ export const INITIAL_INVESTIGATOR: Investigator = {
 };
 
 import { CardRegistry } from './cards/registry';
-import { TIER_1_CARDS } from './cardTiers';
 
 export const INVESTIGATOR_DECK: Card[] = CardRegistry.getStarterDeck('investigator');
 export const OCCULTIST_DECK: Card[] = CardRegistry.getStarterDeck('occultist');
@@ -72,17 +71,16 @@ export const OCCUPATIONS: Record<'investigator' | 'occultist', OccupationDefinit
   },
 };
 
-export const REWARD_CARD_POOL: Card[] = TIER_1_CARDS;
+export const REWARD_CARD_POOL: Card[] = CardRegistry.getCardsByTier(1);
 
 import { fisherYatesShuffle } from './shuffleUtils';
 export { fisherYatesShuffle };
 
 /**
- * 隨機抽取 count 張不重複的戰後獎勵卡牌（使用 Fisher-Yates 無偏洗牌）
+ * 隨機抽取 count 張不重複的戰後獎勵卡牌（委託 CardRegistry）
  */
 export function generateRewardCards(count: number = 3, randomFn: () => number = Math.random): Card[] {
-  const shuffled = fisherYatesShuffle(REWARD_CARD_POOL, randomFn);
-  return shuffled.slice(0, Math.min(count, shuffled.length)).map((c: Card) => ({ ...c }));
+  return CardRegistry.generateRewardCards({ depth: 1, count, randomFn });
 }
 
 // Temporary card factories and templates are defined in cardFactory.ts

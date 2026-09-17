@@ -6,7 +6,7 @@ import {
   CARD_NAME_ALIASES,
   WIP_TIERED_CARD_NAMES,
 } from './cardArtworks';
-import { ALL_TIERED_CARDS } from './cardTiers';
+import { getAllTieredCards } from './cards/registry';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
@@ -162,7 +162,7 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
   });
 
   it('should resolve dedicated artworks for all tiered cards (Tier 1 through Tier 4+)', () => {
-    for (const card of ALL_TIERED_CARDS) {
+    for (const card of getAllTieredCards()) {
       const art = getCardArtwork(card);
       expect(art).toBeDefined();
       expect(art.artId).toBeTruthy();

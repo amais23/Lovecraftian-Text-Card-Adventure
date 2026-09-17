@@ -7,7 +7,7 @@ import {
   fuseAbyssalFragments,
   ensureUniqueCardIds,
 } from '../abyssalSeals';
-import { generateRewardCardsForDepth } from '../cardTiers';
+import { generateRewardCards } from '../cards/registry';
 import { fisherYatesShuffle } from '../initialData';
 import { splitDeckToHandAndSanity, DEFAULT_HAND_CAPACITY } from '../combat';
 import { advanceMapAfterNode } from '../mapGenerator';
@@ -36,7 +36,7 @@ export function generateCombatReward(context: CombatRewardContext): CombatReward
     const { newDeck } = fuseAbyssalFragments(withFrag3);
     const rewardCards =
       context.overrideCards ??
-      generateRewardCardsForDepth(3, true, 3, Math.random, occupationId);
+      generateRewardCards({ depth: 3, isBoss: true, count: 4, occupationId, randomFn: Math.random });
     const rewardObols = context.overrideObols ?? 50;
 
     return {
@@ -53,9 +53,10 @@ export function generateCombatReward(context: CombatRewardContext): CombatReward
 
   const baseObols = isBossFight ? 50 : isElite ? 25 : 15;
   const rewardObols = context.overrideObols ?? baseObols;
+  const rewardCount = isBossFight && currentDepth >= 2 ? 4 : 3;
   const rewardCards =
     context.overrideCards ??
-    generateRewardCardsForDepth(currentDepth, isBossFight, 3, Math.random, occupationId);
+    generateRewardCards({ depth: currentDepth, isBoss: isBossFight, count: rewardCount, occupationId, randomFn: Math.random });
 
   return {
     rewardCards,
