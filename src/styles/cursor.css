@@ -94,6 +94,8 @@ summary,
 }
 
 .card-item.dragging,
+.map-viewport.is-dragging,
+.is-dragging,
 .dragging,
 .grabbing {
   cursor: var(--cursor-grabbing) !important;

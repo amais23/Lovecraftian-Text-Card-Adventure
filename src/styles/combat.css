@@ -983,7 +983,7 @@
 }
 
 .card-item.dragging {
-  cursor: var(--cursor-grab, grab)bing !important;
+  cursor: var(--cursor-grabbing, grabbing) !important;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.95), 0 0 30px var(--gold-glow) !important;
   filter: brightness(1.08);
 }
@@ -2458,7 +2458,7 @@
 }
 
 .map-viewport.vertical-parchment-scroll.is-dragging {
-  cursor: var(--cursor-grab, grab)bing;
+  cursor: var(--cursor-grabbing, grabbing);
   user-select: none;
 }
 

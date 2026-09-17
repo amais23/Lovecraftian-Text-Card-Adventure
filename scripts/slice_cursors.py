@@ -100,14 +100,15 @@ def format_cursor(img: Image.Image, size: int, anchor: str) -> Image.Image:
 def main():
     workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     source_img_path = os.path.join(workspace_root, 'public', 'cursors', 'cursor-sheet.png')
-    raw_source = '/Users/liuchiahan/.gemini/antigravity-ide/brain/4087c956-4308-4aa2-b4da-7bed28e39f52/cur_sprite_sheet_1789632270080.jpg'
+    raw_source = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('CURSOR_RAW_SOURCE', '')
 
     if not os.path.exists(source_img_path):
-        if os.path.exists(raw_source):
+        if raw_source and os.path.exists(raw_source):
             shutil.copyfile(raw_source, source_img_path)
             print(f"Copied raw atlas to {source_img_path}")
         else:
-            print(f"Error: Neither {source_img_path} nor {raw_source} exists.")
+            print(f"Error: Sprite atlas not found at {source_img_path}.")
+            print("Please provide a raw sprite sheet image via CLI: python scripts/slice_cursors.py <path-to-raw-image>")
             sys.exit(1)
 
     atlas_img = Image.open(source_img_path).convert('RGB')
