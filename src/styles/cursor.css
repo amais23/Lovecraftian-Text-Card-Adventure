@@ -1,0 +1,112 @@
+/* ==========================================================================
+   0028. Sanity-Responsive Custom Cursor System (ADR-0028)
+   Hardware-accelerated CSS cursor with zero latency, coupled to sanity state.
+   ========================================================================== */
+
+:root,
+:root[data-sanity-state="normal"] {
+  --cursor-default: -webkit-image-set(url('/cursors/default.png') 1x, url('/cursors/@2x/default.png') 2x) 4 4,
+                    image-set(url('/cursors/default.png') 1x, url('/cursors/@2x/default.png') 2x) 4 4,
+                    url('/cursors/default.png') 4 4,
+                    default;
+
+  --cursor-pointer: -webkit-image-set(url('/cursors/pointer.png') 1x, url('/cursors/@2x/pointer.png') 2x) 4 4,
+                    image-set(url('/cursors/pointer.png') 1x, url('/cursors/@2x/pointer.png') 2x) 4 4,
+                    url('/cursors/pointer.png') 4 4,
+                    pointer;
+
+  --cursor-grab: -webkit-image-set(url('/cursors/grab.png') 1x, url('/cursors/@2x/grab.png') 2x) 16 16,
+                 image-set(url('/cursors/grab.png') 1x, url('/cursors/@2x/grab.png') 2x) 16 16,
+                 url('/cursors/grab.png') 16 16,
+                 grab;
+
+  --cursor-grabbing: -webkit-image-set(url('/cursors/grabbing.png') 1x, url('/cursors/@2x/grabbing.png') 2x) 16 16,
+                     image-set(url('/cursors/grabbing.png') 1x, url('/cursors/@2x/grabbing.png') 2x) 16 16,
+                     url('/cursors/grabbing.png') 16 16,
+                     grabbing;
+
+  --cursor-not-allowed: -webkit-image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 4 4,
+                        image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 4 4,
+                        url('/cursors/disabled.png') 4 4,
+                        not-allowed;
+}
+
+:root[data-sanity-state="madness"] {
+  --cursor-default: -webkit-image-set(url('/cursors/madness-default.png') 1x, url('/cursors/@2x/madness-default.png') 2x) 4 4,
+                    image-set(url('/cursors/madness-default.png') 1x, url('/cursors/@2x/madness-default.png') 2x) 4 4,
+                    url('/cursors/madness-default.png') 4 4,
+                    default;
+
+  --cursor-pointer: -webkit-image-set(url('/cursors/madness-pointer.png') 1x, url('/cursors/@2x/madness-pointer.png') 2x) 4 4,
+                    image-set(url('/cursors/madness-pointer.png') 1x, url('/cursors/@2x/madness-pointer.png') 2x) 4 4,
+                    url('/cursors/madness-pointer.png') 4 4,
+                    pointer;
+
+  --cursor-grab: -webkit-image-set(url('/cursors/madness-grab.png') 1x, url('/cursors/@2x/madness-grab.png') 2x) 16 16,
+                 image-set(url('/cursors/madness-grab.png') 1x, url('/cursors/@2x/madness-grab.png') 2x) 16 16,
+                 url('/cursors/madness-grab.png') 16 16,
+                 grab;
+
+  --cursor-grabbing: -webkit-image-set(url('/cursors/madness-grabbing.png') 1x, url('/cursors/@2x/madness-grabbing.png') 2x) 16 16,
+                     image-set(url('/cursors/madness-grabbing.png') 1x, url('/cursors/@2x/madness-grabbing.png') 2x) 16 16,
+                     url('/cursors/madness-grabbing.png') 16 16,
+                     grabbing;
+
+  --cursor-not-allowed: -webkit-image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 4 4,
+                        image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 4 4,
+                        url('/cursors/madness-disabled.png') 4 4,
+                        not-allowed;
+}
+
+/* Global root cursor */
+html,
+body,
+#root {
+  cursor: var(--cursor-default);
+}
+
+/* Interactive clickables / pointers */
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select,
+summary,
+.clickable,
+.action-btn,
+.choice-btn,
+.tab-btn,
+.filter-btn,
+.nav-btn,
+.end-turn-btn,
+.map-node,
+.card-item.standalone {
+  cursor: var(--cursor-pointer);
+}
+
+/* Cards & Grab states */
+.card-item,
+[data-draggable="true"],
+.grab {
+  cursor: var(--cursor-grab);
+}
+
+.card-item.dragging,
+.dragging,
+.grabbing {
+  cursor: var(--cursor-grabbing) !important;
+}
+
+/* Disabled & Not-allowed states */
+:disabled,
+[disabled],
+[aria-disabled="true"],
+.disabled,
+.locked,
+.not-allowed,
+.end-turn-btn:disabled,
+.end-turn-btn.discarding {
+  cursor: var(--cursor-not-allowed) !important;
+}

@@ -27,7 +27,7 @@
   font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   transition: all 0.2s ease;
 }
@@ -123,7 +123,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.2s ease;
 }
 
@@ -177,7 +177,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text-parchment);
   font-size: 0.76rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.2s ease;
 }
 
@@ -260,7 +260,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: transform 0.2s ease;
 }
 
@@ -353,7 +353,7 @@
   background: transparent;
   border: none;
   color: var(--text-dim);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   padding: 6px;
   border-radius: var(--radius-sm);
   display: flex;

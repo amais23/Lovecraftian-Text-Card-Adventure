@@ -82,7 +82,7 @@
   align-items: center;
   justify-content: center;
   user-select: none;
-  cursor: not-allowed;
+  cursor: var(--cursor-not-allowed, not-allowed);
   overflow: hidden;
   animation: abyssDeathFadeIn 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

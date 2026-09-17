@@ -154,7 +154,7 @@ button,
   border-radius: 50%;
   background: rgba(22, 26, 35, 0.85);
   border: 1px solid var(--border-gold);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
@@ -173,7 +173,7 @@ button,
 
 .typewriter-text-span.typing {
   position: relative;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .typewriter-cursor {

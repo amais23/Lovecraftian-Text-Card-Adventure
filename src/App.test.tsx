@@ -84,4 +84,11 @@ describe('App Onboarding Flow Integration (Issue #13)', () => {
     expect(screen.getByText('深淵正凝視著你 · 喚醒沉睡的心智')).toBeDefined();
     expect(screen.queryByText('命運的十字路口 · 選擇你的調查員')).toBeNull();
   });
+
+  it('synchronizes sanity state to documentElement data-sanity-state and renders CustomCursorAtmosphere (Issue #49)', () => {
+    render(<App />);
+
+    expect(document.documentElement.dataset.sanityState).toBe('normal');
+    expect(screen.getByTestId('custom-cursor-atmosphere')).toBeDefined();
+  });
 });

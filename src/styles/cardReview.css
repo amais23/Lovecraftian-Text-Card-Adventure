@@ -69,7 +69,7 @@
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.2s ease;
 }
 
@@ -116,7 +116,7 @@
   color: #94a3b8;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.2s ease;
 }
 
@@ -192,7 +192,7 @@
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #cbd5e1;
@@ -256,7 +256,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.15s ease;
 }
 
@@ -346,7 +346,7 @@
   background: transparent;
   border: none;
   color: #64748b;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 /* Cards Layout Container */
@@ -659,7 +659,7 @@
   color: #94a3b8;
   font-size: 11px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.15s ease;
 }
 
@@ -769,7 +769,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #94a3b8;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: all 0.2s ease;
 }
 
@@ -1068,7 +1068,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
