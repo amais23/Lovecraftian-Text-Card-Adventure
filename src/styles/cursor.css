@@ -25,9 +25,9 @@
                      url('/cursors/grabbing.png') 16 16,
                      grabbing;
 
-  --cursor-not-allowed: -webkit-image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 4 4,
-                        image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 4 4,
-                        url('/cursors/disabled.png') 4 4,
+  --cursor-not-allowed: -webkit-image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 16 16,
+                        image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 16 16,
+                        url('/cursors/disabled.png') 16 16,
                         not-allowed;
 }
 
@@ -52,9 +52,9 @@
                      url('/cursors/madness-grabbing.png') 16 16,
                      grabbing;
 
-  --cursor-not-allowed: -webkit-image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 4 4,
-                        image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 4 4,
-                        url('/cursors/madness-disabled.png') 4 4,
+  --cursor-not-allowed: -webkit-image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 16 16,
+                        image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 16 16,
+                        url('/cursors/madness-disabled.png') 16 16,
                         not-allowed;
 }
 

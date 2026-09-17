@@ -30,25 +30,27 @@ Accepted（補充 ADR-0006、ADR-0013、ADR-0020 與 ADR-0021）
 - **常態探索（Normal State）**：典雅黃銅金（`--border-gold-bright`）與黑皮革質感。
   - `default`：1920s 雕花黃銅羅盤指針（探索與常態移動）。
   - `pointer`：伸出之黑皮革手套指尖或羽毛筆尖，微泛金光（按鈕、可點擊節點、可打出手牌）。
-  - `grab` / `grabbing`：皮革手套半握/緊抓姿態（戰鬥手牌拖曳出牌）。
+  - `grab`：皮革手套半握姿態（可抓取卡牌/節點懸停）。
+  - `grabbing`：皮革手套緊抓姿態（戰鬥手牌拖曳出牌、地圖視角抓取移動）。
   - `not-allowed`：封閉黃銅鎖具或禁錮印記（費用不足或不可交互）。
 - **瘋狂異化（Madness State）**：幽光深淵紫（`--color-sanity`）與暗影骨針。
   - `default`：扭曲的古神黑曜石骨針，周圍纏繞細微觸鬚。
   - `pointer`：延伸刺探的異界觸鬚尖端，泛起暗紫光暈。
-  - `grab` / `grabbing`：深淵觸鬚盤旋抓攫姿態。
+  - `grab`：深淵觸鬚半握盤旋姿態（懸停）。
+  - `grabbing`：深淵觸鬚緊緊纏繞抓攫姿態（拖曳出牌）。
   - `not-allowed`：血色舊神咒印封印。
 
 ### 2. 統一精靈圖集與切片規格 (Unified Sprite Atlas & Dual-Spec Resolution)
 
-- **AI 圖集生成規格**：單張 1024x1024 影像，內含 4 欄 × 2 列（共 8 格）之等距游標設計，在純色高對比背景下生成。
-- **自動化切圖與去背**：透過專屬切圖工具（`scratch/slice_cursors.py`），進行色度去背、邊緣抗鋸齒處理與居中裁剪。
+- **AI 圖集生成規格**：單張 1024x512 影像（或 1024x1024 原型矩陣），內含 4 欄 × 2 列（共 8 格核心基準，另切出 grabbing 雙態共 10 款完整姿態），在純色高對比背景下生成。
+- **自動化切圖與去背**：透過專屬切圖工具（`scripts/slice_cursors.py`），進行色度去背、邊緣抗鋸齒處理與居中裁剪。
 - **高清雙軌輸出**：
   - 標準規格：`32x32` 像素 PNG，存放在 `public/cursors/`，確保所有瀏覽器引擎最佳相容性。
   - Retina @2x 規格：`64x64` 像素 PNG，存放在 `public/cursors/@2x/`，供高 DPI 顯示器精緻呈現。
 - **熱點座標（Hotspots）標準**：
   - `default` / `pointer`：熱點錨定於左上方尖端 `(4, 4)`（64px 則為 `(8, 8)`）。
   - `grab` / `grabbing`：熱點錨定於中心抓握點 `(16, 16)`（64px 則為 `(32, 32)`）。
-  - `not-allowed`：熱點錨定於圖形中心或左上。
+  - `not-allowed`：熱點錨定於圖形中心 `(16, 16)`（64px 則為 `(32, 32)`）。
 
 ### 3. 深度混成架構（Deep Hybrid Architecture）
 
@@ -60,14 +62,14 @@ Accepted（補充 ADR-0006、ADR-0013、ADR-0020 與 ADR-0021）
       --cursor-pointer: url('/cursors/pointer.png') 4 4, pointer;
       --cursor-grab: url('/cursors/grab.png') 16 16, grab;
       --cursor-grabbing: url('/cursors/grabbing.png') 16 16, grabbing;
-      --cursor-not-allowed: url('/cursors/disabled.png') 4 4, not-allowed;
+      --cursor-not-allowed: url('/cursors/disabled.png') 16 16, not-allowed;
     }
     :root[data-sanity-state="madness"] {
       --cursor-default: url('/cursors/madness-default.png') 4 4, default;
       --cursor-pointer: url('/cursors/madness-pointer.png') 4 4, pointer;
       --cursor-grab: url('/cursors/madness-grab.png') 16 16, grab;
       --cursor-grabbing: url('/cursors/madness-grabbing.png') 16 16, grabbing;
-      --cursor-not-allowed: url('/cursors/madness-disabled.png') 4 4, not-allowed;
+      --cursor-not-allowed: url('/cursors/madness-disabled.png') 16 16, not-allowed;
     }
     ```
   - 原有 UI 元件（按鈕、卡牌、大地圖節點）**完全不需修改既有 class 或 inline-style**，維持純淨低耦合。

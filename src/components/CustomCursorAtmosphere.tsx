@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 
 export interface CustomCursorAtmosphereProps {
   isMadness?: boolean;
-  sanityState?: 'normal' | 'madness';
 }
 
 interface Particle {
@@ -23,17 +22,13 @@ const MADNESS_PALETTE = ['#9d4edd', '#c77dff', '#7b2cbf', '#e0aaff', '#5a189a'];
 
 export const CustomCursorAtmosphere: React.FC<CustomCursorAtmosphereProps> = ({
   isMadness = false,
-  sanityState,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const activeSanityState = sanityState ?? (isMadness ? 'madness' : 'normal');
-  const isMadnessActive = activeSanityState === 'madness';
-
-  const madnessRef = useRef(isMadnessActive);
+  const madnessRef = useRef(isMadness);
 
   useEffect(() => {
-    madnessRef.current = isMadnessActive;
-  }, [isMadnessActive]);
+    madnessRef.current = isMadness;
+  }, [isMadness]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

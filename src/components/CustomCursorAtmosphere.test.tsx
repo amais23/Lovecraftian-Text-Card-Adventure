@@ -113,8 +113,8 @@ describe('CustomCursorAtmosphere (ADR-0028)', () => {
     }).not.toThrow();
   });
 
-  it('supports explicit sanityState prop and handles canvas window resize', () => {
-    const { getByTestId, rerender } = render(<CustomCursorAtmosphere sanityState="normal" />);
+  it('handles canvas window resize and dynamic sanity toggling', () => {
+    const { getByTestId, rerender } = render(<CustomCursorAtmosphere isMadness={false} />);
     const canvas = getByTestId('custom-cursor-atmosphere') as HTMLCanvasElement;
 
     expect(canvas).toBeDefined();
@@ -126,8 +126,8 @@ describe('CustomCursorAtmosphere (ADR-0028)', () => {
     expect(canvas.width).toBe(1920);
     expect(canvas.height).toBe(1080);
 
-    // Switch to madness via sanityState prop
-    rerender(<CustomCursorAtmosphere sanityState="madness" />);
+    // Switch to madness
+    rerender(<CustomCursorAtmosphere isMadness={true} />);
     expect(() => {
       fireEvent.mouseMove(window, { clientX: 300, clientY: 400 });
       fireEvent.mouseDown(window, { clientX: 300, clientY: 400 });
