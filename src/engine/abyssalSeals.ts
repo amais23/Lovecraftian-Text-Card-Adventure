@@ -47,12 +47,13 @@ export const COMPLETE_ANCIENT_SEAL: Card = {
   costValue: 0,
   isTemporary: false,
   tier: 4,
+  keywords: ['innate'],
   effects: [
     { type: 'restore_sanity', value: 10 },
     { type: 'armor', value: 20 },
     { type: 'add_to_deck', value: 5 },
   ],
-  description: '洗回 10 張卡牌，獲得 20 點護甲，向理智牌庫注入 5 張真相卡牌。',
+  description: '【固有】洗回 10 張卡牌至理智牌庫，獲得 20 點護甲，向理智牌庫注入 5 張真相卡牌。終極首領神性未破（生命大於 1 點）前無法打出；生命降至 1 點時解鎖釋放，打出即引發太古星辰終極封滅。',
   flavorText: '「當三枚殘片嵌合的剎那，深淵的污穢化為純淨真理，虛空裂隙為之洞開。」',
 };
 

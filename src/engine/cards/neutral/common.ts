@@ -33,7 +33,7 @@ export const NEUTRAL_CARDS: Card[] = [
       { type: 'armor', value: 3 },
       { type: 'restore_sanity', value: 2 },
     ],
-    description: '獲得 3 點護甲，洗回 2 張卡牌。',
+    description: '獲得 3 點護甲，洗回 2 張卡牌至理智牌庫。',
     flavorText: '「酒精與繃帶能穩固搖搖欲墜的精神防線。」',
   },
   {
@@ -121,7 +121,7 @@ export const NEUTRAL_CARDS: Card[] = [
       { type: 'armor', value: 6 },
       { type: 'restore_sanity', value: 3 },
     ],
-    description: '獲得 6 點護甲，洗回 3 張卡牌。',
+    description: '獲得 6 點護甲，洗回 3 張卡牌至理智牌庫。',
     flavorText: '「即便手指被寒風凍得發僵，依然熟練地穿針引線，穩住潰散的精神防線。」',
   },
 
@@ -140,7 +140,7 @@ export const NEUTRAL_CARDS: Card[] = [
       { type: 'armor', value: 8 },
       { type: 'restore_sanity', value: 5 },
     ],
-    description: '獲得 8 點護甲，洗回 5 張卡牌。',
+    description: '獲得 8 點護甲，洗回 5 張卡牌至理智牌庫。',
     flavorText: '「以古代舊印銘文將狂暴渙散的心靈死死固定在理性之錨上。」',
   },
 

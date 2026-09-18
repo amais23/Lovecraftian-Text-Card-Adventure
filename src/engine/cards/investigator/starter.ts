@@ -1,112 +1,103 @@
 import type { Card } from '../../../types/game';
 
 /**
+ * 輔助內部函式：基於卡牌原型快速衍生帶有不同 ID 與小說敘事的卡牌變體
+ */
+function createStarterVariant(
+  base: Omit<Card, 'id' | 'flavorText'>,
+  id: string,
+  flavorText: string
+): Card {
+  return {
+    ...base,
+    id,
+    flavorText,
+  };
+}
+
+const BASE_REVOLVER: Omit<Card, 'id' | 'flavorText'> = {
+  name: '左輪射擊',
+  category: 'combat',
+  costType: 'stamina',
+  costValue: 1,
+  isTemporary: false,
+  tier: 1,
+  occupations: ['investigator'],
+  artworkUrl: '/cards/combat/card_revolver.webp',
+  effects: [
+    { type: 'damage', value: 5 },
+    { type: 'draw', value: 1, condition: { type: 'target_has_status', statusType: 'vulnerable' } },
+  ],
+  description: '造成 5 點物理傷害；若目標處於【易傷】狀態，立即抽取 1 張卡牌。',
+};
+
+const BASE_PUNCH: Omit<Card, 'id' | 'flavorText'> = {
+  name: '重拳壓制',
+  category: 'combat',
+  costType: 'stamina',
+  costValue: 1,
+  isTemporary: false,
+  tier: 1,
+  occupations: ['investigator'],
+  artworkUrl: '/cards/combat/card_punch.webp',
+  effects: [
+    { type: 'damage', value: 4 },
+    {
+      type: 'apply_status',
+      target: 'enemy',
+      statusType: 'weak',
+      value: 1,
+      condition: { type: 'enemy_intent_is_attack' },
+    },
+  ],
+  description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
+};
+
+const BASE_CANE: Omit<Card, 'id' | 'flavorText'> = {
+  name: '鉛頭手杖',
+  category: 'combat',
+  costType: 'stamina',
+  costValue: 1,
+  isTemporary: false,
+  tier: 1,
+  occupations: ['investigator'],
+  artworkUrl: '/cards/combat/card_cane.webp',
+  effects: [
+    { type: 'damage', value: 4 },
+    { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 1 },
+  ],
+  description: '造成 4 點物理傷害，施加 1 層【易傷】（每層使受到的物理傷害 +1）。',
+};
+
+/**
  * 愛德華·皮爾斯（私家偵探）起始牌組卡牌 (12 張)
  */
 export const INVESTIGATOR_STARTER_CARDS: Card[] = [
-  {
-    id: 'card_revolver_1',
-    name: '左輪射擊',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [
-      { type: 'damage', value: 5 },
-      { type: 'draw', value: 1, condition: { type: 'target_has_status', statusType: 'vulnerable' } },
-    ],
-    description: '造成 5 點物理傷害；若目標處於【易傷】狀態，立即抽取 1 張卡牌。',
-    flavorText: '「點38子彈出膛的火光，是這座潮濕地窖中唯一的真實。」',
-  },
-  {
-    id: 'card_revolver_2',
-    name: '左輪射擊',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_revolver.webp',
-    effects: [
-      { type: 'damage', value: 5 },
-      { type: 'draw', value: 1, condition: { type: 'target_has_status', statusType: 'vulnerable' } },
-    ],
-    description: '造成 5 點物理傷害；若目標處於【易傷】狀態，立即抽取 1 張卡牌。',
-    flavorText: '「清脆的擊錘聲在腐臭的空氣中迴盪。」',
-  },
-  {
-    id: 'card_punch_1',
-    name: '重拳壓制',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_punch.webp',
-    effects: [
-      { type: 'damage', value: 4 },
-      {
-        type: 'apply_status',
-        target: 'enemy',
-        statusType: 'weak',
-        value: 1,
-        condition: { type: 'enemy_intent_is_attack' },
-      },
-    ],
-    description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
-    flavorText: '「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」',
-  },
-  {
-    id: 'card_punch_2',
-    name: '重拳壓制',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_punch.webp',
-    effects: [
-      { type: 'damage', value: 4 },
-      {
-        type: 'apply_status',
-        target: 'enemy',
-        statusType: 'weak',
-        value: 1,
-        condition: { type: 'enemy_intent_is_attack' },
-      },
-    ],
-    description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
-    flavorText: '「皮肉撞擊的沉悶聲響令人作嘔。」',
-  },
-  {
-    id: 'card_punch_3',
-    name: '重拳壓制',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_punch.webp',
-    effects: [
-      { type: 'damage', value: 4 },
-      {
-        type: 'apply_status',
-        target: 'enemy',
-        statusType: 'weak',
-        value: 1,
-        condition: { type: 'enemy_intent_is_attack' },
-      },
-    ],
-    description: '造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。',
-    flavorText: '「凡人的關節在哀鳴，但你別無選擇。」',
-  },
+  createStarterVariant(
+    BASE_REVOLVER,
+    'card_revolver_1',
+    '「點38子彈出膛的火光，是這座潮濕地窖中唯一的真實。」'
+  ),
+  createStarterVariant(
+    BASE_REVOLVER,
+    'card_revolver_2',
+    '「清脆的擊錘聲在腐臭的空氣中迴盪。」'
+  ),
+  createStarterVariant(
+    BASE_PUNCH,
+    'card_punch_1',
+    '「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」'
+  ),
+  createStarterVariant(
+    BASE_PUNCH,
+    'card_punch_2',
+    '「皮肉撞擊的沉悶聲響令人作嘔。」'
+  ),
+  createStarterVariant(
+    BASE_PUNCH,
+    'card_punch_3',
+    '「凡人的關節在哀鳴，但你別無選擇。」'
+  ),
   {
     id: 'card_bayonet_1',
     name: '軍刀突刺',
@@ -125,43 +116,19 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
         condition: { type: 'target_has_status', statusType: 'vulnerable', bonusValue: 4 },
       },
     ],
-    description: '造成 9 點物理傷害（真實穿刺，無視護甲直扣生命）；若目標帶有【易傷】，傷害提升至 13 點。',
+    description: '造成 9 點物理傷害（真實穿刺，無視護甲直扣生命值）；若目標處於【易傷】狀態，傷害提升至 13 點。',
     flavorText: '「帶著軍旅生涯的殘留記憶，你將鋒利的刺刀狠命扎入敵人的腐肉。」',
   },
-  {
-    id: 'card_cane_1',
-    name: '鉛頭手杖',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_cane.webp',
-    effects: [
-      { type: 'damage', value: 4 },
-      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 1 },
-    ],
-    description: '造成 4 點物理傷害，施加 1 層【易傷】（每層使受到的物理傷害 +1）。',
-    flavorText: '「紳士的防身行頭，手杖內部灌滿了實心黑鉛。」',
-  },
-  {
-    id: 'card_cane_2',
-    name: '鉛頭手杖',
-    category: 'combat',
-    costType: 'stamina',
-    costValue: 1,
-    isTemporary: false,
-    tier: 1,
-    occupations: ['investigator'],
-    artworkUrl: '/cards/combat/card_cane.webp',
-    effects: [
-      { type: 'damage', value: 4 },
-      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 1 },
-    ],
-    description: '造成 4 點物理傷害，施加 1 層【易傷】（每層使受到的物理傷害 +1）。',
-    flavorText: '「精準打擊關節，讓畸形軀體為之頓挫。」',
-  },
+  createStarterVariant(
+    BASE_CANE,
+    'card_cane_1',
+    '「紳士的防身行頭，手杖內部灌滿了實心黑鉛。」'
+  ),
+  createStarterVariant(
+    BASE_CANE,
+    'card_cane_2',
+    '「精準打擊關節，讓畸形軀體為之頓挫。」'
+  ),
   {
     id: 'card_cover_1',
     name: '就地掩蔽',
@@ -208,7 +175,7 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
       { type: 'restore_sanity', value: 2 },
       { type: 'cleanse_debuffs', value: 1 },
     ],
-    description: '洗回 2 張卡牌至理智牌庫，並淨化自身所有負面印記各 1 層。',
+    description: '洗回 2 張卡牌至理智牌庫，並淨化自身所有負面狀態印記各 1 層。',
     flavorText: '「刺鼻的化學藥劑推入靜脈，混亂的囈語暫時歸於死寂。」',
   },
   {

@@ -69,7 +69,7 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
         condition: { type: 'low_sanity', threshold: 4, bonusValue: 6 },
       },
     ],
-    description: '造成 8 點秘術傷害；理智牌庫每減少 1 張傷害提升 1 點；若剩餘理智 <= 4 張，額外追加 6 點崩潰傷害。',
+    description: '造成 8 點秘術傷害；理智牌庫每減少 1 張卡牌，傷害提升 1 點；若剩餘理智不高於 4 張，額外追加 6 點秘術傷害。',
     flavorText: '「當神智步入崩解的邊緣，自異界倒灌的尖嘯將化為摧毀物質的狂亂利刃。」',
   },
   {
@@ -103,7 +103,7 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     occupations: ['occultist'],
     artworkUrl: '/cards/magic/card_abyssal_detonation.png',
     effects: [{ type: 'damage', value: 10, scaleFrom: 'status_stacks', scaleMultiplier: 3 }],
-    description: '造成 10 點秘術傷害，目標身上每有 1 層【流血】或【恐慌】印記，額外造成 3 點傷害。',
+    description: '造成 10 點秘術傷害，目標身上每有 1 層【流血】或【恐慌】印記，額外造成 3 點秘術傷害。',
     flavorText: '「引動敵人體內沸騰的詛咒印記，在皮肉與神經深處引爆深淵連鎖共鳴。」',
   },
   {

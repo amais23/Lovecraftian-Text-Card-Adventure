@@ -37,7 +37,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
       { type: 'draw', value: 1, condition: { type: 'first_card_played' } },
       { type: 'gain_stamina', value: 1, condition: { type: 'first_card_played' } },
     ],
-    description: '造成 6 點物理傷害；若為本回合打出的首張卡牌，返還 1 點精力並抽 1 張牌。',
+    description: '造成 6 點物理傷害；若為本回合打出的首張卡牌，回復 1 點精力並抽取 1 張卡牌。',
     flavorText: '「肌肉記憶超越了大腦對恐懼的本能遲疑。」',
   },
   {
@@ -68,7 +68,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_double_tap.png',
     effects: [{ type: 'damage', value: 4, hitCount: 2 }],
-    description: '造成 4 點物理傷害 × 2 段（每段獨立享受力量與易傷加成）。',
+    description: '造成 4 點物理傷害 × 2 段（每段獨立享受【力量】與【易傷】印記加成）。',
     flavorText: '「在怪物撲上前，兩顆子彈已帶著火光精準破膛而出。」',
   },
   {
@@ -86,7 +86,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
       { type: 'armor', value: 6 },
       { type: 'apply_status', statusType: 'might', value: 2, target: 'self' },
     ],
-    description: '【起手必抽】【消耗】獲得 6 點護甲與 2 層【力量】印記。開局起手必抽，打出後移出戰鬥。',
+    description: '【固有】【消耗】獲得 6 點護甲與 2 層【力量】印記。開局必定抽至手中，打出後移出戰鬥。',
     flavorText: '「在壕溝戰中淬煉出的死亡嗅覺，讓你比怪物更快進入備戰狀態。」',
   },
 
@@ -102,7 +102,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_shield_slam.png',
     effects: [{ type: 'damage', value: 4, scaleFrom: 'armor', scaleMultiplier: 1.0 }],
-    description: '造成 4 點物理傷害，並附加等同於當前護甲的 100% 衝擊傷害。',
+    description: '造成 4 點物理傷害，並附加等同於當前護甲 100% 的額外物理傷害。',
     flavorText: '「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」',
   },
   {
@@ -172,7 +172,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
       { type: 'damage', value: 6, hitCount: 4 },
       { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 2 },
     ],
-    description: '造成 6 點物理傷害 × 4 段（共 24 傷）；並使目標陷入 2 層【易傷】狀態。',
+    description: '造成 6 點物理傷害 × 4 段（共計 24 點物理傷害），並使目標陷入 2 層【易傷】狀態。',
     flavorText: '「開花彈在接觸肉體的瞬間引爆，即便是舊日支配者的僕從亦難以承受此等破壞力。」',
   },
   {
@@ -191,8 +191,8 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
       { type: 'apply_status', target: 'enemy', statusType: 'bleed', value: 3 },
       { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 2 },
     ],
-    description: '造成 40 點物理傷害，並對目標施加 3 層【流血】與 2 層【易傷】。',
-    flavorText: '「凡人科技的極致破壞力，在太古黑石祭壇上炸出耀眼的硝煙火海。」',
+    description: '造成 40 點物理傷害，並對目標施加 3 層【流血】與 2 層【易傷】。【消耗】打出後移出戰鬥。',
+    flavorText: '「工兵守則第一條：只要裝藥足夠，世上沒有炸不開的門——也沒有炸不死的怪物。」',
   },
   {
     id: 'card_tier3_impenetrable_bastion',
@@ -221,7 +221,7 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_revolver.webp',
     effects: [{ type: 'damage', value: 5, hitCount: 6, piercing: true }],
-    description: '造成 5 點物理傷害 × 6 段（真實穿刺，無視護甲直扣生命）。',
+    description: '造成 5 點物理傷害 × 6 段（真實穿刺，無視護甲直扣生命值）。',
     flavorText: '「凡人的工藝與禁忌秘銀在此刻昇華，這一擊的威力足以讓舊日支配者的血脈為之顫慄。」',
   },
 ];

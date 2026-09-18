@@ -1333,8 +1333,8 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
     expect(new Set(shuffled)).toEqual(new Set(original));
   });
 
-  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆, 固有, 戰術牌) across all cards and occupations', () => {
-    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆|固有|戰術牌|戰術卡/;
+  it('ensures zero forbidden domain terms (護盾, 招架, 格擋, 狂暴, 血量, 體力, 抽牌堆, 固有卡, 戰術牌) across all cards and occupations', () => {
+    const forbiddenRegex = /護盾|招架|格擋|狂暴|血量|體力|抽牌堆|固有卡|戰術牌|戰術卡/;
 
     const allCardsToCheck = [
       ...INVESTIGATOR_DECK,
