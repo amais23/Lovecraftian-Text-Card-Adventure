@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import type { Card } from '../../types/game';
 import { CardRegistry } from './registry';
 import { ALL_ABYSSAL_CARDS } from './special/abyssal';
 
 describe('Card Consistency & Terminology Verification (ADR-0001, ADR-0005, ADR-0015, ADR-0019, ADR-0024)', () => {
   // Aggregate all unique cards across canonical compendium, starter decks, and special cards
-  const allCards = (() => {
-    const map = new Map<string, typeof CardRegistry extends { getCardById: (id: string) => infer C } ? C : never>();
+  const allCards: Card[] = (() => {
+    const map = new Map<string, Card>();
     for (const card of CardRegistry.getAllCompendiumCards()) {
       map.set(card.id, card);
     }
@@ -170,8 +171,10 @@ describe('Card Consistency & Terminology Verification (ADR-0001, ADR-0005, ADR-0
       expect(seal).toBeDefined();
       expect(seal?.keywords).toContain('innate');
       expect(seal?.description).toContain('【固有】');
+      expect(seal?.description).toContain('開局必定抽至手中');
       expect(seal?.description).toContain('理智牌庫');
-      expect(seal?.description).toContain('生命大於 1 點');
+      expect(seal?.description).toContain('生命值大於 1 點');
+      expect(seal?.description).toContain('生命值降至 1 點');
       expect(seal?.description).toContain('太古星辰終極封滅');
     });
   });

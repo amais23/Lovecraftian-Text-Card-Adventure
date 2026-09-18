@@ -122,3 +122,18 @@ export function createTruthInjectedCards(
   }
   return cards;
 }
+
+/**
+ * 輔助函式：基於卡牌原型快速衍生帶有不同 ID 與小說敘事的卡牌變體
+ */
+export function createStarterVariant(
+  base: Omit<Card, 'id' | 'flavorText'>,
+  id: string,
+  flavorText: string
+): Card {
+  return {
+    ...base,
+    id,
+    flavorText,
+  };
+}

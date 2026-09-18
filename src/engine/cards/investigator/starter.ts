@@ -1,19 +1,5 @@
 import type { Card } from '../../../types/game';
-
-/**
- * 輔助內部函式：基於卡牌原型快速衍生帶有不同 ID 與小說敘事的卡牌變體
- */
-function createStarterVariant(
-  base: Omit<Card, 'id' | 'flavorText'>,
-  id: string,
-  flavorText: string
-): Card {
-  return {
-    ...base,
-    id,
-    flavorText,
-  };
-}
+import { createStarterVariant } from '../../cardFactory';
 
 const BASE_REVOLVER: Omit<Card, 'id' | 'flavorText'> = {
   name: '左輪射擊',
