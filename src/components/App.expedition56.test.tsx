@@ -11,12 +11,14 @@ import { evaluateCardPlay } from '../engine/cards/evaluator';
 import { OCCULTIST_REWARD_CARDS } from '../engine/cards/occultist/rewards';
 import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
 import type { CardPlayContext } from '../engine/cards/types';
-import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode } from '../types/game';
+import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 import { generateProceduralInvestigationMap } from '../engine/mapGenerator';
-import { MARKET_PURGE_COST, DEPTH_EVENT_POOLS } from '../engine/eventData';
+import { MARKET_PURGE_COST, DEPTH_EVENT_POOLS, getMythosEventsForDepth } from '../engine/eventData';
 import {
   ABYSSAL_FRAGMENT_1,
   ABYSSAL_FRAGMENT_2,
+  COMPLETE_ANCIENT_SEAL,
+  getAllPermanentCards,
   hasBothAbyssalFragments,
 } from '../engine/abyssalSeals';
 
@@ -521,7 +523,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       };
     }
 
-    function findProceduralMapWithNodeType(type: 'blood_altar' | 'altar' | 'vault' | 'market'): InvestigationMap {
+    function findProceduralMapWithNodeType(type: MapNodeType): InvestigationMap {
       for (let seed = 1; seed <= 50; seed++) {
         const map = generateProceduralInvestigationMap({ depth: 1, seed });
         const nodes = Object.values(map.nodes) as MapNode[];
@@ -530,6 +532,15 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
         }
       }
       throw new Error(`無法在種子 1~50 中檢索到包含原生 ${type} 的地圖`);
+    }
+
+    function navigateToProceduralNode(state: GameState, type: MapNodeType): GameState {
+      const map = findProceduralMapWithNodeType(type);
+      let nextState: GameState = { ...state, map };
+      const nodes = Object.values(map.nodes) as MapNode[];
+      const targetNode = nodes.find((n) => n.type === type)!;
+      nextState = makeNodeAccessible(nextState, targetNode.id);
+      return gameReducer(nextState, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: targetNode.id } });
     }
 
     function isSafeEventOption(option?: { consequences?: { type: string; value?: number }[] }): boolean {
@@ -545,20 +556,15 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       let nextState = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: node!.id } });
 
       if (node!.type === 'boss') {
-        if (nextState.currentDepth === 3 && !hasBothAbyssalFragments(nextState)) {
-          nextState = {
-            ...nextState,
-            sanityDeck: [
-              ...nextState.sanityDeck,
-              { ...ABYSSAL_FRAGMENT_1 },
-              { ...ABYSSAL_FRAGMENT_2 },
-            ],
-          };
-        }
         nextState = { ...nextState, phase: 'victory' };
         nextState = gameReducer(nextState, { type: 'PROCEED_TO_REWARD' });
         expect(nextState.phase).toBe('reward');
-        nextState = gameReducer(nextState, { type: 'CLAIM_FIELD_DRESSING', payload: { healAmount: 8 } });
+        if (nextState.currentDepth === 1 || nextState.currentDepth === 2) {
+          // Legitimate Abyssal Seal reward choice as specified by ADR-0015
+          nextState = gameReducer(nextState, { type: 'CLAIM_ABYSSAL_SEAL' });
+        } else {
+          nextState = gameReducer(nextState, { type: 'CLAIM_FIELD_DRESSING', payload: { healAmount: 8 } });
+        }
         return nextState;
       }
 
@@ -623,6 +629,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
         state = traverseExpeditionFloor(state, layer);
       }
       expect(state.phase).toBe('depth_transition');
+      expect(getAllPermanentCards(state).some((c) => c.id === ABYSSAL_FRAGMENT_1.id)).toBe(true);
 
       // Transition to Depth 2 (16 layers, Innsmouth Coast)
       state = gameReducer(state, { type: 'COMPLETE_DEPTH_TRANSITION' });
@@ -636,6 +643,8 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
         state = traverseExpeditionFloor(state, layer);
       }
       expect(state.phase).toBe('depth_transition');
+      expect(getAllPermanentCards(state).some((c) => c.id === ABYSSAL_FRAGMENT_2.id)).toBe(true);
+      expect(hasBothAbyssalFragments(state)).toBe(true);
 
       // Transition to Depth 3
       state = gameReducer(state, { type: 'COMPLETE_DEPTH_TRANSITION' });
@@ -650,6 +659,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       }
       expect(state.phase).toBe('depth_transition');
       expect(state.abyssalSealFused).toBe(true);
+      expect(getAllPermanentCards(state).some((c) => c.name === COMPLETE_ANCIENT_SEAL.name)).toBe(true);
 
       // Transition to Depth 4 (R'lyeh, 8 layers)
       state = gameReducer(state, { type: 'COMPLETE_DEPTH_TRANSITION' });
@@ -754,6 +764,48 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
         state = gameReducer(state, { type: 'COMPLETE_EVENT' });
         expect(state.phase).toBe('map');
       }
+
+      // 3. Exhaustive branch execution across all 16 depth-stratified events (ADR-0032)
+      for (const [depthStr, pool] of Object.entries(DEPTH_EVENT_POOLS)) {
+        const depth = Number(depthStr) as DepthLevel;
+        const eventsForDepth = getMythosEventsForDepth(depth);
+        expect(eventsForDepth).toHaveLength(pool.length);
+
+        for (const evt of eventsForDepth) {
+          expect(evt.options.length).toBeGreaterThanOrEqual(2);
+          for (const opt of evt.options) {
+            expect(opt.id).toBeDefined();
+            expect(opt.consequences.length).toBeGreaterThanOrEqual(1);
+
+            const activeEventState: GameState = {
+              ...createActiveRunState(),
+              currentDepth: depth,
+              phase: 'event',
+              currentEvent: evt,
+              investigator: {
+                ...createActiveRunState().investigator,
+                health: 30,
+                maxHealth: 30,
+                obols: 50,
+              },
+            };
+            const resolvedState = gameReducer(activeEventState, {
+              type: 'RESOLVE_EVENT_OPTION',
+              payload: { optionId: opt.id },
+            });
+            const firstConseq = opt.consequences[0];
+            expect(resolvedState.battleLog.some((log) => log.includes(firstConseq.narrative))).toBe(true);
+
+            if (resolvedState.phase === 'combat') {
+              expect(resolvedState.currentEnemy).toBeDefined();
+            } else {
+              expect(resolvedState.currentEvent?.selectedOptionId).toBe(opt.id);
+              const afterEventState = gameReducer(resolvedState, { type: 'COMPLETE_EVENT' });
+              expect(afterEventState.phase).toBe('map');
+            }
+          }
+        }
+      }
     });
 
     it('verifies dynamic market stock with discounted card, purchase mechanics, and 30-obol card purge', () => {
@@ -817,10 +869,8 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(secondPurgeAttempt).toBe(state);
     });
 
-    it('verifies sanctuary hearth purge, authentic standard altar rituals, authentic blood altar dual branches, and vault desecration with unplayable curse', () => {
+    it('verifies sanctuary hearth purge via authentic DAG navigation', () => {
       let state = createActiveRunState();
-
-      // 1. Sanctuary Hearth Purge via authentic DAG navigation
       const sanctuaryNode = Object.values(state.map!.nodes).find((n) => n.type === 'sanctuary')!;
       state = makeNodeAccessible(state, sanctuaryNode.id);
       state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: sanctuaryNode.id } });
@@ -835,74 +885,77 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(state.sanityDeck.some((c) => c.id === purgedCard.id)).toBe(false);
       state = gameReducer(state, { type: 'LEAVE_SANCTUARY' });
       expect(state.phase).toBe('map');
+    });
 
-      // 2. Authentic Standard Altar Exploration & Ritual Resolution
-      const altarMap = findProceduralMapWithNodeType('altar');
-      let altarState: GameState = { ...state, map: altarMap };
-      const altarNodes = Object.values(altarMap.nodes) as MapNode[];
-      const altarNode = altarNodes.find((n) => n.type === 'altar')!;
-      altarState = makeNodeAccessible(altarState, altarNode.id);
-      altarState = gameReducer(altarState, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: altarNode.id } });
-      expect(altarState.phase).toBe('altar');
-      expect(altarState.altarRituals).toBeDefined();
-      expect(altarState.altarRituals).toHaveLength(3);
+    it('verifies authentic standard altar exploration and ritual resolution', () => {
+      let state = createActiveRunState();
+      state = navigateToProceduralNode(state, 'altar');
+      expect(state.phase).toBe('altar');
+      expect(state.altarRituals).toBeDefined();
+      expect(state.altarRituals).toHaveLength(3);
 
-      const oldMaxHealth = altarState.investigator.maxHealth;
-      altarState = gameReducer(altarState, {
+      const oldMaxHealth = state.investigator.maxHealth;
+      state = gameReducer(state, {
         type: 'USE_ALTAR',
         payload: { optionId: 'flesh' },
       });
-      expect(altarState.altarUsed).toBe(true);
-      expect(altarState.investigator.maxHealth).toBe(oldMaxHealth + 5);
-      altarState = gameReducer(altarState, { type: 'LEAVE_ALTAR' });
-      expect(altarState.phase).toBe('map');
+      expect(state.altarUsed).toBe(true);
+      expect(state.investigator.maxHealth).toBe(oldMaxHealth + 5);
+      state = gameReducer(state, { type: 'LEAVE_ALTAR' });
+      expect(state.phase).toBe('map');
+    });
 
-      // 3. Authentic Blood Altar Dual Branches: Test 'reshape' (1 card + 5 生命值) and 'pure' (2 cards purge)
-      const bloodMap = findProceduralMapWithNodeType('blood_altar');
-      let bloodState: GameState = { ...state, map: bloodMap };
-      const bloodNodes = Object.values(bloodMap.nodes) as MapNode[];
-      const bloodAltarNode = bloodNodes.find((n) => n.type === 'blood_altar')!;
-      bloodState = makeNodeAccessible(bloodState, bloodAltarNode.id);
-      bloodState = gameReducer(bloodState, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bloodAltarNode.id } });
-      expect(bloodState.phase).toBe('blood_altar');
+    it('verifies authentic blood altar reshape and pure sacrifice branches across distinct visits', () => {
+      // (a) Branch 1: 'reshape' on authentic blood altar visit (sacrifice 1 card, restore 5 生命值)
+      let state1 = createActiveRunState();
+      state1 = navigateToProceduralNode(state1, 'blood_altar');
+      expect(state1.phase).toBe('blood_altar');
 
-      // (a) Branch 1: 'reshape' (sacrifice 1 card, restore 5 生命值)
-      bloodState = {
-        ...bloodState,
+      state1 = {
+        ...state1,
         investigator: {
-          ...bloodState.investigator,
+          ...state1.investigator,
           health: 15,
           maxHealth: 30,
         },
       };
-      const reshapeCard = bloodState.sanityDeck[0];
-      bloodState = gameReducer(bloodState, {
+      const permanentCards1 = getAllPermanentCards(state1);
+      const reshapeCard = permanentCards1[0];
+      const countBeforeReshape = permanentCards1.length;
+      state1 = gameReducer(state1, {
         type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
         payload: { cardIds: [reshapeCard.id], branch: 'reshape' },
       });
-      expect(bloodState.bloodAltarUsed).toBe(true);
-      expect(bloodState.investigator.health).toBe(20); // 15 + 5
-      expect(bloodState.sanityDeck.some((c) => c.id === reshapeCard.id)).toBe(false);
+      expect(state1.bloodAltarUsed).toBe(true);
+      expect(state1.investigator.health).toBe(20); // 15 + 5
+      expect(getAllPermanentCards(state1)).toHaveLength(countBeforeReshape - 1);
+      expect(getAllPermanentCards(state1).some((c) => c.id === reshapeCard.id)).toBe(false);
+      state1 = gameReducer(state1, { type: 'LEAVE_BLOOD_ALTAR' });
+      expect(state1.phase).toBe('map');
 
-      // (b) Branch 2: 'pure' (sacrifice 2 cards, permanent deck purge)
-      bloodState = { ...bloodState, bloodAltarUsed: false };
-      const pureCard1 = bloodState.sanityDeck[0];
-      const pureCard2 = bloodState.sanityDeck[1];
-      const deckCountBeforePure = bloodState.sanityDeck.length;
-      bloodState = gameReducer(bloodState, {
+      // (b) Branch 2: 'pure' on distinct authentic blood altar visit (sacrifice 2 cards, permanent deck purge)
+      let state2 = createActiveRunState();
+      state2 = navigateToProceduralNode(state2, 'blood_altar');
+      expect(state2.phase).toBe('blood_altar');
+
+      const permanentCards2 = getAllPermanentCards(state2);
+      const pureCard1 = permanentCards2[0];
+      const pureCard2 = permanentCards2[1];
+      const countBeforePure = permanentCards2.length;
+      state2 = gameReducer(state2, {
         type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
         payload: { cardIds: [pureCard1.id, pureCard2.id], branch: 'pure' },
       });
-      expect(bloodState.bloodAltarUsed).toBe(true);
-      expect(bloodState.sanityDeck).toHaveLength(deckCountBeforePure - 2);
-      expect(bloodState.sanityDeck.some((c) => c.id === pureCard1.id || c.id === pureCard2.id)).toBe(false);
-      bloodState = gameReducer(bloodState, { type: 'LEAVE_BLOOD_ALTAR' });
-      expect(bloodState.phase).toBe('map');
+      expect(state2.bloodAltarUsed).toBe(true);
+      expect(getAllPermanentCards(state2)).toHaveLength(countBeforePure - 2);
+      expect(getAllPermanentCards(state2).some((c) => c.id === pureCard1.id || c.id === pureCard2.id)).toBe(false);
+      state2 = gameReducer(state2, { type: 'LEAVE_BLOOD_ALTAR' });
+      expect(state2.phase).toBe('map');
+    });
 
-      // 4. Authentic Vault Desecration via DAG navigation
-      const vaultNode = Object.values(state.map!.nodes).find((n) => n.type === 'vault')!;
-      state = makeNodeAccessible(state, vaultNode.id);
-      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: vaultNode.id } });
+    it('verifies authentic vault desecration with dual relics and unplayable abyssal curse in combat', () => {
+      let state = createActiveRunState();
+      state = navigateToProceduralNode(state, 'vault');
       expect(state.phase).toBe('vault');
       expect(state.vaultRelics).toBeDefined();
       expect(state.vaultRelics!.length).toBeGreaterThanOrEqual(2);
@@ -990,6 +1043,35 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(nextCombatState.phase).toBe('combat');
       expect(nextCombatState.currentEnemy.id).not.toBe('enemy_ghoul_lurker');
       expect(nextCombatState.lastCombatEnemyId).toBe(nextCombatState.currentEnemy.id);
+    });
+
+    it('verifies responsive UI navigation and screen transitions on 16-floor DAG map with interactive nodes', () => {
+      vi.spyOn(soundEngine, 'playClick').mockImplementation(() => {});
+      vi.spyOn(soundEngine, 'playCardPlay').mockImplementation(() => {});
+      vi.spyOn(soundEngine, 'playHeartbeat').mockImplementation(() => {});
+      vi.spyOn(soundEngine, 'playGunCock').mockImplementation(() => {});
+      vi.spyOn(soundEngine, 'playEngineStart').mockImplementation(() => {});
+
+      render(<App />);
+
+      // Progress through prologue to map
+      fireEvent.click(screen.getByRole('button', { name: /開啟新調查/i }));
+      fireEvent.click(screen.getByRole('button', { name: /選擇調查員/i }));
+      fireEvent.click(screen.getByRole('button', { name: /啟程調查/i }));
+      fireEvent.click(screen.getByRole('button', { name: /踏入調查地圖/i }));
+
+      expect(screen.getByText('第一深度：阿卡姆封鎖區 · 調查路線圖')).toBeDefined();
+      expect(screen.getByText(/進度 1 \/ 16 層/)).toBeDefined();
+
+      // Find accessible node in Layer 0
+      const accessibleNodeCards = document.querySelectorAll('.map-node-card.candle-breathing');
+      expect(accessibleNodeCards.length).toBeGreaterThan(0);
+
+      // Click the first accessible node to enter node encounter screen
+      fireEvent.click(accessibleNodeCards[0]);
+
+      // Node encounter screen rendered: no longer shows the map route title
+      expect(screen.queryByText('第一深度：阿卡姆封鎖區 · 調查路線圖')).toBeNull();
     });
   });
 });
