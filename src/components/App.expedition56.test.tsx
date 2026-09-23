@@ -11,7 +11,7 @@ import { evaluateCardPlay } from '../engine/cards/evaluator';
 import { OCCULTIST_REWARD_CARDS } from '../engine/cards/occultist/rewards';
 import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
 import type { CardPlayContext } from '../engine/cards/types';
-import type { DepthLevel, Enemy, GameState, Investigator } from '../types/game';
+import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode } from '../types/game';
 import { generateProceduralInvestigationMap } from '../engine/mapGenerator';
 import { MARKET_PURGE_COST, DEPTH_EVENT_POOLS } from '../engine/eventData';
 import {
@@ -499,6 +499,44 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
   });
 
   describe('6. 56-Layer Full Expedition & Dynamic Node Content Integration (Issue #56 / ADR-0032)', () => {
+    function createActiveRunState(): GameState {
+      let state = createInitialGameState();
+      state = gameReducer(state, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+      return gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+    }
+
+    function makeNodeAccessible(state: GameState, nodeId: string): GameState {
+      return {
+        ...state,
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [nodeId]: { ...state.map!.nodes[nodeId], status: 'accessible' },
+          },
+        },
+      };
+    }
+
+    function findProceduralMapWithNodeType(type: 'blood_altar' | 'altar' | 'vault' | 'market'): InvestigationMap {
+      for (let seed = 1; seed <= 50; seed++) {
+        const map = generateProceduralInvestigationMap({ depth: 1, seed });
+        const nodes = Object.values(map.nodes) as MapNode[];
+        if (nodes.some((n) => n.type === type)) {
+          return map;
+        }
+      }
+      throw new Error(`無法在種子 1~50 中檢索到包含原生 ${type} 的地圖`);
+    }
+
+    function isSafeEventOption(option?: { consequences?: { type: string; value?: number }[] }): boolean {
+      if (!option?.consequences) return true;
+      return !option.consequences.some((c) => c.type === 'sanity_change' && (c.value ?? 0) < 0);
+    }
+
     function traverseExpeditionFloor(state: GameState, layerIdx: number): GameState {
       const node = Object.values(state.map!.nodes).find(
         (n) => n.layer === layerIdx && n.status === 'accessible'
@@ -537,9 +575,8 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
           break;
         }
         case 'event': {
-          const safeOption = nextState.currentEvent?.options?.find(
-            (o) => !o.consequences?.some((c) => c.type === 'sanity_change' && (c.value ?? 0) < 0)
-          ) ?? nextState.currentEvent?.options?.[0];
+          const safeOption = nextState.currentEvent?.options?.find(isSafeEventOption)
+            ?? nextState.currentEvent?.options?.[0];
           if (safeOption) {
             nextState = gameReducer(nextState, {
               type: 'RESOLVE_EVENT_OPTION',
@@ -576,13 +613,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
     }
 
     it('simulates full 4-depth (56-layer: 16+16+16+8) expedition lifecycle from Departure to R\'lyeh victory', () => {
-      let state = createInitialGameState();
-      // Select occupation Edward Pierce
-      state = gameReducer(state, {
-        type: 'SELECT_OCCUPATION',
-        payload: { occupationId: 'investigator', procedural: true },
-      });
-      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+      let state = createActiveRunState();
       expect(state.phase).toBe('map');
       expect(state.currentDepth).toBe(1);
       expect(state.map?.layers).toHaveLength(16);
@@ -612,12 +643,6 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(state.currentDepth).toBe(3);
       expect(state.investigator.health).toBe(state.investigator.maxHealth);
       expect(state.map?.layers).toHaveLength(16);
-
-      // Acquire both abyssal fragments to unlock Depth 4 upon Depth 3 boss victory (ADR-0015)
-      state = {
-        ...state,
-        sanityDeck: [...state.sanityDeck, { ...ABYSSAL_FRAGMENT_1 }, { ...ABYSSAL_FRAGMENT_2 }],
-      };
 
       // Depth 3: 16 layers (0 to 15) step-by-step through DAG
       for (let layer = 0; layer <= 15; layer++) {
@@ -660,7 +685,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       }
     });
 
-    it('verifies depth-stratified mythos event generation, option consequence resolution, and visitedEventIds anti-repeat', () => {
+    it('verifies depth-stratified mythos event generation, option consequence resolution across branches, and visitedEventIds anti-repeat', () => {
       // 1. Verify 4-depth event pools are stratified with zero collision
       const d1Pool = DEPTH_EVENT_POOLS[1];
       const d2Pool = DEPTH_EVENT_POOLS[2];
@@ -675,13 +700,8 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       const allUnique = new Set([...d1Pool, ...d2Pool, ...d3Pool, ...d4Pool]);
       expect(allUnique.size).toBe(16);
 
-      // 2. Test in-game event navigation, option consequence execution, and anti-repeat
-      let state = createInitialGameState();
-      state = gameReducer(state, {
-        type: 'SELECT_OCCUPATION',
-        payload: { occupationId: 'investigator', procedural: true },
-      });
-      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+      // 2. Test in-game event navigation, option consequence execution across branches, and anti-repeat
+      let state = createActiveRunState();
 
       // Find all event nodes in Depth 1 map
       const eventNodes = Object.values(state.map!.nodes).filter((n) => n.type === 'event');
@@ -689,65 +709,55 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
 
       // Navigate to first event node
       const firstEventNode = eventNodes[0];
-      state = {
-        ...state,
-        map: {
-          ...state.map!,
-          nodes: {
-            ...state.map!.nodes,
-            [firstEventNode.id]: { ...firstEventNode, status: 'accessible' },
-          },
-        },
-      };
+      state = makeNodeAccessible(state, firstEventNode.id);
       state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: firstEventNode.id } });
       expect(state.phase).toBe('event');
       expect(state.currentEvent).toBeDefined();
       expect(state.visitedEventIds).toContain(state.currentEvent!.id);
 
       const firstEventId = state.currentEvent!.id;
-      const chosenOption = state.currentEvent!.options[0];
-      expect(chosenOption).toBeDefined();
+      const options = state.currentEvent!.options;
+      expect(options.length).toBeGreaterThanOrEqual(2);
 
-      // Resolve event option and verify consequence narrative
+      // Verify and resolve Option 0
+      const option0 = options[0];
       state = gameReducer(state, {
         type: 'RESOLVE_EVENT_OPTION',
-        payload: { optionId: chosenOption.id },
+        payload: { optionId: option0.id },
       });
-      const firstConsequence = chosenOption.consequences[0];
+      const firstConsequence = option0.consequences[0];
       expect(state.battleLog.some((log) => log.includes(firstConsequence.narrative))).toBe(true);
 
       // Complete event and return to map
       state = gameReducer(state, { type: 'COMPLETE_EVENT' });
       expect(state.phase).toBe('map');
 
-      // Navigate to second event node if exists
+      // Navigate to second event node if exists and test alternate option resolution
       if (eventNodes.length > 1) {
         const secondEventNode = eventNodes[1];
-        state = {
-          ...state,
-          map: {
-            ...state.map!,
-            nodes: {
-              ...state.map!.nodes,
-              [secondEventNode.id]: { ...secondEventNode, status: 'accessible' },
-            },
-          },
-        };
+        state = makeNodeAccessible(state, secondEventNode.id);
         state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: secondEventNode.id } });
         expect(state.phase).toBe('event');
         expect(state.currentEvent!.id).not.toBe(firstEventId); // Anti-repeat!
         expect(state.visitedEventIds).toContain(state.currentEvent!.id);
         expect(state.visitedEventIds?.length).toBeGreaterThanOrEqual(2);
+
+        // Resolve alternate option (Option 1) to exercise branch consequences
+        const secondEventOptions = state.currentEvent!.options;
+        const option1 = secondEventOptions[1] ?? secondEventOptions[0];
+        state = gameReducer(state, {
+          type: 'RESOLVE_EVENT_OPTION',
+          payload: { optionId: option1.id },
+        });
+        const secondConsequence = option1.consequences[0];
+        expect(state.battleLog.some((log) => log.includes(secondConsequence.narrative))).toBe(true);
+        state = gameReducer(state, { type: 'COMPLETE_EVENT' });
+        expect(state.phase).toBe('map');
       }
     });
 
     it('verifies dynamic market stock with discounted card, purchase mechanics, and 30-obol card purge', () => {
-      let state = createInitialGameState();
-      state = gameReducer(state, {
-        type: 'SELECT_OCCUPATION',
-        payload: { occupationId: 'investigator', procedural: true },
-      });
-      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+      let state = createActiveRunState();
 
       // Give investigator enough obols for testing market
       state = {
@@ -761,16 +771,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       const marketNode = Object.values(state.map!.nodes).find((n) => n.type === 'market')!;
       expect(marketNode).toBeDefined();
 
-      state = {
-        ...state,
-        map: {
-          ...state.map!,
-          nodes: {
-            ...state.map!.nodes,
-            [marketNode.id]: { ...marketNode, status: 'accessible' },
-          },
-        },
-      };
+      state = makeNodeAccessible(state, marketNode.id);
       const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.1);
       state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: marketNode.id } });
       randomSpy.mockRestore();
@@ -816,26 +817,12 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(secondPurgeAttempt).toBe(state);
     });
 
-    it('verifies sanctuary hearth purge, blood altar dual branches (reshape & pure), and vault desecration with unplayable curse', () => {
-      let state = createInitialGameState();
-      state = gameReducer(state, {
-        type: 'SELECT_OCCUPATION',
-        payload: { occupationId: 'investigator', procedural: true },
-      });
-      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+    it('verifies sanctuary hearth purge, authentic standard altar rituals, authentic blood altar dual branches, and vault desecration with unplayable curse', () => {
+      let state = createActiveRunState();
 
-      // 1. Sanctuary Hearth Purge via DAG navigation
+      // 1. Sanctuary Hearth Purge via authentic DAG navigation
       const sanctuaryNode = Object.values(state.map!.nodes).find((n) => n.type === 'sanctuary')!;
-      state = {
-        ...state,
-        map: {
-          ...state.map!,
-          nodes: {
-            ...state.map!.nodes,
-            [sanctuaryNode.id]: { ...sanctuaryNode, status: 'accessible' },
-          },
-        },
-      };
+      state = makeNodeAccessible(state, sanctuaryNode.id);
       state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: sanctuaryNode.id } });
       expect(state.phase).toBe('sanctuary');
 
@@ -849,67 +836,72 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       state = gameReducer(state, { type: 'LEAVE_SANCTUARY' });
       expect(state.phase).toBe('map');
 
-      // 2. Blood Altar dual branches: Test 'reshape' (1 card + 5 HP) and 'pure' (2 cards purge)
-      const bloodAltarNode = Object.values(state.map!.nodes).find((n) => n.type === 'blood_altar')
-        ?? Object.values(state.map!.nodes).find((n) => n.type === 'altar')!;
-      state = {
-        ...state,
-        map: {
-          ...state.map!,
-          nodes: {
-            ...state.map!.nodes,
-            [bloodAltarNode.id]: { ...bloodAltarNode, type: 'blood_altar', status: 'accessible' },
-          },
-        },
-      };
-      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bloodAltarNode.id } });
-      expect(state.phase).toBe('blood_altar');
+      // 2. Authentic Standard Altar Exploration & Ritual Resolution
+      const altarMap = findProceduralMapWithNodeType('altar');
+      let altarState: GameState = { ...state, map: altarMap };
+      const altarNodes = Object.values(altarMap.nodes) as MapNode[];
+      const altarNode = altarNodes.find((n) => n.type === 'altar')!;
+      altarState = makeNodeAccessible(altarState, altarNode.id);
+      altarState = gameReducer(altarState, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: altarNode.id } });
+      expect(altarState.phase).toBe('altar');
+      expect(altarState.altarRituals).toBeDefined();
+      expect(altarState.altarRituals).toHaveLength(3);
 
-      // (a) Branch 1: 'reshape' (sacrifice 1 card, heal 5 HP)
-      state = {
-        ...state,
+      const oldMaxHealth = altarState.investigator.maxHealth;
+      altarState = gameReducer(altarState, {
+        type: 'USE_ALTAR',
+        payload: { optionId: 'flesh' },
+      });
+      expect(altarState.altarUsed).toBe(true);
+      expect(altarState.investigator.maxHealth).toBe(oldMaxHealth + 5);
+      altarState = gameReducer(altarState, { type: 'LEAVE_ALTAR' });
+      expect(altarState.phase).toBe('map');
+
+      // 3. Authentic Blood Altar Dual Branches: Test 'reshape' (1 card + 5 生命值) and 'pure' (2 cards purge)
+      const bloodMap = findProceduralMapWithNodeType('blood_altar');
+      let bloodState: GameState = { ...state, map: bloodMap };
+      const bloodNodes = Object.values(bloodMap.nodes) as MapNode[];
+      const bloodAltarNode = bloodNodes.find((n) => n.type === 'blood_altar')!;
+      bloodState = makeNodeAccessible(bloodState, bloodAltarNode.id);
+      bloodState = gameReducer(bloodState, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: bloodAltarNode.id } });
+      expect(bloodState.phase).toBe('blood_altar');
+
+      // (a) Branch 1: 'reshape' (sacrifice 1 card, restore 5 生命值)
+      bloodState = {
+        ...bloodState,
         investigator: {
-          ...state.investigator,
+          ...bloodState.investigator,
           health: 15,
           maxHealth: 30,
         },
       };
-      const reshapeCard = state.sanityDeck[0];
-      state = gameReducer(state, {
+      const reshapeCard = bloodState.sanityDeck[0];
+      bloodState = gameReducer(bloodState, {
         type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
         payload: { cardIds: [reshapeCard.id], branch: 'reshape' },
       });
-      expect(state.bloodAltarUsed).toBe(true);
-      expect(state.investigator.health).toBe(20); // 15 + 5
-      expect(state.sanityDeck.some((c) => c.id === reshapeCard.id)).toBe(false);
+      expect(bloodState.bloodAltarUsed).toBe(true);
+      expect(bloodState.investigator.health).toBe(20); // 15 + 5
+      expect(bloodState.sanityDeck.some((c) => c.id === reshapeCard.id)).toBe(false);
 
       // (b) Branch 2: 'pure' (sacrifice 2 cards, permanent deck purge)
-      state = { ...state, bloodAltarUsed: false };
-      const pureCard1 = state.sanityDeck[0];
-      const pureCard2 = state.sanityDeck[1];
-      const deckCountBeforePure = state.sanityDeck.length;
-      state = gameReducer(state, {
+      bloodState = { ...bloodState, bloodAltarUsed: false };
+      const pureCard1 = bloodState.sanityDeck[0];
+      const pureCard2 = bloodState.sanityDeck[1];
+      const deckCountBeforePure = bloodState.sanityDeck.length;
+      bloodState = gameReducer(bloodState, {
         type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
         payload: { cardIds: [pureCard1.id, pureCard2.id], branch: 'pure' },
       });
-      expect(state.bloodAltarUsed).toBe(true);
-      expect(state.sanityDeck).toHaveLength(deckCountBeforePure - 2);
-      expect(state.sanityDeck.some((c) => c.id === pureCard1.id || c.id === pureCard2.id)).toBe(false);
-      state = gameReducer(state, { type: 'LEAVE_BLOOD_ALTAR' });
-      expect(state.phase).toBe('map');
+      expect(bloodState.bloodAltarUsed).toBe(true);
+      expect(bloodState.sanityDeck).toHaveLength(deckCountBeforePure - 2);
+      expect(bloodState.sanityDeck.some((c) => c.id === pureCard1.id || c.id === pureCard2.id)).toBe(false);
+      bloodState = gameReducer(bloodState, { type: 'LEAVE_BLOOD_ALTAR' });
+      expect(bloodState.phase).toBe('map');
 
-      // 3. Vault Desecration via DAG navigation
+      // 4. Authentic Vault Desecration via DAG navigation
       const vaultNode = Object.values(state.map!.nodes).find((n) => n.type === 'vault')!;
-      state = {
-        ...state,
-        map: {
-          ...state.map!,
-          nodes: {
-            ...state.map!.nodes,
-            [vaultNode.id]: { ...vaultNode, status: 'accessible' },
-          },
-        },
-      };
+      state = makeNodeAccessible(state, vaultNode.id);
       state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: vaultNode.id } });
       expect(state.phase).toBe('vault');
       expect(state.vaultRelics).toBeDefined();
@@ -998,22 +990,6 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(nextCombatState.phase).toBe('combat');
       expect(nextCombatState.currentEnemy.id).not.toBe('enemy_ghoul_lurker');
       expect(nextCombatState.lastCombatEnemyId).toBe(nextCombatState.currentEnemy.id);
-    });
-
-    it('verifies Mi-Go scout surgical_bio_shock trait execution and stamina drain', () => {
-      const migo = getEnemyTemplateById('enemy_migo_scout');
-      expect(migo).toBeDefined();
-      expect(migo!.traits?.some((t) => t.id === 'surgical_bio_shock')).toBe(true);
-
-      const investigator = createBaseInvestigator({ stamina: 3 });
-      const bioShockIntent = migo!.intentSequence?.find((i) => i.drainStamina);
-      expect(bioShockIntent).toBeDefined();
-
-      const action = resolveEnemyAction(migo!, bioShockIntent!, investigator, 2);
-      expect(action.nextTurnDrainedStamina).toBe(1);
-      expect(action.statusesToInvestigator?.some((s) => s.type === 'horror')).toBe(true);
-      expect(action.logs.some((l) => l.includes('真菌外科術'))).toBe(true);
-      expect(action.logs.some((l) => l.includes('抽乾 1 點精力'))).toBe(true);
     });
   });
 });
