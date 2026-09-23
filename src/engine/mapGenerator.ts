@@ -528,7 +528,8 @@ function generateLayerTypes(
   count: number,
   depth: DepthLevel,
   rng: () => number,
-  hasFallen: boolean
+  hasFallen: boolean,
+  prevLayerTypes?: MapNodeType[]
 ): MapNodeType[] {
   // 頂層固定為守關宿敵 (Boss)
   if (layer === totalLayers - 1) {
@@ -580,7 +581,8 @@ function generateLayerTypes(
   }
 
   const types: MapNodeType[] = [];
-  const canHaveElite = (depth === 4 && layer >= 2) || (depth <= 3 && layer >= 3);
+  const prevHasElite = prevLayerTypes?.includes('elite');
+  const canHaveElite = !prevHasElite && ((depth === 4 && layer >= 2) || (depth <= 3 && layer >= 3));
 
   for (let c = 0; c < count; c++) {
     // 深度 1、樓層 1 若有前代調查員遺骸記錄，生成一個 remains 節點
@@ -867,7 +869,8 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
   // 2. 決定各層節點類型
   const layerTypePools: MapNodeType[][] = [];
   for (let l = 0; l < totalLayers; l++) {
-    layerTypePools.push(generateLayerTypes(l, totalLayers, layerCounts[l], depth, rng, hasFallen));
+    const prevLayerTypes = l > 0 ? layerTypePools[l - 1] : undefined;
+    layerTypePools.push(generateLayerTypes(l, totalLayers, layerCounts[l], depth, rng, hasFallen, prevLayerTypes));
   }
 
   // 2.5 應用保底配額與去重演算法 (ADR-0032 / Issue #51)
@@ -886,6 +889,8 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
   // 4. 構建 MapNode 物件與 layers 映射
   const nodes: Record<string, MapNode> = {};
   const layers: string[][] = [];
+  let lastCombatEnemyId: string | undefined = undefined;
+  let lastEliteEnemyId: string | undefined = undefined;
 
   for (let l = 0; l < totalLayers; l++) {
     const layerNodeIds: string[] = [];
@@ -896,25 +901,40 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
       layerNodeIds.push(nodeId);
       const nodeType = layerTypePools[l][c];
       const theme = pools[nodeType];
-      const variant =
-        depth === 1 && l === 0 && c === 0
-          ? theme.variants[0]
-          : depth === 1 && l === 2 && c === 0
-          ? theme.variants[0]
-          : depth === 1 && l === 2 && c === 1
-          ? theme.variants[0]
-          : pick(theme.variants);
+      const variant = pick(theme.variants);
       const nextNodes = outgoingEdges[l]?.[c] ?? [];
 
       let enemyId: string | undefined = undefined;
-      if (nodeType === 'combat' || nodeType === 'elite' || nodeType === 'boss') {
-        if (depth === 1 && l === 0 && c === 0 && nodeType === 'combat') {
-          enemyId = 'enemy_ghoul_lurker';
-        } else if (depth === 1 && l === 2 && c === 0 && nodeType === 'elite') {
-          enemyId = 'enemy_deep_one_elder';
+      if (nodeType === 'boss') {
+        enemyId = getEncounterEnemy(depth, 'boss', rng).id;
+      } else if (nodeType === 'combat' || nodeType === 'elite') {
+        // 找出所有連向當前節點之上一層節點 (Incoming DAG Predecessors)
+        const incomingEnemyIds: string[] = [];
+        if (l > 0 && outgoingEdges[l - 1]) {
+          for (let prevC = 0; prevC < outgoingEdges[l - 1].length; prevC++) {
+            if (outgoingEdges[l - 1][prevC].includes(nodeId)) {
+              const prevEnemyId = nodes[`node_${l - 1}_${prevC}`]?.enemyId;
+              if (prevEnemyId && !incomingEnemyIds.includes(prevEnemyId)) {
+                incomingEnemyIds.push(prevEnemyId);
+              }
+            }
+          }
+        }
+
+        // 防連續重複遭遇：排除直接連通的上一層敵人，以及最近生成的同類型敵人
+        const lastAssignedId = nodeType === 'elite' ? lastEliteEnemyId : lastCombatEnemyId;
+        const excludeIds = [...incomingEnemyIds];
+        if (lastAssignedId && !excludeIds.includes(lastAssignedId)) {
+          excludeIds.push(lastAssignedId);
+        }
+
+        const encounter = getEncounterEnemy(depth, nodeType, rng, excludeIds);
+        enemyId = encounter.id;
+
+        if (nodeType === 'elite') {
+          lastEliteEnemyId = enemyId;
         } else {
-          const encounter = getEncounterEnemy(depth, nodeType, rng);
-          enemyId = encounter.id;
+          lastCombatEnemyId = enemyId;
         }
       }
 

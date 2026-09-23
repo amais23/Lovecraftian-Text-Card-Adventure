@@ -175,6 +175,7 @@ export function createInitialCombatState(
     exhaustPile: initResult.exhaustPile,
     isMadness: initResult.isMadness,
     currentEnemy: initResult.enemy,
+    lastCombatEnemyId: initResult.enemy?.id,
     adventureStats: createInitialAdventureStats(initResult.investigator),
     battleLog: initResult.logs,
     combatInitialHealth: initResult.investigator.health,
@@ -337,6 +338,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...createInitialGameState(),
         phase: 'prologue',
         currentDepth: 1,
+        lastCombatEnemyId: undefined,
         visitedEventIds: [],
         battleLog: [
           '【調查啟程 · 序章引導】翻開 1920 年代阿卡姆失蹤懸案剪報與神秘委託密信，深淵的呼喚隱隱傳來……',
@@ -401,6 +403,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         discardPile: [],
         isMadness: false,
         currentEnemy: enemy,
+        lastCombatEnemyId: undefined,
         map,
         visitedEventIds: [],
         adventureStats: createInitialAdventureStats(investigator, map),
@@ -448,10 +451,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         if (action.payload.enemy) {
           enemy = cloneEnemy(action.payload.enemy);
         } else if (targetNode.enemyId) {
-          const template = getEnemyTemplateById(targetNode.enemyId);
-          enemy = template ? template : getEncounterEnemy(currentDepth, targetNode.type);
+          // 若同一深度內節點預設怪物與上一場遭遇完全重複（且非 Boss），重新隨機排除防連續重複
+          if (targetNode.type !== 'boss' && state.lastCombatEnemyId && targetNode.enemyId === state.lastCombatEnemyId) {
+            enemy = getEncounterEnemy(currentDepth, targetNode.type, Math.random, state.lastCombatEnemyId);
+          } else {
+            const template = getEnemyTemplateById(targetNode.enemyId);
+            enemy = template ? template : getEncounterEnemy(currentDepth, targetNode.type, Math.random, state.lastCombatEnemyId);
+          }
         } else {
-          enemy = getEncounterEnemy(currentDepth, targetNode.type);
+          enemy = getEncounterEnemy(currentDepth, targetNode.type, Math.random, state.lastCombatEnemyId);
         }
 
         updatedNodes[targetNode.id] = {
@@ -490,6 +498,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return {
           ...state,
           phase: 'combat',
+          lastCombatEnemyId: enemy.id,
           turn: 1,
           investigator: {
             ...state.investigator,
@@ -1139,6 +1148,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         phase: 'map',
         currentDepth: nextDepth,
+        lastCombatEnemyId: undefined,
         map: newMap,
         sanctuaryUsed: false,
         battleLog: [
@@ -1152,6 +1162,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...createInitialCombatState(),
         phase: 'title',
+        lastCombatEnemyId: undefined,
         battleLog: ['返回標題畫面。請選擇調查員開始新的探險。'],
       };
     }

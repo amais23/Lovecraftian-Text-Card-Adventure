@@ -50,7 +50,13 @@ import {
 } from './relics';
 import { createStatusEffect } from './statusEffects';
 import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
-import { getEnemyTemplateById, getBossByDepth } from './enemyCatalog';
+import {
+  getEnemyTemplateById,
+  getBossByDepth,
+  DEPTH_2_NORMAL_ENEMIES,
+  DEPTH_3_NORMAL_ENEMIES,
+  DEPTH_4_NORMAL_ENEMIES,
+} from './enemyCatalog';
 import { getFreshEnemyTemplate } from './gameReducer';
 import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent, Relic } from '../types/game';
 
@@ -1455,16 +1461,17 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     expect(nextState.phase).toBe('combat');
     expect(nextState.map?.currentNodeId).toBe('node_0_0');
     expect(nextState.map?.nodes['node_0_0'].status).toBe('current');
-    expect(nextState.currentEnemy.name).toContain('食屍鬼');
+    expect(nextState.currentEnemy.name).toBeDefined();
     expect(nextState.turn).toBe(1);
     expect(nextState.hand.length).toBe(2);
-    expect(nextState.battleLog[0]).toContain('陰暗小巷');
+    expect(nextState.battleLog[0]).toContain(map.nodes['node_0_0'].title);
   });
 
   it('NAVIGATE_TO_NODE enters elite combat with Deep One Elder', () => {
     const map = generateInvestigationMap();
-    // Force node_2_0 to accessible for test
+    // Force node_2_0 to accessible for test with Deep One Elder
     map.nodes['node_2_0'].status = 'accessible';
+    map.nodes['node_2_0'].enemyId = INITIAL_DEEP_ONE.id;
     const mapState: GameState = {
       ...createInitialCombatState(),
       phase: 'map',
@@ -3814,8 +3821,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           { type: 'NAVIGATE_TO_NODE', payload: { nodeId: combatNodeD2.id } }
         );
         expect(stateD2.phase).toBe('combat');
-        const d2EnemyNames = ['深潛者戰士', '溺死亡魂', '深潛者長老'];
-        expect(d2EnemyNames.some((name) => stateD2.currentEnemy.name.includes(name))).toBe(true);
+        expect(DEPTH_2_NORMAL_ENEMIES.some((e) => stateD2.currentEnemy.name.includes(e.name))).toBe(true);
       }
 
       // Depth 3 map
@@ -3830,8 +3836,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           { type: 'NAVIGATE_TO_NODE', payload: { nodeId: combatNodeD3.id } }
         );
         expect(stateD3.phase).toBe('combat');
-        const d3EnemyNames = ['原生黑泥幼體', '拜亞基腐翼獸', '無形之子', '廷達洛斯獵犬'];
-        expect(d3EnemyNames.some((name) => stateD3.currentEnemy.name.includes(name))).toBe(true);
+        expect(DEPTH_3_NORMAL_ENEMIES.some((e) => stateD3.currentEnemy.name.includes(e.name))).toBe(true);
       }
 
       // Depth 4 map
@@ -3846,8 +3851,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           { type: 'NAVIGATE_TO_NODE', payload: { nodeId: combatNodeD4.id } }
         );
         expect(stateD4.phase).toBe('combat');
-        const d4EnemyNames = ['星之眷族幼體', '拉萊耶石棺守衛', '星辰古神侍從'];
-        expect(d4EnemyNames.some((name) => stateD4.currentEnemy.name.includes(name))).toBe(true);
+        expect(DEPTH_4_NORMAL_ENEMIES.some((e) => stateD4.currentEnemy.name.includes(e.name))).toBe(true);
       }
     });
 
@@ -6037,8 +6041,81 @@ describe('Composable Card Primitives & Occupation Filtering (Issue #46)', () => 
       const resetState = gameReducer(stateWithEvents, { type: 'RESET_COMBAT' });
       expect(resetState.visitedEventIds).toEqual(['event_sunken_shrine', 'event_drowned_sailor_shrine']);
     });
+
+    describe('Anti-Repeat Combat Encounters (Issue #55)', () => {
+      it('tracks lastCombatEnemyId when navigating to combat and elite nodes', () => {
+        const map = generateInvestigationMap({ depth: 1 });
+        const accessibleNodeId = Object.keys(map.nodes).find(
+          (id) => map.nodes[id].status === 'accessible' && map.nodes[id].type === 'combat'
+        )!;
+
+        const baseState: GameState = {
+          ...createInitialCombatState(),
+          phase: 'map',
+          currentDepth: 1,
+          map,
+          lastCombatEnemyId: undefined,
+        };
+
+        const combatState = gameReducer(baseState, {
+          type: 'NAVIGATE_TO_NODE',
+          payload: { nodeId: accessibleNodeId },
+        });
+
+        expect(combatState.phase).toBe('combat');
+        expect(combatState.lastCombatEnemyId).toBeDefined();
+        expect(combatState.lastCombatEnemyId).toBe(combatState.currentEnemy.id);
+      });
+
+      it('rerolls enemy if target combat node has identical enemyId to lastCombatEnemyId', () => {
+        const map = generateInvestigationMap({ depth: 1 });
+        const targetNodeId = 'node_1_1';
+        // Force the target node to have enemy_ghoul_lurker
+        map.nodes[targetNodeId] = {
+          ...map.nodes[targetNodeId],
+          status: 'accessible',
+          type: 'combat',
+          enemyId: 'enemy_ghoul_lurker',
+        };
+
+        const stateWithDuplicatePreassigned: GameState = {
+          ...createInitialCombatState(),
+          phase: 'map',
+          currentDepth: 1,
+          map,
+          lastCombatEnemyId: 'enemy_ghoul_lurker',
+        };
+
+        const nextState = gameReducer(stateWithDuplicatePreassigned, {
+          type: 'NAVIGATE_TO_NODE',
+          payload: { nodeId: targetNodeId },
+        });
+
+        expect(nextState.phase).toBe('combat');
+        expect(nextState.currentEnemy.id).not.toBe('enemy_ghoul_lurker');
+        expect(nextState.lastCombatEnemyId).not.toBe('enemy_ghoul_lurker');
+        expect(nextState.lastCombatEnemyId).toBe(nextState.currentEnemy.id);
+      });
+
+      it('resets lastCombatEnemyId to undefined on COMPLETE_DEPTH_TRANSITION', () => {
+        const transitionState: GameState = {
+          ...createInitialCombatState(),
+          phase: 'depth_transition',
+          currentDepth: 1,
+          lastCombatEnemyId: 'enemy_ghoul_lurker',
+        };
+
+        const nextDepthState = gameReducer(transitionState, {
+          type: 'COMPLETE_DEPTH_TRANSITION',
+        });
+
+        expect(nextDepthState.currentDepth).toBe(2);
+        expect(nextDepthState.lastCombatEnemyId).toBeUndefined();
+      });
+    });
   });
 });
+
 
 
 

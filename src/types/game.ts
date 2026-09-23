@@ -110,7 +110,19 @@ export type EnemyTraitId =
   | 'tide_of_dagon'           // 大袞深淵祭司：大袞潮汐
   | 'amorphous_body'          // 無定形原生質僕從：非歐流體
   | 'organ_proliferation'     // 修格斯：器官增生 & Tekeli-li 碾壓
-  | 'divine_immortality';     // 克蘇魯星之眷族：神性不滅
+  | 'divine_immortality'      // 克蘇魯星之眷族：神性不滅
+  | 'swarm_evasion'           // 牆中變異鼠群：鼠群竄動
+  | 'blood_fanaticism'        // 異教狂熱信徒：狂信之血
+  | 'septic_carapace'         // 墓穴腐生蠕蟲：腐殖外皮
+  | 'siren_lure'              // 潮汐塞壬海妖：惑心溺音
+  | 'amphibious_vigor'        // 印斯茅斯混血種：兩棲畸變
+  | 'razor_shell'             // 深海寄生藤壺群：銳刃甲殼
+  | 'surgical_bio_shock'      // 米·戈偵察者：真菌外科術
+  | 'dimensional_phase'       // 虛空漫遊者：維度相位
+  | 'discordant_dirge'        // 外神盲目吹笛者：無調輓歌
+  | 'oneiric_dread'           // 拉萊耶夢境具象：萬古夢魘
+  | 'geometric_paradox'       // 非歐幾何異構體：幾何悖論
+  | 'prophecy_of_ruin';       // 終焉星辰先知：滅世預言
 
 export interface EnemyTrait {
   id: EnemyTraitId;
@@ -131,6 +143,8 @@ export type EnemyCategory =
   | 'hound'
   | 'star_spawn'
   | 'ancient_guardian'
+  | 'rat_swarm'
+  | 'migo'
   | 'boss';
 
 export interface EnemyIllustrationUrls {
@@ -335,6 +349,7 @@ export interface GameState {
   combatInitialHealth?: number; // 踏入當前戰鬥時的初始生命值快照（重試戰鬥時精確還原）
   cardsPlayedThisTurn?: number; // 本回合內已打出的卡牌總數（用於先手拔槍等條件判斷）
   visitedEventIds?: string[]; // 本次冒險已遭遇的奇遇事件 ID 列表（用於單局防重複抽樣）
+  lastCombatEnemyId?: string; // 上一次戰鬥遭遇的敵人 ID（用於同一深度內防連續重複遭遇輪替）
 }
 
 export type GameAction =

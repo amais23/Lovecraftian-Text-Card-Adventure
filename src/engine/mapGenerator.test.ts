@@ -351,5 +351,59 @@ describe('Investigation Map Generator (Issue #43 / ADR-0022)', () => {
       }
     });
   });
+
+  describe('Dynamic Encounter Selection & Anti-Repeat in Map (Issue #55)', () => {
+    it('node_0_0 is dynamically selected rather than hardcoded to enemy_ghoul_lurker', () => {
+      const distinctNode0Enemies = new Set<string>();
+
+      for (let seed = 1; seed <= 50; seed++) {
+        const map = generateProceduralInvestigationMap({ depth: 1, seed });
+        const enemyId = map.nodes['node_0_0']?.enemyId;
+        if (enemyId) {
+          distinctNode0Enemies.add(enemyId);
+        }
+      }
+
+      // Must have encountered more than 1 distinct enemy type at node_0_0
+      expect(distinctNode0Enemies.size).toBeGreaterThan(1);
+    });
+
+    it('node_2_0 is dynamically selected rather than hardcoded to enemy_deep_one_elder', () => {
+      const distinctNode2Enemies = new Set<string>();
+
+      for (let seed = 1; seed <= 50; seed++) {
+        const map = generateProceduralInvestigationMap({ depth: 1, seed });
+        const node = map.nodes['node_2_0'];
+        if (node && (node.type === 'elite' || node.type === 'combat') && node.enemyId) {
+          distinctNode2Enemies.add(node.enemyId);
+        }
+      }
+
+      // Must have encountered more than 1 distinct enemy type at node_2_0
+      expect(distinctNode2Enemies.size).toBeGreaterThan(1);
+    });
+
+    it('connected consecutive combat/elite nodes along DAG paths never have identical enemyId', () => {
+      for (const depth of [1, 2, 3, 4] as DepthLevel[]) {
+        for (let seed = 1; seed <= 20; seed++) {
+          const map = generateProceduralInvestigationMap({ depth, seed });
+
+          for (const node of Object.values(map.nodes)) {
+            if (!node.enemyId) continue;
+
+            for (const nextId of node.nextNodes) {
+              const nextNode = map.nodes[nextId];
+              if (nextNode && nextNode.enemyId) {
+                expect(
+                  nextNode.enemyId,
+                  `Depth ${depth}, seed ${seed}: node ${node.id} (${node.enemyId}) connects directly to ${nextNode.id} (${nextNode.enemyId}) with identical enemy!`
+                ).not.toBe(node.enemyId);
+              }
+            }
+          }
+        }
+      }
+    });
+  });
 });
 

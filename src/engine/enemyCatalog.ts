@@ -201,6 +201,132 @@ export const ENEMY_GHOUL_HIGH_PRIEST: Enemy = {
   currentIntentIndex: 0,
 };
 
+export const WALLS_RAT_SWARM_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 2,
+    hitCount: 3,
+    name: '夾壁群鼠狂咬',
+    description: '無數尖牙鼠群自牆壁裂縫狂湧而出，預告發動 3 次撕咬。',
+  },
+  {
+    type: 'apply_status',
+    value: 2,
+    statusType: 'bleed',
+    name: '黑死菌毒感染',
+    description: '鼠群利齒附著墓穴腐敗菌毒，預告向你施加 2 層【流血】印記。',
+  },
+  {
+    type: 'defend',
+    value: 6,
+    name: '隱入磚石夾層',
+    description: '尖叫聲中鼠群迅速隱入木板夾層躲避攻擊，預告獲得 6 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 7,
+    name: '飢餓暴食撲襲',
+    description: '被狂熱食慾驅使的鼠群匯聚撲咬，預告造成 7 點傷害。',
+  },
+];
+
+export const ENEMY_WALLS_RAT_SWARM: Enemy = {
+  id: 'enemy_walls_rat_swarm',
+  name: '牆中變異鼠群',
+  title: '陰暗夾壁的囓咬狂潮',
+  health: 30,
+  maxHealth: 30,
+  armor: 0,
+  category: 'rat_swarm',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.swarm_evasion],
+  currentIntent: WALLS_RAT_SWARM_INTENTS[0],
+  intentSequence: WALLS_RAT_SWARM_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const CULTIST_ZEALOT_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 6,
+    name: '生鏽砍刀揮斬',
+    description: '狂信者揮動染血的生鏽砍刀，預告造成 6 點傷害。',
+  },
+  {
+    type: 'erode',
+    value: 2,
+    name: '群星正位狂咒',
+    description: '雙眼翻白頌唱古代污穢讚詞，預告侵蝕 2 點理智牌庫。',
+  },
+  {
+    type: 'defend',
+    value: 5,
+    name: '癲狂肉身屏障',
+    description: '麻痺自身痛覺以血肉硬頂攻擊，預告獲得 5 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 8,
+    name: '割腕獻祭怒擊',
+    description: '割裂手腕以黑血塗抹刀刃發動突刺，預告造成 8 點傷害。',
+  },
+];
+
+export const ENEMY_CULTIST_ZEALOT: Enemy = {
+  id: 'enemy_cultist_zealot',
+  name: '異教狂熱信徒',
+  title: '盲目癡愚的獻祭者',
+  health: 32,
+  maxHealth: 32,
+  armor: 2,
+  category: 'cultist',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.blood_fanaticism],
+  currentIntent: CULTIST_ZEALOT_INTENTS[0],
+  intentSequence: CULTIST_ZEALOT_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const CEMETERY_CARRION_WORM_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 5,
+    name: '黏液環口咀嚼',
+    description: '蠕蟲張開環形利齒噴出腐液撕咬，預告造成 5 點傷害。',
+  },
+  {
+    type: 'apply_status',
+    value: 2,
+    statusType: 'vulnerable',
+    name: '屍臭瘴毒噴吐',
+    description: '自環形口器深處噴吐綠色屍毒煙霧，預告向你施加 2 層【易傷】印記。',
+  },
+  {
+    type: 'defend',
+    value: 7,
+    name: '死土鑽地收縮',
+    description: '身軀鑽入鬆軟腐殖土層收緊角質環，預告獲得 7 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 7,
+    name: '劇毒倒鉤抽擊',
+    description: '龐大肉軀帶著銳利骨鉤重重甩動，預告造成 7 點傷害。',
+  },
+];
+
+export const ENEMY_CEMETERY_CARRION_WORM: Enemy = {
+  id: 'enemy_cemetery_carrion_worm',
+  name: '墓穴腐生蠕蟲',
+  title: '死土下的腐食巨蛆',
+  health: 34,
+  maxHealth: 34,
+  armor: 3,
+  category: 'ghoul',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.septic_carapace],
+  currentIntent: CEMETERY_CARRION_WORM_INTENTS[0],
+  intentSequence: CEMETERY_CARRION_WORM_INTENTS,
+  currentIntentIndex: 0,
+};
+
 /* =========================================================
    Depth 2 (深潛者海蝕迷宮) Enemies
    ========================================================= */
@@ -421,6 +547,133 @@ export const ENEMY_FRENZIED_DEEP_ONE: Enemy = {
   currentIntentIndex: 0,
 };
 
+export const TIDAL_SIREN_INTENTS: EnemyIntent[] = [
+  {
+    type: 'erode',
+    value: 3,
+    drainStamina: 1,
+    name: '誘溺海妖之歌',
+    description: '自礁岩間傳出令人神魂顛倒的深海詠唱，預告侵蝕 3 點理智牌庫並吸取 1 點精力。',
+  },
+  {
+    type: 'attack',
+    value: 9,
+    name: '帶刺海藻抽擊',
+    description: '操縱浸泡毒液的堅韌海藻猛力抽打，預告造成 9 點傷害。',
+  },
+  {
+    type: 'defend',
+    value: 8,
+    name: '水霧迷蹤退避',
+    description: '召喚濃密海霧遮掩身形，預告獲得 8 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 11,
+    name: '狂濤尖嘯暴擊',
+    description: '面孔驟然撕裂化為尖牙巨口發動驚悚音爆，預告造成 11 點傷害。',
+  },
+];
+
+export const ENEMY_TIDAL_SIREN: Enemy = {
+  id: 'enemy_tidal_siren',
+  name: '潮汐塞壬海妖',
+  title: '海蝕礁岩的誘溺歌者',
+  health: 40,
+  maxHealth: 40,
+  armor: 0,
+  category: 'drowned',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.siren_lure],
+  currentIntent: TIDAL_SIREN_INTENTS[0],
+  intentSequence: TIDAL_SIREN_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const INNSMOUTH_HYBRID_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 10,
+    name: '生鏽魚叉突刺',
+    description: '緊握鏽跡斑斑的捕鯨骨叉向前猛刺，預告造成 10 點傷害。',
+  },
+  {
+    type: 'apply_status',
+    value: 2,
+    statusType: 'bleed',
+    name: '魚鱗開膛爪',
+    description: '露出長滿硬鱗的手爪劃破血肉，預告向你施加 2 層【流血】印記。',
+  },
+  {
+    type: 'apply_status',
+    value: 2,
+    statusType: 'horror',
+    name: '潮汐泥沼絆步',
+    description: '踩踏海水泛起夾雜腐魚內臟的泥漿，預告向你施加 2 層【恐慌】印記。',
+  },
+  {
+    type: 'attack',
+    value: 11,
+    name: '狂暴撲殺破甲',
+    description: '眼白凸起以全身重量發動亡命衝撞，預告造成 11 點傷害。',
+  },
+];
+
+export const ENEMY_INNSMOUTH_HYBRID: Enemy = {
+  id: 'enemy_innsmouth_hybrid',
+  name: '印斯茅斯混血種',
+  title: '尚未完全退化的海嗣',
+  health: 44,
+  maxHealth: 44,
+  armor: 3,
+  category: 'deep_one',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.amphibious_vigor],
+  currentIntent: INNSMOUTH_HYBRID_INTENTS[0],
+  intentSequence: INNSMOUTH_HYBRID_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const ABYSSAL_BARNACLE_MASS_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 8,
+    name: '甲殼收縮咬合',
+    description: '無數尖銳石灰質甲殼如利刃般同時咬合，預告造成 8 點傷害。',
+  },
+  {
+    type: 'defend',
+    value: 10,
+    name: '石灰質硬化凝固',
+    description: '分泌濃稠石灰質黏液加固軀殼，預告獲得 10 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 9,
+    name: '倒刺觸鬚噴射',
+    description: '自甲殼縫隙噴射出帶有倒鉤的纖維觸鬚，預告造成 9 點傷害。',
+  },
+  {
+    type: 'apply_status',
+    value: 2,
+    statusType: 'vulnerable',
+    name: '腐蝕深海酸霧',
+    description: '自氣孔噴出積蓄數百年的深海酸霧，預告向你施加 2 層【易傷】印記。',
+  },
+];
+
+export const ENEMY_ABYSSAL_BARNACLE_MASS: Enemy = {
+  id: 'enemy_abyssal_barnacle_mass',
+  name: '深海寄生藤壺群',
+  title: '礁岩活體寄生體',
+  health: 46,
+  maxHealth: 46,
+  armor: 6,
+  category: 'deep_one',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.razor_shell],
+  currentIntent: ABYSSAL_BARNACLE_MASS_INTENTS[0],
+  intentSequence: ABYSSAL_BARNACLE_MASS_INTENTS,
+  currentIntentIndex: 0,
+};
+
 /* =========================================================
    Depth 3 (無底深淵祭壇) Enemies
    ========================================================= */
@@ -637,6 +890,131 @@ export const ENEMY_ANCIENT_HOUND: Enemy = {
   currentIntentIndex: 0,
 };
 
+export const MIGO_SCOUT_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 13,
+    name: '外科金屬鋸鉗',
+    description: '昆蟲般的螯鉗高速震顫切削，預告造成 13 點傷害。',
+  },
+  {
+    type: 'attack',
+    value: 11,
+    drainStamina: 1,
+    name: '星際電弧放電',
+    description: '自觸角末端釋放異星電弧，預告造成 11 點傷害並抽乾 1 點精力。',
+  },
+  {
+    type: 'erode',
+    value: 4,
+    name: '真菌孢子迷霧',
+    description: '散播自猶格斯星採集的致幻孢子，預告侵蝕 4 點理智牌庫。',
+  },
+  {
+    type: 'defend',
+    value: 11,
+    name: '甲殼膜翅震盪',
+    description: '高速振動半透明膜翅偏轉打擊，預告獲得 11 點護甲。',
+  },
+];
+
+export const ENEMY_MIGO_SCOUT: Enemy = {
+  id: 'enemy_migo_scout',
+  name: '米·戈偵察者',
+  title: '猶格斯真菌甲殼生物',
+  health: 54,
+  maxHealth: 54,
+  armor: 5,
+  category: 'migo',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.surgical_bio_shock],
+  currentIntent: MIGO_SCOUT_INTENTS[0],
+  intentSequence: MIGO_SCOUT_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const VOID_WANDERER_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 14,
+    name: '相位虛空射線',
+    description: '自扭曲的空間裂痕中導引冰冷虛空射線，預告造成 14 點傷害。',
+  },
+  {
+    type: 'erode',
+    value: 4,
+    name: '空間因果撕裂',
+    description: '跨維度拉扯調查員的神經突觸，預告侵蝕 4 點理智牌庫。',
+  },
+  {
+    type: 'defend',
+    value: 12,
+    name: '維度坍縮屏障',
+    description: '將周遭空間折疊為絕對防護罩，預告獲得 12 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 16,
+    name: '四維崩解打擊',
+    description: '從不可能的死角引爆維度震波，預告造成 16 點毀滅打擊。',
+  },
+];
+
+export const ENEMY_VOID_WANDERER: Enemy = {
+  id: 'enemy_void_wanderer',
+  name: '虛空漫遊者',
+  title: '裂隙維度的無形殘影',
+  health: 58,
+  maxHealth: 58,
+  armor: 4,
+  category: 'formless',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.dimensional_phase],
+  currentIntent: VOID_WANDERER_INTENTS[0],
+  intentSequence: VOID_WANDERER_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const OUTER_GOD_PIPER_INTENTS: EnemyIntent[] = [
+  {
+    type: 'erode',
+    value: 5,
+    name: '混沌無調笛音',
+    description: '自骨笛孔洞吹出撕裂靈魂的刺耳長鳴，預告侵蝕 5 點理智牌庫。',
+  },
+  {
+    type: 'attack',
+    value: 12,
+    name: '盲目狂亂狂舞',
+    description: '軟質身軀伴隨狂亂節奏抽搐揮打，預告造成 12 點傷害。',
+  },
+  {
+    type: 'apply_status',
+    value: 3,
+    statusType: 'horror',
+    name: '虛無心靈真空',
+    description: '笛音陡然停頓引發極端死寂恐慌，預告向你施加 3 層【恐慌】印記。',
+  },
+  {
+    type: 'attack',
+    value: 15,
+    name: '終焉音爆轟鳴',
+    description: '笛音飆升至凡人耳膜破裂之極限音頻，預告造成 15 點傷害。',
+  },
+];
+
+export const ENEMY_OUTER_GOD_PIPER: Enemy = {
+  id: 'enemy_outer_god_piper',
+  name: '外神盲目吹笛者',
+  title: '無調笛音的侍從',
+  health: 52,
+  maxHealth: 52,
+  armor: 2,
+  category: 'formless',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.discordant_dirge],
+  currentIntent: OUTER_GOD_PIPER_INTENTS[0],
+  intentSequence: OUTER_GOD_PIPER_INTENTS,
+  currentIntentIndex: 0,
+};
+
 /* =========================================================
    Depth 4 (星辰正位 · 拉萊耶核心) Enemies
    ========================================================= */
@@ -715,8 +1093,8 @@ export const ENEMY_RLYEH_GUARD: Enemy = {
   id: 'enemy_rlyeh_sarcophagus_guard',
   name: '拉萊耶石棺守衛',
   title: '非歐幾何巨石看守者',
-  health: 85,
-  maxHealth: 85,
+  health: 80,
+  maxHealth: 80,
   armor: 10,
   category: 'ancient_guardian',
   traits: [ELDRITCH_TRAIT_DEFINITIONS.waterlogged_grip],
@@ -815,6 +1193,131 @@ export const ENEMY_ANCIENT_GUARDIAN: Enemy = {
   currentIntentIndex: 0,
 };
 
+export const RLYEH_DREAM_APPARITION_INTENTS: EnemyIntent[] = [
+  {
+    type: 'erode',
+    value: 5,
+    name: '夢境深淵凝視',
+    description: '凝視著你心靈最深處的恐懼根源，預告侵蝕 5 點理智牌庫。',
+  },
+  {
+    type: 'attack',
+    value: 17,
+    name: '非歐幾何靈能衝擊',
+    description: '釋放拉萊耶巨石沉入海底的毀滅引力波，預告造成 17 點傷害。',
+  },
+  {
+    type: 'apply_status',
+    value: 3,
+    statusType: 'horror',
+    name: '沉眠之神低語',
+    description: '不可名狀的低語震盪心神，預告向你施加 3 層【恐慌】印記。',
+  },
+  {
+    type: 'attack',
+    value: 20,
+    name: '超維意志湮滅',
+    description: '調動星辰殘餘靈能實施毀滅性打擊，預告造成 20 點傷害。',
+  },
+];
+
+export const ENEMY_RLYEH_DREAM_APPARITION: Enemy = {
+  id: 'enemy_rlyeh_dream_apparition',
+  name: '拉萊耶夢境具象',
+  title: '舊日沉睡意識的具象化',
+  health: 75,
+  maxHealth: 75,
+  armor: 6,
+  category: 'star_spawn',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.oneiric_dread],
+  currentIntent: RLYEH_DREAM_APPARITION_INTENTS[0],
+  intentSequence: RLYEH_DREAM_APPARITION_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const NON_EUCLIDEAN_CONSTRUCT_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 18,
+    name: '綠石角柱砸擊',
+    description: '撼動非歐角度生長的綠色玄武岩石柱橫掃，預告造成 18 點傷害。',
+  },
+  {
+    type: 'defend',
+    value: 14,
+    name: '空間折疊閉合',
+    description: '石塊結構反向折疊消隱實體，預告獲得 14 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 20,
+    name: '悖論重力碾碎',
+    description: '反轉局部重力將調查員狠狠摜向石壁，預告造成 20 點傷害。',
+  },
+  {
+    type: 'apply_status',
+    value: 3,
+    statusType: 'vulnerable',
+    name: '太古維度震盪',
+    description: '巨石裂隙爆發超維強光，預告向你施加 3 層【易傷】印記。',
+  },
+];
+
+export const ENEMY_NON_EUCLIDEAN_CONSTRUCT: Enemy = {
+  id: 'enemy_non_euclidean_construct',
+  name: '非歐幾何異構體',
+  title: '崩塌維度的活體石塊',
+  health: 78,
+  maxHealth: 78,
+  armor: 12,
+  category: 'ancient_guardian',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.geometric_paradox],
+  currentIntent: NON_EUCLIDEAN_CONSTRUCT_INTENTS[0],
+  intentSequence: NON_EUCLIDEAN_CONSTRUCT_INTENTS,
+  currentIntentIndex: 0,
+};
+
+export const COSMIC_PROPHET_INTENTS: EnemyIntent[] = [
+  {
+    type: 'attack',
+    value: 16,
+    name: '群星軌跡引爆',
+    description: '引導星辰交匯之殘光引發劇烈爆炸，預告造成 16 點傷害。',
+  },
+  {
+    type: 'erode',
+    value: 5,
+    name: '末日讖言侵蝕',
+    description: '宣讀不可名狀之神甦醒的末日讖語，預告侵蝕 5 點理智牌庫。',
+  },
+  {
+    type: 'defend',
+    value: 10,
+    name: '星界冷焰屏障',
+    description: '以異界冷火環繞周身凝聚守護罩，預告獲得 10 點護甲。',
+  },
+  {
+    type: 'attack',
+    value: 22,
+    name: '超新星狂怒震擊',
+    description: '燃燒自身神經元釋放毀滅星爆，預告造成 22 點毀滅傷害。',
+  },
+];
+
+export const ENEMY_COSMIC_PROPHET: Enemy = {
+  id: 'enemy_cosmic_prophet',
+  name: '終焉星辰先知',
+  title: '群星歸位的宣講者',
+  health: 72,
+  maxHealth: 72,
+  armor: 5,
+  category: 'cultist',
+  traits: [ELDRITCH_TRAIT_DEFINITIONS.prophecy_of_ruin],
+  currentIntent: COSMIC_PROPHET_INTENTS[0],
+  intentSequence: COSMIC_PROPHET_INTENTS,
+  currentIntentIndex: 0,
+};
+
 /* =========================================================
    Enemy Pools by Depth
    ========================================================= */
@@ -823,6 +1326,9 @@ export const DEPTH_1_NORMAL_ENEMIES: Enemy[] = [
   ENEMY_ARKHAM_CULTIST,
   ENEMY_GHOUL_LURKER,
   ENEMY_NIGHTGAUNT,
+  ENEMY_WALLS_RAT_SWARM,
+  ENEMY_CULTIST_ZEALOT,
+  ENEMY_CEMETERY_CARRION_WORM,
 ];
 
 export const DEPTH_1_ELITE_ENEMIES: Enemy[] = [
@@ -834,6 +1340,9 @@ export const DEPTH_2_NORMAL_ENEMIES: Enemy[] = [
   ENEMY_DEEP_ONE_WARRIOR,
   ENEMY_DROWNED_SOUL,
   ENEMY_DEEP_ONE_ELDER,
+  ENEMY_TIDAL_SIREN,
+  ENEMY_INNSMOUTH_HYBRID,
+  ENEMY_ABYSSAL_BARNACLE_MASS,
 ];
 
 export const DEPTH_2_ELITE_ENEMIES: Enemy[] = [
@@ -846,6 +1355,9 @@ export const DEPTH_3_NORMAL_ENEMIES: Enemy[] = [
   ENEMY_BYAKHEE_ROTWING,
   ENEMY_FORMLESS_SPAWN,
   ENEMY_HOUND_OF_TINDALOS,
+  ENEMY_MIGO_SCOUT,
+  ENEMY_VOID_WANDERER,
+  ENEMY_OUTER_GOD_PIPER,
 ];
 
 export const DEPTH_3_ELITE_ENEMIES: Enemy[] = [
@@ -856,6 +1368,9 @@ export const DEPTH_4_NORMAL_ENEMIES: Enemy[] = [
   ENEMY_STAR_SPAWN_LARVA,
   ENEMY_RLYEH_GUARD,
   ENEMY_COSMIC_ACOLYTE,
+  ENEMY_RLYEH_DREAM_APPARITION,
+  ENEMY_NON_EUCLIDEAN_CONSTRUCT,
+  ENEMY_COSMIC_PROPHET,
 ];
 
 export const DEPTH_4_ELITE_ENEMIES: Enemy[] = [
@@ -872,6 +1387,9 @@ const ENEMY_CATALOG: Record<string, Enemy> = {
   [ENEMY_GHOUL_LURKER.id]: ENEMY_GHOUL_LURKER,
   [ENEMY_NIGHTGAUNT.id]: ENEMY_NIGHTGAUNT,
   [ENEMY_GHOUL_HIGH_PRIEST.id]: ENEMY_GHOUL_HIGH_PRIEST,
+  [ENEMY_WALLS_RAT_SWARM.id]: ENEMY_WALLS_RAT_SWARM,
+  [ENEMY_CULTIST_ZEALOT.id]: ENEMY_CULTIST_ZEALOT,
+  [ENEMY_CEMETERY_CARRION_WORM.id]: ENEMY_CEMETERY_CARRION_WORM,
 
   // Depth 2
   [ENEMY_DEEP_ONE_WARRIOR.id]: ENEMY_DEEP_ONE_WARRIOR,
@@ -879,6 +1397,9 @@ const ENEMY_CATALOG: Record<string, Enemy> = {
   [ENEMY_DEEP_ONE_ELDER.id]: ENEMY_DEEP_ONE_ELDER,
   [ENEMY_DAGON_CHAMPION.id]: ENEMY_DAGON_CHAMPION,
   [ENEMY_FRENZIED_DEEP_ONE.id]: ENEMY_FRENZIED_DEEP_ONE,
+  [ENEMY_TIDAL_SIREN.id]: ENEMY_TIDAL_SIREN,
+  [ENEMY_INNSMOUTH_HYBRID.id]: ENEMY_INNSMOUTH_HYBRID,
+  [ENEMY_ABYSSAL_BARNACLE_MASS.id]: ENEMY_ABYSSAL_BARNACLE_MASS,
 
   // Depth 3
   [ENEMY_PROTO_SHOGGOTH_SPAWN.id]: ENEMY_PROTO_SHOGGOTH_SPAWN,
@@ -886,12 +1407,18 @@ const ENEMY_CATALOG: Record<string, Enemy> = {
   [ENEMY_FORMLESS_SPAWN.id]: ENEMY_FORMLESS_SPAWN,
   [ENEMY_HOUND_OF_TINDALOS.id]: ENEMY_HOUND_OF_TINDALOS,
   [ENEMY_ANCIENT_HOUND.id]: ENEMY_ANCIENT_HOUND,
+  [ENEMY_MIGO_SCOUT.id]: ENEMY_MIGO_SCOUT,
+  [ENEMY_VOID_WANDERER.id]: ENEMY_VOID_WANDERER,
+  [ENEMY_OUTER_GOD_PIPER.id]: ENEMY_OUTER_GOD_PIPER,
 
   // Depth 4
   [ENEMY_STAR_SPAWN_LARVA.id]: ENEMY_STAR_SPAWN_LARVA,
   [ENEMY_RLYEH_GUARD.id]: ENEMY_RLYEH_GUARD,
   [ENEMY_COSMIC_ACOLYTE.id]: ENEMY_COSMIC_ACOLYTE,
   [ENEMY_ANCIENT_GUARDIAN.id]: ENEMY_ANCIENT_GUARDIAN,
+  [ENEMY_RLYEH_DREAM_APPARITION.id]: ENEMY_RLYEH_DREAM_APPARITION,
+  [ENEMY_NON_EUCLIDEAN_CONSTRUCT.id]: ENEMY_NON_EUCLIDEAN_CONSTRUCT,
+  [ENEMY_COSMIC_PROPHET.id]: ENEMY_COSMIC_PROPHET,
 
   // Bosses
   [INITIAL_SHOGGOTH.id]: { ...INITIAL_SHOGGOTH, category: 'boss' },
@@ -939,11 +1466,13 @@ export function getBossByDepth(depth: DepthLevel = 1): Enemy {
 
 /**
  * 依深度與節點類型，隨機抽取對應怪物並回傳乾淨副本
+ * 支援 excludeEnemyId 參數（可為單一 ID 或 ID 陣列），達成同一深度內防連續重複遭遇機制 (Issue #55)
  */
 export function getEncounterEnemy(
   depth: DepthLevel = 1,
   nodeType: 'combat' | 'elite' | 'boss',
-  randomFn: () => number = Math.random
+  randomFn: () => number = Math.random,
+  excludeEnemyId?: string | string[]
 ): Enemy {
   if (nodeType === 'boss') {
     return getBossByDepth(depth);
@@ -963,7 +1492,21 @@ export function getEncounterEnemy(
     4: DEPTH_4_ELITE_ENEMIES,
   };
 
-  const pool = nodeType === 'elite' ? elitePools[depth] ?? elitePools[1] : normalPools[depth] ?? normalPools[1];
+  const fullPool = nodeType === 'elite' ? elitePools[depth] ?? elitePools[1] : normalPools[depth] ?? normalPools[1];
+
+  // 防連續重複遭遇：若候選池大於 1，且指定了欲排除的敵人 ID，則過濾排除該敵人
+  const excluded = Array.isArray(excludeEnemyId)
+    ? excludeEnemyId
+    : excludeEnemyId
+    ? [excludeEnemyId]
+    : [];
+
+  const eligiblePool =
+    excluded.length > 0 && fullPool.length > 1
+      ? fullPool.filter((e) => !excluded.includes(e.id))
+      : fullPool;
+
+  const pool = eligiblePool.length > 0 ? eligiblePool : fullPool;
   const index = Math.floor(randomFn() * pool.length);
   const selected = pool[Math.min(index, pool.length - 1)];
 
