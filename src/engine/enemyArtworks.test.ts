@@ -201,4 +201,105 @@ describe('Enemy Artworks Registry & Dual-Perception Engine (ADR-0021)', () => {
       expect(imagePaths).toContain(`/public${bossArt!.cartoonUrl}`);
     });
   });
+
+  describe('Phase 2 Derivative Enemies Decoupling & Dual-Perception Assets (Issue #58)', () => {
+    const derivativeEnemyIds = [
+      'enemy_cultist_zealot',
+      'enemy_walls_rat_swarm',
+      'enemy_cemetery_carrion_worm',
+      'enemy_innsmouth_hybrid',
+      'enemy_tidal_siren',
+      'enemy_abyssal_barnacle_mass',
+      'enemy_migo_scout',
+      'enemy_void_wanderer',
+      'enemy_outer_god_piper',
+      'enemy_rlyeh_sarcophagus_guard',
+      'enemy_rlyeh_dream_apparition',
+      'enemy_cosmic_prophet',
+    ];
+
+    it('ensures all 24 physical PNG assets for the 12 derivative enemies exist on disk in public/enemies/', () => {
+      const enemyImages = import.meta.glob('/public/enemies/**/*.{webp,png}');
+      const imagePaths = Object.keys(enemyImages);
+
+      for (const id of derivativeEnemyIds) {
+        const art = getEnemyArtwork(id);
+        expect(art, `Artwork definition for ${id} must exist`).toBeDefined();
+        expect(art?.cartoonUrl).toBe(`/enemies/cartoon/${id}.png`);
+        expect(art?.realisticUrl).toBe(`/enemies/realistic/${id}.png`);
+
+        expect(imagePaths).toContain(`/public/enemies/cartoon/${id}.png`);
+        expect(imagePaths).toContain(`/public/enemies/realistic/${id}.png`);
+      }
+    });
+
+    it('verifies all 12 derivative enemies are 100% decoupled with unique dedicated URLs', () => {
+      const cartoonUrls = new Set<string>();
+      const realisticUrls = new Set<string>();
+
+      for (const id of derivativeEnemyIds) {
+        const art = getEnemyArtwork(id);
+        expect(art).toBeDefined();
+        expect(art?.cartoonUrl).toBeDefined();
+        expect(art?.realisticUrl).toBeDefined();
+
+        // Must be unique across all derivative enemies
+        expect(cartoonUrls.has(art!.cartoonUrl!)).toBe(false);
+        expect(realisticUrls.has(art!.realisticUrl!)).toBe(false);
+
+        cartoonUrls.add(art!.cartoonUrl!);
+        realisticUrls.add(art!.realisticUrl!);
+
+        // Must NOT match former borrowed base monster assets
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_arkham_cultist.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_ghoul_lurker.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_deep_one_warrior.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_drowned_soul.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_deep_one_elder.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_byakhee_rotwing.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_formless_spawn.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_proto_shoggoth_spawn.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_rlyeh_guard.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_star_spawn_larva.png');
+        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_cosmic_acolyte.png');
+      }
+    });
+
+    it('resolves cartoon in normal state and switches to realistic in madness/flicker for all 12 derivative enemies', () => {
+      for (const id of derivativeEnemyIds) {
+        const art = getEnemyArtwork(id)!;
+        const enemy: Enemy = {
+          id,
+          name: art.name,
+          title: '測試敵怪',
+          health: 50,
+          maxHealth: 50,
+          armor: 0,
+          category: art.category,
+          currentIntent: {
+            type: 'attack',
+            value: 5,
+            name: '普通攻擊',
+            description: '攻擊',
+          },
+        };
+
+        // Normal state -> cartoonUrl
+        expect(getActiveEnemyIllustration(enemy, { isMadness: false, isFlickering: false })).toBe(
+          `/enemies/cartoon/${id}.png`
+        );
+
+        // Madness state -> realisticUrl
+        expect(getActiveEnemyIllustration(enemy, { isMadness: true, isFlickering: false })).toBe(
+          `/enemies/realistic/${id}.png`
+        );
+
+        // Flickering state -> realisticUrl
+        expect(getActiveEnemyIllustration(enemy, { isMadness: false, isFlickering: true })).toBe(
+          `/enemies/realistic/${id}.png`
+        );
+      }
+    });
+  });
 });
+

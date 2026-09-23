@@ -231,6 +231,38 @@ describe('EnemyView Component (ADR-0018)', () => {
       expect(image.className).toContain('state-madness');
     });
 
+    it('renders and switches illustrations correctly for derivative enemies across depths', () => {
+      const sampleDerivativeEnemies: Array<{ id: string; name: string; category: Enemy['category'] }> = [
+        { id: 'enemy_cultist_zealot', name: '異教狂熱信徒', category: 'cultist' },
+        { id: 'enemy_innsmouth_hybrid', name: '印斯茅斯混血種', category: 'deep_one' },
+        { id: 'enemy_migo_scout', name: '米·戈偵察者', category: 'migo' },
+        { id: 'enemy_cosmic_prophet', name: '終焉星辰先知', category: 'cultist' },
+      ];
+
+      for (const sample of sampleDerivativeEnemies) {
+        const enemy: Enemy = {
+          ...dummyEnemy,
+          id: sample.id,
+          name: sample.name,
+          category: sample.category,
+        };
+
+        // Normal state
+        const { unmount } = render(<EnemyView enemy={enemy} isMadness={false} />);
+        const normalImg = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
+        expect(normalImg.src).toContain(`/enemies/cartoon/${sample.id}.png`);
+        expect(normalImg.className).toContain('state-normal');
+        unmount();
+
+        // Madness state
+        const { unmount: unmountMadness } = render(<EnemyView enemy={enemy} isMadness={true} />);
+        const madnessImg = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
+        expect(madnessImg.src).toContain(`/enemies/realistic/${sample.id}.png`);
+        expect(madnessImg.className).toContain('state-madness');
+        unmountMadness();
+      }
+    });
+
     it('maintains cartoon illustration for bosses in madness state (Boss Invariant Mask)', () => {
       const boss: Enemy = {
         ...dummyEnemy,
