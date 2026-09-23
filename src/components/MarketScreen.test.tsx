@@ -4,6 +4,7 @@ import { MarketScreen } from './MarketScreen';
 import type { GameState, MarketItem, Card } from '../types/game';
 import { INITIAL_INVESTIGATOR, INITIAL_GHOUL } from '../engine/initialData';
 import { cloneEnemy } from '../engine/enemyCatalog';
+import { soundEngine } from '../engine/audioManager';
 
 const mockCards: Card[] = [
   {
@@ -180,7 +181,8 @@ describe('MarketScreen Component (Issue #53)', () => {
     });
   });
 
-  it('disables purge button when player has insufficient obols (< 30)', () => {
+  it('disables purge button when player has insufficient obols (< 30) and plays denial audio on click', () => {
+    const playDenySpy = vi.spyOn(soundEngine, 'playDeny');
     const state = createScreenTestState({
       investigator: {
         ...INITIAL_INVESTIGATOR,
@@ -188,11 +190,17 @@ describe('MarketScreen Component (Issue #53)', () => {
       },
     });
     const dispatch = vi.fn();
-    render(<MarketScreen state={state} dispatch={dispatch} />);
+    const { container } = render(<MarketScreen state={state} dispatch={dispatch} />);
 
     const openPurgeBtn = screen.getByRole('button', { name: /古金幣不足/ });
     expect(openPurgeBtn).toBeTruthy();
     expect(openPurgeBtn.hasAttribute('disabled')).toBe(true);
+
+    const btnWrapper = container.querySelector('.market-purge-btn-wrapper');
+    expect(btnWrapper).toBeTruthy();
+    fireEvent.click(btnWrapper!);
+    expect(playDenySpy).toHaveBeenCalled();
+    playDenySpy.mockRestore();
   });
 
   it('disables purge button when purge service was already used in this visit', () => {

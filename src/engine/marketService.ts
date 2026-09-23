@@ -3,6 +3,8 @@ import { CardRegistry } from './cards/registry';
 import { PRESET_RELICS } from './relics';
 import { fisherYatesShuffle } from './shuffleUtils';
 
+export const MARKET_PURGE_COST = 30;
+
 export interface GenerateMarketItemsOptions {
   ownedRelicIds?: string[];
   randomFn?: () => number;
@@ -118,21 +120,24 @@ export function generateMarketItemsForDepth(
     description: c.description,
   }));
 
-  // 2. 動態抽取 1~2 件未持有之舊日遺物
+  // 2. 動態抽取 1~2 件未持有之舊日遺物（若全數持有則不重複販售）
   const ownedSet = new Set(ownedRelicIds);
   const unownedRelics = PRESET_RELICS.filter((r) => !ownedSet.has(r.id));
-  const relicPool = unownedRelics.length > 0 ? unownedRelics : PRESET_RELICS;
-  const relicCount = relicPool.length === 1 ? 1 : randomFn() < 0.5 ? 1 : 2;
-  const shuffledRelics = fisherYatesShuffle(relicPool, randomFn);
-  const pickedRelics = shuffledRelics.slice(0, relicCount);
-  const relicItems: MarketItem[] = pickedRelics.map((r) => ({
-    id: `market_item_relic_${r.id}`,
-    name: r.name,
-    type: 'relic',
-    price: getRelicPrice(r),
-    relic: r,
-    description: r.description,
-  }));
+  let relicItems: MarketItem[] = [];
+
+  if (unownedRelics.length > 0) {
+    const relicCount = unownedRelics.length === 1 ? 1 : randomFn() < 0.5 ? 1 : 2;
+    const shuffledRelics = fisherYatesShuffle(unownedRelics, randomFn);
+    const pickedRelics = shuffledRelics.slice(0, relicCount);
+    relicItems = pickedRelics.map((r) => ({
+      id: `market_item_relic_${r.id}`,
+      name: r.name,
+      type: 'relic',
+      price: getRelicPrice(r),
+      relic: r,
+      description: r.description,
+    }));
+  }
 
   // 3. 抽取 1 件深度對應之醫療補給
   const depthKey = effectiveDepth >= 3 ? 3 : effectiveDepth === 2 ? 2 : 1;
@@ -147,15 +152,13 @@ export function generateMarketItemsForDepth(
     description: pickedMed.description,
   };
 
-  const allItems: MarketItem[] = [...cardItems, ...relicItems, healItem];
-
-  // 4. 支援 20% 機率單一商品隨機半價或特惠標籤
-  if (randomFn() < 0.2 && allItems.length > 0) {
-    const discountIdx = Math.floor(randomFn() * allItems.length);
-    const targetItem = allItems[discountIdx];
+  // 4. 支援 20% 機率單一卡牌隨機半價或特惠標籤 (ADR-0032 §2, CONTEXT.md)
+  if (randomFn() < 0.2 && cardItems.length > 0) {
+    const discountIdx = Math.floor(randomFn() * cardItems.length);
+    const targetItem = cardItems[discountIdx];
     const originalPrice = targetItem.price;
     const discountedPrice = Math.max(1, Math.round(originalPrice * 0.5));
-    allItems[discountIdx] = {
+    cardItems[discountIdx] = {
       ...targetItem,
       originalPrice,
       price: discountedPrice,
@@ -163,6 +166,8 @@ export function generateMarketItemsForDepth(
       discountLabel: '半價特惠',
     };
   }
+
+  const allItems: MarketItem[] = [...cardItems, ...relicItems, healItem];
 
   return allItems;
 }

@@ -31,6 +31,7 @@ import {
 import {
   getMythosEvent,
   generateMarketItemsForDepth,
+  MARKET_PURGE_COST,
   TRUTH_CARD_BREAKWATER,
 } from './eventData';
 import {
@@ -905,13 +906,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'PURGE_CARD_AT_MARKET': {
       if (state.phase !== 'market' || state.marketPurgeUsed) return state;
-      const PURGE_COST = 30;
 
-      if (state.investigator.obols < PURGE_COST) {
+      if (state.investigator.obols < MARKET_PURGE_COST) {
         return {
           ...state,
           battleLog: [
-            `古金幣不足！黑市牌庫除役服務需要 ${PURGE_COST} 古金幣，目前僅有 ${state.investigator.obols} 枚。`,
+            `古金幣不足！黑市牌庫除役服務需要 ${MARKET_PURGE_COST} 古金幣，目前僅有 ${state.investigator.obols} 枚。`,
             ...state.battleLog,
           ],
         };
@@ -938,14 +938,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         investigator: {
           ...state.investigator,
-          obols: state.investigator.obols - PURGE_COST,
+          obols: state.investigator.obols - MARKET_PURGE_COST,
         },
         sanityDeck: remainingCards,
-        hand: [],
-        discardPile: [],
+        hand: state.hand,
+        discardPile: state.discardPile,
         marketPurgeUsed: true,
         battleLog: [
-          `在黑市支付 ${PURGE_COST} 枚古金幣，將卡牌【${targetCard.name}】投入灰面卡斯楚的碎形焚爐中永久除役焚毀！`,
+          `在黑市支付 ${MARKET_PURGE_COST} 枚古金幣，將卡牌【${targetCard.name}】投入灰面卡斯楚的碎形焚爐中永久除役焚毀！`,
           ...state.battleLog,
         ],
       };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateMarketItemsForDepth } from './eventData';
+import { generateMarketItemsForDepth, MARKET_PURGE_COST } from './marketService';
 import { PRESET_RELICS } from './relics';
 import { gameReducer } from './gameReducer';
 import type { GameState, Card } from '../types/game';
@@ -118,6 +118,16 @@ describe('Dynamic Black Market Generation (Issue #53 / ADR-0032)', () => {
     }
   });
 
+  it('does not generate relics when player already owns all PRESET_RELICS', () => {
+    const allRelicIds = PRESET_RELICS.map((r) => r.id);
+    const items = generateMarketItemsForDepth(1, 'investigator', {
+      ownedRelicIds: allRelicIds,
+    });
+
+    const relicItems = items.filter((i) => i.type === 'relic');
+    expect(relicItems).toHaveLength(0);
+  });
+
   it('generates exactly 1 medical supply appropriate for current depth', () => {
     const d1Items = generateMarketItemsForDepth(1, 'investigator');
     const d1Heal = d1Items.filter((i) => i.type === 'heal');
@@ -135,7 +145,7 @@ describe('Dynamic Black Market Generation (Issue #53 / ADR-0032)', () => {
     expect(d3Heal[0].healAmount).toBeGreaterThanOrEqual(10);
   });
 
-  it('applies 20% discount to a single item when discount triggers', () => {
+  it('applies 20% discount specifically to a single card item when discount triggers', () => {
     // Mock randomFn returning 0.1 (< 0.2 trigger)
     const itemsWithDiscount = generateMarketItemsForDepth(1, 'investigator', {
       randomFn: () => 0.1,
@@ -145,6 +155,7 @@ describe('Dynamic Black Market Generation (Issue #53 / ADR-0032)', () => {
     expect(discountedItems).toHaveLength(1);
 
     const discounted = discountedItems[0];
+    expect(discounted.type).toBe('card');
     expect(discounted.originalPrice).toBeDefined();
     expect(discounted.price).toBe(Math.round(discounted.originalPrice! * 0.5));
     expect(discounted.discountLabel).toBe('半價特惠');
@@ -187,8 +198,8 @@ describe('Black Market Relic Purchase & Card Purge Service (Reducer)', () => {
       payload: { cardId: targetCardId },
     });
 
-    // 50 - 30 = 20
-    expect(nextState.investigator.obols).toBe(20);
+    // 50 - MARKET_PURGE_COST = 20
+    expect(nextState.investigator.obols).toBe(50 - MARKET_PURGE_COST);
     expect(nextState.sanityDeck.some((c) => c.id === targetCardId)).toBe(false);
     expect(nextState.sanityDeck).toHaveLength(2);
     expect(nextState.marketPurgeUsed).toBe(true);

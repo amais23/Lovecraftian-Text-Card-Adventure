@@ -18,6 +18,7 @@ import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { getAllPermanentCards } from '../engine/abyssalSeals';
 import { getCardArtwork } from '../engine/cardArtworks';
+import { MARKET_PURGE_COST } from '../engine/marketService';
 
 interface MarketScreenProps {
   state: GameState;
@@ -30,9 +31,8 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
   const [isPurgeOpen, setIsPurgeOpen] = useState(false);
   const [selectedPurgeCardId, setSelectedPurgeCardId] = useState<string | null>(null);
 
-  const PURGE_COST = 30;
   const isPurgeUsed = Boolean(state.marketPurgeUsed);
-  const canAffordPurge = investigator.obols >= PURGE_COST;
+  const canAffordPurge = investigator.obols >= MARKET_PURGE_COST;
   const permanentCards = getAllPermanentCards(state);
 
   const handleBuy = (item: MarketItem) => {
@@ -46,7 +46,10 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
   };
 
   const handleOpenPurge = () => {
-    if (isPurgeUsed || !canAffordPurge) return;
+    if (isPurgeUsed || !canAffordPurge) {
+      soundEngine.playDeny();
+      return;
+    }
     soundEngine.playClick();
     setIsPurgeOpen(true);
   };
@@ -211,30 +214,39 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                   <h3 className="market-purge-title">黑市牌庫除役服務 · 灰面卡斯楚的碎形焚爐</h3>
                   <span className="market-purge-cost-tag">
                     <Coins size={14} color="#ffd700" />
-                    <span>30 古金幣</span>
+                    <span>{MARKET_PURGE_COST} 古金幣</span>
                   </span>
                 </div>
                 <p className="market-purge-desc">
-                  支付 30 枚古金幣，自當前牌庫中永久挑選 1 張卡牌投入焚爐燒毀，使後續戰鬥心智更為專注精純。
+                  支付 {MARKET_PURGE_COST} 枚古金幣，自當前牌庫中永久挑選 1 張卡牌投入焚爐燒毀，使後續戰鬥心智更為專注精純。
                 </p>
               </div>
             </div>
 
-            <button
-              id="market-open-purge-btn"
-              className={`market-purge-open-btn ${isPurgeUsed || !canAffordPurge ? 'disabled' : ''}`}
-              disabled={isPurgeUsed || !canAffordPurge}
-              onClick={handleOpenPurge}
+            <div
+              className="market-purge-btn-wrapper"
+              onClick={() => {
+                if (isPurgeUsed || !canAffordPurge) {
+                  soundEngine.playDeny();
+                }
+              }}
             >
-              <Trash2 size={16} />
-              <span>
-                {isPurgeUsed
-                  ? '本次已除役'
-                  : !canAffordPurge
-                  ? '古金幣不足'
-                  : '委託除役服務'}
-              </span>
-            </button>
+              <button
+                id="market-open-purge-btn"
+                className={`market-purge-open-btn ${isPurgeUsed || !canAffordPurge ? 'disabled' : ''}`}
+                disabled={isPurgeUsed || !canAffordPurge}
+                onClick={handleOpenPurge}
+              >
+                <Trash2 size={16} />
+                <span>
+                  {isPurgeUsed
+                    ? '本次已除役'
+                    : !canAffordPurge
+                    ? '古金幣不足'
+                    : '委託除役服務'}
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Purge Selection Drawer / Modal */}

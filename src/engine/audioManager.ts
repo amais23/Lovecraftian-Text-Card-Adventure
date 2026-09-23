@@ -304,6 +304,19 @@ export class SoundEngine {
   }
 
   /**
+   * 動作拒絕 / 禁用按鈕點擊提示聲 (Action Denied / Prohibited Buzz)
+   */
+  public playDeny(): void {
+    this.playTone({
+      type: 'sawtooth',
+      freqStart: 180,
+      freqEnd: 110,
+      gainStart: 0.25,
+      duration: 0.12,
+    });
+  }
+
+  /**
    * 6. 打字機鍵盤微敲擊聲 (Typewriter tick)
    */
   public playTypewriterKey(): void {

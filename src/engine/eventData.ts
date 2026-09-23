@@ -1430,6 +1430,7 @@ export function getMythosEventForNode(
 export {
   generateMarketItemsForDepth,
   generateDefaultMarketItems,
+  MARKET_PURGE_COST,
   type GenerateMarketItemsOptions,
 } from './marketService';
 
