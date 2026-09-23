@@ -1792,6 +1792,62 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     expect(meditatedState.hand.length).toBe(0);
   });
 
+  describe('Sanctuary Hearth Purge (Issue #54 / ADR-0032)', () => {
+    it('USE_SANCTUARY purge burns selected card permanently and marks sanctuaryUsed', () => {
+      const cardA = createMockCard({ id: 'c1', name: '破舊風衣' });
+      const cardB = createMockCard({ id: 'c2', name: '左輪射擊' });
+      const cardC = createMockCard({ id: 'c3', name: '恐懼幻影' });
+
+      const sanctuaryState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        sanctuaryUsed: false,
+        sanityDeck: [cardA, cardB, cardC],
+        hand: [],
+        discardPile: [],
+      };
+
+      const purgedState = gameReducer(sanctuaryState, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'purge' as any, cardId: 'c3' } as any,
+      });
+
+      expect(purgedState.sanctuaryUsed).toBe(true);
+      expect(purgedState.sanityDeck).toHaveLength(2);
+      expect(purgedState.sanityDeck.some((c) => c.id === 'c3')).toBe(false);
+      expect(purgedState.battleLog[0]).toContain('恐懼幻影');
+      expect(purgedState.battleLog[0]).toContain('壁爐餘火');
+
+      // Attempting to bandage or meditate after purge is disallowed (mutually exclusive)
+      const afterPurgeState = gameReducer(purgedState, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'bandage' },
+      });
+      expect(afterPurgeState).toBe(purgedState);
+    });
+
+    it('USE_SANCTUARY purge protects against purging when deck size <= 1', () => {
+      const cardA = createMockCard({ id: 'c1', name: '唯一卡牌' });
+
+      const sanctuaryState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        sanctuaryUsed: false,
+        sanityDeck: [cardA],
+        hand: [],
+        discardPile: [],
+      };
+
+      const result = gameReducer(sanctuaryState, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'purge' as any, cardId: 'c1' } as any,
+      });
+
+      expect(result.sanctuaryUsed).toBe(false);
+      expect(result.sanityDeck).toHaveLength(1);
+    });
+  });
+
   describe('Long-Haul Survival Economy & Field Dressing (Issue #45 / ADR-0023)', () => {
     it('CLAIM_FIELD_DRESSING recovers 4 health, discards card drafting, and collects obols', () => {
       const cardA = createMockCard({ id: 'c1' });
@@ -3968,6 +4024,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
         expect(next.phase).toBe('altar');
         expect(next.altarUsed).toBe(false);
+        expect(next.altarRituals).toHaveLength(3);
         expect(next.map?.currentNodeId).toBe('node_0_0');
       });
 
@@ -4083,6 +4140,158 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(next.investigator.relics?.length).toBe(1);
       });
 
+      it('USE_ALTAR time_space alias increases handCapacity identically to mind', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            handCapacity: 2,
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'time_space' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBe(10);
+        expect(next.investigator.handCapacity).toBe(3);
+      });
+
+      it('USE_ALTAR void alias grants relic identically to boon', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            relics: [],
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'void' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBe(14);
+        expect(next.investigator.relics?.length).toBe(1);
+      });
+
+      it('USE_ALTAR chaos damages 4 health, purges 1 card, and grants 50 obols', () => {
+        const initialCards = createInitialCombatState().sanityDeck;
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 15,
+            obols: 20,
+          },
+          sanityDeck: [...initialCards],
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'chaos' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBe(11);
+        expect(next.investigator.obols).toBe(70);
+        expect(next.sanityDeck.length).toBe(initialCards.length - 1);
+        expect(next.battleLog[0]).toContain('混沌之契');
+        expect(next.battleLog[0]).toContain('50 枚古金幣');
+      });
+
+      it('USE_ALTAR chaos rejects if health <= 4 or sanityDeck <= 1', () => {
+        const stateLowHp: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 4,
+          },
+          altarUsed: false,
+        };
+
+        const nextLowHp = gameReducer(stateLowHp, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'chaos' },
+        });
+        expect(nextLowHp.altarUsed).toBe(false);
+
+        const stateLowDeck: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+          },
+          sanityDeck: [createInitialCombatState().sanityDeck[0]],
+          altarUsed: false,
+        };
+
+        const nextLowDeck = gameReducer(stateLowDeck, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'chaos' },
+        });
+        expect(nextLowDeck.altarUsed).toBe(false);
+      });
+
+      it('USE_ALTAR blood_pact damages 8 health, grants 心智防波堤 Truth card, and 25 obols', () => {
+        const initialCards = createInitialCombatState().sanityDeck;
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 20,
+            obols: 10,
+          },
+          sanityDeck: [...initialCards],
+          altarUsed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'blood_pact' },
+        });
+
+        expect(next.altarUsed).toBe(true);
+        expect(next.investigator.health).toBe(12);
+        expect(next.investigator.obols).toBe(35);
+        expect(next.sanityDeck.length).toBe(initialCards.length + 1);
+        expect(next.sanityDeck.some((c) => c.name === '心智防波堤')).toBe(true);
+        expect(next.battleLog[0]).toContain('血契之誓');
+        expect(next.battleLog[0]).toContain('心智防波堤');
+      });
+
+      it('USE_ALTAR blood_pact rejects if health <= 8', () => {
+        const stateLowHp: GameState = {
+          ...createInitialCombatState(),
+          phase: 'altar',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 8,
+          },
+          altarUsed: false,
+        };
+
+        const next = gameReducer(stateLowHp, {
+          type: 'USE_ALTAR',
+          payload: { optionId: 'blood_pact' },
+        });
+        expect(next.altarUsed).toBe(false);
+      });
+
       it('LEAVE_ALTAR advances map and returns to map phase', () => {
         const state: GameState = {
           ...createInitialCombatState(),
@@ -4121,6 +4330,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
         const next = gameReducer(state, { type: 'LEAVE_ALTAR' });
         expect(next.phase).toBe('map');
+        expect(next.altarRituals).toBeUndefined();
         expect(next.map?.nodes['node_0_0'].status).toBe('visited');
         expect(next.map?.nodes['node_1_0'].status).toBe('accessible');
       });
@@ -4214,6 +4424,62 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
         expect(next.vaultClaimed).toBe(true);
         expect(next.investigator.obols).toBe(55);
+      });
+
+      it('CLAIM_VAULT_RELIC desecrate acquires 2 relics and injects unplayable 深淵詛咒 into sanityDeck (Issue #54)', () => {
+        const relicA = {
+          id: 'pocket_watch',
+          name: '黃銅懷錶',
+          description: '手牌容量 +1',
+          flavorText: '懷錶',
+          rarity: 'rare' as const,
+          icon: 'Watch',
+          modifiers: { handCapacity: 1 },
+        };
+        const relicB = {
+          id: 'silver_shield',
+          name: '符文圓盾',
+          description: '開局護甲 +5',
+          flavorText: '圓盾',
+          rarity: 'rare' as const,
+          icon: 'Shield',
+          modifiers: { startingArmor: 5 },
+        };
+
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'vault',
+          investigator: {
+            ...createInitialCombatState().investigator,
+            relics: [],
+            handCapacity: 2,
+          },
+          sanityDeck: [createMockCard({ id: 'deck_card_1', name: '左輪射擊' })],
+          vaultRelics: [relicA, relicB],
+          vaultClaimed: false,
+        };
+
+        const next = gameReducer(state, {
+          type: 'CLAIM_VAULT_RELIC',
+          payload: { relicIds: ['pocket_watch', 'silver_shield'], desecrate: true } as any,
+        });
+
+        expect(next.vaultClaimed).toBe(true);
+        // Both relics acquired
+        expect(next.investigator.relics).toHaveLength(2);
+        expect(next.investigator.handCapacity).toBe(3);
+
+        // Sanity deck has unplayable 深淵詛咒 injected
+        expect(next.sanityDeck).toHaveLength(2);
+        const curseCard = next.sanityDeck.find((c) => c.name === '深淵詛咒');
+        expect(curseCard).toBeDefined();
+        expect(curseCard?.category).toBe('madness');
+        expect(curseCard?.isUnplayable).toBe(true);
+        expect(curseCard?.isTemporary).toBe(false);
+
+        // Log mentions desecration and curse
+        expect(next.battleLog[0]).toContain('深淵詛咒');
+        expect(next.battleLog[0]).toContain('破除古神封印');
       });
 
       it('LEAVE_VAULT returns to map and advances node', () => {
@@ -4332,6 +4598,69 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           payload: { cardIds: ['c1', 'c2', 'c3'] },
         });
         expect(res3.bloodAltarUsed).toBe(false);
+      });
+
+      it('SACRIFICE_CARDS_AT_BLOOD_ALTAR with reshape branch purges 1 card and restores 5 HP (capped at maxHealth)', () => {
+        const initialCards = createInitialCombatState().sanityDeck;
+        const cardToPurge = initialCards[0];
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'blood_altar',
+          sanityDeck: initialCards,
+          hand: [],
+          discardPile: [],
+          bloodAltarUsed: false,
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 12,
+            maxHealth: 20,
+          },
+        };
+
+        const next = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: [cardToPurge.id], branch: 'reshape' },
+        });
+
+        expect(next.bloodAltarUsed).toBe(true);
+        expect(next.sanityDeck.length).toBe(initialCards.length - 1);
+        expect(next.sanityDeck.some((c) => c.id === cardToPurge.id)).toBe(false);
+        expect(next.investigator.health).toBe(17);
+        expect(next.battleLog[0]).toContain('血肉重塑');
+        expect(next.battleLog[0]).toContain('恢復 5 點生命值');
+      });
+
+      it('SACRIFICE_CARDS_AT_BLOOD_ALTAR reshape caps healing at maxHealth and rejects invalid card counts', () => {
+        const initialCards = createInitialCombatState().sanityDeck;
+        const cardToPurge = initialCards[0];
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'blood_altar',
+          sanityDeck: initialCards,
+          hand: [],
+          discardPile: [],
+          bloodAltarUsed: false,
+          investigator: {
+            ...createInitialCombatState().investigator,
+            health: 18,
+            maxHealth: 20,
+          },
+        };
+
+        // When health is 18/20, healing 5 should cap at 20
+        const healedState = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: [cardToPurge.id], branch: 'reshape' },
+        });
+        expect(healedState.bloodAltarUsed).toBe(true);
+        expect(healedState.investigator.health).toBe(20);
+
+        // Reshape branch rejects selecting 2 cards or 0 cards
+        const reject2 = gameReducer(state, {
+          type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+          payload: { cardIds: [initialCards[0].id, initialCards[1].id], branch: 'reshape' },
+        });
+        expect(reject2.bloodAltarUsed).toBe(false);
       });
 
       it('LEAVE_BLOOD_ALTAR returns to map and advances node', () => {

@@ -45,7 +45,9 @@ import {
   type CardPlayContext,
   type DamageResult,
 } from './cards';
+import { CARD_ABYSS_CURSE } from './cards/special/madness';
 import { applyRelicCombatStart, applyRelicToInvestigator, PRESET_RELICS } from './relics';
+import { generateAltarRituals } from './altarService';
 import {
   getFallenInvestigator,
   clearFallenInvestigator,
@@ -564,11 +566,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       if (targetNode.type === 'altar') {
+        const altarRituals = generateAltarRituals();
         return {
           ...state,
           phase: 'altar',
           map: updatedMap,
           altarUsed: false,
+          altarRituals,
           adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！古老陰森的禁忌祭壇在前方矗立，幽藍冷火散發著陣陣寒意。`,
@@ -789,6 +793,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         if (state.investigator.obols < 5 && state.sanityDeck.length === 0) {
           return state;
         }
+      } else if (optionId === 'purge') {
+        const permanentCards = getAllPermanentCards(state);
+        if (permanentCards.length <= 1 || !action.payload.cardId) {
+          return state;
+        }
       }
 
       let newHealth = state.investigator.health;
@@ -828,6 +837,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
         newSanityDeck.push(truthCard);
         newLogs.push(`在避難所深層冥想，獲得真相卡【心智防波堤】納入理智牌庫！`);
+      } else if (optionId === 'purge') {
+        const permanentCards = getAllPermanentCards(state);
+        const targetId = action.payload.cardId;
+        const targetIdx = permanentCards.findIndex((c) => c.id === targetId);
+        if (targetIdx === -1) return state;
+
+        const remainingCards = [...permanentCards];
+        const [purgedCard] = remainingCards.splice(targetIdx, 1);
+        newSanityDeck = remainingCards;
+        newLogs.push(`在避難所壁爐餘火中，將卡牌【${purgedCard.name}】投入火堆永久焚毀除役！`);
       }
 
       return {
@@ -1463,6 +1482,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newObols = state.investigator.obols;
       let newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
+      const currentStats = ensureAdventureStats(state);
+      let updatedStats = currentStats;
 
       if (optionId === 'flesh') {
         if (newHealth <= 6) return state;
@@ -1472,7 +1493,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newLogs.push(
           `在禁忌祭壇割破血肉完成誓約，承受 6 點傷害，最大生命值永久提升 5 點（當前生命值: ${newHealth} / ${newMaxHealth}）！`
         );
-      } else if (optionId === 'mind') {
+      } else if (optionId === 'mind' || optionId === 'time_space') {
         if (costType === 'sanity') {
           if (newSanityDeck.length <= 2) return state;
           const consumedCards = newSanityDeck.slice(0, 2);
@@ -1489,7 +1510,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             `在禁忌祭壇忍受神經撕裂劇痛，承受 10 點傷害，手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
           );
         }
-      } else if (optionId === 'boon') {
+      } else if (optionId === 'boon' || optionId === 'void') {
         if (newHealth <= 6) return state;
         newHealth = newHealth - 6;
         const ownedIds = new Set(updatedRelics.map((r) => r.id));
@@ -1513,8 +1534,41 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           newLogs.push(`在禁忌祭壇獻祭鮮血，獲得舊日恩賜遺物【${chosenRelic.name}】！${chosenRelic.description}`);
         } else {
           newObols += 35;
+          updatedStats = {
+            ...currentStats,
+            totalObolsCollected: currentStats.totalObolsCollected + 35,
+          };
           newLogs.push(`在禁忌祭壇獻祭鮮血，舊日微光賜予你 35 枚古金幣！`);
         }
+      } else if (optionId === 'chaos') {
+        if (newHealth <= 4 || newSanityDeck.length <= 1) return state;
+        newHealth -= 4;
+        const purgeIndex = Math.floor(Math.random() * newSanityDeck.length);
+        const [purgedCard] = newSanityDeck.splice(purgeIndex, 1);
+        newObols += 50;
+        updatedStats = {
+          ...currentStats,
+          totalObolsCollected: currentStats.totalObolsCollected + 50,
+        };
+        newLogs.push(
+          `在禁忌祭壇簽訂混沌之契，承受 4 點傷害並除役【${purgedCard.name}】，自不可名狀之混沌中汲取了 50 枚古金幣！`
+        );
+      } else if (optionId === 'blood_pact') {
+        if (newHealth <= 8) return state;
+        newHealth -= 8;
+        const truthCard: Card = {
+          ...TRUTH_CARD_BREAKWATER,
+          id: `altar_truth_${Date.now()}_${newSanityDeck.length + 1}`,
+        };
+        newSanityDeck.push(truthCard);
+        newObols += 25;
+        updatedStats = {
+          ...currentStats,
+          totalObolsCollected: currentStats.totalObolsCollected + 25,
+        };
+        newLogs.push(
+          `在禁忌祭壇簽訂血契之誓，承受 8 點深重傷害，獲得真相卡【心智防波堤】與 25 枚古金幣！`
+        );
       }
 
       return {
@@ -1529,6 +1583,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         },
         sanityDeck: newSanityDeck,
         altarUsed: true,
+        adventureStats: updatedStats,
         battleLog: newLogs.concat(state.battleLog),
       };
     }
@@ -1541,19 +1596,44 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: 'map',
         map: updatedMap,
         altarUsed: undefined,
+        altarRituals: undefined,
         battleLog: ['告別禁忌祭壇，重回阿卡姆調查地圖。', ...state.battleLog],
       };
     }
 
     case 'CLAIM_VAULT_RELIC': {
       if (state.phase !== 'vault' || state.vaultClaimed) return state;
-      const { relicId, claimObols } = action.payload;
+      const { relicId, relicIds, desecrate, claimObols } = action.payload;
       const newLogs: string[] = [];
       let updatedInvestigator = { ...state.investigator };
+      let newSanityDeck = [...state.sanityDeck];
       const currentStats = ensureAdventureStats(state);
       let updatedStats = currentStats;
 
-      if (claimObols) {
+      if (desecrate) {
+        const ids = relicIds ?? (relicId ? [relicId] : []);
+        if (ids.length !== 2) return state;
+        const availableRelics = state.vaultRelics || PRESET_RELICS;
+        const targetRelics = ids
+          .map((id) => availableRelics.find((r) => r.id === id) || PRESET_RELICS.find((r) => r.id === id))
+          .filter(Boolean) as typeof PRESET_RELICS;
+
+        if (targetRelics.length !== 2) return state;
+
+        for (const relic of targetRelics) {
+          updatedInvestigator = applyRelicToInvestigator(updatedInvestigator, relic);
+        }
+
+        const curseCard: Card = {
+          ...CARD_ABYSS_CURSE,
+          id: `card_abyss_curse_${state.sanityDeck.length + 1}_${Date.now()}`,
+        };
+        newSanityDeck.push(curseCard);
+
+        newLogs.push(
+          `在遺物秘閣強行破除古神封印，掠取了【${targetRelics.map((r) => r.name).join('】與【')}】兩件太古遺物！但深淵詛咒已悄然烙印，無法打出的【深淵詛咒】瘋狂卡已永久注入理智牌庫！`
+        );
+      } else if (claimObols) {
         updatedInvestigator.obols += 35;
         updatedStats = {
           ...currentStats,
@@ -1573,6 +1653,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         investigator: updatedInvestigator,
+        sanityDeck: newSanityDeck,
         vaultClaimed: true,
         adventureStats: updatedStats,
         battleLog: newLogs.concat(state.battleLog),
@@ -1594,13 +1675,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SACRIFICE_CARDS_AT_BLOOD_ALTAR': {
       if (state.phase !== 'blood_altar' || state.bloodAltarUsed) return state;
+      const branch = action.payload.branch || 'pure';
+      const requiredCount = branch === 'reshape' ? 1 : 2;
       const cardIds = action.payload.cardIds;
-      if (!cardIds || cardIds.length !== 2) return state;
+      if (!cardIds || cardIds.length !== requiredCount) return state;
       const idSet = new Set(cardIds);
-      if (idSet.size !== 2) return state;
+      if (idSet.size !== requiredCount) return state;
 
       const permanentCards = getAllPermanentCards(state);
-      if (permanentCards.length - cardIds.length < 2) {
+      const minRemaining = branch === 'reshape' ? 1 : 2;
+      if (permanentCards.length - cardIds.length < minRemaining) {
         return state;
       }
 
@@ -1613,18 +1697,34 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return true;
       });
 
-      if (remainingCards.length !== permanentCards.length - 2) {
+      if (remainingCards.length !== permanentCards.length - requiredCount) {
         return state;
+      }
+
+      let updatedInvestigator = state.investigator;
+      let logMessage = '';
+
+      if (branch === 'reshape') {
+        const healAmount = 5;
+        const newHealth = Math.min(state.investigator.maxHealth, state.investigator.health + healAmount);
+        updatedInvestigator = {
+          ...state.investigator,
+          health: newHealth,
+        };
+        logMessage = `在血之祭壇進行血肉重塑，將【${purgedNames[0]}】永久除役，並藉由古神恩典恢復 ${healAmount} 點生命值（當前生命: ${newHealth}/${state.investigator.maxHealth}）。`;
+      } else {
+        logMessage = `在血之祭壇燃起淨化血火，將【${purgedNames.join('】與【')}】自理智牌庫中永久除役！`;
       }
 
       return {
         ...state,
+        investigator: updatedInvestigator,
         sanityDeck: remainingCards,
         hand: [],
         discardPile: [],
         bloodAltarUsed: true,
         battleLog: [
-          `在血之祭壇燃起淨化血火，將【${purgedNames.join('】與【')}】自理智牌庫中永久除役！`,
+          logMessage,
           ...state.battleLog,
         ],
       };

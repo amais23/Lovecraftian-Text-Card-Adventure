@@ -1,8 +1,9 @@
 import React from 'react';
-import type { GameAction, GameState } from '../types/game';
-import { Flame, Heart, BookOpen, Sparkles, LogOut, ShieldAlert } from 'lucide-react';
+import type { AltarRitual, AltarRitualId, GameAction, GameState } from '../types/game';
+import { Flame, Heart, BookOpen, Sparkles, LogOut, ShieldAlert, Coins } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
+import { getDefaultAltarRituals } from '../engine/altarService';
 
 interface AltarScreenProps {
   state: GameState;
@@ -15,10 +16,15 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
   const handCapacity = investigator.handCapacity ?? 2;
   const [mindCostType, setMindCostType] = React.useState<'health' | 'sanity'>('health');
 
-  const handleSacrifice = (optionId: 'flesh' | 'mind' | 'boon', costType?: 'health' | 'sanity') => {
+  const rituals =
+    state.altarRituals && state.altarRituals.length === 3
+      ? state.altarRituals
+      : getDefaultAltarRituals();
+
+  const handleSacrifice = (optionId: AltarRitualId, costType?: 'health' | 'sanity') => {
     if (isUsed) return;
     if (optionId === 'flesh' && investigator.health <= 6) return;
-    if (optionId === 'mind') {
+    if (optionId === 'mind' || optionId === 'time_space') {
       const actualCost = costType ?? mindCostType;
       if (actualCost === 'health' && investigator.health <= 10) return;
       if (actualCost === 'sanity' && (state.sanityDeck?.length ?? 0) <= 2) return;
@@ -29,7 +35,11 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
       });
       return;
     }
-    if (optionId === 'boon' && investigator.health <= 6) return;
+    if ((optionId === 'boon' || optionId === 'void') && investigator.health <= 6) return;
+    if (optionId === 'chaos') {
+      if (investigator.health <= 4 || (state.sanityDeck?.length ?? 0) <= 1) return;
+    }
+    if (optionId === 'blood_pact' && investigator.health <= 8) return;
 
     soundEngine.playClick();
     dispatch({
@@ -41,6 +51,231 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
   const handleLeave = () => {
     soundEngine.playClick();
     dispatch({ type: 'LEAVE_ALTAR' });
+  };
+
+  const renderRitualCard = (ritual: AltarRitual) => {
+    if (ritual.id === 'flesh') {
+      const isCardDisabled = isUsed || investigator.health <= 6;
+      return (
+        <div
+          key="flesh"
+          id="altar-option-flesh"
+          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
+          onClick={() => handleSacrifice('flesh')}
+        >
+          <div className="altar-card-icon health">
+            <Heart size={28} color="#ff334b" />
+          </div>
+          <h3 className="altar-card-title">{ritual.name}</h3>
+          <p className="altar-card-desc">{ritual.description}</p>
+          <button
+            id="altar-flesh-btn"
+            className="altar-action-btn"
+            disabled={isCardDisabled}
+          >
+            {isUsed
+              ? '已完成奉獻'
+              : investigator.health <= 6
+              ? '生命值不足（需 > 6）'
+              : '割肉奉獻 · 承受 6 點傷害'}
+          </button>
+        </div>
+      );
+    }
+
+    if (ritual.id === 'time_space' || ritual.id === 'mind') {
+      const isCardDisabled =
+        isUsed ||
+        (mindCostType === 'health'
+          ? investigator.health <= 10
+          : (state.sanityDeck?.length ?? 0) <= 2);
+      return (
+        <div
+          key="time_space"
+          id="altar-option-mind"
+          data-testid="altar-option-time_space"
+          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
+        >
+          <div className="altar-card-icon mind">
+            <BookOpen size={28} color="#cfa866" />
+          </div>
+          <h3 className="altar-card-title">{ritual.name}</h3>
+          <p className="altar-card-desc">{ritual.description}</p>
+
+          <div
+            className="altar-cost-toggle-row"
+            style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}
+          >
+            <button
+              type="button"
+              className={`altar-sub-btn ${mindCostType === 'health' ? 'active' : ''}`}
+              style={{
+                flex: 1,
+                padding: '4px 8px',
+                fontSize: '0.75rem',
+                background:
+                  mindCostType === 'health'
+                    ? 'rgba(255, 74, 110, 0.3)'
+                    : 'rgba(255, 255, 255, 0.05)',
+                border:
+                  mindCostType === 'health'
+                    ? '1px solid #ff4a6e'
+                    : '1px solid rgba(255, 255, 255, 0.15)',
+                color: mindCostType === 'health' ? '#fff' : '#aaa',
+                cursor: 'pointer',
+                borderRadius: '4px',
+              }}
+              disabled={isUsed}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMindCostType('health');
+              }}
+            >
+              承受 10 生命值代價
+            </button>
+            <button
+              type="button"
+              className={`altar-sub-btn ${mindCostType === 'sanity' ? 'active' : ''}`}
+              style={{
+                flex: 1,
+                padding: '4px 8px',
+                fontSize: '0.75rem',
+                background:
+                  mindCostType === 'sanity'
+                    ? 'rgba(72, 202, 228, 0.3)'
+                    : 'rgba(255, 255, 255, 0.05)',
+                border:
+                  mindCostType === 'sanity'
+                    ? '1px solid #48cae4'
+                    : '1px solid rgba(255, 255, 255, 0.15)',
+                color: mindCostType === 'sanity' ? '#fff' : '#aaa',
+                cursor: 'pointer',
+                borderRadius: '4px',
+              }}
+              disabled={isUsed}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMindCostType('sanity');
+              }}
+            >
+              損耗 2 點理智代價
+            </button>
+          </div>
+
+          <button
+            id="altar-mind-btn"
+            data-testid="altar-time_space-btn"
+            className="altar-action-btn"
+            disabled={isCardDisabled}
+            onClick={() => handleSacrifice('time_space')}
+          >
+            {isUsed
+              ? '已完成奉獻'
+              : mindCostType === 'health'
+              ? investigator.health <= 10
+                ? '生命值不足（需 > 10）'
+                : '撕裂神經 · 承受 10 點傷害'
+              : (state.sanityDeck?.length ?? 0) <= 2
+              ? '理智牌庫不足（需 > 2 張）'
+              : '損耗理智 · 永久除役 2 張卡牌'}
+          </button>
+        </div>
+      );
+    }
+
+    if (ritual.id === 'void' || ritual.id === 'boon') {
+      const isCardDisabled = isUsed || investigator.health <= 6;
+      return (
+        <div
+          key="void"
+          id="altar-option-boon"
+          data-testid="altar-option-void"
+          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
+          onClick={() => handleSacrifice('void')}
+        >
+          <div className="altar-card-icon boon">
+            <Sparkles size={28} color="#e0a96d" />
+          </div>
+          <h3 className="altar-card-title">{ritual.name}</h3>
+          <p className="altar-card-desc">{ritual.description}</p>
+          <button
+            id="altar-boon-btn"
+            data-testid="altar-void-btn"
+            className="altar-action-btn"
+            disabled={isCardDisabled}
+          >
+            {isUsed
+              ? '已完成奉獻'
+              : investigator.health <= 6
+              ? '生命值不足（需 > 6）'
+              : '引導恩賜 · 承受 6 點傷害'}
+          </button>
+        </div>
+      );
+    }
+
+    if (ritual.id === 'chaos') {
+      const isCardDisabled =
+        isUsed || investigator.health <= 4 || (state.sanityDeck?.length ?? 0) <= 1;
+      return (
+        <div
+          key="chaos"
+          id="altar-option-chaos"
+          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
+          onClick={() => handleSacrifice('chaos')}
+        >
+          <div className="altar-card-icon chaos">
+            <Coins size={28} color="#ffd700" />
+          </div>
+          <h3 className="altar-card-title">{ritual.name}</h3>
+          <p className="altar-card-desc">{ritual.description}</p>
+          <button
+            id="altar-chaos-btn"
+            className="altar-action-btn"
+            disabled={isCardDisabled}
+          >
+            {isUsed
+              ? '已完成奉獻'
+              : investigator.health <= 4
+              ? '生命值不足（需 > 4）'
+              : (state.sanityDeck?.length ?? 0) <= 1
+              ? '理智牌庫不足（需 > 1 張）'
+              : '混沌祈願 · 承受 4 傷並除役 1 牌'}
+          </button>
+        </div>
+      );
+    }
+
+    if (ritual.id === 'blood_pact') {
+      const isCardDisabled = isUsed || investigator.health <= 8;
+      return (
+        <div
+          key="blood_pact"
+          id="altar-option-blood_pact"
+          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
+          onClick={() => handleSacrifice('blood_pact')}
+        >
+          <div className="altar-card-icon blood_pact">
+            <Flame size={28} color="#d90429" />
+          </div>
+          <h3 className="altar-card-title">{ritual.name}</h3>
+          <p className="altar-card-desc">{ritual.description}</p>
+          <button
+            id="altar-blood_pact-btn"
+            className="altar-action-btn"
+            disabled={isCardDisabled}
+          >
+            {isUsed
+              ? '已完成奉獻'
+              : investigator.health <= 8
+              ? '生命值不足（需 > 8）'
+              : '締結血契 · 承受 8 點傷害'}
+          </button>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -84,160 +319,7 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
 
         {/* Options Grid */}
         <div className="altar-options-grid">
-          {/* Option 1: Flesh */}
-          <div
-            id="altar-option-flesh"
-            className={`altar-option-card ${isUsed || investigator.health <= 6 ? 'disabled' : ''}`}
-            onClick={() => handleSacrifice('flesh')}
-          >
-            <div className="altar-card-icon health">
-              <Heart size={28} color="#ff334b" />
-            </div>
-            <h3 className="altar-card-title">血肉淬鍊之誓</h3>
-            <p className="altar-card-desc">
-              以利刃割破掌心，以滾燙鮮血澆灌石刻古印。承受 6 點肉體生命值傷害，永久拓展肌體生命極限，最大生命值永久提升 5 點（並立即修補 5 點傷勢）。
-            </p>
-            <button
-              id="altar-flesh-btn"
-              className="altar-action-btn"
-              disabled={isUsed || investigator.health <= 6}
-            >
-              {isUsed
-                ? '已完成奉獻'
-                : investigator.health <= 6
-                ? '生命值不足（需 > 6）'
-                : '割肉奉獻 · 承受 6 點傷害'}
-            </button>
-          </div>
-
-          {/* Option 2: Mind */}
-          <div
-            id="altar-option-mind"
-            className={`altar-option-card ${
-              isUsed ||
-              (mindCostType === 'health'
-                ? investigator.health <= 10
-                : (state.sanityDeck?.length ?? 0) <= 2)
-                ? 'disabled'
-                : ''
-            }`}
-          >
-            <div className="altar-card-icon mind">
-              <BookOpen size={28} color="#cfa866" />
-            </div>
-            <h3 className="altar-card-title">超維神經撕裂</h3>
-            <p className="altar-card-desc">
-              直視幽藍冷火中扭曲的超維幾何裂隙，忍受精神重創。可自主選擇承受 10 點生命值代價或損耗 2 點理智（自牌庫永久除役 2 張卡牌），永久拓展心智容量，手牌容量永久 +1（抽牌與保留手牌數同步提升 1 張）。
-            </p>
-
-            <div
-              className="altar-cost-toggle-row"
-              style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}
-            >
-              <button
-                type="button"
-                className={`altar-sub-btn ${mindCostType === 'health' ? 'active' : ''}`}
-                style={{
-                  flex: 1,
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  background:
-                    mindCostType === 'health'
-                      ? 'rgba(255, 74, 110, 0.3)'
-                      : 'rgba(255, 255, 255, 0.05)',
-                  border:
-                    mindCostType === 'health'
-                      ? '1px solid #ff4a6e'
-                      : '1px solid rgba(255, 255, 255, 0.15)',
-                  color: mindCostType === 'health' ? '#fff' : '#aaa',
-                  cursor: 'pointer',
-                  borderRadius: '4px',
-                }}
-                disabled={isUsed}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMindCostType('health');
-                }}
-              >
-                承受 10 生命值代價
-              </button>
-              <button
-                type="button"
-                className={`altar-sub-btn ${mindCostType === 'sanity' ? 'active' : ''}`}
-                style={{
-                  flex: 1,
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  background:
-                    mindCostType === 'sanity'
-                      ? 'rgba(72, 202, 228, 0.3)'
-                      : 'rgba(255, 255, 255, 0.05)',
-                  border:
-                    mindCostType === 'sanity'
-                      ? '1px solid #48cae4'
-                      : '1px solid rgba(255, 255, 255, 0.15)',
-                  color: mindCostType === 'sanity' ? '#fff' : '#aaa',
-                  cursor: 'pointer',
-                  borderRadius: '4px',
-                }}
-                disabled={isUsed}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMindCostType('sanity');
-                }}
-              >
-                損耗 2 點理智代價
-              </button>
-            </div>
-
-            <button
-              id="altar-mind-btn"
-              className="altar-action-btn"
-              disabled={
-                isUsed ||
-                (mindCostType === 'health'
-                  ? investigator.health <= 10
-                  : (state.sanityDeck?.length ?? 0) <= 2)
-              }
-              onClick={() => handleSacrifice('mind')}
-            >
-              {isUsed
-                ? '已完成奉獻'
-                : mindCostType === 'health'
-                ? investigator.health <= 10
-                  ? '生命值不足（需 > 10）'
-                  : '撕裂神經 · 承受 10 點傷害'
-                : (state.sanityDeck?.length ?? 0) <= 2
-                ? '理智牌庫不足（需 > 2 張）'
-                : '損耗理智 · 永久除役 2 張卡牌'}
-            </button>
-          </div>
-
-          {/* Option 3: Boon */}
-          <div
-            id="altar-option-boon"
-            className={`altar-option-card ${isUsed || investigator.health <= 6 ? 'disabled' : ''}`}
-            onClick={() => handleSacrifice('boon')}
-          >
-            <div className="altar-card-icon boon">
-              <Sparkles size={28} color="#e0a96d" />
-            </div>
-            <h3 className="altar-card-title">深淵恩賜喚引</h3>
-            <p className="altar-card-desc">
-              將鮮血浸入太古符文槽，自虛空裂隙中喚醒一件古老之物。承受 6 點生命值傷害，隨機獲取 1 件未持有的舊日遺物納入行囊（若已全數持有則獲取 35 枚古金幣）。
-            </p>
-            <button
-              id="altar-boon-btn"
-              className="altar-action-btn"
-              disabled={isUsed || investigator.health <= 6}
-            >
-              {isUsed
-                ? '已完成奉獻'
-                : investigator.health <= 6
-                ? '生命值不足（需 > 6）'
-                : '引導恩賜 · 承受 6 點傷害'}
-            </button>
-          </div>
+          {rituals.map((ritual) => renderRitualCard(ritual))}
         </div>
 
         {/* Footer */}
@@ -251,3 +333,4 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
     </div>
   );
 };
+

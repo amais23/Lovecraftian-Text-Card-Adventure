@@ -646,6 +646,7 @@ export const CARD_NAME_ALIASES: Record<string, string> = {
   '深海抗逆血清': '醫療鎮定劑',
   '禁忌復甦針劑': '醫療鎮定劑',
   '聖所聖水金樽': '遠古護身符',
+  '深淵詛咒': '深淵狂嘯',
 };
 
 interface TokenArtworkPattern {

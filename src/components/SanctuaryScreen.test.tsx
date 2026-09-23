@@ -88,4 +88,110 @@ describe('SanctuaryScreen Component (Issue #45 / ADR-0023)', () => {
       payload: { optionId: 'bandage' },
     });
   });
+
+  it('renders Hearth Purge option and handles card purge selection (Issue #54)', () => {
+    const map = generateInvestigationMap({ depth: 1 });
+    const regularSanctuaryNodeId = 'node_2_1';
+
+    const cardA = {
+      id: 'card_revolver_1',
+      name: '左輪射擊',
+      category: 'combat' as const,
+      costType: 'stamina' as const,
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '射擊',
+      flavorText: '「清空彈巢」',
+    };
+    const cardB = {
+      id: 'card_punch_1',
+      name: '重拳壓制',
+      category: 'combat' as const,
+      costType: 'stamina' as const,
+      costValue: 1,
+      isTemporary: false,
+      effects: [],
+      description: '壓制',
+      flavorText: '「第一拳」',
+    };
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      phase: 'sanctuary',
+      currentDepth: 1,
+      investigator: {
+        ...createInitialCombatState().investigator,
+        health: 20,
+        maxHealth: 25,
+        obols: 10,
+      },
+      sanityDeck: [cardA, cardB],
+      map: {
+        ...map,
+        currentNodeId: regularSanctuaryNodeId,
+      },
+      sanctuaryUsed: false,
+    };
+
+    const dispatch = vi.fn();
+    render(<SanctuaryScreen state={state} dispatch={dispatch} />);
+
+    // Check Hearth Purge card is present
+    expect(screen.getByText('壁爐除役與雜質焚毀')).toBeTruthy();
+    const purgeBtn = screen.getByRole('button', { name: /投入壁爐焚毀/ });
+    expect(purgeBtn).toBeTruthy();
+
+    // Click to open purge picker
+    fireEvent.click(purgeBtn);
+
+    // Modal or picker should display card names
+    expect(screen.getByText(/選擇要焚毀的卡牌/)).toBeTruthy();
+    const selectCardBtn = screen.getAllByText('左輪射擊')[0];
+    fireEvent.click(selectCardBtn);
+
+    // Confirm button
+    const confirmBtn = screen.getByRole('button', { name: /確認投入壁爐除役/ });
+    expect(confirmBtn).toBeTruthy();
+    fireEvent.click(confirmBtn);
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'USE_SANCTUARY',
+      payload: { optionId: 'purge', cardId: 'card_revolver_1' },
+    });
+  });
+
+  it('disables all sanctuary options including purge when sanctuaryUsed is true', () => {
+    const map = generateInvestigationMap({ depth: 1 });
+    const regularSanctuaryNodeId = 'node_2_1';
+
+    const state: GameState = {
+      ...createInitialCombatState(),
+      phase: 'sanctuary',
+      currentDepth: 1,
+      investigator: {
+        ...createInitialCombatState().investigator,
+        health: 15,
+        maxHealth: 25,
+        obols: 10,
+      },
+      map: {
+        ...map,
+        currentNodeId: regularSanctuaryNodeId,
+      },
+      sanctuaryUsed: true,
+    };
+
+    const dispatch = vi.fn();
+    render(<SanctuaryScreen state={state} dispatch={dispatch} />);
+
+    const bandageBtn = screen.getByRole('button', { name: '本次已修整完畢' }) as HTMLButtonElement;
+    expect(bandageBtn.disabled).toBe(true);
+
+    const meditateBtn = screen.getByRole('button', { name: '已完成冥想' }) as HTMLButtonElement;
+    expect(meditateBtn.disabled).toBe(true);
+
+    const purgeBtn = screen.getByRole('button', { name: '已完成修整' }) as HTMLButtonElement;
+    expect(purgeBtn.disabled).toBe(true);
+  });
 });

@@ -270,6 +270,18 @@ export interface AdventureStats {
   maxLayer: number;
 }
 
+export type AltarRitualId = 'flesh' | 'time_space' | 'void' | 'chaos' | 'blood_pact' | 'mind' | 'boon';
+
+export interface AltarRitual {
+  id: AltarRitualId;
+  name: string;
+  subtitle: string;
+  description: string;
+  costDescription: string;
+  rewardDescription: string;
+  iconName: 'heart' | 'book' | 'sparkles' | 'flame' | 'coins';
+}
+
 export interface GameState {
   phase:
     | 'title'
@@ -307,6 +319,7 @@ export interface GameState {
   marketItems?: MarketItem[];
   marketPurgeUsed?: boolean;
   altarUsed?: boolean;
+  altarRituals?: AltarRitual[];
   vaultRelics?: Relic[];
   vaultClaimed?: boolean;
   bloodAltarUsed?: boolean;
@@ -332,7 +345,7 @@ export type GameAction =
   | { type: 'NAVIGATE_TO_NODE'; payload: { nodeId: string; shuffledDeck?: Card[]; enemy?: Enemy } }
   | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string; shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_EVENT' }
-  | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' } }
+  | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' | 'purge'; cardId?: string } }
   | { type: 'LEAVE_SANCTUARY' }
   | { type: 'BUY_MARKET_ITEM'; payload: { itemId: string } }
   | { type: 'PURGE_CARD_AT_MARKET'; payload: { cardId: string } }
@@ -353,11 +366,11 @@ export type GameAction =
   | { type: 'ACQUIRE_RELIC'; payload: { relic: Relic } }
   | { type: 'APPLY_STATUS_EFFECT'; payload: { target: 'investigator' | 'enemy'; effect: StatusEffect } }
   | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[]; initialHealth?: number } }
-  | { type: 'USE_ALTAR'; payload: { optionId: 'flesh' | 'mind' | 'boon'; costType?: 'health' | 'sanity' } }
+  | { type: 'USE_ALTAR'; payload: { optionId: AltarRitualId; costType?: 'health' | 'sanity' } }
   | { type: 'LEAVE_ALTAR' }
-  | { type: 'CLAIM_VAULT_RELIC'; payload: { relicId?: string; claimObols?: boolean } }
+  | { type: 'CLAIM_VAULT_RELIC'; payload: { relicId?: string; relicIds?: string[]; desecrate?: boolean; claimObols?: boolean } }
   | { type: 'LEAVE_VAULT' }
-  | { type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR'; payload: { cardIds: string[] } }
+  | { type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR'; payload: { cardIds: string[]; branch?: 'pure' | 'reshape' } }
   | { type: 'LEAVE_BLOOD_ALTAR' }
   | { type: 'INHERIT_REMAINS'; payload: { type: 'card'; cardId: string } | { type: 'obols' } }
   | { type: 'LEAVE_REMAINS' };

@@ -70,6 +70,63 @@ describe('New Node Screens (Issue #30)', () => {
         payload: { optionId: 'mind', costType: 'sanity' },
       });
     });
+
+    it('renders dynamically sampled rituals (e.g. chaos, blood_pact) and dispatches USE_ALTAR', () => {
+      const dispatch = vi.fn();
+      const state: GameState = {
+        ...createInitialCombatState(),
+        phase: 'altar',
+        investigator: {
+          ...createInitialCombatState().investigator,
+          health: 15,
+        },
+        altarRituals: [
+          {
+            id: 'chaos',
+            name: '混沌之契 · 混沌換金之誓',
+            subtitle: '混沌換金',
+            description: '向無序翻騰的原初混沌傾吐禱詞。',
+            costDescription: '承受 4 點傷害並隨機除役 1 張卡牌',
+            rewardDescription: '獲得 50 枚古金幣',
+            iconName: 'coins',
+          },
+          {
+            id: 'blood_pact',
+            name: '血契之誓 · 禁忌真理之約',
+            subtitle: '禁忌古契',
+            description: '以極致深重的心頭精血締結古神盟約。',
+            costDescription: '承受 8 點傷害',
+            rewardDescription: '獲得真相卡【心智防波堤】與 25 枚古金幣',
+            iconName: 'flame',
+          },
+          {
+            id: 'flesh',
+            name: '血肉之契 · 血肉淬鍊之誓',
+            subtitle: '凡軀淬鍊',
+            description: '以利刃割破掌心。',
+            costDescription: '承受 6 點傷害',
+            rewardDescription: '最大生命值永久 +5',
+            iconName: 'heart',
+          },
+        ],
+        altarUsed: false,
+      };
+
+      const { container } = render(<AltarScreen state={state} dispatch={dispatch} />);
+
+      expect(screen.getByText(/混沌之契 · 混沌換金之誓/)).toBeDefined();
+      expect(screen.getByText(/血契之誓 · 禁忌真理之約/)).toBeDefined();
+
+      const chaosBtn = container.querySelector('#altar-chaos-btn') as HTMLButtonElement;
+      expect(chaosBtn).toBeDefined();
+      expect(chaosBtn.disabled).toBe(false);
+
+      fireEvent.click(chaosBtn);
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'USE_ALTAR',
+        payload: { optionId: 'chaos' },
+      });
+    });
   });
 
   describe('VaultScreen', () => {
@@ -135,6 +192,46 @@ describe('New Node Screens (Issue #30)', () => {
       const leaveBtn = screen.getByText(/離開遺物秘閣/);
       fireEvent.click(leaveBtn);
       expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_VAULT' });
+    });
+
+    it('supports desecration mode to select 2 relics and dispatch CLAIM_VAULT_RELIC with desecrate flag (Issue #54)', () => {
+      const dispatch = vi.fn();
+      const base = createInitialCombatState();
+      const state: GameState = {
+        ...base,
+        phase: 'vault',
+        vaultRelics: [
+          { id: 'r1', name: '遺物一', description: 'desc1', flavorText: 'f1', rarity: 'common' },
+          { id: 'r2', name: '遺物二', description: 'desc2', flavorText: 'f2', rarity: 'rare' },
+          { id: 'r3', name: '遺物三', description: 'desc3', flavorText: 'f3', rarity: 'mythic' },
+        ],
+        vaultClaimed: false,
+      };
+
+      const { container } = render(<VaultScreen state={state} dispatch={dispatch} />);
+
+      expect(screen.getAllByText(/破除古神封印/).length).toBeGreaterThan(0);
+
+      // Start desecration mode
+      const startBtn = container.querySelector('#vault-start-desecrate-btn') as HTMLElement;
+      expect(startBtn).toBeDefined();
+      fireEvent.click(startBtn);
+
+      // Select first two relics
+      const relic1Card = container.querySelector('#vault-relic-r1') as HTMLElement;
+      const relic2Card = container.querySelector('#vault-relic-r2') as HTMLElement;
+      fireEvent.click(relic1Card);
+      fireEvent.click(relic2Card);
+
+      // Confirm button
+      const confirmBtn = container.querySelector('#vault-confirm-desecrate-btn') as HTMLButtonElement;
+      expect(confirmBtn.disabled).toBe(false);
+      fireEvent.click(confirmBtn);
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'CLAIM_VAULT_RELIC',
+        payload: { relicIds: ['r1', 'r2'], desecrate: true },
+      });
     });
   });
 
@@ -274,7 +371,54 @@ describe('New Node Screens (Issue #30)', () => {
 
       expect(dispatch).toHaveBeenCalledWith({
         type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
-        payload: { cardIds: ['card_punch_1', 'card_punch_2'] },
+        payload: { cardIds: ['card_punch_1', 'card_punch_2'], branch: 'pure' },
+      });
+    });
+
+    it('supports switching to flesh reshape branch (血肉重塑), selects 1 card, and dispatches purge with branch: "reshape"', () => {
+      const dispatch = vi.fn();
+      const baseState = createInitialCombatState();
+      const state: GameState = {
+        ...baseState,
+        phase: 'blood_altar',
+        bloodAltarUsed: false,
+      };
+
+      const { container } = render(<BloodAltarScreen state={state} dispatch={dispatch} />);
+
+      const reshapeBranchBtn = container.querySelector('#blood-altar-branch-reshape-btn') as HTMLButtonElement;
+      expect(reshapeBranchBtn).toBeDefined();
+
+      // Click to switch branch
+      fireEvent.click(reshapeBranchBtn);
+      expect(reshapeBranchBtn.classList.contains('active')).toBe(true);
+
+      // Indicator should show max 1
+      expect(screen.getByText(/已選除役卡牌：0 \/ 1 張/)).toBeDefined();
+
+      const cardItems = container.querySelectorAll('.blood-altar-card-item');
+      expect(cardItems.length).toBeGreaterThan(1);
+
+      // Click first card
+      fireEvent.click(cardItems[0]);
+      expect(screen.getByText(/已選除役卡牌：1 \/ 1 張/)).toBeDefined();
+
+      // Clicking second card should not add since limit is 1
+      fireEvent.click(cardItems[1]);
+      expect(screen.getByText(/已選除役卡牌：1 \/ 1 張/)).toBeDefined();
+
+      const purgeBtn = container.querySelector('#blood-altar-purge-btn') as HTMLButtonElement;
+      expect(purgeBtn.disabled).toBe(false);
+      expect(purgeBtn.textContent).toContain('血肉重塑');
+      expect(purgeBtn.textContent).toContain('恢復 5 點生命');
+
+      fireEvent.click(purgeBtn);
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+        payload: {
+          cardIds: [state.sanityDeck[0].id],
+          branch: 'reshape',
+        },
       });
     });
   });

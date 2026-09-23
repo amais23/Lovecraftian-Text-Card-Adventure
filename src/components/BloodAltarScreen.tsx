@@ -11,9 +11,18 @@ interface BloodAltarScreenProps {
 }
 
 export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispatch }) => {
+  const [branch, setBranch] = useState<'pure' | 'reshape'>('pure');
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const isUsed = Boolean(state.bloodAltarUsed);
   const permanentCards = getAllPermanentCards(state);
+  const maxSelected = branch === 'reshape' ? 1 : 2;
+
+  const handleBranchChange = (nextBranch: 'pure' | 'reshape') => {
+    if (isUsed || nextBranch === branch) return;
+    soundEngine.playClick();
+    setBranch(nextBranch);
+    setSelectedCardIds([]);
+  };
 
   const handleToggleCard = (card: Card) => {
     if (isUsed) return;
@@ -23,18 +32,18 @@ export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispa
       soundEngine.playClick();
       setSelectedCardIds((prev) => prev.filter((id) => id !== card.id));
     } else {
-      if (selectedCardIds.length >= 2) return;
+      if (selectedCardIds.length >= maxSelected) return;
       soundEngine.playClick();
       setSelectedCardIds((prev) => [...prev, card.id]);
     }
   };
 
   const handlePurge = () => {
-    if (selectedCardIds.length !== 2 || isUsed) return;
+    if (selectedCardIds.length !== maxSelected || isUsed) return;
     soundEngine.playClick();
     dispatch({
       type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
-      payload: { cardIds: selectedCardIds },
+      payload: { cardIds: selectedCardIds, branch },
     });
     setSelectedCardIds([]);
   };
@@ -59,9 +68,40 @@ export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispa
           </div>
           <h1 className="blood-altar-title">血之祭壇 · 淨化血契</h1>
           <p className="blood-altar-subtitle">
-            以凡人鮮血浸潤石槽，燃起除役純火。自主挑選 2 張卡牌，將其自理智牌庫中永久拔除焚毀，使後續戰鬥心智更為專注精純。
+            以凡人鮮血浸潤石槽，燃起除役純火。自主挑選血契分支：徹底洗鍊 2 張卡牌，或除役 1 張卡牌並藉由古神恩典恢復生命。
           </p>
         </header>
+
+        {/* Branch Selector */}
+        <div className="blood-altar-branch-container">
+          <button
+            type="button"
+            id="blood-altar-branch-pure-btn"
+            className={`blood-altar-branch-btn ${branch === 'pure' ? 'active' : ''}`}
+            onClick={() => handleBranchChange('pure')}
+            disabled={isUsed}
+          >
+            <Flame size={20} color="#ff4a6e" />
+            <div className="blood-altar-branch-text">
+              <span className="blood-altar-branch-name">純淨血契</span>
+              <span className="blood-altar-branch-desc">除役 2 張卡牌 · 極限洗鍊牌庫</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            id="blood-altar-branch-reshape-btn"
+            className={`blood-altar-branch-btn ${branch === 'reshape' ? 'active' : ''}`}
+            onClick={() => handleBranchChange('reshape')}
+            disabled={isUsed}
+          >
+            <Droplets size={20} color="#d90429" />
+            <div className="blood-altar-branch-text">
+              <span className="blood-altar-branch-name">血肉重塑</span>
+              <span className="blood-altar-branch-desc">除役 1 張卡牌 · 恢復 5 點生命</span>
+            </div>
+          </button>
+        </div>
 
         {/* Status Strip */}
         <div className="blood-altar-status-strip">
@@ -72,13 +112,15 @@ export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispa
 
           <div className="blood-altar-status-pill highlight">
             <Trash2 size={18} color="#d90429" />
-            <span>已選除役卡牌：{selectedCardIds.length} / 2 張</span>
+            <span>已選除役卡牌：{selectedCardIds.length} / {maxSelected} 張</span>
           </div>
 
           <span className="blood-altar-hint">
             {isUsed
               ? '血契儀式已完成，選取之卡牌已自牌庫永久除役'
-              : '點選卡牌進行勾選（上限 2 張），確認後點擊「執行焚血除役」'}
+              : branch === 'pure'
+              ? '點選卡牌進行勾選（上限 2 張），確認後點擊「執行純淨血契」'
+              : '點選卡牌進行勾選（上限 1 張），確認後點擊「執行血肉重塑」'}
           </span>
         </div>
 
@@ -146,16 +188,18 @@ export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispa
           <button
             id="blood-altar-purge-btn"
             className="blood-altar-purge-btn"
-            disabled={selectedCardIds.length !== 2 || isUsed}
+            disabled={selectedCardIds.length !== maxSelected || isUsed}
             onClick={handlePurge}
           >
-            <Flame size={18} />
+            {branch === 'pure' ? <Flame size={18} /> : <Droplets size={18} />}
             <span>
               {isUsed
                 ? '已完成焚血除役'
-                : selectedCardIds.length === 2
-                ? '執行焚血除役（永久剔除 2 張卡牌）'
-                : `請選取 2 張卡牌（目前已選 ${selectedCardIds.length}/2）`}
+                : selectedCardIds.length === maxSelected
+                ? (branch === 'pure'
+                    ? '執行純淨血契（永久剔除 2 張卡牌）'
+                    : '執行血肉重塑（除役 1 張卡牌並恢復 5 點生命）')
+                : `請選取 ${maxSelected} 張卡牌（目前已選 ${selectedCardIds.length}/${maxSelected}）`}
             </span>
           </button>
 

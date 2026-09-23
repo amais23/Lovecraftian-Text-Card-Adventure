@@ -87,3 +87,21 @@ export function createWhispersOfShatteredStarsCard(turn: number, index: number =
     id: `temp_madness_whispers_t${turn}_${index}_${Date.now()}`,
   };
 }
+
+/**
+ * 遺物秘閣【破除古神封印】專屬詛咒瘋狂卡 (ADR-0032, Issue #54)
+ */
+export const CARD_ABYSS_CURSE: Card = {
+  id: 'card_abyss_curse',
+  name: '深淵詛咒',
+  category: 'madness',
+  costType: 'free',
+  costValue: 0,
+  isTemporary: false,
+  isUnplayable: true,
+  artworkUrl: '/cards/madness/card_abyssal_howl.png',
+  effects: [],
+  description: '無法打出。佔據手牌卡槽。強行破除太古封印招致的永恆深淵詛咒。',
+  flavorText: '「當你撕開太古符印的那一刻，不可名狀的凝視已烙印在靈魂深處。」',
+};
+

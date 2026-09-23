@@ -3,6 +3,7 @@ import { evaluateCardPlay } from './evaluator';
 import type { CardPlayContext } from './types';
 import type { Card } from '../../types/game';
 import { COMPLETE_ANCIENT_SEAL, ABYSSAL_FRAGMENT_1 } from './special/abyssal';
+import { CARD_ABYSS_CURSE } from './special/madness';
 import { createStatusEffect } from '../statusEffects';
 
 describe('CardEvaluator (Seam 1)', () => {
@@ -59,6 +60,15 @@ describe('CardEvaluator (Seam 1)', () => {
     it('rejects unplayable cards (e.g. Abyssal Fragments) without changing state', () => {
       const context = createBaseContext();
       const result = evaluateCardPlay(ABYSSAL_FRAGMENT_1, context);
+
+      expect(result.success).toBe(false);
+      expect(result.logs[0]).toContain('無法被打出');
+      expect(result.investigator.stamina).toBe(3);
+    });
+
+    it('rejects Abyss Curse (深淵詛咒) without changing state (Issue #54)', () => {
+      const context = createBaseContext();
+      const result = evaluateCardPlay(CARD_ABYSS_CURSE, context);
 
       expect(result.success).toBe(false);
       expect(result.logs[0]).toContain('無法被打出');

@@ -22,6 +22,8 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
   const investigator = state.investigator;
   const relics = state.vaultRelics ?? [];
   const isClaimed = Boolean(state.vaultClaimed);
+  const [isDesecrating, setIsDesecrating] = React.useState(false);
+  const [selectedRelicIds, setSelectedRelicIds] = React.useState<string[]>([]);
 
   const handleClaimRelic = (relic: Relic) => {
     if (isClaimed) return;
@@ -29,6 +31,28 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
     dispatch({
       type: 'CLAIM_VAULT_RELIC',
       payload: { relicId: relic.id },
+    });
+  };
+
+  const handleToggleSelectRelic = (relicId: string) => {
+    if (isClaimed) return;
+    soundEngine.playClick();
+    setSelectedRelicIds((prev) => {
+      if (prev.includes(relicId)) {
+        return prev.filter((id) => id !== relicId);
+      }
+      if (prev.length >= 2) return prev;
+      return [...prev, relicId];
+    });
+  };
+
+  const handleConfirmDesecrate = () => {
+    if (isClaimed || selectedRelicIds.length !== 2) return;
+    soundEngine.playClick();
+    soundEngine.playCosmicBanishment();
+    dispatch({
+      type: 'CLAIM_VAULT_RELIC',
+      payload: { relicIds: selectedRelicIds, desecrate: true },
     });
   };
 
@@ -67,7 +91,7 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
           </div>
           <h1 className="vault-title">遺物秘閣 · 太古密藏</h1>
           <p className="vault-subtitle">
-            厚重的青銅巨門之後，三件散發著超自然靈光的舊日遺物靜臥於石台上。凡人旅者可從中自主挑選 1 件納入行囊，或搜括暗格中的殘存古金幣。
+            厚重的青銅巨門之後，三件散發著超自然靈光的舊日遺物靜臥於石台上。凡人旅者可從中自主挑選 1 件納入行囊，或搜括暗格中的殘存古金幣；亦可鋌而走險破除古神封印強奪兩件遺物。
           </p>
         </header>
 
@@ -76,7 +100,9 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
           <span className="vault-status-text">
             {isClaimed
               ? '已自秘閣中獲取寶物，請啟程離開'
-              : '自主挑選 1 件舊日遺物加入行囊，或拾取 35 枚古金幣'}
+              : isDesecrating
+              ? '【破除古神封印模式】請在石台選取 2 件遺物，承受【深淵詛咒】強奪雙寶'
+              : '自主挑選 1 件舊日遺物加入行囊，或拾取 35 枚古金幣，亦可破除古神封印'}
           </span>
           <span className="vault-current-relics-count">
             目前行囊已收納 {investigator.relics?.length ?? 0} 件遺物
@@ -86,6 +112,7 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
         {/* 3 Relics Grid */}
         <div className="vault-relics-grid">
           {relics.map((relic) => {
+            const isSelected = selectedRelicIds.includes(relic.id);
             const rarityLabel =
               relic.rarity === 'mythic' ? '神話' : relic.rarity === 'rare' ? '珍稀' : '普通';
             const rarityClass = `rarity-${relic.rarity}`;
@@ -94,8 +121,16 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
               <div
                 key={relic.id}
                 id={`vault-relic-${relic.id}`}
-                className={`vault-relic-card ${rarityClass} ${isClaimed ? 'disabled' : ''}`}
-                onClick={() => handleClaimRelic(relic)}
+                className={`vault-relic-card ${rarityClass} ${isClaimed ? 'disabled' : ''} ${
+                  isSelected ? 'selected' : ''
+                }`}
+                onClick={() => {
+                  if (isDesecrating) {
+                    handleToggleSelectRelic(relic.id);
+                  } else {
+                    handleClaimRelic(relic);
+                  }
+                }}
               >
                 <div className="vault-relic-icon-wrap">
                   {RELIC_ICONS[relic.icon ?? ''] ?? <Sparkles size={32} color="#e0a96d" />}
@@ -110,15 +145,140 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
 
                 <button
                   id={`vault-relic-btn-${relic.id}`}
-                  className="vault-claim-btn"
+                  className={`vault-claim-btn ${isSelected ? 'selected' : ''}`}
                   disabled={isClaimed}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isDesecrating) {
+                      handleToggleSelectRelic(relic.id);
+                    } else {
+                      handleClaimRelic(relic);
+                    }
+                  }}
                 >
-                  {isClaimed ? <Check size={16} /> : <Key size={16} />}
-                  <span>{isClaimed ? '已獲取' : '拾取此遺物'}</span>
+                  {isClaimed ? (
+                    <Check size={16} />
+                  ) : isDesecrating ? (
+                    isSelected ? (
+                      <Check size={16} />
+                    ) : (
+                      <Key size={16} />
+                    )
+                  ) : (
+                    <Key size={16} />
+                  )}
+                  <span>
+                    {isClaimed
+                      ? '已獲取'
+                      : isDesecrating
+                      ? isSelected
+                        ? '已選取'
+                        : '納入名額'
+                      : '拾取此遺物'}
+                  </span>
                 </button>
               </div>
             );
           })}
+        </div>
+
+        {/* Desecration Box */}
+        <div className={`vault-desecration-box ${isDesecrating ? 'active' : ''}`} style={{
+          background: 'rgba(255, 51, 75, 0.08)',
+          border: '1px solid rgba(255, 51, 75, 0.3)',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <div className="vault-desecration-info" style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+            <Skull size={32} color="#ff334b" />
+            <div>
+              <h4 className="vault-desecration-title" style={{ color: '#ff4a6e', margin: '0 0 4px 0', fontSize: '1.05rem' }}>
+                破除古神封印 · 貪婪強奪雙遺物
+              </h4>
+              <p className="vault-desecration-desc" style={{ color: '#bbb', margin: 0, fontSize: '0.85rem', lineHeight: '1.4' }}>
+                強行撕開青銅神龕上的太古封印，一次性掠取其中 2 件舊日遺物！但深淵神祇的注視將化為無法打出的【深淵詛咒】黑色瘋狂卡，永久注入理智牌庫。
+              </p>
+              {isDesecrating && (
+                <p style={{ color: '#ff758f', margin: '6px 0 0 0', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                  目前已選取：{selectedRelicIds.length} / 2 件遺物
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="vault-desecration-actions" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            {!isDesecrating ? (
+              <button
+                id="vault-start-desecrate-btn"
+                className="vault-desecrate-start-btn"
+                disabled={isClaimed}
+                onClick={() => {
+                  soundEngine.playClick();
+                  setIsDesecrating(true);
+                }}
+                style={{
+                  background: 'rgba(255, 51, 75, 0.2)',
+                  border: '1px solid #ff334b',
+                  color: '#ff4a6e',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  cursor: isClaimed ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                破除古神封印
+              </button>
+            ) : (
+              <>
+                <button
+                  id="vault-cancel-desecrate-btn"
+                  className="vault-desecrate-cancel-btn"
+                  disabled={isClaimed}
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setIsDesecrating(false);
+                    setSelectedRelicIds([]);
+                  }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: '#ccc',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  取消
+                </button>
+                <button
+                  id="vault-confirm-desecrate-btn"
+                  className="vault-desecrate-confirm-btn"
+                  disabled={isClaimed || selectedRelicIds.length !== 2}
+                  onClick={handleConfirmDesecrate}
+                  style={{
+                    background: selectedRelicIds.length === 2 ? '#d90429' : 'rgba(217, 4, 41, 0.3)',
+                    border: '1px solid #ff334b',
+                    color: '#fff',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    cursor: selectedRelicIds.length === 2 && !isClaimed ? 'pointer' : 'not-allowed',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {isClaimed
+                    ? '已完成破印'
+                    : selectedRelicIds.length === 2
+                    ? '確認破除封印 · 掠奪 2 件遺物（注入深淵詛咒）'
+                    : `請挑選 2 件遺物（已選 ${selectedRelicIds.length}/2）`}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Alternative Obols Box */}

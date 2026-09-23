@@ -5027,6 +5027,65 @@
   margin: 0 auto;
   line-height: 1.5;
 }
+.blood-altar-branch-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.blood-altar-branch-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(18, 22, 30, 0.7);
+  border: 1px solid rgba(217, 4, 41, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+  text-align: left;
+  color: var(--text-parchment);
+}
+
+.blood-altar-branch-btn:hover:not(:disabled) {
+  border-color: #ef233c;
+  background: rgba(217, 4, 41, 0.15);
+  transform: translateY(-1px);
+}
+
+.blood-altar-branch-btn.active {
+  border-color: #d90429;
+  background: rgba(217, 4, 41, 0.25);
+  box-shadow: 0 0 14px rgba(217, 4, 41, 0.35);
+}
+
+.blood-altar-branch-btn:disabled {
+  opacity: 0.5;
+  cursor: var(--cursor-not-allowed, not-allowed);
+}
+
+.blood-altar-branch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.blood-altar-branch-name {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-gold);
+}
+
+.blood-altar-branch-btn.active .blood-altar-branch-name {
+  color: #ff4a6e;
+}
+
+.blood-altar-branch-desc {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
 
 .blood-altar-status-strip {
   display: flex;

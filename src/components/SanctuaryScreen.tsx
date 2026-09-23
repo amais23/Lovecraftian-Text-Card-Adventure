@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { GameAction, GameState } from '../types/game';
-import { Tent, Heart, Sparkles, LogOut, ShieldCheck } from 'lucide-react';
+import { Tent, Heart, Sparkles, LogOut, ShieldCheck, Flame, X, Check } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
+import { getAllPermanentCards } from '../engine/abyssalSeals';
+import { getCardArtwork } from '../engine/cardArtworks';
 
 interface SanctuaryScreenProps {
   state: GameState;
@@ -19,6 +21,12 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
   const isMidDepthHaven = Boolean(currentNode?.layer === 8 && currentDepth <= 3);
   const healAmount = isMidDepthHaven ? 15 : 8;
 
+  const permanentCards = getAllPermanentCards(state);
+  const canPurge = !isUsed && permanentCards.length > 1;
+
+  const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
+  const [selectedPurgeCardId, setSelectedPurgeCardId] = useState<string | null>(null);
+
   const handleUseSanctuary = (optionId: 'bandage' | 'meditate') => {
     if (isUsed) return;
     if (optionId === 'bandage') {
@@ -30,6 +38,33 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
       type: 'USE_SANCTUARY',
       payload: { optionId },
     });
+  };
+
+  const handleOpenPurge = () => {
+    if (!canPurge) {
+      soundEngine.playDeny();
+      return;
+    }
+    soundEngine.playClick();
+    setIsPurgeModalOpen(true);
+  };
+
+  const handleClosePurge = () => {
+    soundEngine.playClick();
+    setIsPurgeModalOpen(false);
+    setSelectedPurgeCardId(null);
+  };
+
+  const handleConfirmPurge = () => {
+    if (!selectedPurgeCardId || !canPurge) return;
+    soundEngine.playClick();
+    soundEngine.playCosmicBanishment();
+    dispatch({
+      type: 'USE_SANCTUARY',
+      payload: { optionId: 'purge', cardId: selectedPurgeCardId },
+    });
+    setIsPurgeModalOpen(false);
+    setSelectedPurgeCardId(null);
   };
 
   const handleLeave = () => {
@@ -104,7 +139,9 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
               className="sanctuary-action-btn"
               disabled={isUsed || investigator.health >= investigator.maxHealth || !canAffordBandage}
             >
-              {investigator.health >= investigator.maxHealth
+              {isUsed
+                ? '本次已修整完畢'
+                : investigator.health >= investigator.maxHealth
                 ? '生命值已滿'
                 : !canAffordBandage
                 ? '代價不足 · 需 5 古金幣或 1 理智'
@@ -139,7 +176,151 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
               {isUsed ? '已完成冥想' : '進行冥想 · 納入真相卡'}
             </button>
           </div>
+
+          {/* Option 3: Hearth Purge */}
+          <div
+            id="sanctuary-purge-card"
+            className={`sanctuary-option-card ${isUsed || !canPurge ? 'disabled' : ''}`}
+            onClick={handleOpenPurge}
+          >
+            <div className="sanctuary-card-icon purge">
+              <Flame size={28} color="#e63946" />
+            </div>
+            <h3 className="sanctuary-card-title">壁爐除役與雜質焚毀</h3>
+            <p className="sanctuary-card-desc">
+              將一張多餘或負面的雜質卡牌投入壁爐熊熊餘火之中，將其自理智牌庫中永久焚毀除役，使心神更為專注精純。
+            </p>
+            <button
+              id="sanctuary-purge-btn"
+              className="sanctuary-action-btn"
+              disabled={isUsed || !canPurge}
+              onClick={handleOpenPurge}
+            >
+              {isUsed
+                ? '已完成修整'
+                : !canPurge
+                ? '牌庫過少無法除役'
+                : '投入壁爐焚毀 · 除役 1 卡'}
+            </button>
+          </div>
         </div>
+
+        {/* Purge Card Selection Modal */}
+        {isPurgeModalOpen && (
+          <div className="market-purge-modal-overlay">
+            <div className="market-purge-modal-card">
+              <div className="market-purge-modal-header">
+                <div className="market-purge-modal-title-row">
+                  <Flame size={24} color="#e63946" />
+                  <h3 className="market-purge-modal-title">壁爐除役 · 選擇要焚毀的卡牌</h3>
+                </div>
+                <button
+                  className="market-purge-close-btn"
+                  onClick={handleClosePurge}
+                  aria-label="關閉"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <p className="market-purge-modal-desc">
+                請自目前牌庫中選取 1 張卡牌投入壁爐餘火中永久燒毀。此操作無法逆轉。
+              </p>
+
+              <div className="market-purge-cards-scroll">
+                <div className="market-purge-cards-grid">
+                  {permanentCards.map((card) => {
+                    const isSelected = selectedPurgeCardId === card.id;
+                    const artwork = getCardArtwork(card);
+                    const categoryColor =
+                      card.category === 'combat'
+                        ? '#e63946'
+                        : card.category === 'skill'
+                        ? '#ffd700'
+                        : card.category === 'magic'
+                        ? '#9d4edd'
+                        : card.category === 'truth'
+                        ? '#48cae4'
+                        : '#ff0055';
+
+                    return (
+                      <div
+                        key={card.id}
+                        id={`sanctuary-purge-card-${card.id}`}
+                        className={`market-purge-card-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          soundEngine.playClick();
+                          setSelectedPurgeCardId((prev) => (prev === card.id ? null : card.id));
+                        }}
+                      >
+                        <div className="market-purge-card-checkbox">
+                          {isSelected ? <Check size={16} color="#fff" /> : null}
+                        </div>
+
+                        <div className="market-purge-card-top">
+                          <span
+                            className="market-purge-card-badge"
+                            style={{ borderColor: categoryColor, color: categoryColor }}
+                          >
+                            {card.category === 'combat'
+                              ? '戰鬥'
+                              : card.category === 'skill'
+                              ? '技能'
+                              : card.category === 'magic'
+                              ? '魔法'
+                              : card.category === 'truth'
+                              ? '真相'
+                              : '瘋狂'}
+                          </span>
+                          <span className="market-purge-card-cost">
+                            {card.costType === 'stamina'
+                              ? `${card.costValue} 精力`
+                              : card.costType === 'sanity'
+                              ? `${card.costValue} 理智`
+                              : '無耗費'}
+                          </span>
+                        </div>
+
+                        {artwork.imageUrl && (
+                          <div className="market-purge-card-art-frame">
+                            <img
+                              src={artwork.imageUrl}
+                              alt={card.name}
+                              className="market-purge-card-art"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+
+                        <h4 className="market-purge-card-name">{card.name}</h4>
+                        <p className="market-purge-card-desc">{card.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="market-purge-modal-footer">
+                <button className="market-purge-cancel-btn" onClick={handleClosePurge}>
+                  取消
+                </button>
+                <button
+                  id="sanctuary-confirm-purge-btn"
+                  className="market-purge-confirm-btn"
+                  disabled={!selectedPurgeCardId || !canPurge}
+                  onClick={handleConfirmPurge}
+                >
+                  <Flame size={16} />
+                  <span>
+                    {selectedPurgeCardId
+                      ? '確認投入壁爐除役'
+                      : '請先點選 1 張欲除役卡牌'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Leave Sanctuary Button */}
         <div className="sanctuary-footer">
