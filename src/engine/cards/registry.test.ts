@@ -2,15 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { CardRegistry } from './registry';
 
 describe('CardRegistry (Seam 2)', () => {
-  it('returns exactly 62 distinct unique cards in getAllCompendiumCards()', () => {
+  it('returns exactly 73 distinct unique cards in getAllCompendiumCards()', () => {
     const cards = CardRegistry.getAllCompendiumCards();
-    expect(cards).toHaveLength(62);
+    expect(cards).toHaveLength(73);
 
     const ids = new Set(cards.map((c) => c.id));
-    expect(ids.size).toBe(62);
+    expect(ids.size).toBe(73);
 
     const names = new Set(cards.map((c) => c.name));
-    expect(names.size).toBe(62);
+    expect(names.size).toBe(73);
   });
 
   it('correctly maps all 5 categories with expected counts in compendium', () => {
@@ -19,11 +19,11 @@ describe('CardRegistry (Seam 2)', () => {
     for (const c of cards) {
       counts[c.category]++;
     }
-    expect(counts.combat).toBe(16);
-    expect(counts.skill).toBe(17);
+    expect(counts.combat).toBe(18);
+    expect(counts.skill).toBe(19);
     expect(counts.magic).toBe(11);
-    expect(counts.truth).toBe(12);
-    expect(counts.madness).toBe(6);
+    expect(counts.truth).toBe(17);
+    expect(counts.madness).toBe(8);
   });
 
   describe('getStarterDeck()', () => {

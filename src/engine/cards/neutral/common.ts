@@ -14,7 +14,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_cover.webp',
+    artworkUrl: '/cards/skill/card_ancient_amulet.png',
     effects: [{ type: 'armor', value: 8 }],
     description: '獲得 8 點護甲。',
     flavorText: '「青銅上的深綠包漿散發著阻絕污穢的冰涼氣息。」',
@@ -28,7 +28,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_cover.webp',
+    artworkUrl: '/cards/skill/card_first_aid.png',
     effects: [
       { type: 'armor', value: 3 },
       { type: 'restore_sanity', value: 2 },
@@ -116,7 +116,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 2,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_cover.webp',
+    artworkUrl: '/cards/skill/card_rapid_suture.png',
     effects: [
       { type: 'armor', value: 6 },
       { type: 'restore_sanity', value: 3 },
@@ -135,7 +135,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 3,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_cover.webp',
+    artworkUrl: '/cards/skill/card_sanity_anchor.png',
     effects: [
       { type: 'armor', value: 8 },
       { type: 'restore_sanity', value: 5 },
@@ -154,7 +154,7 @@ export const NEUTRAL_CARDS: Card[] = [
     isTemporary: false,
     tier: 4,
     occupations: ['investigator', 'occultist'],
-    artworkUrl: '/cards/skill/card_cover.webp',
+    artworkUrl: '/cards/skill/card_elder_aegis.png',
     effects: [
       { type: 'armor', value: 24 },
       { type: 'draw', value: 2 },

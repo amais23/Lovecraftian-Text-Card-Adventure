@@ -9,7 +9,7 @@ export const TRUTH_INJECTED_TEMPLATE: Omit<Card, 'id'> = {
   costType: 'stamina',
   costValue: 0,
   isTemporary: true,
-  artworkUrl: '/cards/truth/card_truth_glimmer.webp',
+  artworkUrl: '/cards/truth/card_truth_glimmer.png',
   effects: [{ type: 'armor', value: 2 }],
   description: '獲得 2 點護甲。',
   flavorText: '「瘋狂漸漸褪去，但未知的印記已深深烙印在靈魂之中。」',

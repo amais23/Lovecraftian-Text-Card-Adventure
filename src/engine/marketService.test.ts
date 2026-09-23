@@ -128,21 +128,27 @@ describe('Dynamic Black Market Generation (Issue #53 / ADR-0032)', () => {
     expect(relicItems).toHaveLength(0);
   });
 
-  it('generates exactly 1 medical supply appropriate for current depth', () => {
+  it('generates exactly 1 medical supply appropriate for current depth with dedicated apothecary artworkUrl (ADR-0033)', () => {
     const d1Items = generateMarketItemsForDepth(1, 'investigator');
     const d1Heal = d1Items.filter((i) => i.type === 'heal');
     expect(d1Heal).toHaveLength(1);
     expect(d1Heal[0].healAmount).toBeGreaterThan(0);
+    expect(d1Heal[0].artworkUrl).toBeTruthy();
+    expect(d1Heal[0].artworkUrl).toContain('/supplies/supply_');
 
     const d2Items = generateMarketItemsForDepth(2, 'investigator');
     const d2Heal = d2Items.filter((i) => i.type === 'heal');
     expect(d2Heal).toHaveLength(1);
     expect(d2Heal[0].healAmount).toBeGreaterThanOrEqual(8);
+    expect(d2Heal[0].artworkUrl).toBeTruthy();
+    expect(d2Heal[0].artworkUrl).toContain('/supplies/supply_');
 
     const d3Items = generateMarketItemsForDepth(3, 'investigator');
     const d3Heal = d3Items.filter((i) => i.type === 'heal');
     expect(d3Heal).toHaveLength(1);
     expect(d3Heal[0].healAmount).toBeGreaterThanOrEqual(10);
+    expect(d3Heal[0].artworkUrl).toBeTruthy();
+    expect(d3Heal[0].artworkUrl).toContain('/supplies/supply_');
   });
 
   it('applies 20% discount specifically to a single card item when discount triggers', () => {

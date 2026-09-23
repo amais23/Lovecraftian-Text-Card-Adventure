@@ -5,28 +5,30 @@ import {
   CARD_ARTWORKS_REGISTRY,
   CARD_NAME_ALIASES,
   WIP_TIERED_CARD_NAMES,
+  APOTHECARY_SUPPLY_ARTWORKS,
+  getSupplyArtwork,
 } from './cardArtworks';
-import { getAllTieredCards } from './cards/registry';
+import { getAllTieredCards, CardRegistry } from './cards/registry';
 import type { Card } from '../types/game';
 
 describe('Card Artworks Registry & ADR-0012 Validation', () => {
-  it('should register all 64 unique card artworks across all categories with 100% dedicated illustrations', () => {
-    expect(ALL_CARD_ARTWORKS.length).toBe(64);
-    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(64);
+  it('should register all 73 unique card artworks across all categories with 100% dedicated illustrations (ADR-0033)', () => {
+    expect(ALL_CARD_ARTWORKS.length).toBe(73);
+    expect(Object.keys(CARD_ARTWORKS_REGISTRY).length).toBe(73);
     expect(WIP_TIERED_CARD_NAMES.size).toBe(0);
 
     const categories = ALL_CARD_ARTWORKS.map((a) => a.category);
-    expect(categories.filter((c) => c === 'combat').length).toBe(16);
-    expect(categories.filter((c) => c === 'skill').length).toBe(17);
+    expect(categories.filter((c) => c === 'combat').length).toBe(18);
+    expect(categories.filter((c) => c === 'skill').length).toBe(19);
     expect(categories.filter((c) => c === 'magic').length).toBe(11);
-    expect(categories.filter((c) => c === 'truth').length).toBe(14);
-    expect(categories.filter((c) => c === 'madness').length).toBe(6);
+    expect(categories.filter((c) => c === 'truth').length).toBe(17);
+    expect(categories.filter((c) => c === 'madness').length).toBe(8);
   });
 
-  it('should ensure all 64 artwork images exist physically in public/cards/ with valid WebP/PNG formats', () => {
+  it('should ensure all 73 artwork images exist physically in public/cards/ with valid WebP/PNG formats', () => {
     const cardImages = import.meta.glob('/public/cards/**/*.{webp,png}');
     const imagePaths = Object.keys(cardImages);
-    expect(imagePaths.length).toBeGreaterThanOrEqual(64);
+    expect(imagePaths.length).toBeGreaterThanOrEqual(73);
 
     for (const art of ALL_CARD_ARTWORKS) {
       expect(
@@ -172,6 +174,33 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
       // All cards now have dedicated artworks
       expect(art.imageUrl).not.toContain('card_wip_placeholder.svg');
       expect(art.imageUrl).toContain('/cards/');
+    }
+  });
+
+  it('should register and physically verify all 6 black market apothecary supply artworks (ADR-0033)', () => {
+    const supplyImages = import.meta.glob('/public/supplies/**/*.{webp,png}');
+    const supplyImagePaths = Object.keys(supplyImages);
+    expect(Object.keys(APOTHECARY_SUPPLY_ARTWORKS)).toHaveLength(6);
+
+    for (const supply of Object.values(APOTHECARY_SUPPLY_ARTWORKS)) {
+      expect(supply.imageUrl.endsWith('.png')).toBe(true);
+      expect(supplyImagePaths).toContain(`/public${supply.imageUrl}`);
+      expect(supply.conceptLore.length).toBeGreaterThan(10);
+      expect(getSupplyArtwork(supply.supplyId)).toEqual(supply);
+      expect(getSupplyArtwork(supply.name)).toEqual(supply);
+    }
+  });
+
+  it('should ensure all canonical compendium cards have their artworkUrl synchronized with getCardArtwork (ADR-0033)', () => {
+    const compendiumCards = CardRegistry.getAllCompendiumCards();
+    expect(compendiumCards).toHaveLength(73);
+
+    for (const card of compendiumCards) {
+      const art = getCardArtwork(card);
+      expect(
+        card.artworkUrl,
+        `Card "${card.name}" (${card.id}) artworkUrl "${card.artworkUrl}" does not match getCardArtwork "${art.imageUrl}"`
+      ).toBe(art.imageUrl);
     }
   });
 });

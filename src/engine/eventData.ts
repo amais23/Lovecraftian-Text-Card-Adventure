@@ -1,4 +1,4 @@
-import type { Card, DepthLevel, Enemy, EnemyIntent, MythosEvent } from '../types/game';
+import type { DepthLevel, Enemy, EnemyIntent, MythosEvent } from '../types/game';
 import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
 
 /* =========================================================
@@ -183,24 +183,36 @@ export const INITIAL_STAR_SPAWN: Enemy = {
 };
 
 /* =========================================================
-   Shared Sanctuary & Market Card Templates
+   Event Lore Cards & Sanctuary Templates (ADR-0033)
    ========================================================= */
 
-export const TRUTH_CARD_BREAKWATER: Omit<Card, 'id'> = {
-  name: '心智防波堤',
-  category: 'truth',
-  costType: 'stamina',
-  costValue: 1,
-  isTemporary: false,
-  occupations: ['investigator', 'occultist'],
-  effects: [
-    { type: 'self_damage', value: 1 },
-    { type: 'add_to_deck', value: 3 },
-  ],
-  description: '自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
-  flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
-};
+import {
+  CARD_EVENT_BREAKWATER,
+  TRUTH_CARD_BREAKWATER,
+  CARD_EVENT_UNDERWATER_DEMOLITION,
+  CARD_EVENT_TIDE_WHISPER,
+  CARD_EVENT_PROTO_TENTACLE,
+  CARD_EVENT_ELDER_GEOMETRY,
+  CARD_EVENT_STAR_SPAWN_SIGIL,
+  CARD_EVENT_DIMENSION_STRIDE,
+  CARD_EVENT_FINAL_AWAKENING,
+  CARD_EVENT_DEEP_TRUTH,
+  EVENT_LORE_CARDS,
+} from './cards/special/lore';
 
+export {
+  CARD_EVENT_BREAKWATER,
+  TRUTH_CARD_BREAKWATER,
+  CARD_EVENT_UNDERWATER_DEMOLITION,
+  CARD_EVENT_TIDE_WHISPER,
+  CARD_EVENT_PROTO_TENTACLE,
+  CARD_EVENT_ELDER_GEOMETRY,
+  CARD_EVENT_STAR_SPAWN_SIGIL,
+  CARD_EVENT_DIMENSION_STRIDE,
+  CARD_EVENT_FINAL_AWAKENING,
+  CARD_EVENT_DEEP_TRUTH,
+  EVENT_LORE_CARDS,
+};
 
 
 /* =========================================================
@@ -229,20 +241,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'event_card_deep_truth',
-              name: '深潛者手札',
-              category: 'truth',
-              costType: 'stamina',
-              costValue: 1,
-              isTemporary: false,
-              effects: [
-                { type: 'self_damage', value: 2 },
-                { type: 'add_to_deck', value: 3 },
-              ],
-              description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
-              flavorText: '「在海底兩萬哩的泥濘中，真實正在靜默呼吸。」',
-            },
+            card: CARD_EVENT_DEEP_TRUTH,
             narrative: '獲得特殊真相卡【深潛者手札】納入理智牌庫！',
           },
         ],
@@ -599,18 +598,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_underwater_demolition',
-              name: '水下爆破',
-              category: 'combat',
-              costType: 'stamina',
-              costValue: 2,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [{ type: 'damage', value: 16 }],
-              description: '引爆強力水下炸藥，造成 16 點物理傷害。',
-              flavorText: '「在深海狹道中，火藥是凡人唯一的依靠。」',
-            },
+            card: CARD_EVENT_UNDERWATER_DEMOLITION,
             narrative: '獲得高爆戰鬥卡【水下爆破】納入理智牌庫！',
           },
         ],
@@ -663,18 +651,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
         consequences: [
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_tide_whisper',
-              name: '潮汐之音',
-              category: 'truth',
-              costType: 'stamina',
-              costValue: 1,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [{ type: 'add_to_deck', value: 3 }],
-              description: '傾聽深海潮音，向理智牌庫注入 3 張真相卡牌。',
-              flavorText: '「在無休止的潮汐拍擊中重獲清明。」',
-            },
+            card: CARD_EVENT_TIDE_WHISPER,
             narrative: '獲得特殊真相卡【潮汐之音】納入理智牌庫！',
           },
         ],
@@ -785,21 +762,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_proto_tentacle',
-              name: '原形觸鬚',
-              category: 'combat',
-              costType: 'stamina',
-              costValue: 1,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [
-                { type: 'damage', value: 14 },
-                { type: 'self_damage', value: 2 },
-              ],
-              description: '揮舞原生質觸手造成 14 點傷害，自身承受 2 點反噬傷害。',
-              flavorText: '「以肉身為媒介釋放的原生狂怒。」',
-            },
+            card: CARD_EVENT_PROTO_TENTACLE,
             narrative: '獲得高傷卡牌【原形觸鬚】納入理智牌庫！',
           },
         ],
@@ -927,21 +890,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_elder_geometry',
-              name: '太古幾何密卷',
-              category: 'truth',
-              costType: 'stamina',
-              costValue: 1,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [
-                { type: 'self_damage', value: 1 },
-                { type: 'add_to_deck', value: 4 },
-              ],
-              description: '自身承受 1 點反噬傷害，向理智牌庫注入 4 張真相卡牌。',
-              flavorText: '「超越三維空間的古老真理。」',
-            },
+            card: CARD_EVENT_ELDER_GEOMETRY,
             narrative: '獲得特殊真相卡【太古幾何密卷】納入理智牌庫！',
           },
         ],
@@ -1073,21 +1022,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_star_spawn_sigil',
-              name: '星之眷族印記',
-              category: 'skill',
-              costType: 'stamina',
-              costValue: 2,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [
-                { type: 'armor', value: 12 },
-                { type: 'add_to_deck', value: 2 },
-              ],
-              description: '凝聚星辰護壁，獲得 12 點護甲並向理智牌庫注入 2 張真相卡牌。',
-              flavorText: '「神祇巨影投射在現實裂隙上的堅固屏障。」',
-            },
+            card: CARD_EVENT_STAR_SPAWN_SIGIL,
             narrative: '獲得強大卡牌【星之眷族印記】！',
           },
         ],
@@ -1169,21 +1104,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_dimension_stride',
-              name: '維度漫步',
-              category: 'skill',
-              costType: 'stamina',
-              costValue: 1,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [
-                { type: 'armor', value: 8 },
-                { type: 'damage', value: 10 },
-              ],
-              description: '穿梭於重力倒錯的維度間，獲得 8 點護甲並造成 10 點傷害。',
-              flavorText: '「在非歐幾何的殿堂中，直線並非最短距離。」',
-            },
+            card: CARD_EVENT_DIMENSION_STRIDE,
             narrative: '領悟空間法則，獲得卡牌【維度漫步】納入理智牌庫！',
           },
         ],
@@ -1292,18 +1213,7 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
           },
           {
             type: 'gain_card',
-            card: {
-              id: 'card_event_final_awakening',
-              name: '終焉覺悟',
-              category: 'truth',
-              costType: 'stamina',
-              costValue: 0,
-              isTemporary: false,
-              occupations: ['investigator', 'occultist'],
-              effects: [{ type: 'add_to_deck', value: 5 }],
-              description: '向理智牌庫注入 5 張真相卡牌，堅定最後的理智意志。',
-              flavorText: '「縱使星辰正位，人性永不磨滅。」',
-            },
+            card: CARD_EVENT_FINAL_AWAKENING,
             narrative: '獲得終極真相卡【終焉覺悟】納入理智牌庫！',
           },
         ],

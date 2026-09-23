@@ -24,7 +24,7 @@ export const MADNESS_CARD_TEMPLATES: Omit<Card, 'id'>[] = [
     costType: 'stamina',
     costValue: 1,
     isTemporary: true,
-    artworkUrl: '/cards/madness/card_screaming_howl.webp',
+    artworkUrl: '/cards/madness/card_abyssal_howl.png',
     effects: [
       { type: 'damage', value: 14 },
       { type: 'self_damage', value: 3 },
@@ -38,7 +38,7 @@ export const MADNESS_CARD_TEMPLATES: Omit<Card, 'id'>[] = [
     costType: 'stamina',
     costValue: 2,
     isTemporary: true,
-    artworkUrl: '/cards/madness/card_tentacle_blade.webp',
+    artworkUrl: '/cards/madness/card_frenzy_blade.png',
     effects: [
       { type: 'damage', value: 20 },
       { type: 'self_damage', value: 5 },
@@ -67,15 +67,17 @@ export const COMPENDIUM_MADNESS_CARDS: Card[] = [
 ];
 
 /**
- * 克蘇魯星之眷族【神性不滅】專屬污染瘋狂卡 (ADR-0026)
+ * 克蘇魯星之眷族【神性不滅】專屬污染瘋狂卡 (ADR-0026, ADR-0033)
  */
-export const CARD_WHISPERS_OF_SHATTERED_STARS: Omit<Card, 'id'> = {
+export const CARD_WHISPERS_OF_SHATTERED_STARS: Card = {
+  id: 'card_whispers_of_shattered_stars',
   name: '星辰碎裂之囈語',
   category: 'madness',
   costType: 'stamina',
   costValue: 1,
   isTemporary: true,
-  artworkUrl: '/cards/madness/card_screaming_howl.webp',
+  tier: 4,
+  artworkUrl: '/cards/madness/card_whispers_of_shattered_stars.png',
   effects: [{ type: 'erode_sanity', value: 2 }],
   description: '不可名狀之星辰囈語；打出時侵蝕自身 2 點理智牌庫。',
   flavorText: '「不可名狀的舊日私語在意識深處回盪，粉碎凡人最後的理性。」',
@@ -89,7 +91,7 @@ export function createWhispersOfShatteredStarsCard(turn: number, index: number =
 }
 
 /**
- * 遺物秘閣【破除古神封印】專屬詛咒瘋狂卡 (ADR-0032, Issue #54)
+ * 遺物秘閣【破除古神封印】專屬詛咒瘋狂卡 (ADR-0032, ADR-0033, Issue #54)
  */
 export const CARD_ABYSS_CURSE: Card = {
   id: 'card_abyss_curse',
@@ -99,7 +101,8 @@ export const CARD_ABYSS_CURSE: Card = {
   costValue: 0,
   isTemporary: false,
   isUnplayable: true,
-  artworkUrl: '/cards/madness/card_abyssal_howl.png',
+  tier: 2,
+  artworkUrl: '/cards/madness/card_abyss_curse.png',
   effects: [],
   description: '無法打出。佔據手牌卡槽。強行破除太古封印招致的永恆深淵詛咒。',
   flavorText: '「當你撕開太古符印的那一刻，不可名狀的凝視已烙印在靈魂深處。」',

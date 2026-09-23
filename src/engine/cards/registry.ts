@@ -6,13 +6,14 @@ import { INVESTIGATOR_REWARD_CARDS } from './investigator/rewards';
 import { OCCULTIST_STARTER_CARDS } from './occultist/starter';
 import { OCCULTIST_REWARD_CARDS } from './occultist/rewards';
 import { NEUTRAL_CARDS } from './neutral/common';
-import { COMPENDIUM_MADNESS_CARDS, CARD_ABYSS_CURSE } from './special/madness';
+import { COMPENDIUM_MADNESS_CARDS, CARD_ABYSS_CURSE, CARD_WHISPERS_OF_SHATTERED_STARS } from './special/madness';
 import { COMPENDIUM_TRUTH_CARDS } from './special/truth';
 import { ALL_ABYSSAL_CARDS } from './special/abyssal';
+import { EVENT_LORE_CARDS } from './special/lore';
 
 /**
  * 典藏卡牌清單 (Card Compendium Registry)
- * 嚴格收錄遊戲中全部 50 張獨立不重複之卡牌原型
+ * 嚴格收錄遊戲中全部 73 張獨立不重複之卡牌原型 (ADR-0033)
  */
 const CANONICAL_COMPENDIUM: Card[] = (() => {
   const seenNames = new Set<string>();
@@ -90,6 +91,15 @@ const CANONICAL_COMPENDIUM: Card[] = (() => {
     addUnique(card);
   }
 
+  // 10. 核心機制黑卡 (ADR-0033)
+  addUnique(CARD_ABYSS_CURSE);
+  addUnique(CARD_WHISPERS_OF_SHATTERED_STARS);
+
+  // 11. 秘識奇遇專屬卡 (ADR-0033)
+  for (const card of EVENT_LORE_CARDS) {
+    addUnique(card);
+  }
+
   return catalog;
 })();
 
@@ -108,6 +118,8 @@ for (const card of [
   ...NEUTRAL_CARDS,
   ...ALL_ABYSSAL_CARDS,
   CARD_ABYSS_CURSE,
+  CARD_WHISPERS_OF_SHATTERED_STARS,
+  ...EVENT_LORE_CARDS,
 ]) {
   CARDS_BY_ID.set(card.id, card);
 }

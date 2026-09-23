@@ -604,10 +604,93 @@ export const CARD_ARTWORKS_REGISTRY: Record<string, CardArtworkInfo> = {
     conceptLore: '星空深處萬千軌道同時鳴響，崇高的幾何秩序在心靈周圍築起無形護甲屏障。',
     imageUrl: '/cards/truth/card_star_resonance.png',
   },
+
+  // === EVENT LORE & SPECIAL MECHANISM CARDS (ADR-0033) ===
+  card_underwater_demolition: {
+    artId: 'card_underwater_demolition',
+    name: '水下爆破',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 水下重火器',
+    conceptLore: 'Q版圓滾滾的水下定時魚雷炸藥冒著萌系氣泡與驚慌大眼，在深海珊瑚礁間引爆如爆米花般的漫畫狀星火。',
+    imageUrl: '/cards/combat/card_underwater_demolition.png',
+  },
+  card_proto_tentacle: {
+    artId: 'card_proto_tentacle',
+    name: '原形觸鬚',
+    category: 'combat',
+    styleTag: 'cartoon',
+    styleName: '實體武器 · 原生質觸手',
+    conceptLore: '圓滾滾如果凍般的小修格斯萌系觸鬚揮舞著可愛吸盤，伴隨誇張漫畫速度線抽打出粉紫小星星與衝擊火花。',
+    imageUrl: '/cards/combat/card_proto_tentacle.png',
+  },
+  card_star_spawn_sigil: {
+    artId: 'card_star_spawn_sigil',
+    name: '星之眷族印記',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 太古星符',
+    conceptLore: '1920年代銅綠斑駁的深海青銅星狀護符，在昏暗防風馬燈下散發冰涼冷光，旁邊擺放著調查手記與皮質手套。',
+    imageUrl: '/cards/skill/card_star_spawn_sigil.png',
+  },
+  card_dimension_stride: {
+    artId: 'card_dimension_stride',
+    name: '維度漫步',
+    category: 'skill',
+    styleTag: 'realistic',
+    styleName: '生存技藝 · 時空折疊',
+    conceptLore: '泥濘石板路上調查員皮靴踏出的折疊空間殘影，時空輪廓泛起水銀般的幾何波紋，極具戰術臨場感。',
+    imageUrl: '/cards/skill/card_dimension_stride.png',
+  },
+  card_tide_whisper: {
+    artId: 'card_tide_whisper',
+    name: '潮汐之音',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 深海潮音',
+    conceptLore: '深邃海底沉睡的拉萊耶玄武岩巨石，漂浮著純銀幾何天球與多維星海潮汐，巨大天眼俯瞰無垠虛空。',
+    imageUrl: '/cards/truth/card_tide_whisper.png',
+  },
+  card_elder_geometry: {
+    artId: 'card_elder_geometry',
+    name: '太古幾何密卷',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 非歐幾何',
+    conceptLore: '懸浮於虛空中的發光羊皮紙手抄卷，鐫刻著旋轉的非歐幾何同心圓星軌與純白神聖星系光輝。',
+    imageUrl: '/cards/truth/card_elder_geometry.png',
+  },
+  card_final_awakening: {
+    artId: 'card_final_awakening',
+    name: '終焉覺悟',
+    category: 'truth',
+    styleTag: 'eldritch',
+    styleName: '舊日啟示 · 宇宙覺醒',
+    conceptLore: '穿透無垠深淵的純銀宇宙冷光，多維度星門敞開，凡人渺小靈魂在宏大真理秩序前直面宇宙終極真實。',
+    imageUrl: '/cards/truth/card_final_awakening.png',
+  },
+  card_abyss_curse: {
+    artId: 'card_abyss_curse',
+    name: '深淵詛咒',
+    category: 'madness',
+    styleTag: 'madness',
+    styleName: '深淵異化 · 封印碎裂',
+    conceptLore: '被強行撕開的青銅太古封印碎裂，湧出黑曜石結晶與蠕動深淵血肉觸鬚，散發無法擺脫的絕望凝視。',
+    imageUrl: '/cards/madness/card_abyss_curse.png',
+  },
+  card_whispers_of_shattered_stars: {
+    artId: 'card_whispers_of_shattered_stars',
+    name: '星辰碎裂之囈語',
+    category: 'madness',
+    styleTag: 'madness',
+    styleName: '深淵異化 · 星空粉碎',
+    conceptLore: '黑暗星空中碎裂的非歐幾何星球殘片，神經元般的紫黑觸手在虛空中震顫，散發侵蝕理智的深空回響。',
+    imageUrl: '/cards/madness/card_whispers_of_shattered_stars.png',
+  },
 };
 
 /**
- * All unique card artworks list for Compendium (All 64 game cards with 100% completed dedicated artworks)
+ * All unique card artworks list for Compendium (All 73 game cards with 100% completed dedicated artworks - ADR-0033)
  */
 export const ALL_CARD_ARTWORKS: CardArtworkInfo[] = Object.values(CARD_ARTWORKS_REGISTRY);
 
@@ -625,7 +708,7 @@ export const WIP_CARD_ARTWORK: CardArtworkInfo = {
 };
 
 /**
- * Cards currently pending dedicated illustrations (Empty Set: all 64 cards now have completed dedicated illustrations)
+ * Cards currently pending dedicated illustrations (Empty Set: all 73 cards now have completed dedicated illustrations)
  */
 export const WIP_TIERED_CARD_NAMES = new Set<string>();
 
@@ -646,8 +729,76 @@ export const CARD_NAME_ALIASES: Record<string, string> = {
   '深海抗逆血清': '醫療鎮定劑',
   '禁忌復甦針劑': '醫療鎮定劑',
   '聖所聖水金樽': '遠古護身符',
-  '深淵詛咒': '深淵狂嘯',
 };
+
+/* =========================================================
+   Apothecary Supply Artworks (黑市藥品專屬繪卷 - ADR-0033)
+   ========================================================= */
+
+export interface ApothecarySupplyArtworkInfo {
+  supplyId: string;
+  name: string;
+  imageUrl: string;
+  styleName: string;
+  conceptLore: string;
+}
+
+export const APOTHECARY_SUPPLY_ARTWORKS: Record<string, ApothecarySupplyArtworkInfo> = {
+  market_item_morphine: {
+    supplyId: 'market_item_morphine',
+    name: '軍用嗎啡注射劑',
+    imageUrl: '/supplies/supply_morphine.png',
+    styleName: '1920s戰地藥劑',
+    conceptLore: '一戰軍用黃銅雙指推桿玻璃針筒與棕色藥瓶，裝載琥珀色液體，置於粗糙麻布上。',
+  },
+  market_item_alcohol: {
+    supplyId: 'market_item_alcohol',
+    name: '高純度酒精繃帶',
+    imageUrl: '/supplies/supply_alcohol_gauze.png',
+    styleName: '1920s消毒敷料',
+    conceptLore: '厚棉布醫用卷軸繃帶、敞口的卡波酸棕色玻璃藥瓶與金屬鑷子，散發揮發性藥味質感。',
+  },
+  market_item_surgery_kit_d2: {
+    supplyId: 'market_item_surgery_kit_d2',
+    name: '高級戰地醫療箱',
+    imageUrl: '/supplies/supply_surgery_kit.png',
+    styleName: '1920s野戰外科箱',
+    conceptLore: '敞開的軍用深色木質野戰醫療箱，內置整齊的銀質持針鉗、弧形縫合針線與止血藥劑。',
+  },
+  market_item_antidote_serum_d2: {
+    supplyId: 'market_item_antidote_serum_d2',
+    name: '深海抗逆血清',
+    imageUrl: '/supplies/supply_antidote_serum.png',
+    styleName: '深海異化血清',
+    conceptLore: '密封在厚壁玻璃安瓿中的深海幽綠磷光血清，外層套有黃銅防震支架，泛著深潛者黏液微光。',
+  },
+  market_item_revival_injection_d3: {
+    supplyId: 'market_item_revival_injection_d3',
+    name: '禁忌復甦針劑',
+    imageUrl: '/supplies/supply_revival_injection.png',
+    styleName: '太古氣壓注射槍',
+    conceptLore: '刻滿太古封印銘文的重型金屬氣壓注射槍，內部流動著沸騰的深紫原質活力藥液。',
+  },
+  market_item_sanctified_elixir_d3: {
+    supplyId: 'market_item_sanctified_elixir_d3',
+    name: '聖所聖水金樽',
+    imageUrl: '/supplies/supply_sanctified_elixir.png',
+    styleName: '修道院純金聖樽',
+    conceptLore: '古老修道院純金浮雕高腳酒樽，盛滿閃爍銀白星光的純淨驅邪聖水，周圍環繞溫暖燭火。',
+  },
+};
+
+export function getSupplyArtwork(idOrName: string): ApothecarySupplyArtworkInfo | undefined {
+  if (APOTHECARY_SUPPLY_ARTWORKS[idOrName]) {
+    return APOTHECARY_SUPPLY_ARTWORKS[idOrName];
+  }
+  for (const art of Object.values(APOTHECARY_SUPPLY_ARTWORKS)) {
+    if (art.name === idOrName || idOrName.startsWith(art.supplyId)) {
+      return art;
+    }
+  }
+  return undefined;
+}
 
 interface TokenArtworkPattern {
   token: string;

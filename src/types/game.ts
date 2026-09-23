@@ -275,6 +275,7 @@ export interface MarketItem {
   healAmount?: number;
   description: string;
   isPurchased?: boolean;
+  artworkUrl?: string;
 }
 
 export interface AdventureStats {

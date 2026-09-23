@@ -139,7 +139,7 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['investigator'],
-    artworkUrl: '/cards/skill/card_breathe.webp',
+    artworkUrl: '/cards/skill/card_breathe.png',
     effects: [
       { type: 'restore_sanity', value: 2 },
       { type: 'heal', value: 4, condition: { type: 'low_health', threshold: 0.5 } },

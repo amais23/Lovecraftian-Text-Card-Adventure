@@ -22,7 +22,7 @@ const BASE_MAGIC_GAZE: Omit<Card, 'id' | 'flavorText'> = {
   isTemporary: false,
   tier: 1,
   occupations: ['occultist'],
-  artworkUrl: '/cards/magic/card_magic_gaze.webp',
+  artworkUrl: '/cards/magic/card_magic_gaze.png',
   effects: [{ type: 'damage', value: 16 }],
   description: '造成 16 點秘術傷害。',
 };
@@ -35,7 +35,7 @@ const BASE_ASTRAL_WARD: Omit<Card, 'id' | 'flavorText'> = {
   isTemporary: false,
   tier: 1,
   occupations: ['occultist'],
-  artworkUrl: '/cards/skill/card_astral_ward.webp',
+  artworkUrl: '/cards/skill/card_astral_ward.png',
   effects: [{ type: 'armor', value: 6 }],
   description: '獲得 6 點護甲。',
 };
@@ -48,7 +48,7 @@ const BASE_MEDITATE: Omit<Card, 'id' | 'flavorText'> = {
   isTemporary: false,
   tier: 1,
   occupations: ['occultist'],
-  artworkUrl: '/cards/skill/card_meditate.webp',
+  artworkUrl: '/cards/skill/card_meditate.png',
   effects: [{ type: 'restore_sanity', value: 2 }],
   description: '洗回 2 張卡牌至理智牌庫。',
 };
@@ -122,7 +122,7 @@ export const OCCULTIST_STARTER_CARDS: Card[] = [
     isTemporary: false,
     tier: 1,
     occupations: ['occultist'],
-    artworkUrl: '/cards/truth/card_silver_key.webp',
+    artworkUrl: '/cards/truth/card_silver_key.png',
     effects: [
       { type: 'self_damage', value: 1 },
       { type: 'add_to_deck', value: 2 },

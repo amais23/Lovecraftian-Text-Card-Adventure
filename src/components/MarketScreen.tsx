@@ -166,6 +166,16 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                   </div>
                 </div>
 
+                {item.artworkUrl && (
+                  <div className="market-item-apothecary-frame" data-testid={`market-apothecary-${item.id}`}>
+                    <img
+                      src={item.artworkUrl}
+                      alt={item.name}
+                      className="market-item-apothecary-img"
+                    />
+                  </div>
+                )}
+
                 <h3 className="market-item-name">{item.name}</h3>
                 <p className="market-item-desc">{item.description}</p>
 
