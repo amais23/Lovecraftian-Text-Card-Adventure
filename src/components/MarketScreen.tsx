@@ -129,6 +129,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
           {items.map((item) => {
             const canAfford = investigator.obols >= item.price;
             const isSold = Boolean(item.isPurchased);
+            const supplyImageUrl = item.type === 'heal' ? (item.artworkUrl || getSupplyArtwork(item.name)?.imageUrl) : undefined;
 
             return (
               <div
@@ -166,10 +167,10 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                   </div>
                 </div>
 
-                {(item.artworkUrl || (item.type === 'heal' && getSupplyArtwork(item.name)?.imageUrl)) && (
+                {supplyImageUrl && (
                   <div className="market-item-apothecary-frame" data-testid={`market-apothecary-${item.id}`}>
                     <img
-                      src={item.artworkUrl || getSupplyArtwork(item.name)?.imageUrl}
+                      src={supplyImageUrl}
                       alt={item.name}
                       className="market-item-apothecary-img"
                     />

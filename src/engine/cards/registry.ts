@@ -117,9 +117,6 @@ for (const card of [
   ...OCCULTIST_REWARD_CARDS,
   ...NEUTRAL_CARDS,
   ...ALL_ABYSSAL_CARDS,
-  CARD_ABYSS_CURSE,
-  CARD_WHISPERS_OF_SHATTERED_STARS,
-  ...EVENT_LORE_CARDS,
 ]) {
   CARDS_BY_ID.set(card.id, card);
 }
@@ -149,7 +146,7 @@ function getRewardTierForDepth(depth: DepthLevel): CardTier {
  */
 export class CardRegistry {
   /**
-   * 取得卡牌圖鑑全部 50 張不重複卡牌
+   * 取得卡牌圖鑑全部 73 張不重複卡牌 (ADR-0033)
    */
   static getAllCompendiumCards(): Card[] {
     return CANONICAL_COMPENDIUM.map((c) => ({ ...c }));
