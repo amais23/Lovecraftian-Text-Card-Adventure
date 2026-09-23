@@ -11,7 +11,7 @@ import { evaluateCardPlay } from '../engine/cards/evaluator';
 import { OCCULTIST_REWARD_CARDS } from '../engine/cards/occultist/rewards';
 import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
 import type { CardPlayContext } from '../engine/cards/types';
-import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode, MapNodeType } from '../types/game';
+import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode, MapNodeType, MythosEventOption } from '../types/game';
 import { generateProceduralInvestigationMap } from '../engine/mapGenerator';
 import { MARKET_PURGE_COST, DEPTH_EVENT_POOLS, getMythosEventsForDepth } from '../engine/eventData';
 import {
@@ -21,6 +21,23 @@ import {
   getAllPermanentCards,
   hasBothAbyssalFragments,
 } from '../engine/abyssalSeals';
+
+function mockSoundEngine(): void {
+  vi.spyOn(soundEngine, 'playClick').mockImplementation(() => {});
+  vi.spyOn(soundEngine, 'playCardPlay').mockImplementation(() => {});
+  vi.spyOn(soundEngine, 'playHeartbeat').mockImplementation(() => {});
+  vi.spyOn(soundEngine, 'playGunCock').mockImplementation(() => {});
+  vi.spyOn(soundEngine, 'playEngineStart').mockImplementation(() => {});
+}
+
+function navigateToMapUI(): void {
+  mockSoundEngine();
+  render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: /開啟新調查/i }));
+  fireEvent.click(screen.getByRole('button', { name: /選擇調查員/i }));
+  fireEvent.click(screen.getByRole('button', { name: /啟程調查/i }));
+  fireEvent.click(screen.getByRole('button', { name: /踏入調查地圖/i }));
+}
 
 function createBaseInvestigator(overrides: Partial<Investigator> = {}): Investigator {
   return {
@@ -543,7 +560,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       return gameReducer(nextState, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: targetNode.id } });
     }
 
-    function isSafeEventOption(option?: { consequences?: { type: string; value?: number }[] }): boolean {
+    function isSafeEventOption(option?: MythosEventOption): boolean {
       if (!option?.consequences) return true;
       return !option.consequences.some((c) => c.type === 'sanity_change' && (c.value ?? 0) < 0);
     }
@@ -1046,19 +1063,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
     });
 
     it('verifies responsive UI navigation and screen transitions on 16-floor DAG map with interactive nodes', () => {
-      vi.spyOn(soundEngine, 'playClick').mockImplementation(() => {});
-      vi.spyOn(soundEngine, 'playCardPlay').mockImplementation(() => {});
-      vi.spyOn(soundEngine, 'playHeartbeat').mockImplementation(() => {});
-      vi.spyOn(soundEngine, 'playGunCock').mockImplementation(() => {});
-      vi.spyOn(soundEngine, 'playEngineStart').mockImplementation(() => {});
-
-      render(<App />);
-
-      // Progress through prologue to map
-      fireEvent.click(screen.getByRole('button', { name: /開啟新調查/i }));
-      fireEvent.click(screen.getByRole('button', { name: /選擇調查員/i }));
-      fireEvent.click(screen.getByRole('button', { name: /啟程調查/i }));
-      fireEvent.click(screen.getByRole('button', { name: /踏入調查地圖/i }));
+      navigateToMapUI();
 
       expect(screen.getByText('第一深度：阿卡姆封鎖區 · 調查路線圖')).toBeDefined();
       expect(screen.getByText(/進度 1 \/ 16 層/)).toBeDefined();
