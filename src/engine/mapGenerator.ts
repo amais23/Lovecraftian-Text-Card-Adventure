@@ -620,18 +620,18 @@ function generateLayerTypes(
  * - 遺物秘閣 (vault): 1 ~ 2 處 (保證至少 1 處，不超過 2 處)
  * - 黑市商人 (market): 1 ~ 2 處
  * - 祭壇類 (altar 或 blood_altar): 1 ~ 2 處
- * 同時消除單一樓層內重複出現多個相同稀有節點之不良體驗，嚴格保護 Layer 0、Layer 1、Layer 8 (Haven) 與 Layer 15 (Boss)。
+ * 同時消除單一樓層內重複出現多個相同稀有節點之不良體驗，嚴格保護 Layer 0、Layer 1、Layer 8 (Haven)、Layer 14 (決戰前哨) 與 Layer 15 (Boss)。
  */
 function applyGuaranteedNodeQuotas(
   layerTypePools: MapNodeType[][],
   depth: DepthLevel,
   rng: () => number
 ): void {
-  // 可受配額微調之候選層：中間探索層與決戰前哨 (排除 Layer 0、Layer 1、Layer 8 Haven、Layer 15 Boss；深度 1 亦保留 Layer 2 教學層)
+  // 可受配額微調之候選層：中間探索層 (排除 Layer 0、Layer 1、Layer 8 Haven、Layer 14 決戰前哨、Layer 15 Boss；深度 1 亦保留 Layer 2 教學層)
   const eligibleLayers =
     depth === 1
-      ? [3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14]
-      : [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14];
+      ? [3, 4, 5, 6, 7, 9, 10, 11, 12, 13]
+      : [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13];
 
   // 1. 單層去重：檢測所有層（排除 Layer 8 全避難所與 Layer 15 Boss），若同一層出現多個 vault、market 或祭壇類，將後者轉為 combat 或 event
   for (let l = 0; l < layerTypePools.length - 1; l++) {
@@ -678,45 +678,29 @@ function applyGuaranteedNodeQuotas(
     }
   }
 
-  // 若 vault > 2，從後面候選層倒序削去多餘 vault 轉為 event
-  if (vaultCount > 2) {
-    for (let i = eligibleLayers.length - 1; i >= 0 && vaultCount > 2; i--) {
+  // 輔助函式：自後方候選層倒序削去多餘節點，轉為替代節點類型
+  const capNodeType = (
+    predicate: (t: MapNodeType) => boolean,
+    currentCount: number,
+    maxLimit: number,
+    replacement: MapNodeType
+  ): number => {
+    let count = currentCount;
+    for (let i = eligibleLayers.length - 1; i >= 0 && count > maxLimit; i--) {
       const l = eligibleLayers[i];
-      for (let c = layerTypePools[l].length - 1; c >= 0 && vaultCount > 2; c--) {
-        if (layerTypePools[l][c] === 'vault') {
-          layerTypePools[l][c] = 'event';
-          vaultCount--;
+      for (let c = layerTypePools[l].length - 1; c >= 0 && count > maxLimit; c--) {
+        if (predicate(layerTypePools[l][c])) {
+          layerTypePools[l][c] = replacement;
+          count--;
         }
       }
     }
-  }
+    return count;
+  };
 
-  // 若 market > 2，從後面候選層倒序削去多餘 market 轉為 combat (保護 Layer 1 之 market)
-  if (marketCount > 2) {
-    for (let i = eligibleLayers.length - 1; i >= 0 && marketCount > 2; i--) {
-      const l = eligibleLayers[i];
-      for (let c = layerTypePools[l].length - 1; c >= 0 && marketCount > 2; c--) {
-        if (layerTypePools[l][c] === 'market') {
-          layerTypePools[l][c] = 'combat';
-          marketCount--;
-        }
-      }
-    }
-  }
-
-  // 若祭壇類總和 > 2，從後面候選層倒序削去多餘祭壇轉為 event
-  if (altarTypeCount > 2) {
-    for (let i = eligibleLayers.length - 1; i >= 0 && altarTypeCount > 2; i--) {
-      const l = eligibleLayers[i];
-      for (let c = layerTypePools[l].length - 1; c >= 0 && altarTypeCount > 2; c--) {
-        const t = layerTypePools[l][c];
-        if (t === 'altar' || t === 'blood_altar') {
-          layerTypePools[l][c] = 'event';
-          altarTypeCount--;
-        }
-      }
-    }
-  }
+  vaultCount = capNodeType((t) => t === 'vault', vaultCount, 2, 'event');
+  marketCount = capNodeType((t) => t === 'market', marketCount, 2, 'combat');
+  altarTypeCount = capNodeType((t) => t === 'altar' || t === 'blood_altar', altarTypeCount, 2, 'event');
 
   // 3. 保底補足 (Guaranteed Minimums): 確保全圖 vault >= 1, market >= 1, (altar + blood_altar) >= 1
   const findCandidateSlot = (forbiddenLayerCheck: (layer: MapNodeType[]) => boolean): { l: number; c: number } | null => {

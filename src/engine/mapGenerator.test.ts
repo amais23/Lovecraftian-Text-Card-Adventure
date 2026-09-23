@@ -330,6 +330,26 @@ describe('Investigation Map Generator (Issue #43 / ADR-0022)', () => {
         }
       }
     });
+
+    it('ensures Layer 14 (pre-boss outpost) and special layers never contain a vault', () => {
+      for (const depth of [1, 2, 3] as DepthLevel[]) {
+        for (let i = 0; i < 30; i++) {
+          const seed = i * 6007 + depth * 19;
+          const map = generateProceduralInvestigationMap({ depth, seed });
+
+          // Layer 0 (start), Layer 1 (hub), Layer 8 (haven), Layer 14 (pre-boss outpost), Layer 15 (boss)
+          for (const excludedLayer of [0, 1, 8, 14, 15]) {
+            const nodeIds = map.layers[excludedLayer] ?? [];
+            for (const id of nodeIds) {
+              expect(
+                map.nodes[id].type,
+                `Depth ${depth}, seed ${seed}: layer ${excludedLayer} must never contain a vault, but found one at node ${id}`
+              ).not.toBe('vault');
+            }
+          }
+        }
+      }
+    });
   });
 });
 
