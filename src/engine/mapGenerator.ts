@@ -570,7 +570,13 @@ function generateLayerTypes(
   // 倒數第二層（決戰前哨）：整頓與準備節點
   if (layer === totalLayers - 2) {
     const preBossPool: MapNodeType[] = ['sanctuary', 'market', 'altar', 'event', 'combat'];
-    return Array.from({ length: count }, () => preBossPool[Math.floor(rng() * preBossPool.length)]);
+    const preTypes: MapNodeType[] = [];
+    for (let c = 0; c < count; c++) {
+      const candidates = preBossPool.filter((t) => !preTypes.includes(t));
+      const pool = candidates.length > 0 ? candidates : preBossPool;
+      preTypes.push(pool[Math.floor(rng() * pool.length)]);
+    }
+    return preTypes;
   }
 
   const types: MapNodeType[] = [];
@@ -584,26 +590,177 @@ function generateLayerTypes(
     }
 
     const r = rng();
-    if (canHaveElite && r < 0.20 && !types.includes('elite')) {
+    if (canHaveElite && r < 0.18 && !types.includes('elite')) {
       types.push('elite');
     } else if (r < 0.44) {
       types.push('combat');
-    } else if (r < 0.64) {
+    } else if (r < 0.70) {
       types.push('event');
-    } else if (r < 0.76) {
-      types.push('market');
-    } else if (r < 0.86) {
+    } else if (r < 0.80) {
       types.push('sanctuary');
-    } else if (r < 0.92) {
+    } else if (r < 0.86 && !types.includes('market')) {
+      types.push('market');
+    } else if (r < 0.92 && !types.includes('altar') && !types.includes('blood_altar')) {
       types.push('altar');
-    } else if (r < 0.96) {
+    } else if (r < 0.96 && !types.includes('vault')) {
       types.push('vault');
-    } else {
+    } else if (!types.includes('blood_altar') && !types.includes('altar')) {
       types.push('blood_altar');
+    } else {
+      types.push(rng() < 0.5 ? 'combat' : 'event');
     }
   }
 
   return types;
+}
+
+/**
+ * 依據 ADR-0032 與 Issue #51 實作之 16 層 DAG 保底配額演算法 (Guaranteed Node Quota)
+ * 嚴格保障第一至三深度地圖包含：
+ * - 遺物秘閣 (vault): 1 ~ 2 處 (保證至少 1 處，不超過 2 處)
+ * - 黑市商人 (market): 1 ~ 2 處
+ * - 祭壇類 (altar 或 blood_altar): 1 ~ 2 處
+ * 同時消除單一樓層內重複出現多個相同稀有節點之不良體驗，嚴格保護 Layer 0、Layer 1、Layer 8 (Haven) 與 Layer 15 (Boss)。
+ */
+function applyGuaranteedNodeQuotas(
+  layerTypePools: MapNodeType[][],
+  depth: DepthLevel,
+  rng: () => number
+): void {
+  // 可受配額微調之候選層：中間探索層與決戰前哨 (排除 Layer 0、Layer 1、Layer 8 Haven、Layer 15 Boss；深度 1 亦保留 Layer 2 教學層)
+  const eligibleLayers =
+    depth === 1
+      ? [3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14]
+      : [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14];
+
+  // 1. 單層去重：檢測所有層（排除 Layer 8 全避難所與 Layer 15 Boss），若同一層出現多個 vault、market 或祭壇類，將後者轉為 combat 或 event
+  for (let l = 0; l < layerTypePools.length - 1; l++) {
+    if (l === 8) continue;
+    const layer = layerTypePools[l];
+    let seenVault = false;
+    let seenMarket = false;
+    let seenAltarType = false;
+
+    for (let c = 0; c < layer.length; c++) {
+      const t = layer[c];
+      if (t === 'vault') {
+        if (seenVault) {
+          layer[c] = 'event';
+        } else {
+          seenVault = true;
+        }
+      } else if (t === 'market') {
+        if (seenMarket) {
+          layer[c] = 'combat';
+        } else {
+          seenMarket = true;
+        }
+      } else if (t === 'altar' || t === 'blood_altar') {
+        if (seenAltarType) {
+          layer[c] = 'event';
+        } else {
+          seenAltarType = true;
+        }
+      }
+    }
+  }
+
+  // 2. 超額削平 (Cap Maximums): 確保全圖 vault <= 2, market <= 2, (altar + blood_altar) <= 2
+  let vaultCount = 0;
+  let marketCount = 0;
+  let altarTypeCount = 0;
+
+  for (let l = 0; l < layerTypePools.length; l++) {
+    for (const t of layerTypePools[l]) {
+      if (t === 'vault') vaultCount++;
+      if (t === 'market') marketCount++;
+      if (t === 'altar' || t === 'blood_altar') altarTypeCount++;
+    }
+  }
+
+  // 若 vault > 2，從後面候選層倒序削去多餘 vault 轉為 event
+  if (vaultCount > 2) {
+    for (let i = eligibleLayers.length - 1; i >= 0 && vaultCount > 2; i--) {
+      const l = eligibleLayers[i];
+      for (let c = layerTypePools[l].length - 1; c >= 0 && vaultCount > 2; c--) {
+        if (layerTypePools[l][c] === 'vault') {
+          layerTypePools[l][c] = 'event';
+          vaultCount--;
+        }
+      }
+    }
+  }
+
+  // 若 market > 2，從後面候選層倒序削去多餘 market 轉為 combat (保護 Layer 1 之 market)
+  if (marketCount > 2) {
+    for (let i = eligibleLayers.length - 1; i >= 0 && marketCount > 2; i--) {
+      const l = eligibleLayers[i];
+      for (let c = layerTypePools[l].length - 1; c >= 0 && marketCount > 2; c--) {
+        if (layerTypePools[l][c] === 'market') {
+          layerTypePools[l][c] = 'combat';
+          marketCount--;
+        }
+      }
+    }
+  }
+
+  // 若祭壇類總和 > 2，從後面候選層倒序削去多餘祭壇轉為 event
+  if (altarTypeCount > 2) {
+    for (let i = eligibleLayers.length - 1; i >= 0 && altarTypeCount > 2; i--) {
+      const l = eligibleLayers[i];
+      for (let c = layerTypePools[l].length - 1; c >= 0 && altarTypeCount > 2; c--) {
+        const t = layerTypePools[l][c];
+        if (t === 'altar' || t === 'blood_altar') {
+          layerTypePools[l][c] = 'event';
+          altarTypeCount--;
+        }
+      }
+    }
+  }
+
+  // 3. 保底補足 (Guaranteed Minimums): 確保全圖 vault >= 1, market >= 1, (altar + blood_altar) >= 1
+  const findCandidateSlot = (forbiddenLayerCheck: (layer: MapNodeType[]) => boolean): { l: number; c: number } | null => {
+    const candidates: Array<{ l: number; c: number }> = [];
+    for (const l of eligibleLayers) {
+      const layer = layerTypePools[l];
+      if (forbiddenLayerCheck(layer)) continue;
+
+      for (let c = 0; c < layer.length; c++) {
+        if (layer[c] === 'combat' || layer[c] === 'event') {
+          candidates.push({ l, c });
+        }
+      }
+    }
+    if (candidates.length === 0) return null;
+    return candidates[Math.floor(rng() * candidates.length)];
+  };
+
+  // (a) 保證 vault 至少 1 個
+  if (vaultCount < 1) {
+    const slot = findCandidateSlot((layer) => layer.includes('vault'));
+    if (slot) {
+      layerTypePools[slot.l][slot.c] = 'vault';
+      vaultCount++;
+    }
+  }
+
+  // (b) 保證 market 至少 1 個
+  if (marketCount < 1) {
+    const slot = findCandidateSlot((layer) => layer.includes('market'));
+    if (slot) {
+      layerTypePools[slot.l][slot.c] = 'market';
+      marketCount++;
+    }
+  }
+
+  // (c) 保證祭壇類至少 1 個
+  if (altarTypeCount < 1) {
+    const slot = findCandidateSlot((layer) => layer.includes('altar') || layer.includes('blood_altar'));
+    if (slot) {
+      layerTypePools[slot.l][slot.c] = rng() < 0.5 ? 'altar' : 'blood_altar';
+      altarTypeCount++;
+    }
+  }
 }
 
 /**
@@ -727,6 +884,11 @@ export function generateProceduralInvestigationMap(options?: MapGenerationOption
   const layerTypePools: MapNodeType[][] = [];
   for (let l = 0; l < totalLayers; l++) {
     layerTypePools.push(generateLayerTypes(l, totalLayers, layerCounts[l], depth, rng, hasFallen));
+  }
+
+  // 2.5 應用保底配額與去重演算法 (ADR-0032 / Issue #51)
+  if (depth <= 3) {
+    applyGuaranteedNodeQuotas(layerTypePools, depth, rng);
   }
 
   // 3. 產生相鄰兩層之間的連通邊

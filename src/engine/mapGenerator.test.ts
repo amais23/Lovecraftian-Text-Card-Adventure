@@ -254,4 +254,82 @@ describe('Investigation Map Generator (Issue #43 / ADR-0022)', () => {
       localStorage.clear();
     });
   });
+
+  describe('Guaranteed DAG Node Quotas (ADR-0032 / Issue #51)', () => {
+    it('strictly guarantees 1~2 vaults, 1~2 markets, and 1~2 altars/blood_altars across 150 randomized maps in Depths 1, 2, 3', () => {
+      const depths: DepthLevel[] = [1, 2, 3];
+      const iterationsPerDepth = 50; // Total 150 iterations
+
+      for (const depth of depths) {
+        for (let i = 0; i < iterationsPerDepth; i++) {
+          const seed = i * 10007 + depth * 31;
+          const map = generateProceduralInvestigationMap({ depth, seed });
+
+          let vaultCount = 0;
+          let marketCount = 0;
+          let altarTypeCount = 0;
+
+          for (const node of Object.values(map.nodes)) {
+            if (node.type === 'vault') vaultCount++;
+            if (node.type === 'market') marketCount++;
+            if (node.type === 'altar' || node.type === 'blood_altar') altarTypeCount++;
+          }
+
+          expect(
+            vaultCount,
+            `Depth ${depth}, seed ${seed}: vault count must be between 1 and 2, but got ${vaultCount}`
+          ).toBeGreaterThanOrEqual(1);
+          expect(
+            vaultCount,
+            `Depth ${depth}, seed ${seed}: vault count must not exceed 2, but got ${vaultCount}`
+          ).toBeLessThanOrEqual(2);
+
+          expect(
+            marketCount,
+            `Depth ${depth}, seed ${seed}: market count must be between 1 and 2, but got ${marketCount}`
+          ).toBeGreaterThanOrEqual(1);
+          expect(
+            marketCount,
+            `Depth ${depth}, seed ${seed}: market count must not exceed 2, but got ${marketCount}`
+          ).toBeLessThanOrEqual(2);
+
+          expect(
+            altarTypeCount,
+            `Depth ${depth}, seed ${seed}: altar/blood_altar count must be between 1 and 2, but got ${altarTypeCount}`
+          ).toBeGreaterThanOrEqual(1);
+          expect(
+            altarTypeCount,
+            `Depth ${depth}, seed ${seed}: altar/blood_altar count must not exceed 2, but got ${altarTypeCount}`
+          ).toBeLessThanOrEqual(2);
+        }
+      }
+    });
+
+    it('ensures no layer has duplicate vaults or duplicate markets', () => {
+      for (const depth of [1, 2, 3] as DepthLevel[]) {
+        for (let i = 0; i < 30; i++) {
+          const seed = i * 4001 + depth * 13;
+          const map = generateProceduralInvestigationMap({ depth, seed });
+
+          for (let l = 0; l < map.layers.length; l++) {
+            const layerNodeIds = map.layers[l];
+            const typesInLayer = layerNodeIds.map((id) => map.nodes[id].type);
+
+            const vaultsInLayer = typesInLayer.filter((t) => t === 'vault').length;
+            const marketsInLayer = typesInLayer.filter((t) => t === 'market').length;
+
+            expect(
+              vaultsInLayer,
+              `Depth ${depth}, seed ${seed}, layer ${l}: cannot have more than 1 vault in the same layer`
+            ).toBeLessThanOrEqual(1);
+            expect(
+              marketsInLayer,
+              `Depth ${depth}, seed ${seed}, layer ${l}: cannot have more than 1 market in the same layer`
+            ).toBeLessThanOrEqual(1);
+          }
+        }
+      }
+    });
+  });
 });
+
