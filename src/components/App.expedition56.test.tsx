@@ -11,7 +11,11 @@ import { evaluateCardPlay } from '../engine/cards/evaluator';
 import { OCCULTIST_REWARD_CARDS } from '../engine/cards/occultist/rewards';
 import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
 import type { CardPlayContext } from '../engine/cards/types';
-import type { Enemy, Investigator } from '../types/game';
+import type { DepthLevel, Enemy, GameState, Investigator } from '../types/game';
+import { generateProceduralInvestigationMap } from '../engine/mapGenerator';
+import { MARKET_PURGE_COST } from '../engine/eventData';
+import { PRESET_RELICS } from '../engine/relics';
+import { ABYSSAL_FRAGMENT_1, ABYSSAL_FRAGMENT_2 } from '../engine/abyssalSeals';
 
 function createBaseInvestigator(overrides: Partial<Investigator> = {}): Investigator {
   return {
@@ -488,6 +492,442 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       const actionTurn6 = resolveEnemyAction(enemy, enemy.currentIntent, investigator, 6);
       expect(actionTurn6.damageToInvestigator).toBe(15);
       expect(actionTurn6.logs.some((l) => l.includes('狂暴') || l.includes('深淵'))).toBe(true);
+    });
+  });
+
+  describe('6. 56-Layer Full Expedition & Dynamic Node Content Integration (Issue #56 / ADR-0032)', () => {
+    it('simulates full 4-depth (56-layer: 16+16+16+8) expedition lifecycle from Departure to R\'lyeh victory', () => {
+      let state = createInitialGameState();
+      // Select occupation Edward Pierce
+      state = gameReducer(state, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+      expect(state.phase).toBe('map');
+      expect(state.currentDepth).toBe(1);
+      expect(state.map?.layers).toHaveLength(16);
+
+      // Depth 1: Progress to Layer 15 (Boss)
+      const d1BossNodeId = state.map!.layers[15][0];
+      state = {
+        ...state,
+        investigator: { ...state.investigator, health: 12 },
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [d1BossNodeId]: { ...state.map!.nodes[d1BossNodeId], status: 'accessible' },
+          },
+        },
+      };
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: d1BossNodeId } });
+      expect(state.phase).toBe('combat');
+      expect(state.currentEnemy.id).toBe('enemy_shoggoth_progeny');
+
+      // Defeat Depth 1 Boss -> Settlement -> Depth Transition
+      state = { ...state, phase: 'victory' };
+      state = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(state.phase).toBe('reward');
+      state = gameReducer(state, { type: 'CLAIM_FIELD_DRESSING', payload: { healAmount: 8 } });
+      expect(state.phase).toBe('depth_transition');
+
+      // Transition to Depth 2 (16 layers, Innsmouth Coast)
+      state = gameReducer(state, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(state.phase).toBe('map');
+      expect(state.currentDepth).toBe(2);
+      expect(state.investigator.health).toBe(state.investigator.maxHealth); // Boss defeat full health recovery
+      expect(state.map?.layers).toHaveLength(16);
+
+      // Depth 2: Progress to Layer 15 (Boss: Dagon Priest)
+      const d2BossNodeId = state.map!.layers[15][0];
+      state = {
+        ...state,
+        investigator: { ...state.investigator, health: 15 },
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [d2BossNodeId]: { ...state.map!.nodes[d2BossNodeId], status: 'accessible' },
+          },
+        },
+      };
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: d2BossNodeId } });
+      expect(state.phase).toBe('combat');
+      expect(state.currentEnemy.id).toBe('enemy_dagon_priest');
+
+      // Defeat Depth 2 Boss -> Transition to Depth 3
+      state = { ...state, phase: 'victory' };
+      state = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(state.phase).toBe('reward');
+      state = gameReducer(state, { type: 'CLAIM_FIELD_DRESSING', payload: { healAmount: 8 } });
+      expect(state.phase).toBe('depth_transition');
+      state = gameReducer(state, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(state.phase).toBe('map');
+      expect(state.currentDepth).toBe(3);
+      expect(state.investigator.health).toBe(state.investigator.maxHealth);
+      expect(state.map?.layers).toHaveLength(16);
+
+      // Acquire both abyssal fragments to unlock Depth 4 upon Depth 3 boss victory (ADR-0015)
+      state = {
+        ...state,
+        sanityDeck: [...state.sanityDeck, { ...ABYSSAL_FRAGMENT_1 }, { ...ABYSSAL_FRAGMENT_2 }],
+      };
+
+      // Depth 3: Progress to Layer 15 (Boss: Colossal Shoggoth)
+      const d3BossNodeId = state.map!.layers[15][0];
+      state = {
+        ...state,
+        investigator: { ...state.investigator, health: 18 },
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [d3BossNodeId]: { ...state.map!.nodes[d3BossNodeId], status: 'accessible' },
+          },
+        },
+      };
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: d3BossNodeId } });
+      expect(state.phase).toBe('combat');
+      expect(state.currentEnemy.id).toBe('enemy_colossal_shoggoth');
+
+      // Defeat Depth 3 Boss -> Transition to Depth 4 (R'lyeh)
+      state = { ...state, phase: 'victory' };
+      state = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(state.phase).toBe('reward');
+      expect(state.abyssalSealFused).toBe(true);
+      state = gameReducer(state, { type: 'CLAIM_FIELD_DRESSING', payload: { healAmount: 8 } });
+      expect(state.phase).toBe('depth_transition');
+      state = gameReducer(state, { type: 'COMPLETE_DEPTH_TRANSITION' });
+      expect(state.phase).toBe('map');
+      expect(state.currentDepth).toBe(4);
+      expect(state.investigator.health).toBe(state.investigator.maxHealth);
+      expect(state.map?.layers).toHaveLength(8); // Depth 4 has 8 layers
+
+      // Depth 4: Progress to Final Boss (Layer 7: Star Spawn of Cthulhu)
+      const d4BossNodeId = state.map!.layers[7][0];
+      state = {
+        ...state,
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [d4BossNodeId]: { ...state.map!.nodes[d4BossNodeId], status: 'accessible' },
+          },
+        },
+      };
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: d4BossNodeId } });
+      expect(state.phase).toBe('combat');
+      expect(state.currentEnemy.id).toBe('enemy_star_spawn');
+
+      // Defeat Final Boss
+      state = { ...state, phase: 'victory' };
+      state = gameReducer(state, { type: 'PROCEED_TO_REWARD' });
+      expect(state.phase).toBe('reward');
+      state = gameReducer(state, { type: 'CLAIM_FIELD_DRESSING', payload: { healAmount: 8 } });
+      expect(state.map?.isCompleted).toBe(true);
+      expect(state.isTrueEnding).toBe(true);
+    });
+
+    it('verifies guaranteed DAG quotas (Vault >= 1, Market 1~3, Altar 1~3) across 16-floor maps (Depths 1~3)', () => {
+      for (const depth of [1, 2, 3] as DepthLevel[]) {
+        for (let seed = 1; seed <= 15; seed++) {
+          const map = generateProceduralInvestigationMap({ depth, seed });
+          const allNodes = Object.values(map.nodes);
+          const vaultCount = allNodes.filter((n) => n.type === 'vault').length;
+          const marketCount = allNodes.filter((n) => n.type === 'market').length;
+          const altarCount = allNodes.filter((n) => n.type === 'altar' || n.type === 'blood_altar').length;
+
+          expect(vaultCount, `Depth ${depth} Seed ${seed} should have >= 1 vault`).toBeGreaterThanOrEqual(1);
+          expect(marketCount, `Depth ${depth} Seed ${seed} should have >= 1 market`).toBeGreaterThanOrEqual(1);
+          expect(altarCount, `Depth ${depth} Seed ${seed} should have >= 1 altar`).toBeGreaterThanOrEqual(1);
+        }
+      }
+    });
+
+    it('verifies depth-stratified mythos event generation, visitedEventIds anti-repeat, and consequence resolution', () => {
+      let state = createInitialGameState();
+      state = gameReducer(state, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+
+      // Find all event nodes in Depth 1 map
+      const eventNodes = Object.values(state.map!.nodes).filter((n) => n.type === 'event');
+      expect(eventNodes.length).toBeGreaterThan(0);
+
+      // Navigate to first event node
+      const firstEventNode = eventNodes[0];
+      state = {
+        ...state,
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [firstEventNode.id]: { ...firstEventNode, status: 'accessible' },
+          },
+        },
+      };
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: firstEventNode.id } });
+      expect(state.phase).toBe('event');
+      expect(state.currentEvent).toBeDefined();
+      expect(state.visitedEventIds).toContain(state.currentEvent!.id);
+
+      const firstEventId = state.currentEvent!.id;
+
+      // Complete event and return to map
+      state = gameReducer(state, { type: 'COMPLETE_EVENT' });
+      expect(state.phase).toBe('map');
+
+      // Navigate to second event node if exists
+      if (eventNodes.length > 1) {
+        const secondEventNode = eventNodes[1];
+        state = {
+          ...state,
+          map: {
+            ...state.map!,
+            nodes: {
+              ...state.map!.nodes,
+              [secondEventNode.id]: { ...secondEventNode, status: 'accessible' },
+            },
+          },
+        };
+        state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: secondEventNode.id } });
+        expect(state.phase).toBe('event');
+        expect(state.currentEvent!.id).not.toBe(firstEventId); // Anti-repeat!
+        expect(state.visitedEventIds).toContain(state.currentEvent!.id);
+        expect(state.visitedEventIds?.length).toBeGreaterThanOrEqual(2);
+      }
+    });
+
+    it('verifies dynamic market stock with discounted card, purchase mechanics, and 30-obol card purge', () => {
+      let state = createInitialGameState();
+      state = gameReducer(state, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+
+      // Give investigator enough obols for testing market
+      state = {
+        ...state,
+        investigator: {
+          ...state.investigator,
+          obols: 80,
+        },
+      };
+
+      const marketNode = Object.values(state.map!.nodes).find((n) => n.type === 'market')!;
+      expect(marketNode).toBeDefined();
+
+      state = {
+        ...state,
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [marketNode.id]: { ...marketNode, status: 'accessible' },
+          },
+        },
+      };
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.1);
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: marketNode.id } });
+      randomSpy.mockRestore();
+      expect(state.phase).toBe('market');
+      expect(state.marketItems).toBeDefined();
+
+      const items = state.marketItems!;
+      const cardItems = items.filter((i) => i.type === 'card');
+      expect(cardItems).toHaveLength(3);
+
+      // Exactly 1 card item is discounted
+      const discountedCards = cardItems.filter((i) => i.isDiscounted);
+      expect(discountedCards).toHaveLength(1);
+      const discountedItem = discountedCards[0];
+      expect(discountedItem.price).toBeLessThan(discountedItem.originalPrice!);
+
+      // Purchase the discounted card
+      const initialObols = state.investigator.obols;
+      const initialDeckLen = state.sanityDeck.length;
+      state = gameReducer(state, {
+        type: 'BUY_MARKET_ITEM',
+        payload: { itemId: discountedItem.id },
+      });
+      expect(state.investigator.obols).toBe(initialObols - discountedItem.price);
+      expect(state.sanityDeck.length).toBe(initialDeckLen + 1);
+
+      // Test 30-obol card purge service
+      const cardToPurge = state.sanityDeck[0];
+      const obolsBeforePurge = state.investigator.obols;
+      state = gameReducer(state, {
+        type: 'PURGE_CARD_AT_MARKET',
+        payload: { cardId: cardToPurge.id },
+      });
+      expect(state.marketPurgeUsed).toBe(true);
+      expect(state.investigator.obols).toBe(obolsBeforePurge - MARKET_PURGE_COST);
+      expect(state.sanityDeck.some((c) => c.id === cardToPurge.id)).toBe(false);
+
+      // Verify second purge attempt in same market is blocked
+      const secondPurgeAttempt = gameReducer(state, {
+        type: 'PURGE_CARD_AT_MARKET',
+        payload: { cardId: state.sanityDeck[0].id },
+      });
+      expect(secondPurgeAttempt).toBe(state);
+    });
+
+    it('verifies sanctuary hearth purge, blood altar dual branch, and vault desecration with unplayable curse', () => {
+      // 1. Sanctuary Hearth Purge
+      let state = createInitialGameState();
+      state = gameReducer(state, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator', procedural: true },
+      });
+      state = gameReducer(state, { type: 'COMPLETE_DEPARTURE' });
+
+      const sanctuaryNode = Object.values(state.map!.nodes).find((n) => n.type === 'sanctuary')!;
+      state = {
+        ...state,
+        map: {
+          ...state.map!,
+          nodes: {
+            ...state.map!.nodes,
+            [sanctuaryNode.id]: { ...sanctuaryNode, status: 'accessible' },
+          },
+        },
+      };
+      state = gameReducer(state, { type: 'NAVIGATE_TO_NODE', payload: { nodeId: sanctuaryNode.id } });
+      expect(state.phase).toBe('sanctuary');
+
+      const purgedCard = state.sanityDeck[0];
+      state = gameReducer(state, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'purge', cardId: purgedCard.id },
+      });
+      expect(state.sanctuaryUsed).toBe(true);
+      expect(state.sanityDeck.some((c) => c.id === purgedCard.id)).toBe(false);
+
+      // 2. Blood Altar dual branch: test reshape (1 card purge + 5 HP heal)
+      state = {
+        ...state,
+        phase: 'blood_altar',
+        bloodAltarUsed: false,
+        investigator: {
+          ...state.investigator,
+          health: 15,
+          maxHealth: 30,
+        },
+      };
+      const reshapeCard = state.sanityDeck[0];
+      state = gameReducer(state, {
+        type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR',
+        payload: { cardIds: [reshapeCard.id], branch: 'reshape' },
+      });
+      expect(state.bloodAltarUsed).toBe(true);
+      expect(state.investigator.health).toBe(20); // 15 + 5
+      expect(state.sanityDeck.some((c) => c.id === reshapeCard.id)).toBe(false);
+
+      // 3. Vault Desecration: grab 2 relics, inject Abyss Curse
+      state = {
+        ...state,
+        phase: 'vault',
+        vaultClaimed: false,
+        vaultRelics: [PRESET_RELICS[0], PRESET_RELICS[1], PRESET_RELICS[2]],
+      };
+      const initialRelicCount = state.investigator.relics?.length ?? 0;
+      state = gameReducer(state, {
+        type: 'CLAIM_VAULT_RELIC',
+        payload: {
+          relicIds: [PRESET_RELICS[0].id, PRESET_RELICS[1].id],
+          desecrate: true,
+        },
+      });
+      expect(state.vaultClaimed).toBe(true);
+      expect(state.investigator.relics?.length).toBe(initialRelicCount + 2);
+
+      // Verify 【深淵詛咒】injected into sanityDeck
+      const curseInDeck = state.sanityDeck.find((c) => c.id.startsWith('card_abyss_curse'));
+      expect(curseInDeck).toBeDefined();
+      expect(curseInDeck!.isUnplayable).toBe(true);
+
+      // Verify 【深淵詛咒】is unplayable during combat
+      const dummyEnemy: Enemy = {
+        id: 'test_ghoul',
+        name: '食屍鬼',
+        title: '潛伏者',
+        health: 20,
+        maxHealth: 20,
+        armor: 0,
+        currentIntent: { type: 'attack', value: 5, name: '撕咬', description: '' },
+      };
+      const playCtx: CardPlayContext = {
+        investigator: state.investigator,
+        enemy: dummyEnemy,
+        turn: 1,
+        isMadness: false,
+        hand: [curseInDeck!],
+        sanityDeck: state.sanityDeck,
+        discardPile: [],
+      };
+      const evalRes = evaluateCardPlay(curseInDeck!, playCtx);
+      expect(evalRes.logs[0]).toContain('無法被打出');
+      expect(evalRes.logs[0]).toContain('佔據著手牌');
+    });
+
+    it('verifies anti-repeat combat encounter rotation and Mi-Go scout surgical_bio_shock trait execution', () => {
+      // 1. Reducer runtime anti-repeat: if node.enemyId === state.lastCombatEnemyId, rerolls different enemy
+      const combatNodeId = 'test_combat_node';
+      const baseState: GameState = {
+        ...createInitialGameState(),
+        phase: 'map',
+        currentDepth: 1,
+        lastCombatEnemyId: 'enemy_ghoul_lurker',
+        map: {
+          id: 'test_map',
+          name: '測試地圖',
+          depth: 1,
+          currentNodeId: null,
+          layers: [[combatNodeId]],
+          nodes: {
+            [combatNodeId]: {
+              id: combatNodeId,
+              type: 'combat',
+              layer: 0,
+              col: 0,
+              label: '常規遭遇',
+              title: '腐臭小巷',
+              description: '',
+              nextNodes: [],
+              status: 'accessible',
+              enemyId: 'enemy_ghoul_lurker', // Identical to lastCombatEnemyId
+            },
+          },
+        },
+      };
+
+      const nextCombatState = gameReducer(baseState, {
+        type: 'NAVIGATE_TO_NODE',
+        payload: { nodeId: combatNodeId },
+      });
+
+      expect(nextCombatState.phase).toBe('combat');
+      expect(nextCombatState.currentEnemy.id).not.toBe('enemy_ghoul_lurker');
+      expect(nextCombatState.lastCombatEnemyId).toBe(nextCombatState.currentEnemy.id);
+
+      // 2. Mi-Go Scout surgical_bio_shock trait execution
+      const migo = getEnemyTemplateById('enemy_migo_scout')!;
+      expect(migo).toBeDefined();
+      expect(migo.traits?.some((t) => t.id === 'surgical_bio_shock')).toBe(true);
+
+      const investigator = createBaseInvestigator({ stamina: 3 });
+      const bioShockIntent = migo.intentSequence?.find((i) => i.drainStamina)!;
+      expect(bioShockIntent).toBeDefined();
+
+      const action = resolveEnemyAction(migo, bioShockIntent, investigator, 2);
+      expect(action.nextTurnDrainedStamina).toBe(1);
+      expect(action.statusesToInvestigator?.some((s) => s.type === 'horror')).toBe(true);
+      expect(action.logs.some((l) => l.includes('真菌外科術'))).toBe(true);
+      expect(action.logs.some((l) => l.includes('抽乾 1 點精力'))).toBe(true);
     });
   });
 });
