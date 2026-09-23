@@ -53,55 +53,130 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
     dispatch({ type: 'LEAVE_ALTAR' });
   };
 
-  const renderRitualCard = (ritual: AltarRitual) => {
-    if (ritual.id === 'flesh') {
-      const isCardDisabled = isUsed || investigator.health <= 6;
-      return (
-        <div
-          key="flesh"
-          id="altar-option-flesh"
-          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
-          onClick={() => handleSacrifice('flesh')}
-        >
-          <div className="altar-card-icon health">
-            <Heart size={28} color="#ff334b" />
-          </div>
-          <h3 className="altar-card-title">{ritual.name}</h3>
-          <p className="altar-card-desc">{ritual.description}</p>
-          <button
-            id="altar-flesh-btn"
-            className="altar-action-btn"
-            disabled={isCardDisabled}
-          >
-            {isUsed
-              ? '已完成奉獻'
-              : investigator.health <= 6
-              ? '生命值不足（需 > 6）'
-              : '割肉奉獻 · 承受 6 點傷害'}
-          </button>
-        </div>
-      );
+  const getRitualMeta = (ritual: AltarRitual) => {
+    switch (ritual.id) {
+      case 'flesh':
+        return {
+          iconClass: 'health',
+          icon: <Heart size={28} color="#ff334b" />,
+          cardId: 'altar-option-flesh',
+          testId: 'altar-option-flesh',
+          btnId: 'altar-flesh-btn',
+          btnTestId: 'altar-flesh-btn',
+          disabled: isUsed || investigator.health <= 6,
+          btnText: isUsed
+            ? '已完成奉獻'
+            : investigator.health <= 6
+            ? '生命值不足（需 > 6）'
+            : '割肉奉獻 · 承受 6 點傷害',
+          onSacrifice: () => handleSacrifice('flesh'),
+          hasToggle: false,
+        };
+      case 'time_space':
+      case 'mind':
+        return {
+          iconClass: 'mind',
+          icon: <BookOpen size={28} color="#cfa866" />,
+          cardId: 'altar-option-mind',
+          testId: 'altar-option-time_space',
+          btnId: 'altar-mind-btn',
+          btnTestId: 'altar-time_space-btn',
+          disabled:
+            isUsed ||
+            (mindCostType === 'health'
+              ? investigator.health <= 10
+              : (state.sanityDeck?.length ?? 0) <= 2),
+          btnText: isUsed
+            ? '已完成奉獻'
+            : mindCostType === 'health'
+            ? investigator.health <= 10
+              ? '生命值不足（需 > 10）'
+              : '撕裂神經 · 承受 10 點傷害'
+            : (state.sanityDeck?.length ?? 0) <= 2
+            ? '理智牌庫不足（需 > 2 張）'
+            : '損耗理智 · 永久除役 2 張卡牌',
+          onSacrifice: () => handleSacrifice('time_space'),
+          hasToggle: true,
+        };
+      case 'void':
+      case 'boon':
+        return {
+          iconClass: 'boon',
+          icon: <Sparkles size={28} color="#e0a96d" />,
+          cardId: 'altar-option-boon',
+          testId: 'altar-option-void',
+          btnId: 'altar-boon-btn',
+          btnTestId: 'altar-void-btn',
+          disabled: isUsed || investigator.health <= 6,
+          btnText: isUsed
+            ? '已完成奉獻'
+            : investigator.health <= 6
+            ? '生命值不足（需 > 6）'
+            : '引導恩賜 · 承受 6 點傷害',
+          onSacrifice: () => handleSacrifice('void'),
+          hasToggle: false,
+        };
+      case 'chaos':
+        return {
+          iconClass: 'chaos',
+          icon: <Coins size={28} color="#ffd700" />,
+          cardId: 'altar-option-chaos',
+          testId: 'altar-option-chaos',
+          btnId: 'altar-chaos-btn',
+          btnTestId: 'altar-chaos-btn',
+          disabled:
+            isUsed || investigator.health <= 4 || (state.sanityDeck?.length ?? 0) <= 1,
+          btnText: isUsed
+            ? '已完成奉獻'
+            : investigator.health <= 4
+            ? '生命值不足（需 > 4）'
+            : (state.sanityDeck?.length ?? 0) <= 1
+            ? '理智牌庫不足（需 > 1 張）'
+            : '混沌祈願 · 承受 4 傷並除役 1 牌',
+          onSacrifice: () => handleSacrifice('chaos'),
+          hasToggle: false,
+        };
+      case 'blood_pact':
+        return {
+          iconClass: 'blood_pact',
+          icon: <Flame size={28} color="#d90429" />,
+          cardId: 'altar-option-blood_pact',
+          testId: 'altar-option-blood_pact',
+          btnId: 'altar-blood_pact-btn',
+          btnTestId: 'altar-blood_pact-btn',
+          disabled: isUsed || investigator.health <= 8,
+          btnText: isUsed
+            ? '已完成奉獻'
+            : investigator.health <= 8
+            ? '生命值不足（需 > 8）'
+            : '締結血契 · 承受 8 點傷害',
+          onSacrifice: () => handleSacrifice('blood_pact'),
+          hasToggle: false,
+        };
+      default:
+        return null;
     }
+  };
 
-    if (ritual.id === 'time_space' || ritual.id === 'mind') {
-      const isCardDisabled =
-        isUsed ||
-        (mindCostType === 'health'
-          ? investigator.health <= 10
-          : (state.sanityDeck?.length ?? 0) <= 2);
-      return (
-        <div
-          key="time_space"
-          id="altar-option-mind"
-          data-testid="altar-option-time_space"
-          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
-        >
-          <div className="altar-card-icon mind">
-            <BookOpen size={28} color="#cfa866" />
-          </div>
-          <h3 className="altar-card-title">{ritual.name}</h3>
-          <p className="altar-card-desc">{ritual.description}</p>
+  const renderRitualCard = (ritual: AltarRitual) => {
+    const meta = getRitualMeta(ritual);
+    if (!meta) return null;
 
+    return (
+      <div
+        key={ritual.id}
+        id={meta.cardId}
+        data-testid={meta.testId}
+        className={`altar-option-card ${meta.disabled ? 'disabled' : ''}`}
+        onClick={meta.hasToggle ? undefined : meta.onSacrifice}
+      >
+        <div className={`altar-card-icon ${meta.iconClass}`}>
+          {meta.icon}
+        </div>
+        <h3 className="altar-card-title">{ritual.name}</h3>
+        <p className="altar-card-desc">{ritual.description}</p>
+
+        {meta.hasToggle && (
           <div
             className="altar-cost-toggle-row"
             style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}
@@ -161,121 +236,19 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
               損耗 2 點理智代價
             </button>
           </div>
+        )}
 
-          <button
-            id="altar-mind-btn"
-            data-testid="altar-time_space-btn"
-            className="altar-action-btn"
-            disabled={isCardDisabled}
-            onClick={() => handleSacrifice('time_space')}
-          >
-            {isUsed
-              ? '已完成奉獻'
-              : mindCostType === 'health'
-              ? investigator.health <= 10
-                ? '生命值不足（需 > 10）'
-                : '撕裂神經 · 承受 10 點傷害'
-              : (state.sanityDeck?.length ?? 0) <= 2
-              ? '理智牌庫不足（需 > 2 張）'
-              : '損耗理智 · 永久除役 2 張卡牌'}
-          </button>
-        </div>
-      );
-    }
-
-    if (ritual.id === 'void' || ritual.id === 'boon') {
-      const isCardDisabled = isUsed || investigator.health <= 6;
-      return (
-        <div
-          key="void"
-          id="altar-option-boon"
-          data-testid="altar-option-void"
-          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
-          onClick={() => handleSacrifice('void')}
+        <button
+          id={meta.btnId}
+          data-testid={meta.btnTestId}
+          className="altar-action-btn"
+          disabled={meta.disabled}
+          onClick={meta.onSacrifice}
         >
-          <div className="altar-card-icon boon">
-            <Sparkles size={28} color="#e0a96d" />
-          </div>
-          <h3 className="altar-card-title">{ritual.name}</h3>
-          <p className="altar-card-desc">{ritual.description}</p>
-          <button
-            id="altar-boon-btn"
-            data-testid="altar-void-btn"
-            className="altar-action-btn"
-            disabled={isCardDisabled}
-          >
-            {isUsed
-              ? '已完成奉獻'
-              : investigator.health <= 6
-              ? '生命值不足（需 > 6）'
-              : '引導恩賜 · 承受 6 點傷害'}
-          </button>
-        </div>
-      );
-    }
-
-    if (ritual.id === 'chaos') {
-      const isCardDisabled =
-        isUsed || investigator.health <= 4 || (state.sanityDeck?.length ?? 0) <= 1;
-      return (
-        <div
-          key="chaos"
-          id="altar-option-chaos"
-          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
-          onClick={() => handleSacrifice('chaos')}
-        >
-          <div className="altar-card-icon chaos">
-            <Coins size={28} color="#ffd700" />
-          </div>
-          <h3 className="altar-card-title">{ritual.name}</h3>
-          <p className="altar-card-desc">{ritual.description}</p>
-          <button
-            id="altar-chaos-btn"
-            className="altar-action-btn"
-            disabled={isCardDisabled}
-          >
-            {isUsed
-              ? '已完成奉獻'
-              : investigator.health <= 4
-              ? '生命值不足（需 > 4）'
-              : (state.sanityDeck?.length ?? 0) <= 1
-              ? '理智牌庫不足（需 > 1 張）'
-              : '混沌祈願 · 承受 4 傷並除役 1 牌'}
-          </button>
-        </div>
-      );
-    }
-
-    if (ritual.id === 'blood_pact') {
-      const isCardDisabled = isUsed || investigator.health <= 8;
-      return (
-        <div
-          key="blood_pact"
-          id="altar-option-blood_pact"
-          className={`altar-option-card ${isCardDisabled ? 'disabled' : ''}`}
-          onClick={() => handleSacrifice('blood_pact')}
-        >
-          <div className="altar-card-icon blood_pact">
-            <Flame size={28} color="#d90429" />
-          </div>
-          <h3 className="altar-card-title">{ritual.name}</h3>
-          <p className="altar-card-desc">{ritual.description}</p>
-          <button
-            id="altar-blood_pact-btn"
-            className="altar-action-btn"
-            disabled={isCardDisabled}
-          >
-            {isUsed
-              ? '已完成奉獻'
-              : investigator.health <= 8
-              ? '生命值不足（需 > 8）'
-              : '締結血契 · 承受 8 點傷害'}
-          </button>
-        </div>
-      );
-    }
-
-    return null;
+          {meta.btnText}
+        </button>
+      </div>
+    );
   };
 
   return (

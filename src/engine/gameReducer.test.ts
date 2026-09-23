@@ -4482,6 +4482,21 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(next.battleLog[0]).toContain('破除古神封印');
       });
 
+      it('CLAIM_VAULT_RELIC desecrate rejects duplicate relic IDs', () => {
+        const state: GameState = {
+          ...createInitialCombatState(),
+          phase: 'vault',
+          vaultClaimed: false,
+        };
+
+        const duplicateNext = gameReducer(state, {
+          type: 'CLAIM_VAULT_RELIC',
+          payload: { relicIds: ['pocket_watch', 'pocket_watch'], desecrate: true },
+        });
+
+        expect(duplicateNext.vaultClaimed).toBe(false);
+      });
+
       it('LEAVE_VAULT returns to map and advances node', () => {
         const state: GameState = {
           ...createInitialCombatState(),

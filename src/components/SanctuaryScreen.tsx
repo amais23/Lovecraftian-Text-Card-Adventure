@@ -194,7 +194,10 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
               id="sanctuary-purge-btn"
               className="sanctuary-action-btn"
               disabled={isUsed || !canPurge}
-              onClick={handleOpenPurge}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenPurge();
+              }}
             >
               {isUsed
                 ? '已完成修整'

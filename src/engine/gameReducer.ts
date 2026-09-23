@@ -45,7 +45,7 @@ import {
   type CardPlayContext,
   type DamageResult,
 } from './cards';
-import { CARD_ABYSS_CURSE } from './cards/special/madness';
+import { CardRegistry } from './cards/registry';
 import { applyRelicCombatStart, applyRelicToInvestigator, PRESET_RELICS } from './relics';
 import { generateAltarRituals } from './altarService';
 import {
@@ -1558,7 +1558,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newHealth -= 8;
         const truthCard: Card = {
           ...TRUTH_CARD_BREAKWATER,
-          id: `altar_truth_${Date.now()}_${newSanityDeck.length + 1}`,
+          id: `altar_truth_${state.currentDepth || 1}_${newSanityDeck.length + 1}`,
         };
         newSanityDeck.push(truthCard);
         newObols += 25;
@@ -1613,6 +1613,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (desecrate) {
         const ids = relicIds ?? (relicId ? [relicId] : []);
         if (ids.length !== 2) return state;
+        const idSet = new Set(ids);
+        if (idSet.size !== 2) return state;
+
         const availableRelics = state.vaultRelics || PRESET_RELICS;
         const targetRelics = ids
           .map((id) => availableRelics.find((r) => r.id === id) || PRESET_RELICS.find((r) => r.id === id))
@@ -1624,9 +1627,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           updatedInvestigator = applyRelicToInvestigator(updatedInvestigator, relic);
         }
 
+        const baseCurse = CardRegistry.getAbyssCurseCard();
         const curseCard: Card = {
-          ...CARD_ABYSS_CURSE,
-          id: `card_abyss_curse_${state.sanityDeck.length + 1}_${Date.now()}`,
+          ...baseCurse,
+          id: `card_abyss_curse_${state.sanityDeck.length + 1}`,
         };
         newSanityDeck.push(curseCard);
 
