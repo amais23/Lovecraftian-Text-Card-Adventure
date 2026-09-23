@@ -1543,8 +1543,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       } else if (optionId === 'chaos') {
         if (newHealth <= 4 || newSanityDeck.length <= 1) return state;
         newHealth -= 4;
-        const purgeIndex = Math.floor(Math.random() * newSanityDeck.length);
-        const [purgedCard] = newSanityDeck.splice(purgeIndex, 1);
+        const purgeIndex = action.payload?.cardId
+          ? newSanityDeck.findIndex((c) => c.id === action.payload?.cardId)
+          : (state.turn + state.investigator.health + newSanityDeck.length) %
+            newSanityDeck.length;
+        const targetIdx = purgeIndex >= 0 ? purgeIndex : 0;
+        const [purgedCard] = newSanityDeck.splice(targetIdx, 1);
         newObols += 50;
         updatedStats = {
           ...currentStats,

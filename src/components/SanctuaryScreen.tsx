@@ -188,7 +188,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
             </div>
             <h3 className="sanctuary-card-title">壁爐除役與雜質焚毀</h3>
             <p className="sanctuary-card-desc">
-              將一張多餘或負面的雜質卡牌投入壁爐熊熊餘火之中，將其自理智牌庫中永久焚毀除役，使心神更為專注精純。
+              將一張雜質卡牌投入壁爐熊熊餘火之中，將其自理智牌庫中永久焚毀除役，使心神更為專注精純。
             </p>
             <button
               id="sanctuary-purge-btn"

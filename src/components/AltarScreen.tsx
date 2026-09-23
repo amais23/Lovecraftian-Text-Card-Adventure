@@ -243,7 +243,10 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
           data-testid={meta.btnTestId}
           className="altar-action-btn"
           disabled={meta.disabled}
-          onClick={meta.onSacrifice}
+          onClick={(e) => {
+            e.stopPropagation();
+            meta.onSacrifice();
+          }}
         >
           {meta.btnText}
         </button>
