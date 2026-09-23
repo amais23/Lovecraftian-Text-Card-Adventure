@@ -102,7 +102,7 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
               ? '已自秘閣中獲取寶物，請啟程離開'
               : isDesecrating
               ? '【破除古神封印模式】請在石台選取 2 件遺物，承受【深淵詛咒】強奪雙寶'
-              : '自主挑選 1 件舊日遺物加入行囊，或拾取 35 枚古金幣，亦可破除古神封印'}
+              : '自主挑選 1 件舊日遺物加入行囊，或拾取 20 枚古金幣，亦可破除古神封印'}
           </span>
           <span className="vault-current-relics-count">
             目前行囊已收納 {investigator.relics?.length ?? 0} 件遺物
@@ -287,7 +287,7 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
             <Coins size={24} color="#ffd700" />
             <div>
               <h4 className="vault-alt-title">放棄遺物 · 搜括暗格古金幣</h4>
-              <p className="vault-alt-desc">不願承擔遺物未知詛咒，轉而搜掠密閣夾層中存放的 35 枚古金幣。</p>
+              <p className="vault-alt-desc">不願承擔遺物未知詛咒，轉而搜掠密閣夾層中存放的 20 枚古金幣。</p>
             </div>
           </div>
           <button
@@ -297,7 +297,7 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
             onClick={handleClaimObols}
           >
             <Coins size={16} />
-            <span>{isClaimed ? '已選擇' : '搜括 35 古金幣'}</span>
+            <span>{isClaimed ? '已選擇' : '搜括 20 古金幣'}</span>
           </button>
         </div>
 

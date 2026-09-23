@@ -31,7 +31,7 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
       soundEngine.playClick();
       dispatch({
         type: 'USE_ALTAR',
-        payload: { optionId: 'mind', costType: actualCost },
+        payload: { optionId, costType: actualCost },
       });
       return;
     }

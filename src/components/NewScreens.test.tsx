@@ -67,7 +67,7 @@ describe('New Node Screens (Issue #30)', () => {
 
       expect(dispatch).toHaveBeenCalledWith({
         type: 'USE_ALTAR',
-        payload: { optionId: 'mind', costType: 'sanity' },
+        payload: { optionId: 'time_space', costType: 'sanity' },
       });
     });
 
@@ -181,7 +181,7 @@ describe('New Node Screens (Issue #30)', () => {
       });
 
       // Claim obols
-      const claimObolsBtn = screen.getByText(/搜括 35 古金幣/);
+      const claimObolsBtn = screen.getByText(/搜括 20 古金幣/);
       fireEvent.click(claimObolsBtn);
       expect(dispatch).toHaveBeenCalledWith({
         type: 'CLAIM_VAULT_RELIC',

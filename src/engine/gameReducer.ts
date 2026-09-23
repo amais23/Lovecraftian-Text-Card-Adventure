@@ -857,7 +857,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           obols: newObols,
         },
         sanityDeck: newSanityDeck,
-        hand: state.hand,
+        hand: optionId === 'purge' ? [] : state.hand,
+        discardPile: optionId === 'purge' ? [] : state.discardPile,
         sanctuaryUsed: true,
         battleLog: newLogs.concat(state.battleLog),
       };
@@ -1631,7 +1632,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           updatedInvestigator = applyRelicToInvestigator(updatedInvestigator, relic);
         }
 
-        const baseCurse = CardRegistry.getAbyssCurseCard();
+        const baseCurse = CardRegistry.getCardById('card_abyss_curse');
+        if (!baseCurse) return state;
         const curseCard: Card = {
           ...baseCurse,
           id: `card_abyss_curse_${state.sanityDeck.length + 1}`,
@@ -1642,12 +1644,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           `在遺物秘閣強行破除古神封印，掠取了【${targetRelics.map((r) => r.name).join('】與【')}】兩件太古遺物！但深淵詛咒已悄然烙印，無法打出的【深淵詛咒】瘋狂卡已永久注入理智牌庫！`
         );
       } else if (claimObols) {
-        updatedInvestigator.obols += 35;
+        updatedInvestigator.obols += 20;
         updatedStats = {
           ...currentStats,
-          totalObolsCollected: currentStats.totalObolsCollected + 35,
+          totalObolsCollected: currentStats.totalObolsCollected + 20,
         };
-        newLogs.push(`在遺物秘閣中搜括暗格，獲得了 35 枚古金幣！`);
+        newLogs.push(`在遺物秘閣中搜括暗格，獲得了 20 枚古金幣！`);
       } else if (relicId) {
         const targetRelic =
           (state.vaultRelics || []).find((r) => r.id === relicId) ||

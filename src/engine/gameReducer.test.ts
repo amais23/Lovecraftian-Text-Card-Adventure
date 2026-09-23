@@ -1826,6 +1826,32 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(afterPurgeState).toBe(purgedState);
     });
 
+    it('USE_SANCTUARY purge consolidates permanent cards and resets hand and discardPile to prevent duplicates', () => {
+      const cardA = createMockCard({ id: 'c1', name: '破舊風衣' });
+      const cardB = createMockCard({ id: 'c2', name: '左輪射擊' });
+      const cardC = createMockCard({ id: 'c3', name: '恐懼幻影' });
+
+      const sanctuaryState: GameState = {
+        ...createInitialCombatState(),
+        phase: 'sanctuary',
+        sanctuaryUsed: false,
+        sanityDeck: [cardA],
+        hand: [cardB],
+        discardPile: [cardC],
+      };
+
+      const purgedState = gameReducer(sanctuaryState, {
+        type: 'USE_SANCTUARY',
+        payload: { optionId: 'purge', cardId: 'c3' },
+      });
+
+      expect(purgedState.sanctuaryUsed).toBe(true);
+      expect(purgedState.hand).toEqual([]);
+      expect(purgedState.discardPile).toEqual([]);
+      expect(purgedState.sanityDeck).toHaveLength(2);
+      expect(purgedState.sanityDeck.map((c) => c.id)).toEqual(['c1', 'c2']);
+    });
+
     it('USE_SANCTUARY purge protects against purging when deck size <= 1', () => {
       const cardA = createMockCard({ id: 'c1', name: '唯一卡牌' });
 
@@ -4406,7 +4432,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(next.investigator.handCapacity).toBe(3);
       });
 
-      it('CLAIM_VAULT_RELIC can alternatively claim 35 ancient obols', () => {
+      it('CLAIM_VAULT_RELIC can alternatively claim 20 ancient obols (ADR-0032)', () => {
         const state: GameState = {
           ...createInitialCombatState(),
           phase: 'vault',
@@ -4423,7 +4449,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         });
 
         expect(next.vaultClaimed).toBe(true);
-        expect(next.investigator.obols).toBe(55);
+        expect(next.investigator.obols).toBe(40);
       });
 
       it('CLAIM_VAULT_RELIC desecrate acquires 2 relics and injects unplayable 深淵詛咒 into sanityDeck (Issue #54)', () => {

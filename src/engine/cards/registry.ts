@@ -248,13 +248,6 @@ export class CardRegistry {
     const card = CARDS_BY_ID.get(id);
     return card ? { ...card } : undefined;
   }
-
-  /**
-   * 取得【深淵詛咒】瘋狂卡原型 (ADR-0032, Issue #54)
-   */
-  static getAbyssCurseCard(): Card {
-    return { ...CARD_ABYSS_CURSE };
-  }
 }
 
 // 同步導出獨立函數介面，方便直接引入使用
@@ -266,5 +259,4 @@ export const getCardById = CardRegistry.getCardById;
 export const getCardsByTier = CardRegistry.getCardsByTier;
 export const getAllTieredCards = CardRegistry.getAllTieredCards;
 export const generateRewardCards = CardRegistry.generateRewardCards;
-export const getAbyssCurseCard = CardRegistry.getAbyssCurseCard;
 export { CARD_ABYSS_CURSE };
