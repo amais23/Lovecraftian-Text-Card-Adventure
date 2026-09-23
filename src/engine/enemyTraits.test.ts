@@ -225,6 +225,31 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
       expect(breakRes.statusToInvestigator?.stacks).toBe(1);
       expect(breakRes.logs.some((l) => l.includes('屍氣爆裂'))).toBe(true);
     });
+
+    it('surgical_bio_shock drains stamina, inflicts horror, and logs bio-shock when executing attack with drain', () => {
+      const migo = createTestEnemy({
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.surgical_bio_shock],
+      });
+      const inv = createTestInvestigator();
+
+      const actionRes = resolveEnemyAction(
+        migo,
+        {
+          type: 'attack',
+          value: 11,
+          drainStamina: 1,
+          name: '星際電弧放電',
+          description: '放電攻擊',
+        },
+        inv,
+        1
+      );
+
+      expect(actionRes.nextTurnDrainedStamina).toBe(1);
+      expect(actionRes.statusesToInvestigator?.some((s) => s.type === 'horror')).toBe(true);
+      expect(actionRes.logs.some((l) => l.includes('真菌外科術'))).toBe(true);
+      expect(actionRes.logs.some((l) => l.includes('抽乾 1 點精力'))).toBe(true);
+    });
   });
 
   describe('advanceCanonicalIntent', () => {

@@ -481,6 +481,20 @@ export function resolveEnemyAction(
     logs.push(`【盲目血祭】${enemy.name} 狂熱自殘，割裂軀體承受 ${intent.selfDamage} 點反噬傷害！`);
   }
 
+  // 真菌外科術 (surgical_bio_shock)
+  // 米·戈的星際解剖與電漿科技，意圖攻擊時可抽乾調查員精力並麻痺神經
+  if (
+    hasTrait(enemy, 'surgical_bio_shock') &&
+    (intent.drainStamina || (intent.type === 'attack' && intent.name?.includes('電弧')))
+  ) {
+    const drain = intent.drainStamina ?? 1;
+    nextTurnDrainedStamina = Math.max(nextTurnDrainedStamina ?? 0, drain);
+    statusesToInvestigator.push(createStatusEffect('horror', 1));
+    logs.push(
+      `【真菌外科術】${enemy.name} 導引星際電漿外科解剖，抽乾 ${drain} 點精力並麻痺神經施加 1 層【恐慌】！`
+    );
+  }
+
   // 4. 大袞潮汐 (tide_of_dagon)
   // 奇數回合潮漲獲得 14 潮汐護甲；偶數回合潮退將剩餘潮汐護甲轉為海嘯衝擊傷害並清空護甲
   if (hasTrait(enemy, 'tide_of_dagon')) {

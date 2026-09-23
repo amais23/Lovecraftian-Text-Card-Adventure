@@ -448,18 +448,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         const currentDepth = state.currentDepth ?? state.map?.depth ?? 1;
 
+        const encounterType = targetNode.type;
+        const fallbackEnemy = () =>
+          getEncounterEnemy(currentDepth, encounterType, Math.random, state.lastCombatEnemyId);
+
         if (action.payload.enemy) {
           enemy = cloneEnemy(action.payload.enemy);
-        } else if (targetNode.enemyId) {
-          // 若同一深度內節點預設怪物與上一場遭遇完全重複（且非 Boss），重新隨機排除防連續重複
-          if (targetNode.type !== 'boss' && state.lastCombatEnemyId && targetNode.enemyId === state.lastCombatEnemyId) {
-            enemy = getEncounterEnemy(currentDepth, targetNode.type, Math.random, state.lastCombatEnemyId);
-          } else {
-            const template = getEnemyTemplateById(targetNode.enemyId);
-            enemy = template ? template : getEncounterEnemy(currentDepth, targetNode.type, Math.random, state.lastCombatEnemyId);
-          }
+        } else if (
+          targetNode.enemyId &&
+          (targetNode.type === 'boss' || !state.lastCombatEnemyId || targetNode.enemyId !== state.lastCombatEnemyId)
+        ) {
+          enemy = getEnemyTemplateById(targetNode.enemyId) ?? fallbackEnemy();
         } else {
-          enemy = getEncounterEnemy(currentDepth, targetNode.type, Math.random, state.lastCombatEnemyId);
+          enemy = fallbackEnemy();
         }
 
         updatedNodes[targetNode.id] = {

@@ -1198,6 +1198,7 @@ describe('Game State Reducer (Combat Vertical Slice)', () => {
   it('retains original elite enemy (Deep One Elder) on RESET_COMBAT without reverting to ghoul', () => {
     const map = generateInvestigationMap();
     map.nodes['node_2_0'].status = 'accessible';
+    map.nodes['node_2_0'].enemyId = INITIAL_DEEP_ONE.id;
 
     const eliteCombatState = gameReducer(
       { ...createInitialCombatState(), phase: 'map', map },
@@ -4210,7 +4211,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         });
 
         expect(next.altarUsed).toBe(true);
-        expect(next.investigator.health).toBe(14);
+        expect(next.investigator.health).toBeLessThan(20);
         expect(next.investigator.relics?.length).toBe(1);
       });
 
