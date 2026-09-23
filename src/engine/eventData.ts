@@ -1,6 +1,8 @@
-import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent, OccupationId } from '../types/game';
+import type { Card, DepthLevel, Enemy, EnemyIntent, MarketItem, MythosEvent, OccupationId, Relic } from '../types/game';
 import { CardRegistry } from './cards/registry';
 import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
+import { PRESET_RELICS } from './relics';
+import { fisherYatesShuffle } from './shuffleUtils';
 
 /* =========================================================
    Elite & Boss Enemies
@@ -1428,89 +1430,16 @@ export function getMythosEventForNode(
    Black Market Stock Generator
    ========================================================= */
 
-export function generateDefaultMarketItems(occupationId?: OccupationId): MarketItem[] {
-  const isOccultist = occupationId === 'occultist';
+export interface GenerateMarketItemsOptions {
+  ownedRelicIds?: string[];
+  randomFn?: () => number;
+}
 
-  const primaryCardItem: MarketItem = isOccultist
-    ? {
-        id: 'market_item_dread_whisper',
-        name: '異度恐懼低語',
-        type: 'card',
-        price: 20,
-        description: '強大的星空秘術，燃燒 1 點理智造成 10 點秘術傷害。',
-        card: {
-          id: 'card_market_dread_whisper',
-          name: '恐懼低語',
-          category: 'magic',
-          costType: 'sanity',
-          costValue: 1,
-          isTemporary: false,
-          tier: 1,
-          occupations: ['occultist'],
-          effects: [{ type: 'damage', value: 10 }],
-          description: '造成 10 點秘術傷害。',
-          flavorText: '「在敵人腦海中回放拉萊耶的潮汐聲。」',
-        },
-      }
-    : {
-        id: 'market_item_trench_gun',
-        name: '戰壕雙管獵槍',
-        type: 'card',
-        price: 20,
-        description: '強大的物理重型武器，造成 14 點巨大物理傷害。',
-        card: {
-          id: 'card_market_shotgun',
-          name: '雙管獵槍',
-          category: 'combat',
-          costType: 'stamina',
-          costValue: 2,
-          isTemporary: false,
-          tier: 1,
-          occupations: ['investigator'],
-          effects: [{ type: 'damage', value: 14 }],
-          description: '造成 14 點物理傷害。',
-          flavorText: '「12號口徑鹿彈撕裂腐肉的轟鳴，足以撕裂最深沉的夢魘。」',
-        },
-      };
-
-  return [
-    primaryCardItem,
-    {
-      id: 'market_item_amulet',
-      name: '遠古青銅護身符',
-      type: 'card',
-      price: 18,
-      description: '銘刻舊印符號的青銅飾物，獲得 8 點護甲。',
-      card: {
-        id: 'card_market_amulet',
-        name: '遠古護身符',
-        category: 'skill',
-        costType: 'stamina',
-        costValue: 1,
-        isTemporary: false,
-        tier: 1,
-        occupations: ['investigator', 'occultist'],
-        effects: [{ type: 'armor', value: 8 }],
-        description: '獲得 8 點護甲。',
-        flavorText: '「青銅上的深綠包漿散發著阻絕污穢的冰涼氣息。」',
-      },
-    },
-    {
-      id: 'market_item_truth_scroll',
-      name: '心智防波堤手稿',
-      type: 'card',
-      price: 15,
-      description: '記載精神分析與冥想防護的真相典籍，將 3 張真相卡洗回理智牌庫。',
-      card: {
-        ...TRUTH_CARD_BREAKWATER,
-        id: 'card_market_breakwater',
-        tier: 1,
-      },
-    },
+const DEPTH_MEDICAL_SUPPLIES: Record<number, Array<{ id: string; name: string; price: number; healAmount: number; description: string }>> = {
+  1: [
     {
       id: 'market_item_morphine',
       name: '軍用嗎啡注射劑',
-      type: 'heal',
       price: 15,
       healAmount: 8,
       description: '戰地急救藥品，立即恢復 8 點肉體生命值（受最大生命值限制）。',
@@ -1518,141 +1447,151 @@ export function generateDefaultMarketItems(occupationId?: OccupationId): MarketI
     {
       id: 'market_item_alcohol',
       name: '高純度酒精繃帶',
-      type: 'heal',
       price: 10,
       healAmount: 5,
       description: '簡易消毒止血用品，立即恢復 5 點肉體生命值。',
     },
-  ];
+  ],
+  2: [
+    {
+      id: 'market_item_surgery_kit_d2',
+      name: '高級戰地醫療箱',
+      price: 22,
+      healAmount: 12,
+      description: '專業外科縫合工具與抗生素，立即恢復 12 點肉體生命值。',
+    },
+    {
+      id: 'market_item_antidote_serum_d2',
+      name: '深海抗逆血清',
+      price: 18,
+      healAmount: 8,
+      description: '提取自深潛者分泌物的解毒血清，立即恢復 8 點生命值。',
+    },
+  ],
+  3: [
+    {
+      id: 'market_item_revival_injection_d3',
+      name: '禁忌復甦針劑',
+      price: 30,
+      healAmount: 16,
+      description: '注入強心劑與太古活性液體，瞬間恢復 16 點肉體生命值。',
+    },
+    {
+      id: 'market_item_sanctified_elixir_d3',
+      name: '聖所聖水金樽',
+      price: 26,
+      healAmount: 10,
+      description: '盛放在純金酒樽中的驅邪聖水，立即恢復 10 點生命值。',
+    },
+  ],
+};
+
+function getRelicPrice(relic: Relic): number {
+  switch (relic.rarity) {
+    case 'mythic':
+      return 50;
+    case 'rare':
+      return 38;
+    case 'common':
+    default:
+      return 28;
+  }
 }
 
 /**
- * 依據當前探索深度生成黑市商品清單（隨深度動態演進）
- * - Depth 1: Tier 1 裝備與常規醫療品
- * - Depth 2: Tier 2 進階裝備與深度防護血清
- * - Depth 3: Tier 3 大師級秘寶與禁忌復甦針劑
- * - 若傳入 occupationId，依據職業過濾商品卡牌
+ * 依據當前探索深度、調查員職業與已持有遺物動態生成黑市商品清單 (ADR-0032, Issue #53)
+ * - 3 張卡牌（透過 CardRegistry 適配當前職業與深度階級）
+ * - 1~2 件未持有的 PRESET_RELICS
+ * - 1 件應急醫療物資
+ * - 支援 20% 機率單一商品隨機半價或特惠標籤
  */
-export function generateMarketItemsForDepth(depth: DepthLevel = 1, occupationId?: OccupationId): MarketItem[] {
-  switch (depth) {
-    case 2: {
-      const card1: Card = occupationId === 'occultist'
-        ? { ...CardRegistry.getCardById('card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' }
-        : { ...CardRegistry.getCardById('card_tier2_pump_shotgun')!, id: 'card_market_pump_shotgun' };
-      const card2: Card = occupationId === 'occultist'
-        ? { ...CardRegistry.getCardById('card_tier2_mind_shock')!, id: 'card_market_mind_shock' }
-        : { ...CardRegistry.getCardById('card_tier2_iron_will')!, id: 'card_market_iron_will' };
-      const card3: Card = occupationId === 'occultist'
-        ? { ...CardRegistry.getCardById('card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
-        : (occupationId === 'investigator'
-            ? { ...CardRegistry.getCardById('card_tier2_rapid_suture')!, id: 'card_market_rapid_suture' }
-            : { ...CardRegistry.getCardById('card_tier2_frost_grasp')!, id: 'card_market_frost_grasp' });
+export function generateMarketItemsForDepth(
+  depth: DepthLevel = 1,
+  occupationId?: OccupationId,
+  optionsOrRelicIds?: GenerateMarketItemsOptions | string[],
+  maybeRandomFn?: () => number
+): MarketItem[] {
+  let ownedRelicIds: string[] = [];
+  let randomFn: () => number = Math.random;
 
-      return [
-        {
-          id: card1.id === 'card_market_frost_grasp' ? 'market_item_frost_grasp_d2' : 'market_item_pump_shotgun_d2',
-          name: card1.name,
-          type: 'card',
-          price: 28,
-          description: card1.description,
-          card: card1,
-        },
-        {
-          id: card2.id === 'card_market_mind_shock' ? 'market_item_mind_shock_d2' : 'market_item_iron_will_d2',
-          name: card2.name,
-          type: 'card',
-          price: 25,
-          description: card2.description,
-          card: card2,
-        },
-        {
-          id: card3.id === 'card_market_rapid_suture' ? 'market_item_rapid_suture_d2' : 'market_item_frost_grasp_d2',
-          name: card3.name,
-          type: 'card',
-          price: 24,
-          description: card3.description,
-          card: card3,
-        },
-        {
-          id: 'market_item_surgery_kit_d2',
-          name: '高級戰地醫療箱',
-          type: 'heal',
-          price: 22,
-          healAmount: 12,
-          description: '專業外科縫合工具與抗生素，立即恢復 12 點肉體生命值。',
-        },
-        {
-          id: 'market_item_antidote_serum_d2',
-          name: '深海抗逆血清',
-          type: 'heal',
-          price: 18,
-          healAmount: 8,
-          description: '提取自深潛者分泌物的解毒血清，立即恢復 8 點生命值。',
-        },
-      ];
-    }
-
-    case 3:
-    case 4: {
-      const card1: Card = occupationId === 'occultist'
-        ? { ...CardRegistry.getCardById('card_tier3_void_collapse')!, id: 'card_market_void_collapse' }
-        : { ...CardRegistry.getCardById('card_tier3_dum_dum')!, id: 'card_market_dum_dum' };
-      const card2: Card = occupationId === 'occultist'
-        ? { ...CardRegistry.getCardById('card_tier3_psionic_cleave')!, id: 'card_market_psionic_cleave' }
-        : { ...CardRegistry.getCardById('card_tier3_impenetrable_bastion')!, id: 'card_market_bastion' };
-      const card3: Card = occupationId === 'occultist'
-        ? { ...CardRegistry.getCardById('card_tier3_star_resonance')!, id: 'card_market_star_resonance' }
-        : (occupationId === 'investigator'
-            ? { ...CardRegistry.getCardById('card_tier3_demolition_pack')!, id: 'card_market_demolition_pack' }
-            : { ...CardRegistry.getCardById('card_tier3_void_collapse')!, id: 'card_market_void_collapse' });
-
-      return [
-        {
-          id: card1.id === 'card_market_void_collapse' ? 'market_item_void_collapse_d3' : 'market_item_dum_dum_d3',
-          name: card1.name,
-          type: 'card',
-          price: 38,
-          description: card1.description,
-          card: card1,
-        },
-        {
-          id: card2.id === 'card_market_psionic_cleave' ? 'market_item_psionic_cleave_d3' : 'market_item_impenetrable_bastion_d3',
-          name: card2.name,
-          type: 'card',
-          price: 35,
-          description: card2.description,
-          card: card2,
-        },
-        {
-          id: card3.id === 'card_market_star_resonance' ? 'market_item_star_resonance_d3' : (card3.id === 'card_market_demolition_pack' ? 'market_item_demolition_pack_d3' : 'market_item_void_collapse_d3'),
-          name: card3.name,
-          type: 'card',
-          price: 36,
-          description: card3.description,
-          card: card3,
-        },
-        {
-          id: 'market_item_revival_injection_d3',
-          name: '禁忌復甦針劑',
-          type: 'heal',
-          price: 30,
-          healAmount: 16,
-          description: '注入強心劑與太古活性液體，瞬間恢復 16 點肉體生命值。',
-        },
-        {
-          id: 'market_item_sanctified_elixir_d3',
-          name: '聖所聖水金樽',
-          type: 'heal',
-          price: 26,
-          healAmount: 10,
-          description: '盛放在純金酒樽中的驅邪聖水，立即恢復 10 點生命值。',
-        },
-      ];
-    }
-
-    case 1:
-    default:
-      return generateDefaultMarketItems(occupationId);
+  if (Array.isArray(optionsOrRelicIds)) {
+    ownedRelicIds = optionsOrRelicIds;
+    if (maybeRandomFn) randomFn = maybeRandomFn;
+  } else if (optionsOrRelicIds && typeof optionsOrRelicIds === 'object') {
+    if (optionsOrRelicIds.ownedRelicIds) ownedRelicIds = optionsOrRelicIds.ownedRelicIds;
+    if (optionsOrRelicIds.randomFn) randomFn = optionsOrRelicIds.randomFn;
   }
+
+  const effectiveDepth: DepthLevel = depth ?? 1;
+  const targetTier = effectiveDepth === 2 ? 2 : effectiveDepth >= 3 ? 3 : 1;
+  const occ: OccupationId = occupationId ?? 'investigator';
+
+  // 1. 動態抽取 3 張適配職業與階級之卡牌
+  let candidateCards = CardRegistry.getCardsByTier(targetTier, occ);
+  if (candidateCards.length < 3) {
+    candidateCards = CardRegistry.getCardsByTier(targetTier);
+  }
+  const shuffledCards = fisherYatesShuffle(candidateCards, randomFn);
+  const pickedCards = shuffledCards.slice(0, 3);
+  const cardItems: MarketItem[] = pickedCards.map((c, idx) => ({
+    id: `market_item_${c.id}_${idx + 1}`,
+    name: c.name,
+    type: 'card',
+    price: c.tier === 1 ? 20 : c.tier === 2 ? 26 : 36,
+    card: { ...c, id: `card_market_${c.id}` },
+    description: c.description,
+  }));
+
+  // 2. 動態抽取 1~2 件未持有之舊日遺物
+  const ownedSet = new Set(ownedRelicIds);
+  const unownedRelics = PRESET_RELICS.filter((r) => !ownedSet.has(r.id));
+  const relicPool = unownedRelics.length > 0 ? unownedRelics : PRESET_RELICS;
+  const relicCount = relicPool.length === 1 ? 1 : randomFn() < 0.5 ? 1 : 2;
+  const shuffledRelics = fisherYatesShuffle(relicPool, randomFn);
+  const pickedRelics = shuffledRelics.slice(0, relicCount);
+  const relicItems: MarketItem[] = pickedRelics.map((r) => ({
+    id: `market_item_relic_${r.id}`,
+    name: r.name,
+    type: 'relic',
+    price: getRelicPrice(r),
+    relic: r,
+    description: r.description,
+  }));
+
+  // 3. 抽取 1 件深度對應之醫療補給
+  const depthKey = effectiveDepth >= 3 ? 3 : effectiveDepth === 2 ? 2 : 1;
+  const medPool = DEPTH_MEDICAL_SUPPLIES[depthKey] || DEPTH_MEDICAL_SUPPLIES[1];
+  const pickedMed = medPool[Math.floor(randomFn() * medPool.length)];
+  const healItem: MarketItem = {
+    id: `${pickedMed.id}_${Math.floor(randomFn() * 10000)}`,
+    name: pickedMed.name,
+    type: 'heal',
+    price: pickedMed.price,
+    healAmount: pickedMed.healAmount,
+    description: pickedMed.description,
+  };
+
+  const allItems: MarketItem[] = [...cardItems, ...relicItems, healItem];
+
+  // 4. 支援 20% 機率單一商品隨機半價或特惠標籤
+  if (randomFn() < 0.2 && allItems.length > 0) {
+    const discountIdx = Math.floor(randomFn() * allItems.length);
+    const targetItem = allItems[discountIdx];
+    const originalPrice = targetItem.price;
+    const discountedPrice = Math.max(1, Math.round(originalPrice * 0.5));
+    allItems[discountIdx] = {
+      ...targetItem,
+      originalPrice,
+      price: discountedPrice,
+      isDiscounted: true,
+      discountLabel: '半價特惠',
+    };
+  }
+
+  return allItems;
+}
+
+export function generateDefaultMarketItems(occupationId?: OccupationId): MarketItem[] {
+  return generateMarketItemsForDepth(1, occupationId);
 }
 

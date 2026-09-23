@@ -3529,6 +3529,371 @@
   color: var(--text-gold);
 }
 
+/* Black Market Relic & Discount Enhancements */
+.market-item-card.relic {
+  background: rgba(30, 24, 15, 0.88);
+  border-color: rgba(255, 215, 0, 0.25);
+}
+
+.market-item-card.discounted {
+  border-color: rgba(217, 4, 41, 0.35);
+}
+
+.market-item-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.market-item-discount-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #d90429, #9d0208);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 8px rgba(217, 4, 41, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.market-item-price-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.market-item-original-price {
+  font-size: 0.68rem;
+  color: var(--text-dim, #888);
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+/* Black Market Card Purge Service Styles */
+.market-purge-section {
+  background: rgba(18, 12, 10, 0.88);
+  border: 1px solid rgba(255, 84, 0, 0.3);
+  border-radius: var(--radius-sm);
+  margin-top: clamp(8px, 1.2dvh, 14px);
+  padding: clamp(8px, 1.2dvh, 12px) clamp(10px, 1.5vw, 16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.market-purge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(8px, 1.5vw, 16px);
+}
+
+.market-purge-left {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 12px);
+  flex: 1;
+}
+
+.market-purge-icon {
+  width: clamp(28px, 4.2dvh, 36px);
+  height: clamp(28px, 4.2dvh, 36px);
+  border-radius: 6px;
+  background: rgba(255, 84, 0, 0.15);
+  border: 1px solid rgba(255, 84, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.market-purge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.market-purge-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.market-purge-title {
+  font-family: var(--font-title);
+  font-size: clamp(0.82rem, 1.3dvh, 0.95rem);
+  color: #ff9e00;
+  margin: 0;
+}
+
+.market-purge-cost-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffd700;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.market-purge-desc {
+  font-size: clamp(0.68rem, 1.1dvh, 0.75rem);
+  color: var(--text-dim);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.market-purge-open-btn {
+  font-family: var(--font-title);
+  font-size: clamp(0.72rem, 1.1dvh, 0.8rem);
+  font-weight: 700;
+  padding: clamp(6px, 1dvh, 8px) clamp(10px, 1.2vw, 16px);
+  border-radius: 4px;
+  background: linear-gradient(180deg, #e85d04, #9d0208);
+  border: 1px solid #ff5400;
+  color: #fff;
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.market-purge-open-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ff6b00, #b51717);
+  box-shadow: 0 0 12px rgba(255, 84, 0, 0.4);
+}
+
+.market-purge-open-btn:disabled,
+.market-purge-open-btn.disabled {
+  opacity: 0.4;
+  cursor: var(--cursor-not-allowed, not-allowed);
+  background: #333;
+  border-color: #555;
+  color: #888;
+}
+
+/* Modal Overlay & Card Selection Drawer */
+.market-purge-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.market-purge-modal {
+  background: #11151c;
+  border: 1px solid rgba(255, 84, 0, 0.4);
+  border-radius: var(--radius-sm);
+  width: 100%;
+  max-width: 680px;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(14px, 2dvh, 20px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
+  animation: fadeIn 0.2s ease;
+}
+
+.market-purge-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.market-purge-modal-title-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.market-purge-modal-title {
+  font-family: var(--font-title);
+  font-size: clamp(0.95rem, 1.4dvh, 1.1rem);
+  color: #ff9e00;
+  margin: 0;
+}
+
+.market-purge-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: var(--cursor-pointer, pointer);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.market-purge-close-btn:hover {
+  color: #fff;
+}
+
+.market-purge-modal-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.market-purge-cards-scroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 48dvh;
+  padding-right: 4px;
+  margin-bottom: 14px;
+}
+
+.market-purge-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.market-purge-card-item {
+  position: relative;
+  background: rgba(22, 28, 38, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 10px;
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.market-purge-card-item:hover {
+  border-color: #ffd700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.market-purge-card-item.selected {
+  border-color: #ff5400;
+  background: rgba(45, 18, 12, 0.9);
+  box-shadow: 0 0 14px rgba(255, 84, 0, 0.35);
+}
+
+.market-purge-card-checkbox {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.market-purge-card-item.selected .market-purge-card-checkbox {
+  border-color: #ff5400;
+  background: #ff5400;
+}
+
+.market-purge-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.market-purge-card-badge {
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid;
+  font-weight: 700;
+}
+
+.market-purge-card-cost {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.market-purge-card-name {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  color: var(--text-parchment);
+  margin: 0 0 4px 0;
+  padding-right: 20px;
+}
+
+.market-purge-card-desc {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.market-purge-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.market-purge-cancel-btn {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  padding: 7px 16px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-dim);
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s;
+}
+
+.market-purge-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.market-purge-confirm-btn {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #e85d04, #9d0208);
+  border: 1px solid #ff5400;
+  color: #fff;
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.market-purge-confirm-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ff6b00, #b51717);
+  box-shadow: 0 0 14px rgba(255, 84, 0, 0.5);
+}
+
+.market-purge-confirm-btn:disabled {
+  opacity: 0.4;
+  cursor: var(--cursor-not-allowed, not-allowed);
+  background: #333;
+  border-color: #555;
+  color: #888;
+}
+
 /* =========================================================
    Campaign Victory Modal Styles (Investigation Map Conclusion)
    ========================================================= */

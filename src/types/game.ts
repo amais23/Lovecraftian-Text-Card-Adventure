@@ -251,9 +251,13 @@ export interface MythosEvent {
 export interface MarketItem {
   id: string;
   name: string;
-  type: 'card' | 'heal';
+  type: 'card' | 'heal' | 'relic';
   price: number;
+  originalPrice?: number;
+  isDiscounted?: boolean;
+  discountLabel?: string;
   card?: Card;
+  relic?: Relic;
   healAmount?: number;
   description: string;
   isPurchased?: boolean;
@@ -301,6 +305,7 @@ export interface GameState {
   currentEvent?: MythosEvent;
   sanctuaryUsed?: boolean;
   marketItems?: MarketItem[];
+  marketPurgeUsed?: boolean;
   altarUsed?: boolean;
   vaultRelics?: Relic[];
   vaultClaimed?: boolean;
@@ -330,6 +335,7 @@ export type GameAction =
   | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' } }
   | { type: 'LEAVE_SANCTUARY' }
   | { type: 'BUY_MARKET_ITEM'; payload: { itemId: string } }
+  | { type: 'PURGE_CARD_AT_MARKET'; payload: { cardId: string } }
   | { type: 'LEAVE_MARKET' }
   | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number; shuffledDeck?: Card[] } }
   | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }

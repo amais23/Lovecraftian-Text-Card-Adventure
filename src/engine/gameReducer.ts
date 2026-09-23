@@ -543,14 +543,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       if (targetNode.type === 'market') {
+        const ownedRelicIds = (state.investigator.relics ?? []).map((r) => r.id);
         return {
           ...state,
           phase: 'market',
           map: updatedMap,
           marketItems: generateMarketItemsForDepth(
             state.currentDepth ?? state.map?.depth ?? 1,
-            state.investigator.occupationId ?? 'investigator'
+            state.investigator.occupationId ?? 'investigator',
+            { ownedRelicIds }
           ),
+          marketPurgeUsed: false,
           adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！進入黑市商鋪。`,
@@ -864,13 +867,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      let newHealth = state.investigator.health;
+      let updatedInvestigator = { ...state.investigator };
       const newSanityDeck = [...state.sanityDeck];
       const newLogs: string[] = [];
 
       if (item.type === 'heal' && item.healAmount) {
-        newHealth = Math.min(state.investigator.maxHealth, newHealth + item.healAmount);
-        newLogs.push(`在黑市購買【${item.name}】，立即恢復了 ${item.healAmount} 點生命值（當前: ${newHealth} / ${state.investigator.maxHealth}）。`);
+        const newHealth = Math.min(updatedInvestigator.maxHealth, updatedInvestigator.health + item.healAmount);
+        updatedInvestigator.health = newHealth;
+        newLogs.push(`在黑市購買【${item.name}】，立即恢復了 ${item.healAmount} 點生命值（當前: ${newHealth} / ${updatedInvestigator.maxHealth}）。`);
       } else if (item.type === 'card' && item.card) {
         newSanityDeck.push({
           ...item.card,
@@ -878,7 +882,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isTemporary: false,
         });
         newLogs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入理智牌庫！`);
+      } else if (item.type === 'relic' && item.relic) {
+        updatedInvestigator = applyRelicToInvestigator(updatedInvestigator, item.relic);
+        newLogs.push(`在黑市花費 ${item.price} 古金幣購入舊日遺物【${item.relic.name}】！${item.relic.description}`);
       }
+
+      updatedInvestigator.obols -= item.price;
 
       const updatedItems = state.marketItems.map((i) =>
         i.id === item.id ? { ...i, isPurchased: true } : i
@@ -886,15 +895,58 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       return {
         ...state,
-        investigator: {
-          ...state.investigator,
-          health: newHealth,
-          obols: state.investigator.obols - item.price,
-        },
+        investigator: updatedInvestigator,
         sanityDeck: newSanityDeck,
         hand: state.hand,
         marketItems: updatedItems,
         battleLog: newLogs.concat(state.battleLog),
+      };
+    }
+
+    case 'PURGE_CARD_AT_MARKET': {
+      if (state.phase !== 'market' || state.marketPurgeUsed) return state;
+      const PURGE_COST = 30;
+
+      if (state.investigator.obols < PURGE_COST) {
+        return {
+          ...state,
+          battleLog: [
+            `古金幣不足！黑市牌庫除役服務需要 ${PURGE_COST} 古金幣，目前僅有 ${state.investigator.obols} 枚。`,
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      const permanentCards = getAllPermanentCards(state);
+      if (permanentCards.length <= 2) {
+        return {
+          ...state,
+          battleLog: [
+            '牌庫卡牌數量過少，無法進一步除役焚毀！',
+            ...state.battleLog,
+          ],
+        };
+      }
+
+      const targetCard = permanentCards.find((c) => c.id === action.payload.cardId);
+      if (!targetCard) return state;
+
+      const remainingCards = permanentCards.filter((c) => c.id !== targetCard.id);
+
+      return {
+        ...state,
+        investigator: {
+          ...state.investigator,
+          obols: state.investigator.obols - PURGE_COST,
+        },
+        sanityDeck: remainingCards,
+        hand: [],
+        discardPile: [],
+        marketPurgeUsed: true,
+        battleLog: [
+          `在黑市支付 ${PURGE_COST} 枚古金幣，將卡牌【${targetCard.name}】投入灰面卡斯楚的碎形焚爐中永久除役焚毀！`,
+          ...state.battleLog,
+        ],
       };
     }
 
@@ -906,6 +958,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: 'map',
         map: updatedMap,
         marketItems: undefined,
+        marketPurgeUsed: undefined,
         battleLog: ['離開黑市暗巷，重新回到調查地圖。', ...state.battleLog],
       };
     }
