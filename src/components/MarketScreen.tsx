@@ -34,6 +34,8 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
   const isPurgeUsed = Boolean(state.marketPurgeUsed);
   const canAffordPurge = investigator.obols >= MARKET_PURGE_COST;
   const permanentCards = getAllPermanentCards(state);
+  const hasEnoughCards = permanentCards.length > 1;
+  const canPurge = !isPurgeUsed && canAffordPurge && hasEnoughCards;
 
   const handleBuy = (item: MarketItem) => {
     if (!item.isPurchased && investigator.obols >= item.price) {
@@ -46,7 +48,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
   };
 
   const handleOpenPurge = () => {
-    if (isPurgeUsed || !canAffordPurge) {
+    if (!canPurge) {
       soundEngine.playDeny();
       return;
     }
@@ -66,7 +68,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
   };
 
   const handleConfirmPurge = () => {
-    if (!selectedPurgeCardId || isPurgeUsed || !canAffordPurge) return;
+    if (!selectedPurgeCardId || !canPurge) return;
     soundEngine.playClick();
     soundEngine.playCosmicBanishment();
     dispatch({
@@ -226,15 +228,15 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
             <div
               className="market-purge-btn-wrapper"
               onClick={() => {
-                if (isPurgeUsed || !canAffordPurge) {
+                if (!canPurge) {
                   soundEngine.playDeny();
                 }
               }}
             >
               <button
                 id="market-open-purge-btn"
-                className={`market-purge-open-btn ${isPurgeUsed || !canAffordPurge ? 'disabled' : ''}`}
-                disabled={isPurgeUsed || !canAffordPurge}
+                className={`market-purge-open-btn ${!canPurge ? 'disabled' : ''}`}
+                disabled={!canPurge}
                 onClick={handleOpenPurge}
               >
                 <Trash2 size={16} />
@@ -243,6 +245,8 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                     ? '本次已除役'
                     : !canAffordPurge
                     ? '古金幣不足'
+                    : !hasEnoughCards
+                    ? '牌庫卡牌不足'
                     : '委託除役服務'}
                 </span>
               </button>
@@ -264,7 +268,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                 </div>
 
                 <p className="market-purge-modal-subtitle">
-                  點選欲銷毀之卡牌，確認後將扣除 30 枚古金幣並自理智牌庫永久除役。此操作無法復原。
+                  點選欲銷毀之卡牌，確認後將扣除 {MARKET_PURGE_COST} 枚古金幣並自理智牌庫永久除役。此操作無法復原。
                 </p>
 
                 <div className="market-purge-cards-scroll">
@@ -345,7 +349,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                   <button
                     id="market-confirm-purge-btn"
                     className="market-purge-confirm-btn"
-                    disabled={!selectedPurgeCardId || !canAffordPurge || isPurgeUsed}
+                    disabled={!selectedPurgeCardId || !canPurge}
                     onClick={handleConfirmPurge}
                   >
                     <Flame size={16} />

@@ -941,8 +941,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           obols: state.investigator.obols - MARKET_PURGE_COST,
         },
         sanityDeck: remainingCards,
-        hand: state.hand,
-        discardPile: state.discardPile,
+        hand: [],
+        discardPile: [],
         marketPurgeUsed: true,
         battleLog: [
           `在黑市支付 ${MARKET_PURGE_COST} 枚古金幣，將卡牌【${targetCard.name}】投入灰面卡斯楚的碎形焚爐中永久除役焚毀！`,
