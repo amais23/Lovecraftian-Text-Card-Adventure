@@ -1984,7 +1984,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     }
 
     // 4. Buying healing item heals health
-    const healItem = defaultItems.find((i) => i.type === 'heal' && i.price <= 10)!;
+    const healItem = defaultItems.find((i) => i.type === 'heal')!;
     const richState: GameState = {
       ...marketState,
       investigator: {

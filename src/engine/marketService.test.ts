@@ -225,6 +225,42 @@ describe('Black Market Relic Purchase & Card Purge Service (Reducer)', () => {
     expect(nextState.battleLog[0]).toContain('古金幣不足');
   });
 
+  it('purges only the targeted single copy when deck contains duplicate card IDs', () => {
+    const state = createMarketTestState();
+    const duplicateDeck: Card[] = [
+      { ...state.sanityDeck[0], id: 'duplicate_gun' },
+      { ...state.sanityDeck[0], id: 'duplicate_gun' },
+      state.sanityDeck[1],
+    ];
+    const deckState: GameState = {
+      ...state,
+      sanityDeck: duplicateDeck,
+    };
+    const nextState = gameReducer(deckState, {
+      type: 'PURGE_CARD_AT_MARKET',
+      payload: { cardId: 'duplicate_gun' },
+    });
+    expect(nextState.sanityDeck).toHaveLength(2);
+    expect(nextState.sanityDeck[0].name).toBe(state.sanityDeck[0].name);
+    expect(nextState.sanityDeck[1].id).toBe(state.sanityDeck[1].id);
+  });
+
+  it('rejects card purge when deck has only 1 card left', () => {
+    const state = createMarketTestState();
+    const singleCardState: GameState = {
+      ...state,
+      sanityDeck: [state.sanityDeck[0]],
+    };
+    const nextState = gameReducer(singleCardState, {
+      type: 'PURGE_CARD_AT_MARKET',
+      payload: { cardId: state.sanityDeck[0].id },
+    });
+    expect(nextState.sanityDeck).toHaveLength(1);
+    expect(nextState.investigator.obols).toBe(50);
+    expect(nextState.marketPurgeUsed).toBe(false);
+    expect(nextState.battleLog[0]).toContain('牌庫卡牌數量過少');
+  });
+
   it('clears market items and purge used flag when leaving market', () => {
     const state = createMarketTestState();
     const leaveState = gameReducer(state, { type: 'LEAVE_MARKET' });
@@ -234,3 +270,4 @@ describe('Black Market Relic Purchase & Card Purge Service (Reducer)', () => {
     expect(leaveState.marketPurgeUsed).toBeUndefined();
   });
 });
+

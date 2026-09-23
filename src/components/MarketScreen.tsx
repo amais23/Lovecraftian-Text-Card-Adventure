@@ -17,6 +17,7 @@ import {
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { getAllPermanentCards } from '../engine/abyssalSeals';
+import { getCardArtwork } from '../engine/cardArtworks';
 
 interface MarketScreenProps {
   state: GameState;
@@ -243,7 +244,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                 <div className="market-purge-modal-header">
                   <div className="market-purge-modal-title-box">
                     <Flame size={20} color="#ff5400" />
-                    <h3 className="market-purge-modal-title">選取 1 張卡牌永久除役焚毀 (費用：30 古金幣)</h3>
+                    <h3 className="market-purge-modal-title">選取 1 張卡牌永久除役焚毀</h3>
                   </div>
                   <button className="market-purge-close-btn" onClick={handleClosePurge}>
                     <X size={18} />
@@ -258,6 +259,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                   <div className="market-purge-cards-grid">
                     {permanentCards.map((card) => {
                       const isSelected = selectedPurgeCardId === card.id;
+                      const artwork = getCardArtwork(card);
                       const categoryColor =
                         card.category === 'combat'
                           ? '#e63946'
@@ -305,6 +307,17 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                             </span>
                           </div>
 
+                          {artwork.imageUrl && (
+                            <div className="market-purge-card-art-frame">
+                              <img
+                                src={artwork.imageUrl}
+                                alt={card.name}
+                                className="market-purge-card-art"
+                                loading="lazy"
+                              />
+                            </div>
+                          )}
+
                           <h4 className="market-purge-card-name">{card.name}</h4>
                           <p className="market-purge-card-desc">{card.description}</p>
                         </div>
@@ -326,7 +339,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                     <Flame size={16} />
                     <span>
                       {selectedPurgeCardId
-                        ? '確認焚毀除役 (支付 30 古金幣)'
+                        ? '確認焚毀除役'
                         : '請先點選 1 張欲除役卡牌'}
                     </span>
                   </button>

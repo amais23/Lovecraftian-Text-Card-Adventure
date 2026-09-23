@@ -918,7 +918,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       const permanentCards = getAllPermanentCards(state);
-      if (permanentCards.length <= 2) {
+      if (permanentCards.length <= 1) {
         return {
           ...state,
           battleLog: [
@@ -928,10 +928,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      const targetCard = permanentCards.find((c) => c.id === action.payload.cardId);
-      if (!targetCard) return state;
+      const targetIdx = permanentCards.findIndex((c) => c.id === action.payload.cardId);
+      if (targetIdx === -1) return state;
 
-      const remainingCards = permanentCards.filter((c) => c.id !== targetCard.id);
+      const remainingCards = [...permanentCards];
+      const [targetCard] = remainingCards.splice(targetIdx, 1);
 
       return {
         ...state,
