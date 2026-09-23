@@ -3,6 +3,7 @@ import { render, screen, within, fireEvent } from '@testing-library/react';
 import { EnemyView } from './EnemyView';
 import type { Enemy } from '../types/game';
 import { createStatusEffect } from '../engine/statusEffects';
+import { ENEMY_ARTWORKS_REGISTRY } from '../engine/enemyArtworks';
 
 describe('EnemyView Component (ADR-0018)', () => {
   const dummyEnemy: Enemy = {
@@ -231,36 +232,68 @@ describe('EnemyView Component (ADR-0018)', () => {
       expect(image.className).toContain('state-madness');
     });
 
-    it('renders and switches illustrations correctly for derivative enemies across depths', () => {
-      const sampleDerivativeEnemies: Array<{ id: string; name: string; category: Enemy['category'] }> = [
-        { id: 'enemy_cultist_zealot', name: '異教狂熱信徒', category: 'cultist' },
-        { id: 'enemy_innsmouth_hybrid', name: '印斯茅斯混血種', category: 'deep_one' },
-        { id: 'enemy_migo_scout', name: '米·戈偵察者', category: 'migo' },
-        { id: 'enemy_cosmic_prophet', name: '終焉星辰先知', category: 'cultist' },
+    it('renders and switches illustrations correctly for all 12 derivative enemies across depths', () => {
+      const derivativeEnemyIds = [
+        'enemy_cultist_zealot',
+        'enemy_walls_rat_swarm',
+        'enemy_cemetery_carrion_worm',
+        'enemy_innsmouth_hybrid',
+        'enemy_tidal_siren',
+        'enemy_abyssal_barnacle_mass',
+        'enemy_migo_scout',
+        'enemy_void_wanderer',
+        'enemy_outer_god_piper',
+        'enemy_rlyeh_sarcophagus_guard',
+        'enemy_rlyeh_dream_apparition',
+        'enemy_cosmic_prophet',
       ];
 
-      for (const sample of sampleDerivativeEnemies) {
+      for (const id of derivativeEnemyIds) {
+        const art = ENEMY_ARTWORKS_REGISTRY[id];
+        expect(art, `Registry entry for ${id} must exist`).toBeDefined();
+
         const enemy: Enemy = {
           ...dummyEnemy,
-          id: sample.id,
-          name: sample.name,
-          category: sample.category,
+          id,
+          name: art.name,
+          category: art.category,
         };
 
-        // Normal state
+        // Normal state -> cartoonUrl
         const { unmount } = render(<EnemyView enemy={enemy} isMadness={false} />);
         const normalImg = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
-        expect(normalImg.src).toContain(`/enemies/cartoon/${sample.id}.png`);
+        expect(normalImg.src).toContain(art.cartoonUrl!);
         expect(normalImg.className).toContain('state-normal');
         unmount();
 
-        // Madness state
+        // Madness state -> realisticUrl
         const { unmount: unmountMadness } = render(<EnemyView enemy={enemy} isMadness={true} />);
         const madnessImg = screen.getByTestId('enemy-portrait-image') as HTMLImageElement;
-        expect(madnessImg.src).toContain(`/enemies/realistic/${sample.id}.png`);
+        expect(madnessImg.src).toContain(art.realisticUrl!);
         expect(madnessImg.className).toContain('state-madness');
         unmountMadness();
       }
+    });
+
+    it('triggers combat hit trauma shake on enemy stage when derivative enemy takes damage', () => {
+      const art = ENEMY_ARTWORKS_REGISTRY['enemy_innsmouth_hybrid'];
+      const enemy: Enemy = {
+        ...dummyEnemy,
+        id: 'enemy_innsmouth_hybrid',
+        name: art.name,
+        category: art.category,
+        health: 40,
+        maxHealth: 40,
+      };
+
+      const { rerender } = render(<EnemyView enemy={enemy} />);
+      const stageBefore = screen.getByTestId('enemy-portrait-stage');
+      expect(stageBefore.className).not.toContain('trauma-shake');
+
+      // Health decreases after taking damage -> triggers trauma-shake
+      rerender(<EnemyView enemy={{ ...enemy, health: 30 }} />);
+      const stageAfter = screen.getByTestId('enemy-portrait-stage');
+      expect(stageAfter.className).toContain('trauma-shake');
     });
 
     it('maintains cartoon illustration for bosses in madness state (Boss Invariant Mask)', () => {

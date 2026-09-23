@@ -236,6 +236,19 @@ describe('Enemy Artworks Registry & Dual-Perception Engine (ADR-0021)', () => {
     it('verifies all 12 derivative enemies are 100% decoupled with unique dedicated URLs', () => {
       const cartoonUrls = new Set<string>();
       const realisticUrls = new Set<string>();
+      const FORBIDDEN_LEGACY_BORROWED_URLS = new Set([
+        '/enemies/cartoon/enemy_arkham_cultist.png',
+        '/enemies/cartoon/enemy_ghoul_lurker.png',
+        '/enemies/cartoon/enemy_deep_one_warrior.png',
+        '/enemies/cartoon/enemy_drowned_soul.png',
+        '/enemies/cartoon/enemy_deep_one_elder.png',
+        '/enemies/cartoon/enemy_byakhee_rotwing.png',
+        '/enemies/cartoon/enemy_formless_spawn.png',
+        '/enemies/cartoon/enemy_proto_shoggoth_spawn.png',
+        '/enemies/cartoon/enemy_rlyeh_guard.png',
+        '/enemies/cartoon/enemy_star_spawn_larva.png',
+        '/enemies/cartoon/enemy_cosmic_acolyte.png',
+      ]);
 
       for (const id of derivativeEnemyIds) {
         const art = getEnemyArtwork(id);
@@ -251,17 +264,7 @@ describe('Enemy Artworks Registry & Dual-Perception Engine (ADR-0021)', () => {
         realisticUrls.add(art!.realisticUrl!);
 
         // Must NOT match former borrowed base monster assets
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_arkham_cultist.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_ghoul_lurker.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_deep_one_warrior.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_drowned_soul.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_deep_one_elder.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_byakhee_rotwing.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_formless_spawn.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_proto_shoggoth_spawn.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_rlyeh_guard.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_star_spawn_larva.png');
-        expect(art!.cartoonUrl).not.toBe('/enemies/cartoon/enemy_cosmic_acolyte.png');
+        expect(FORBIDDEN_LEGACY_BORROWED_URLS.has(art!.cartoonUrl!)).toBe(false);
       }
     });
 
