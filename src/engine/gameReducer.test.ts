@@ -52,7 +52,7 @@ import { createStatusEffect } from './statusEffects';
 import { ELDRITCH_TRAIT_DEFINITIONS } from './enemyTraits';
 import { getEnemyTemplateById, getBossByDepth } from './enemyCatalog';
 import { getFreshEnemyTemplate } from './gameReducer';
-import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent } from '../types/game';
+import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent, Relic } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
   return {
@@ -1520,7 +1520,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     expect(nextState.phase).toBe('event');
     expect(nextState.currentEvent).toBeDefined();
-    expect(nextState.currentEvent?.title).toBe('迷霧中的傾覆馬車');
+    expect(nextState.currentEvent?.title.length).toBeGreaterThan(0);
     expect(nextState.currentEvent?.options.length).toBeGreaterThan(0);
     expect(nextState.map?.currentNodeId).toBe('node_0_1');
     expect(nextState.map?.nodes['node_0_1'].status).toBe('current');
@@ -5524,6 +5524,144 @@ describe('Composable Card Primitives & Occupation Filtering (Issue #46)', () => 
       expect(afterTurn.battleLog.some((log) => log.includes('2 層【易傷】'))).toBe(true);
     });
   });
+
+  describe('Depth-Stratified Mythos Events & visitedEventIds (ADR-0032 / Issue #52)', () => {
+    it('records visitedEventIds when entering event node and prevents duplicate events', () => {
+      const initial = createInitialGameState();
+      const map = generateInvestigationMap({ depth: 1 });
+
+      const node1Id = map.layers[0].find((id) => map.nodes[id].type === 'event') ?? 'node_0_1';
+      map.nodes[node1Id].type = 'event';
+
+      const state1 = gameReducer(
+        { ...initial, phase: 'map', map, currentDepth: 1, visitedEventIds: [] },
+        { type: 'NAVIGATE_TO_NODE', payload: { nodeId: node1Id } }
+      );
+
+      expect(state1.phase).toBe('event');
+      expect(state1.currentEvent).toBeDefined();
+      expect(state1.visitedEventIds).toBeDefined();
+      expect(state1.visitedEventIds).toHaveLength(1);
+      expect(state1.visitedEventIds![0]).toBe(state1.currentEvent!.id);
+
+      // Complete event and return to map
+      const stateAfterComplete = gameReducer(state1, { type: 'COMPLETE_EVENT' });
+      expect(stateAfterComplete.phase).toBe('map');
+      expect(stateAfterComplete.currentEvent).toBeUndefined();
+      expect(stateAfterComplete.visitedEventIds).toHaveLength(1);
+
+      // Select another event node
+      const node2Id = stateAfterComplete.map?.layers[1]?.find((id) => stateAfterComplete.map?.nodes[id].type === 'event') ?? 'node_1_0';
+      const stateForNav: GameState = {
+        ...stateAfterComplete,
+        map: {
+          ...stateAfterComplete.map!,
+          nodes: {
+            ...stateAfterComplete.map!.nodes,
+            [node2Id]: {
+              ...stateAfterComplete.map!.nodes[node2Id],
+              type: 'event',
+              status: 'accessible',
+            },
+          },
+        },
+      };
+
+      const state2 = gameReducer(stateForNav, {
+        type: 'NAVIGATE_TO_NODE',
+        payload: { nodeId: node2Id },
+      });
+
+      expect(state2.phase).toBe('event');
+      expect(state2.currentEvent).toBeDefined();
+      expect(state2.currentEvent!.id).not.toBe(state1.currentEvent!.id);
+      expect(state2.visitedEventIds).toHaveLength(2);
+      expect(state2.visitedEventIds).toContain(state2.currentEvent!.id);
+    });
+
+    it('resolves gain_relic consequence in RESOLVE_EVENT_OPTION and applies modifiers', () => {
+      const initial = createInitialGameState();
+      const testRelic: Relic = {
+        id: 'relic_stellar_lens',
+        name: '群星透鏡',
+        description: '折射高維冷光的黑曜石透鏡。手牌容量永久 +1。',
+        flavorText: '「窺探群星運行的透鏡。」',
+        rarity: 'rare',
+        modifiers: {
+          handCapacity: 1,
+          maxHealth: 5,
+        },
+      };
+
+      const testEvent: MythosEvent = {
+        id: 'event_test_relic',
+        title: '測試遺物奇遇',
+        location: '深海石室',
+        storyText: ['你在石台上看見一件散發微光的古老遺物……'],
+        options: [
+          {
+            id: 'opt_take_relic',
+            text: '拾起群星透鏡',
+            consequences: [
+              {
+                type: 'gain_relic',
+                relic: testRelic,
+                narrative: '獲得舊日遺物【群星透鏡】！',
+              },
+            ],
+          },
+        ],
+      };
+
+      const eventState: GameState = {
+        ...initial,
+        phase: 'event',
+        currentEvent: testEvent,
+        investigator: {
+          ...initial.investigator,
+          handCapacity: 2,
+          maxHealth: 20,
+          health: 20,
+          relics: [],
+        },
+      };
+
+      const resolved = gameReducer(eventState, {
+        type: 'RESOLVE_EVENT_OPTION',
+        payload: { optionId: 'opt_take_relic' },
+      });
+
+      expect(resolved.investigator.relics).toBeDefined();
+      expect(resolved.investigator.relics!.some((r) => r.id === 'relic_stellar_lens')).toBe(true);
+      expect(resolved.investigator.handCapacity).toBe(3);
+      expect(resolved.investigator.maxHealth).toBe(25);
+      expect(resolved.investigator.health).toBe(25);
+      expect(resolved.battleLog.some((log) => log.includes('獲得舊日遺物【群星透鏡】'))).toBe(true);
+    });
+
+    it('initializes visitedEventIds on START_NEW_INVESTIGATION and SELECT_OCCUPATION', () => {
+      const startState = gameReducer(createInitialGameState(), { type: 'START_NEW_INVESTIGATION' });
+      expect(startState.visitedEventIds).toEqual([]);
+
+      const selectedState = gameReducer(startState, {
+        type: 'SELECT_OCCUPATION',
+        payload: { occupationId: 'investigator' },
+      });
+      expect(selectedState.visitedEventIds).toEqual([]);
+    });
+
+    it('preserves visitedEventIds on RESET_COMBAT', () => {
+      const stateWithEvents: GameState = {
+        ...createInitialGameState(),
+        phase: 'combat',
+        visitedEventIds: ['event_sunken_shrine', 'event_drowned_sailor_shrine'],
+      };
+
+      const resetState = gameReducer(stateWithEvents, { type: 'RESET_COMBAT' });
+      expect(resetState.visitedEventIds).toEqual(['event_sunken_shrine', 'event_drowned_sailor_shrine']);
+    });
+  });
 });
+
 
 

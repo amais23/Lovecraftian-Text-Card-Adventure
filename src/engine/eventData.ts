@@ -97,7 +97,7 @@ export const DAGON_PRIEST_INTENTS: EnemyIntent[] = [
     type: 'attack',
     value: 18,
     name: '深海溺亡巨浪',
-    description: '沉重的狂暴海水化作巨浪拍擊而至，預告造成 18 點傷害。',
+    description: '沉重的狂怒海水化作巨浪拍擊而至，預告造成 18 點傷害。',
   },
 ];
 
@@ -181,6 +181,25 @@ export const INITIAL_STAR_SPAWN: Enemy = {
   currentIntent: STAR_SPAWN_INTENTS[0],
   intentSequence: STAR_SPAWN_INTENTS,
   currentIntentIndex: 0,
+};
+
+/* =========================================================
+   Shared Sanctuary & Market Card Templates
+   ========================================================= */
+
+export const TRUTH_CARD_BREAKWATER: Omit<Card, 'id'> = {
+  name: '心智防波堤',
+  category: 'truth',
+  costType: 'stamina',
+  costValue: 1,
+  isTemporary: false,
+  occupations: ['investigator', 'occultist'],
+  effects: [
+    { type: 'self_damage', value: 1 },
+    { type: 'add_to_deck', value: 3 },
+  ],
+  description: '自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
+  flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
 };
 
 
@@ -470,6 +489,894 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
       },
     ],
   },
+
+  /* =========================================================
+     Depth 2 Events (深潛者海蝕迷宮)
+     ========================================================= */
+  event_drowned_sailor_shrine: {
+    id: 'event_drowned_sailor_shrine',
+    title: '溺亡水手的黑曜石墓龕',
+    location: '深潛者海蝕迷宮 · 鹽漬骨礁',
+    storyText: [
+      '鹽漬結晶厚重地覆蓋在岩壁上，海水在腳邊退去，露出半具斜倚在玄武岩縫中的水手骸骨。',
+      '水手乾枯的雙手緊緊摟抱著一隻刻滿藤壺的青銅海圖匣，身旁散落著帶有海浪花紋的異邦古金幣。空氣中飄散著刺骨的腥冷海風……',
+    ],
+    options: [
+      {
+        id: 'sailor_take_relic',
+        text: '扳開水手枯指，取走青銅海圖與隨身護符',
+        costDescription: '承受 2 點理智牌庫侵蝕，獲得舊日遺物【深海藤壺符】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -2,
+            narrative: '觸碰護符的瞬間，無盡的溺水窒息感湧入腦海，理智牌庫被侵蝕 2 點。',
+          },
+          {
+            type: 'gain_relic',
+            relic: {
+              id: 'relic_barnacle_amulet',
+              name: '深海藤壺符',
+              description: '受大袞祝福的藤壺護符。每場戰鬥開始時獲得 4 點防禦護甲。',
+              flavorText: '「海水永不乾涸。」',
+              rarity: 'common',
+              modifiers: { startingArmor: 4 },
+            },
+            narrative: '獲得舊日遺物【深海藤壺符】！',
+          },
+        ],
+      },
+      {
+        id: 'sailor_loot_obols',
+        text: '迅速撿拾散落骨礁間的古金幣',
+        costDescription: '承受 3 點肉體生命傷害，獲得 22 枚古金幣',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -3,
+            narrative: '銳利的鹽漬礁石割破了你的腳踝與手掌，造成 3 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_obols',
+            value: 22,
+            narrative: '自泥沙中拾獲 22 枚浸透海水的古金幣（+22 古金幣）。',
+          },
+        ],
+      },
+      {
+        id: 'sailor_pray',
+        text: '為溺亡者蓋上隨身厚呢外套並低頭默哀',
+        costDescription: '恢復 4 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 4,
+            narrative: '片刻的肅穆與尊重驅散了周圍刺骨的陰寒，稍事休整恢復了 4 點肉體生命值。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_tide_alchemical_lab: {
+    id: 'event_tide_alchemical_lab',
+    title: '走私者的深海煉金密窟',
+    location: '潮蝕洞窟 · 擱淺破船',
+    storyText: [
+      '一艘破爛的雙桅走私帆船半卡在海蝕洞穴頂端，船艙內擺滿了散發微弱幽光的玻璃燒杯與蒸餾試管。',
+      '木架上的藥劑多數已混濁變質，但其中幾管泛著螢光的藍色液體仍在緩慢沸騰。角落的鐵箱裡還留有未受潮的軍用炸藥物資。',
+    ],
+    options: [
+      {
+        id: 'lab_drink_elixir',
+        text: '冒險飲用藍色螢光試劑',
+        costDescription: '承受 4 點肉體生命傷害，向理智牌庫注入 2 張真相卡【心智防波堤】',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -4,
+            narrative: '冰涼刺痛的液體如烈火般灼燒食道，承受 4 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              ...TRUTH_CARD_BREAKWATER,
+              id: 'event_card_breakwater_d2_1',
+            },
+            narrative: '藥效激發了意識深處的警覺，向理智牌庫注入真相卡【心智防波堤】！',
+          },
+        ],
+      },
+      {
+        id: 'lab_take_explosives',
+        text: '搬出防水鐵箱中的軍用水下炸藥',
+        costDescription: '消耗 15 枚古金幣購買解鎖工具，獲得卡牌【水下爆破】',
+        requires: { obols: 15 },
+        consequences: [
+          {
+            type: 'gain_obols',
+            value: -15,
+            narrative: '使用特殊工具撬開密碼鎖，消耗了 15 枚古金幣。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_underwater_demolition',
+              name: '水下爆破',
+              category: 'combat',
+              costType: 'stamina',
+              costValue: 2,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [{ type: 'damage', value: 16 }],
+              description: '引爆強力水下炸藥，造成 16 點物理傷害。',
+              flavorText: '「在深海狹道中，火藥是凡人唯一的依靠。」',
+            },
+            narrative: '獲得高爆戰鬥卡【水下爆破】納入理智牌庫！',
+          },
+        ],
+      },
+      {
+        id: 'lab_scavenge_meds',
+        text: '翻檢船醫儲物匣尋找急救物資',
+        costDescription: '恢復 6 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 6,
+            narrative: '找到未開封的防潮繃帶與消毒酒精，包紮傷口恢復了 6 點肉體生命值。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_singing_coral_grotto: {
+    id: 'event_singing_coral_grotto',
+    title: '鳴響珊瑚的共振洞窟',
+    location: '海蝕鐘乳石穴 · 螢光藻淺灘',
+    storyText: [
+      '洞頂垂下的石乳與水底凸出的幽白珊瑚交錯生長，海水流經珊瑚細孔時，引發出如同多重奏風琴般的尖銳鳴響。',
+      '這種聲音正在誘惑你的心智，讓你幾乎想褪去衣衫沉入冰冷的海水之中……',
+    ],
+    options: [
+      {
+        id: 'coral_listen',
+        text: '沉住心神，仔細記錄海妖般的海底音頻',
+        costDescription: '承受 3 點理智牌庫侵蝕，獲得 28 枚古金幣',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -3,
+            narrative: '非人的旋律撕裂了理智防線，理智牌庫被侵蝕 3 點。',
+          },
+          {
+            type: 'gain_obols',
+            value: 28,
+            narrative: '在音波共振的石壁裂隙中發現了被震落的 28 枚古金幣（+28 古金幣）。',
+          },
+        ],
+      },
+      {
+        id: 'coral_snap_branch',
+        text: '用力掰下散發微光的活體珊瑚分枝',
+        costDescription: '獲得特殊真相卡【潮汐之音】',
+        consequences: [
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_tide_whisper',
+              name: '潮汐之音',
+              category: 'truth',
+              costType: 'stamina',
+              costValue: 1,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [{ type: 'add_to_deck', value: 3 }],
+              description: '傾聽深海潮音，向理智牌庫注入 3 張真相卡牌。',
+              flavorText: '「在無休止的潮汐拍擊中重獲清明。」',
+            },
+            narrative: '獲得特殊真相卡【潮汐之音】納入理智牌庫！',
+          },
+        ],
+      },
+      {
+        id: 'coral_cover_ears',
+        text: '捂住雙耳迅速遠離此地',
+        costDescription: '承受 1 點肉體生命傷害',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -1,
+            narrative: '慌忙撤退時在濕滑岩面摔了一跤，受到 1 點擦傷。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_dagon_statue_crevice: {
+    id: 'event_dagon_statue_crevice',
+    title: '滴淌綠泥的大袞神龕',
+    location: '玄武岩裂縫 · 海神暗壇',
+    storyText: [
+      '潮水拍打著一尊由黑色滑石雕琢的異形神像，神像兼具魚類、青蛙與人類的怪誕特徵，體表正滲出微溫的墨綠黏液。',
+      '神像底座的放血石槽中殘留著深紅的血跡，周圍的空氣彷彿凝固著深淵巨獸的心跳回音。',
+    ],
+    options: [
+      {
+        id: 'dagon_blood_offering',
+        text: '刺破手掌，向大袞神龕滴入鮮血',
+        costDescription: '承受 5 點肉體生命傷害，獲得舊日遺物【大袞的黑印章】',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -5,
+            narrative: '鮮血滴落的瞬間被神像貪婪吸吮，承受 5 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_relic',
+            relic: {
+              id: 'relic_dagon_seal',
+              name: '大袞的黑印章',
+              description: '沾染深海黏液的玄武岩印章。每場戰鬥開始時獲得 1 層【堅韌】。',
+              flavorText: '「深淵王廷的通行符節。」',
+              rarity: 'rare',
+              modifiers: {
+                startingStatusEffects: [{ type: 'resilience', stacks: 1 }],
+              },
+            },
+            narrative: '石槽暗格彈開，獲得舊日遺物【大袞的黑印章】！',
+          },
+        ],
+      },
+      {
+        id: 'dagon_scrape_gold',
+        text: '用短刀刮取神像眼眶鑲嵌的異星黃金',
+        costDescription: '承受 2 點理智牌庫侵蝕，獲得 25 枚古金幣',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -2,
+            narrative: '異星金屬的冰冷詛咒刺激著視網膜，理智牌庫被侵蝕 2 點。',
+          },
+          {
+            type: 'gain_obols',
+            value: 25,
+            narrative: '成功刮下沉甸甸的太古黃金碎屑（+25 古金幣）。',
+          },
+        ],
+      },
+      {
+        id: 'dagon_desecrate',
+        text: '揮動鐵器猛擊神像將其徹底砸碎',
+        costDescription: '褻瀆神龕引來復仇長老，觸發突發遭遇戰',
+        consequences: [
+          {
+            type: 'trigger_combat',
+            enemy: INITIAL_DEEP_ONE,
+            narrative: '石像碎裂的脆響震徹地穴！深處傳來暴怒的沙啞咆哮，深潛者長老破浪而出！',
+          },
+        ],
+      },
+    ],
+  },
+
+  /* =========================================================
+     Depth 3 Events (無底深淵祭壇)
+     ========================================================= */
+  event_proto_matter_fountain: {
+    id: 'event_proto_matter_fountain',
+    title: '原生黑泥湧泉',
+    location: '無底深淵 · 黑色玄武岩裂谷',
+    storyText: [
+      '在無底深淵邊緣的石台中央，一口巨大的黑色火山口正源源不絕湧出冒泡的黏稠黑泥。',
+      '這些原生質黑泥有節律地蠕動著，彷彿具備獨立生命，表面不斷開闔出微型的眼球與細小的呼吸孔洞。',
+    ],
+    options: [
+      {
+        id: 'fountain_embrace',
+        text: '伸手觸碰黑色噴泉，汲取原生質力量',
+        costDescription: '承受 4 點理智牌庫侵蝕，獲得戰鬥卡牌【原形觸鬚】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -4,
+            narrative: '太古生命的意志撕裂了你的大腦，理智牌庫被侵蝕 4 點。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_proto_tentacle',
+              name: '原形觸鬚',
+              category: 'combat',
+              costType: 'stamina',
+              costValue: 1,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [
+                { type: 'damage', value: 14 },
+                { type: 'self_damage', value: 2 },
+              ],
+              description: '揮舞原生質觸手造成 14 點傷害，自身承受 2 點反噬傷害。',
+              flavorText: '「以肉身為媒介釋放的原生狂怒。」',
+            },
+            narrative: '獲得高傷卡牌【原形觸鬚】納入理智牌庫！',
+          },
+        ],
+      },
+      {
+        id: 'fountain_sip',
+        text: '汲取黑泥表面清澈的活性液體塗抹傷口',
+        costDescription: '承受 2 點理智牌庫侵蝕，恢復 10 點肉體生命值',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -2,
+            narrative: '微涼的液體滲入創口，神經在陣痛中顫慄，理智牌庫被侵蝕 2 點。',
+          },
+          {
+            type: 'health_change',
+            value: 10,
+            narrative: '破損的肌肉組織以非自然的速度癒合，恢復了 10 點肉體生命值！',
+          },
+        ],
+      },
+      {
+        id: 'fountain_burn',
+        text: '點燃煤油打火機引爆湧泉表面瓦斯',
+        costDescription: '承受 4 點肉體生命傷害，獲得 28 枚古金幣',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -4,
+            narrative: '洶湧的青藍冷火爆燃開來，衝擊波造成 4 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_obols',
+            value: 28,
+            narrative: '爆炸炸開了泉底的太古沉積，露出 28 枚古金幣（+28 古金幣）。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_astral_projection_mirror: {
+    id: 'event_astral_projection_mirror',
+    title: '高維星宿投影鏡',
+    location: '非歐幾何迴廊 · 漂浮懸石',
+    storyText: [
+      '懸浮在失重裂谷上方的一面八角形黑曜石古鏡，鏡框由純粹的星際金屬鑄造而成。',
+      '鏡面中倒映的不是深淵的岩層，而是遙遠宇宙深處旋轉的巨大暗星與不可名狀的星雲旋渦。',
+    ],
+    options: [
+      {
+        id: 'mirror_gaze',
+        text: '凝視鏡中星圖，洞察高維空間結構',
+        costDescription: '承受 3 點理智牌庫侵蝕，獲得舊日遺物【群星透鏡】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -3,
+            narrative: '浩瀚星辰的維度壓迫幾乎壓垮理智，理智牌庫被侵蝕 3 點。',
+          },
+          {
+            type: 'gain_relic',
+            relic: {
+              id: 'relic_stellar_lens',
+              name: '群星透鏡',
+              description: '折射高維冷光的黑曜石透鏡。手牌容量永久 +1。',
+              flavorText: '「窺探群星運行的透鏡。」',
+              rarity: 'rare',
+              modifiers: { handCapacity: 1 },
+            },
+            narrative: '自鏡框上取下核心鏡片，獲得舊日遺物【群星透鏡】！',
+          },
+        ],
+      },
+      {
+        id: 'mirror_cover',
+        text: '用防風帆布將鏡面嚴密遮蓋',
+        costDescription: '平息混亂心神，恢復 6 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 6,
+            narrative: '切斷異星視線的窺伺後，緊繃的肌肉得以鬆弛，恢復 6 點肉體生命值。',
+          },
+        ],
+      },
+      {
+        id: 'mirror_shatter',
+        text: '揮動鐵鎬猛擊鏡面掠取星辰黑曜石',
+        costDescription: '獲得 32 枚古金幣，但引發修格斯僕從突襲戰鬥',
+        consequences: [
+          {
+            type: 'gain_obols',
+            value: 32,
+            narrative: '鏡面粉碎，拾獲珍貴的星際隕石碎塊（+32 古金幣）。',
+          },
+          {
+            type: 'trigger_combat',
+            enemy: INITIAL_SHOGGOTH,
+            narrative: '空間震盪驚醒了伏擊在深淵裂隙中的黑泥修格斯幼體！戰鬥爆發！',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_elder_thing_specimen: {
+    id: 'event_elder_thing_specimen',
+    title: '古老者凍結殘軀',
+    location: '太古先驅者遺址 · 冰封玄武岩拱門',
+    storyText: [
+      '一座半坍塌的先驅者巨石拱門下，冰封著一具保存完好的太古古老者遺體。',
+      '那是一具擁有五角星形頭部與海星狀肉翼的幾何生物，身旁的金屬圓筒仍散發著恆定的微熱。',
+    ],
+    options: [
+      {
+        id: 'elder_dissect',
+        text: '採集星形頭部的神經組織樣本',
+        costDescription: '承受 2 點理智牌庫侵蝕，獲得特殊真相卡【太古幾何密卷】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -2,
+            narrative: '解讀異星生物的大腦構造讓神經劇烈抽痛，理智牌庫被侵蝕 2 點。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_elder_geometry',
+              name: '太古幾何密卷',
+              category: 'truth',
+              costType: 'stamina',
+              costValue: 1,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [
+                { type: 'self_damage', value: 1 },
+                { type: 'add_to_deck', value: 4 },
+              ],
+              description: '自身承受 1 點反噬傷害，向理智牌庫注入 4 張真相卡牌。',
+              flavorText: '「超越三維空間的古老真理。」',
+            },
+            narrative: '獲得特殊真相卡【太古幾何密卷】納入理智牌庫！',
+          },
+        ],
+      },
+      {
+        id: 'elder_salvage',
+        text: '拆卸先驅者胸前的耐壓金屬容器',
+        costDescription: '獲得 30 枚古金幣',
+        consequences: [
+          {
+            type: 'gain_obols',
+            value: 30,
+            narrative: '自金屬容器中倒出 30 枚保存完好的古金幣（+30 古金幣）。',
+          },
+        ],
+      },
+      {
+        id: 'elder_activate_heater',
+        text: '啟動身旁遺留的微型地熱防護罩',
+        costDescription: '恢復 8 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 8,
+            narrative: '地熱防護罩散發出柔和的暖流，驅散深淵寒氣，恢復 8 點肉體生命值。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_singing_void_chasm: {
+    id: 'event_singing_void_chasm',
+    title: '虛空長笛裂隙',
+    location: '無底深淵 · 虛空斷崖',
+    storyText: [
+      '站在這座直通地心虛無的黑色斷崖前，深處不斷傳來毫無調性、怪誕混亂的長笛笛音。',
+      '那是盲目痴愚之神的僕從在永恆吹奏的音頻，聽得越久，現實的邊界就越發顯得模糊虛妄。',
+    ],
+    options: [
+      {
+        id: 'chasm_shout',
+        text: '向著虛空長嘯抗爭，鍛造理性心智防線',
+        costDescription: '承受 3 點肉體生命傷害，向理智牌庫注入 2 張【心智防波堤】',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -3,
+            narrative: '聲浪對撞令耳膜震出血絲，承受 3 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              ...TRUTH_CARD_BREAKWATER,
+              id: 'event_card_breakwater_d3_1',
+            },
+            narrative: '不屈的意志凝練出真相卡【心智防波堤】！',
+          },
+        ],
+      },
+      {
+        id: 'chasm_throw_coins',
+        text: '向深淵拋擲 15 枚古金幣祈求迴響平息',
+        costDescription: '消耗 15 枚古金幣，恢復 8 點肉體生命值',
+        requires: { obols: 15 },
+        consequences: [
+          {
+            type: 'gain_obols',
+            value: -15,
+            narrative: '古金幣沉入黑暗，刺耳的笛音短暫低伏，消耗 15 枚古金幣。',
+          },
+          {
+            type: 'health_change',
+            value: 8,
+            narrative: '心跳恢復規律，緊張的精神得以平息，恢復 8 點肉體生命值。',
+          },
+        ],
+      },
+      {
+        id: 'chasm_capture_relic',
+        text: '自斷崖邊緣拾起震落的石質骨笛殘片',
+        costDescription: '承受 4 點理智牌庫侵蝕，獲得舊日遺物【阿薩托斯碎笛】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -4,
+            narrative: '接觸殘片的剎那，宇宙原初混沌在腦海炸裂，理智牌庫被侵蝕 4 點。',
+          },
+          {
+            type: 'gain_relic',
+            relic: {
+              id: 'relic_azathoth_flute_fragment',
+              name: '阿薩托斯碎笛',
+              description: '盲目痴愚之神的骨笛殘片。每場戰鬥開始時獲得 1 層【力量】。',
+              flavorText: '「無調的混亂長音在靈魂深處低鳴。」',
+              rarity: 'mythic',
+              modifiers: {
+                startingStatusEffects: [{ type: 'might', stacks: 1 }],
+              },
+            },
+            narrative: '獲得舊日遺物【阿薩托斯碎笛】！',
+          },
+        ],
+      },
+    ],
+  },
+
+  /* =========================================================
+     Depth 4 Events (星辰正位 · 拉萊耶核心終局)
+     ========================================================= */
+  event_cyclopean_bas_relief: {
+    id: 'event_cyclopean_bas_relief',
+    title: '萬丈綠石浮雕門扉',
+    location: '拉萊耶核心 · 浸水巨石穹頂',
+    storyText: [
+      '巨大的墨綠色巨石門扉高聳入雲，門上雕刻著巨大的章魚頭顱與生有雙翼的龍狀神靈。',
+      '巨石表面流淌著古老的冷光，門縫中隱約傳來宇宙深處的心跳轟鳴。',
+    ],
+    options: [
+      {
+        id: 'relief_decipher',
+        text: '解讀門扉象形文字，窺探神祇的意志',
+        costDescription: '承受 5 點理智牌庫侵蝕，獲得卡牌【星之眷族印記】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -5,
+            narrative: '太古的超維知識如怒潮席捲意識，理智牌庫被侵蝕 5 點。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_star_spawn_sigil',
+              name: '星之眷族印記',
+              category: 'skill',
+              costType: 'stamina',
+              costValue: 2,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [
+                { type: 'armor', value: 12 },
+                { type: 'add_to_deck', value: 2 },
+              ],
+              description: '凝聚星辰護壁，獲得 12 點護甲並向理智牌庫注入 2 張真相卡牌。',
+              flavorText: '「神祇巨影投射在現實裂隙上的堅固屏障。」',
+            },
+            narrative: '獲得強大卡牌【星之眷族印記】！',
+          },
+        ],
+      },
+      {
+        id: 'relief_blood_sigil',
+        text: '割破手腕，將鮮血注入巨石凹槽激活封印',
+        costDescription: '承受 6 點肉體生命傷害，獲得舊日遺物【不可名狀之徽印】',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -6,
+            narrative: '綠石凹槽貪婪吸乾鮮血，承受 6 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_relic',
+            relic: {
+              id: 'relic_nameless_sigil',
+              name: '不可名狀之徽印',
+              description: '拉萊耶巨石之門的古老金屬徽印。最大生命值永久 +10。',
+              flavorText: '「群星歸位之日，門扉自會洞開。」',
+              rarity: 'mythic',
+              modifiers: { maxHealth: 10 },
+            },
+            narrative: '凹槽內部旋開，獲得舊日遺物【不可名狀之徽印】！',
+          },
+        ],
+      },
+      {
+        id: 'relief_rest',
+        text: '背靠巨石低頭默禱，整理最後的呼吸',
+        costDescription: '恢復 8 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 8,
+            narrative: '在風浪的間歇中平息喘息，恢復 8 點肉體生命值。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_gravity_anomaly_vault: {
+    id: 'event_gravity_anomaly_vault',
+    title: '重力倒錯的非歐殿堂',
+    location: '拉萊耶天階 · 顛倒幾何殿堂',
+    storyText: [
+      '在這裡，重力方向隨每一步移動而詭異偏轉。天花板向下淌著黑水，而石柱向著虛無無限延伸。',
+      '一座由純金與星際隕石鑄造的古老秘匣正懸浮在上下顛倒的力場死角中。',
+    ],
+    options: [
+      {
+        id: 'gravity_leap',
+        text: '縱身躍入反重力裂縫奪取秘匣',
+        costDescription: '承受 5 點肉體生命傷害，獲得 35 枚古金幣',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -5,
+            narrative: '重力逆轉將你重重摔向反向石壁，造成 5 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_obols',
+            value: 35,
+            narrative: '成功打開秘匣，收繳 35 枚古金幣（+35 古金幣）！',
+          },
+        ],
+      },
+      {
+        id: 'gravity_navigate',
+        text: '順應幾何空間曲率，掌握維度穿梭之法',
+        costDescription: '承受 3 點理智牌庫侵蝕，獲得卡牌【維度漫步】',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -3,
+            narrative: '克服視覺上的嚴重眩暈感，理智牌庫被侵蝕 3 點。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_dimension_stride',
+              name: '維度漫步',
+              category: 'skill',
+              costType: 'stamina',
+              costValue: 1,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [
+                { type: 'armor', value: 8 },
+                { type: 'damage', value: 10 },
+              ],
+              description: '穿梭於重力倒錯的維度間，獲得 8 點護甲並造成 10 點傷害。',
+              flavorText: '「在非歐幾何的殿堂中，直線並非最短距離。」',
+            },
+            narrative: '領悟空間法則，獲得卡牌【維度漫步】納入理智牌庫！',
+          },
+        ],
+      },
+      {
+        id: 'gravity_meditate',
+        text: '在引力平衡節點靜坐冥想',
+        costDescription: '身心獲得完全放鬆，恢復 10 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 10,
+            narrative: '在無重力狀態下肌肉完全鬆弛，恢復 10 點肉體生命值。',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_cthulhu_dream_echo: {
+    id: 'event_cthulhu_dream_echo',
+    title: '沉睡之主的夢境迴音',
+    location: '拉萊耶核心神殿外廊',
+    storyText: [
+      '整個空間瀰漫著潮濕的墨綠薄霧，耳邊傳來跨越億萬年的心靈廣播。',
+      '那是沉睡於拉萊耶石城深處的舊日支配者在睡夢中無意識散發的夢境漣漪，凡人的心智在其面前猶如風中殘燭。',
+    ],
+    options: [
+      {
+        id: 'dream_embrace',
+        text: '敞開心智直面神祇夢境，接納終極真理',
+        costDescription: '承受 4 點理智牌庫侵蝕，向理智牌庫注入 3 張真相卡',
+        consequences: [
+          {
+            type: 'sanity_change',
+            value: -4,
+            narrative: '無垠太古深海的景象衝擊著記憶，理智牌庫被侵蝕 4 點。',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              ...TRUTH_CARD_BREAKWATER,
+              id: 'event_card_breakwater_d4_1',
+            },
+            narrative: '在夢境浪潮中築起心智防禦，注入真相卡【心智防波堤】！',
+          },
+        ],
+      },
+      {
+        id: 'dream_sedative',
+        text: '使用隨身強效鎮定劑壓制心靈震顫',
+        costDescription: '消耗 10 枚古金幣，恢復 6 點肉體生命值',
+        requires: { obols: 10 },
+        consequences: [
+          {
+            type: 'gain_obols',
+            value: -10,
+            narrative: '注射鎮定劑，消耗了 10 枚古金幣的物資。',
+          },
+          {
+            type: 'health_change',
+            value: 6,
+            narrative: '神經痛楚暫時消退，恢復 6 點肉體生命值。',
+          },
+        ],
+      },
+      {
+        id: 'dream_fire',
+        text: '向著虛空中的幻影扣動扳機',
+        costDescription: '槍聲驚醒守護僕從，觸發遭遇戰',
+        consequences: [
+          {
+            type: 'trigger_combat',
+            enemy: INITIAL_STAR_SPAWN,
+            narrative: '槍聲震動了巨石穹頂！克蘇魯星之眷族自暗影中展翅降臨！',
+          },
+        ],
+      },
+    ],
+  },
+
+  event_star_metal_altar: {
+    id: 'event_star_metal_altar',
+    title: '群星正位之殘光祭壇',
+    location: '拉萊耶頂峰 · 群星交匯祭禮壇',
+    storyText: [
+      '站上拉萊耶的最高處，頭頂的星斗正運行至不可名狀的幾何排列。',
+      '祭壇中央燃燒著不熄的幽藍冷火，整座石台散發著決定人類命運的超自然威壓。',
+    ],
+    options: [
+      {
+        id: 'altar_sac_all_gold',
+        text: '將身上所有古金幣投入冷火奉獻',
+        costDescription: '消耗 20 枚古金幣，恢復 12 點肉體生命值並獲得特殊真相卡【終焉覺悟】',
+        requires: { obols: 20 },
+        consequences: [
+          {
+            type: 'gain_obols',
+            value: -20,
+            narrative: '古金幣在冷火中化作燦爛星塵，消耗了 20 枚古金幣。',
+          },
+          {
+            type: 'health_change',
+            value: 12,
+            narrative: '星光洗滌了肉體的疲憊與重創，大幅恢復 12 點肉體生命值！',
+          },
+          {
+            type: 'gain_card',
+            card: {
+              id: 'card_event_final_awakening',
+              name: '終焉覺悟',
+              category: 'truth',
+              costType: 'stamina',
+              costValue: 0,
+              isTemporary: false,
+              occupations: ['investigator', 'occultist'],
+              effects: [{ type: 'add_to_deck', value: 5 }],
+              description: '向理智牌庫注入 5 張真相卡牌，堅定最後的理智意志。',
+              flavorText: '「縱使星辰正位，人性永不磨滅。」',
+            },
+            narrative: '獲得終極真相卡【終焉覺悟】納入理智牌庫！',
+          },
+        ],
+      },
+      {
+        id: 'altar_pouch_relic',
+        text: '冒險撬下祭壇邊緣的發光隕石核心',
+        costDescription: '承受 6 點肉體生命傷害，獲得舊日遺物【群星正位之石】',
+        consequences: [
+          {
+            type: 'health_change',
+            value: -6,
+            narrative: '極低溫的星辰金屬凍傷了十指，承受 6 點肉體生命傷害。',
+          },
+          {
+            type: 'gain_relic',
+            relic: {
+              id: 'relic_stellar_alignment_stone',
+              name: '群星正位之石',
+              description: '蘊含拉萊耶原核能量的發光隕石。每場戰鬥開始時獲得 6 點防禦護甲與 1 層【堅韌】。',
+              flavorText: '「宇宙維度交匯的終極結晶。」',
+              rarity: 'mythic',
+              modifiers: {
+                startingArmor: 6,
+                startingStatusEffects: [{ type: 'resilience', stacks: 1 }],
+              },
+            },
+            narrative: '獲得舊日遺物【群星正位之石】！',
+          },
+        ],
+      },
+      {
+        id: 'altar_quiet_stand',
+        text: '在冷光中安靜默立，平復呼吸',
+        costDescription: '恢復 5 點肉體生命值',
+        consequences: [
+          {
+            type: 'health_change',
+            value: 5,
+            narrative: '沐浴在冷光中沉澱心緒，恢復 5 點肉體生命值。',
+          },
+        ],
+      },
+    ],
+  },
+};
+
+export const DEPTH_EVENT_POOLS: Record<DepthLevel, string[]> = {
+  1: [
+    'event_abandoned_carriage',
+    'event_sunken_shrine',
+    'event_whispering_bookseller',
+    'event_asylum_ward',
+  ],
+  2: [
+    'event_drowned_sailor_shrine',
+    'event_tide_alchemical_lab',
+    'event_singing_coral_grotto',
+    'event_dagon_statue_crevice',
+  ],
+  3: [
+    'event_proto_matter_fountain',
+    'event_astral_projection_mirror',
+    'event_elder_thing_specimen',
+    'event_singing_void_chasm',
+  ],
+  4: [
+    'event_cyclopean_bas_relief',
+    'event_gravity_anomaly_vault',
+    'event_cthulhu_dream_echo',
+    'event_star_metal_altar',
+  ],
 };
 
 export const DEFAULT_EVENT_KEYS = [
@@ -480,35 +1387,42 @@ export const DEFAULT_EVENT_KEYS = [
 ];
 
 /**
- * 依據節點 ID 或隨機取得一套奇遇劇本
+ * 依深度取得所有註冊的奇遇事件清單
  */
-export function getMythosEventForNode(nodeId: string): MythosEvent {
-  // Deterministic mapping based on node ID
-  if (nodeId.includes('0_1')) return JSON.parse(JSON.stringify(MYTHOS_EVENTS.event_abandoned_carriage));
-  if (nodeId.includes('1_0')) return JSON.parse(JSON.stringify(MYTHOS_EVENTS.event_sunken_shrine));
-  if (nodeId.includes('2_2')) return JSON.parse(JSON.stringify(MYTHOS_EVENTS.event_whispering_bookseller));
-  if (nodeId.includes('3_1')) return JSON.parse(JSON.stringify(MYTHOS_EVENTS.event_asylum_ward));
-
-  return JSON.parse(JSON.stringify(MYTHOS_EVENTS.event_sunken_shrine));
+export function getMythosEventsForDepth(depth: DepthLevel): MythosEvent[] {
+  const ids = DEPTH_EVENT_POOLS[depth] ?? DEPTH_EVENT_POOLS[1];
+  return ids.map((id) => JSON.parse(JSON.stringify(MYTHOS_EVENTS[id])));
 }
 
-/* =========================================================
-   Shared Sanctuary & Market Card Templates
-   ========================================================= */
+/**
+ * 依深度與單局已造訪清單抽取奇遇劇本（單局防重複機制 · ADR-0032）
+ */
+export function getMythosEvent(
+  depth: DepthLevel = 1,
+  visitedEventIds: string[] = [],
+  randomFn: () => number = Math.random
+): MythosEvent {
+  const poolIds = DEPTH_EVENT_POOLS[depth] ?? DEPTH_EVENT_POOLS[1];
+  const unvisitedIds = poolIds.filter((id) => !visitedEventIds.includes(id));
+  const candidateIds = unvisitedIds.length > 0 ? unvisitedIds : poolIds;
+  const pickedId = candidateIds[Math.floor(randomFn() * candidateIds.length)];
+  const evt = MYTHOS_EVENTS[pickedId] ?? MYTHOS_EVENTS.event_sunken_shrine;
+  return JSON.parse(JSON.stringify(evt));
+}
 
-export const TRUTH_CARD_BREAKWATER: Omit<Card, 'id'> = {
-  name: '心智防波堤',
-  category: 'truth',
-  costType: 'stamina',
-  costValue: 1,
-  isTemporary: false,
-  effects: [
-    { type: 'self_damage', value: 1 },
-    { type: 'add_to_deck', value: 3 },
-  ],
-  description: '自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
-  flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
-};
+/**
+ * 依據節點 ID 或深度取得奇遇劇本（相容舊介面）
+ * @deprecated 請優先使用 `getMythosEvent(depth, visitedEventIds)` 進行基於深度與防重複抽樣之奇遇選取
+ */
+export function getMythosEventForNode(
+  _nodeId: string,
+  depth?: DepthLevel,
+  visitedEventIds: string[] = [],
+  randomFn: () => number = Math.random
+): MythosEvent {
+  const effectiveDepth: DepthLevel = depth ?? 1;
+  return getMythosEvent(effectiveDepth, visitedEventIds, randomFn);
+}
 
 /* =========================================================
    Black Market Stock Generator

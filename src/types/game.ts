@@ -222,9 +222,10 @@ export interface InvestigationMap {
 }
 
 export interface MythosEventConsequence {
-  type: 'health_change' | 'sanity_change' | 'gain_obols' | 'gain_card' | 'trigger_combat';
+  type: 'health_change' | 'sanity_change' | 'gain_obols' | 'gain_card' | 'trigger_combat' | 'gain_relic';
   value?: number;
   card?: Card;
+  relic?: Relic;
   enemy?: Enemy;
   narrative: string;
 }
@@ -315,6 +316,7 @@ export interface GameState {
   };
   combatInitialHealth?: number; // 踏入當前戰鬥時的初始生命值快照（重試戰鬥時精確還原）
   cardsPlayedThisTurn?: number; // 本回合內已打出的卡牌總數（用於先手拔槍等條件判斷）
+  visitedEventIds?: string[]; // 本次冒險已遭遇的奇遇事件 ID 列表（用於單局防重複抽樣）
 }
 
 export type GameAction =

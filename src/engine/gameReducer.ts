@@ -29,7 +29,7 @@ import {
   advanceMapAfterNode,
 } from './mapGenerator';
 import {
-  getMythosEventForNode,
+  getMythosEvent,
   generateMarketItemsForDepth,
   TRUTH_CARD_BREAKWATER,
 } from './eventData';
@@ -176,6 +176,7 @@ export function createInitialCombatState(
     battleLog: initResult.logs,
     combatInitialHealth: initResult.investigator.health,
     cardsPlayedThisTurn: 0,
+    visitedEventIds: [],
   };
 }
 
@@ -333,6 +334,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...createInitialGameState(),
         phase: 'prologue',
         currentDepth: 1,
+        visitedEventIds: [],
         battleLog: [
           '【調查啟程 · 序章引導】翻開 1920 年代阿卡姆失蹤懸案剪報與神秘委託密信，深淵的呼喚隱隱傳來……',
         ],
@@ -397,6 +399,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map,
+        visitedEventIds: [],
         adventureStats: createInitialAdventureStats(investigator, map),
         battleLog: [logMsg, ...state.battleLog],
       };
@@ -508,12 +511,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       if (targetNode.type === 'event') {
-        const event = getMythosEventForNode(targetNode.id);
+        const depth = state.currentDepth ?? state.map?.depth ?? 1;
+        const event = getMythosEvent(depth, state.visitedEventIds ?? []);
+        const updatedVisitedEventIds = [...(state.visitedEventIds ?? []), event.id];
         return {
           ...state,
           phase: 'event',
           map: updatedMap,
           currentEvent: event,
+          visitedEventIds: updatedVisitedEventIds,
           adventureStats: updatedStats,
           battleLog: [
             `探索【${targetNode.title}】！觸發秘識奇遇【${event.title}】。`,
@@ -632,8 +638,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      let newHealth = state.investigator.health;
-      let newObols = state.investigator.obols;
+      let currentInvestigator: Investigator = { ...state.investigator };
       let newSanityDeck = [...state.sanityDeck];
       let newDiscardPile = [...state.discardPile];
       const newHand = [...state.hand];
@@ -643,9 +648,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       for (const consequence of option.consequences) {
         outcomeTexts.push(consequence.narrative);
         if (consequence.type === 'health_change' && consequence.value !== undefined) {
-          newHealth = Math.max(0, Math.min(state.investigator.maxHealth, newHealth + consequence.value));
+          currentInvestigator.health = Math.max(0, Math.min(currentInvestigator.maxHealth, currentInvestigator.health + consequence.value));
         } else if (consequence.type === 'gain_obols' && consequence.value !== undefined) {
-          newObols = Math.max(0, newObols + consequence.value);
+          currentInvestigator.obols = Math.max(0, currentInvestigator.obols + consequence.value);
         } else if (consequence.type === 'sanity_change' && consequence.value !== undefined) {
           if (consequence.value < 0) {
             const burnCount = Math.min(newSanityDeck.length, Math.abs(consequence.value));
@@ -678,22 +683,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             id: `${consequence.card.id}_evt_${state.sanityDeck.length + 1}`,
             isTemporary: false,
           });
+        } else if (consequence.type === 'gain_relic' && consequence.relic) {
+          currentInvestigator = applyRelicToInvestigator(currentInvestigator, consequence.relic);
         } else if (consequence.type === 'trigger_combat') {
           triggerCombatEnemy = consequence.enemy ?? INITIAL_GHOUL;
         }
       }
 
-      const gainedObols = Math.max(0, newObols - state.investigator.obols);
+      const gainedObols = Math.max(0, currentInvestigator.obols - state.investigator.obols);
       const currentStats = ensureAdventureStats(state);
       const updatedStats: AdventureStats = {
         ...currentStats,
         totalObolsCollected: currentStats.totalObolsCollected + gainedObols,
-      };
-
-      const updatedInvestigator: Investigator = {
-        ...state.investigator,
-        health: newHealth,
-        obols: newObols,
       };
 
       const updatedEvent: MythosEvent = {
@@ -702,12 +703,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         resolvedOutcomeText: outcomeTexts,
       };
 
-      if (newHealth <= 0) {
+      if (currentInvestigator.health <= 0) {
         saveFallenInvestigatorFromState(state, `於奇遇【${state.currentEvent?.title ?? '未知奇遇'}】中傷重不治`);
         return {
           ...state,
           phase: 'gameover',
-          investigator: updatedInvestigator,
+          investigator: currentInvestigator,
           currentEvent: updatedEvent,
           adventureStats: updatedStats,
           battleLog: [`【肉體殞命】調查員在奇遇事件中傷重不治！`, ...state.battleLog],
@@ -720,7 +721,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...newHand,
           ...newDiscardPile,
         ];
-        const handCapacity = updatedInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+        const handCapacity = currentInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
         const { hand, sanityDeck } = setupCombatDeck(
           currentCards,
           state.investigator.occupationId ?? 'investigator',
@@ -733,9 +734,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: 'combat',
           turn: 1,
           investigator: {
-            ...updatedInvestigator,
+            ...currentInvestigator,
             armor: 0,
-            stamina: updatedInvestigator.maxStamina,
+            stamina: currentInvestigator.maxStamina,
           },
           sanityDeck,
           hand,
@@ -745,14 +746,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           currentEvent: undefined,
           adventureStats: updatedStats,
           battleLog: outcomeTexts.concat(state.battleLog),
-          combatInitialHealth: updatedInvestigator.health,
+          combatInitialHealth: currentInvestigator.health,
           cardsPlayedThisTurn: 0,
         };
       }
 
       return {
         ...state,
-        investigator: updatedInvestigator,
+        investigator: currentInvestigator,
         sanityDeck: newSanityDeck,
         hand: newHand,
         discardPile: newDiscardPile,
@@ -1184,6 +1185,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isMadness: false,
         currentEnemy: enemy,
         map: state.map,
+        visitedEventIds: state.visitedEventIds ?? [],
         adventureStats: ensureAdventureStats(state),
         battleLog: [...resetLogs, ...state.battleLog],
         abyssalSealFused: state.abyssalSealFused,
