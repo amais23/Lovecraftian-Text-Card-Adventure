@@ -17,7 +17,7 @@ import {
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { getAllPermanentCards } from '../engine/abyssalSeals';
-import { getCardArtwork } from '../engine/cardArtworks';
+import { getCardArtwork, getSupplyArtwork } from '../engine/cardArtworks';
 import { MARKET_PURGE_COST } from '../engine/marketService';
 
 interface MarketScreenProps {
@@ -166,10 +166,10 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
                   </div>
                 </div>
 
-                {item.artworkUrl && (
+                {(item.artworkUrl || (item.type === 'heal' && getSupplyArtwork(item.name)?.imageUrl)) && (
                   <div className="market-item-apothecary-frame" data-testid={`market-apothecary-${item.id}`}>
                     <img
-                      src={item.artworkUrl}
+                      src={item.artworkUrl || getSupplyArtwork(item.name)?.imageUrl}
                       alt={item.name}
                       className="market-item-apothecary-img"
                     />

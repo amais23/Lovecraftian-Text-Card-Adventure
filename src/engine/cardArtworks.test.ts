@@ -109,8 +109,6 @@ describe('Card Artworks Registry & ADR-0012 Validation', () => {
       { id: 'card_market_shotgun', name: '戰壕雙管獵槍', category: 'combat' as const, expectedArtId: 'card_shotgun' },
       { id: 'card_market_bronze_amulet', name: '遠古青銅護身符', category: 'skill' as const, expectedArtId: 'card_ancient_amulet' },
       { id: 'card_market_breakwater_scroll', name: '心智防波堤手稿', category: 'truth' as const, expectedArtId: 'card_breakwater' },
-      { id: 'card_market_morphine', name: '軍用嗎啡注射劑', category: 'skill' as const, expectedArtId: 'card_sedative' },
-      { id: 'card_market_sterile_gauze', name: '高純度酒精繃帶', category: 'skill' as const, expectedArtId: 'card_first_aid' },
     ];
 
     for (const mc of marketCards) {

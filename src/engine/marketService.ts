@@ -1,5 +1,6 @@
 import type { DepthLevel, MarketItem, OccupationId, Relic } from '../types/game';
 import { CardRegistry } from './cards/registry';
+import { getSupplyArtwork } from './cardArtworks';
 import { PRESET_RELICS } from './relics';
 import { fisherYatesShuffle } from './shuffleUtils';
 
@@ -21,7 +22,7 @@ export const DEPTH_MEDICAL_SUPPLIES: Record<
       price: 15,
       healAmount: 8,
       description: '戰地急救藥品，立即恢復 8 點肉體生命值（受最大生命值限制）。',
-      artworkUrl: '/supplies/supply_morphine.png',
+      artworkUrl: getSupplyArtwork('market_item_morphine')?.imageUrl ?? '/supplies/supply_morphine.png',
     },
     {
       id: 'market_item_alcohol',
@@ -29,7 +30,7 @@ export const DEPTH_MEDICAL_SUPPLIES: Record<
       price: 10,
       healAmount: 5,
       description: '簡易消毒止血用品，立即恢復 5 點肉體生命值。',
-      artworkUrl: '/supplies/supply_alcohol_gauze.png',
+      artworkUrl: getSupplyArtwork('market_item_alcohol')?.imageUrl ?? '/supplies/supply_alcohol_gauze.png',
     },
   ],
   2: [
@@ -39,7 +40,7 @@ export const DEPTH_MEDICAL_SUPPLIES: Record<
       price: 22,
       healAmount: 12,
       description: '專業外科縫合工具與抗生素，立即恢復 12 點肉體生命值。',
-      artworkUrl: '/supplies/supply_surgery_kit.png',
+      artworkUrl: getSupplyArtwork('market_item_surgery_kit_d2')?.imageUrl ?? '/supplies/supply_surgery_kit.png',
     },
     {
       id: 'market_item_antidote_serum_d2',
@@ -47,7 +48,7 @@ export const DEPTH_MEDICAL_SUPPLIES: Record<
       price: 18,
       healAmount: 8,
       description: '提取自深潛者分泌物的解毒血清，立即恢復 8 點生命值。',
-      artworkUrl: '/supplies/supply_antidote_serum.png',
+      artworkUrl: getSupplyArtwork('market_item_antidote_serum_d2')?.imageUrl ?? '/supplies/supply_antidote_serum.png',
     },
   ],
   3: [
@@ -57,7 +58,7 @@ export const DEPTH_MEDICAL_SUPPLIES: Record<
       price: 30,
       healAmount: 16,
       description: '注入強心劑與太古活性液體，瞬間恢復 16 點肉體生命值。',
-      artworkUrl: '/supplies/supply_revival_injection.png',
+      artworkUrl: getSupplyArtwork('market_item_revival_injection_d3')?.imageUrl ?? '/supplies/supply_revival_injection.png',
     },
     {
       id: 'market_item_sanctified_elixir_d3',
@@ -65,7 +66,7 @@ export const DEPTH_MEDICAL_SUPPLIES: Record<
       price: 26,
       healAmount: 10,
       description: '盛放在純金酒樽中的驅邪聖水，立即恢復 10 點生命值。',
-      artworkUrl: '/supplies/supply_sanctified_elixir.png',
+      artworkUrl: getSupplyArtwork('market_item_sanctified_elixir_d3')?.imageUrl ?? '/supplies/supply_sanctified_elixir.png',
     },
   ],
 };
