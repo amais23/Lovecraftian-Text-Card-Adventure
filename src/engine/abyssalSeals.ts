@@ -28,9 +28,15 @@ export const ABYSSAL_FRAGMENT_NAMES = new Set<string>([
   ABYSSAL_FRAGMENT_3.name,
 ]);
 
+function getRootCardId(id?: string): string {
+  if (!id) return '';
+  const idx = id.indexOf('_drafted_');
+  return idx === -1 ? id : id.slice(0, idx);
+}
+
 export function isAbyssalFragment(card: Card | { name?: string; id?: string }): boolean {
   if (card.id) {
-    const rootId = card.id.split('_drafted_')[0];
+    const rootId = getRootCardId(card.id);
     if (ABYSSAL_FRAGMENT_IDS.has(card.id) || ABYSSAL_FRAGMENT_IDS.has(rootId)) {
       return true;
     }
@@ -60,7 +66,7 @@ function matchesFragment(card: Card, fragmentNumber: 1 | 2 | 3): boolean {
       : fragmentNumber === 2
       ? ABYSSAL_FRAGMENT_2
       : ABYSSAL_FRAGMENT_3;
-  const rootId = card.id?.split('_drafted_')[0];
+  const rootId = getRootCardId(card.id);
   return card.id === target.id || rootId === target.id || card.name === target.name;
 }
 
@@ -88,7 +94,7 @@ export function hasBothAbyssalFragments(
 
 export function isCompleteAncientSeal(card: Card | { name?: string; id?: string }): boolean {
   if (card.id) {
-    const rootId = card.id.split('_drafted_')[0];
+    const rootId = getRootCardId(card.id);
     if (card.id === COMPLETE_ANCIENT_SEAL.id || rootId === COMPLETE_ANCIENT_SEAL.id) {
       return true;
     }

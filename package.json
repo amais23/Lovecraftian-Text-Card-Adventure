@@ -10,6 +10,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "oxlint",
+    "sim:balance": "npx tsx scripts/balanceSimulator.ts",
     "preview": "vite preview",
     "tauri": "tauri"
   },

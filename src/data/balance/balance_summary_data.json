@@ -1,0 +1,7296 @@
+{
+  "generatedAt": "2026-09-24T20:19:17.296Z",
+  "version": "1.0.0",
+  "totalCombatsSimulated": 37064,
+  "cards": {
+    "card_revolver_1": {
+      "id": "card_revolver_1",
+      "name": "左輪射擊",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 5 點物理傷害；若目標處於【易傷】狀態，立即抽取 1 張卡牌。",
+      "healthScore": 32,
+      "sanityScore": 37,
+      "overallScore": 34,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.37,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 9.9
+        },
+        "3": {
+          "winRate": 0.385,
+          "overallScore": 33,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 10.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.73,
+        "bleed_pierce": 1.3,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.3,
+        "status_attrition": 1.3
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_punch_1": {
+      "id": "card_punch_1",
+      "name": "重拳壓制",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。",
+      "healthScore": 33,
+      "sanityScore": 37,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.404,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 9.8,
+      "avgTurns": 5.6,
+      "faultToleranceRatio": 0.36,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.404,
+          "overallScore": 35,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 9.8
+        },
+        "2": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 10
+        },
+        "3": {
+          "winRate": 0.423,
+          "overallScore": 35,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 10.5
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.24,
+        "bleed_pierce": 1.65,
+        "truth_restore": 1.24,
+        "madness_sacrifice": 1.24,
+        "high_cost_magic": 2.06,
+        "status_attrition": 1.24
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_bayonet_1": {
+      "id": "card_bayonet_1",
+      "name": "軍刀突刺",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 9 點物理傷害（真實穿刺，無視護甲直扣生命值）；若目標處於【易傷】狀態，傷害提升至 13 點。",
+      "healthScore": 33,
+      "sanityScore": 39,
+      "overallScore": 37,
+      "tierRating": "D",
+      "winRate": 0.404,
+      "avgHealthLost": 19.3,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.46,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.404,
+          "overallScore": 37,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 39,
+          "avgHealthLost": 18.7,
+          "avgSanityExpended": 9.5
+        },
+        "3": {
+          "winRate": 0.423,
+          "overallScore": 38,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 9.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.65,
+        "bleed_pierce": 1.24,
+        "truth_restore": 1.24,
+        "madness_sacrifice": 1.24,
+        "high_cost_magic": 1.24,
+        "status_attrition": 1.24
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_cane_1": {
+      "id": "card_cane_1",
+      "name": "鉛頭手杖",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 4 點物理傷害，施加 1 層【易傷】（每層使受到的物理傷害 +1）。",
+      "healthScore": 30,
+      "sanityScore": 36,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.365,
+      "avgHealthLost": 19.9,
+      "avgSanityExpended": 9.6,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.35,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 9.6
+        },
+        "2": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 9.9
+        },
+        "3": {
+          "winRate": 0.365,
+          "overallScore": 32,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 10.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.37,
+        "bleed_pierce": 1.37,
+        "truth_restore": 1.37,
+        "madness_sacrifice": 1.37,
+        "high_cost_magic": 1.37,
+        "status_attrition": 1.37
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_walls_rat_swarm",
+          "name": "牆中變異鼠群",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_cover_1": {
+      "id": "card_cover_1",
+      "name": "就地掩蔽",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "【保留】獲得 5 點護甲；在手中每保留 1 回合，打出時額外獲得 +2 護甲（至多 +6 點護甲）。",
+      "healthScore": 29,
+      "sanityScore": 34,
+      "overallScore": 32,
+      "tierRating": "D",
+      "winRate": 0.346,
+      "avgHealthLost": 19.9,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.7,
+      "faultToleranceRatio": 0.36,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.404,
+          "overallScore": 34,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 10.7
+        },
+        "3": {
+          "winRate": 0.346,
+          "overallScore": 30,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 11.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.44,
+        "bleed_pierce": 1.44,
+        "truth_restore": 1.44,
+        "madness_sacrifice": 1.44,
+        "high_cost_magic": 1.44,
+        "status_attrition": 1.44
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_breathe_1": {
+      "id": "card_breathe_1",
+      "name": "深呼吸",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "洗回 2 張卡牌至理智牌庫；若當前生命值不高於 50%，額外恢復 4 點肉體生命值。",
+      "healthScore": 26,
+      "sanityScore": 36,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.317,
+      "avgHealthLost": 20.4,
+      "avgSanityExpended": 8.9,
+      "avgTurns": 5.6,
+      "faultToleranceRatio": 0.28,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.317,
+          "overallScore": 30,
+          "avgHealthLost": 20.4,
+          "avgSanityExpended": 8.9
+        },
+        "2": {
+          "winRate": 0.308,
+          "overallScore": 29,
+          "avgHealthLost": 20.8,
+          "avgSanityExpended": 8.8
+        },
+        "3": {
+          "winRate": 0.308,
+          "overallScore": 31,
+          "avgHealthLost": 20.6,
+          "avgSanityExpended": 8.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.58,
+        "bleed_pierce": 1.58,
+        "truth_restore": 1.58,
+        "madness_sacrifice": 1.58,
+        "high_cost_magic": 2.63,
+        "status_attrition": 1.58
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_sedative_1": {
+      "id": "card_sedative_1",
+      "name": "醫療鎮定劑",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "洗回 2 張卡牌至理智牌庫，並淨化自身所有負面狀態印記各 1 層。",
+      "healthScore": 26,
+      "sanityScore": 36,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.308,
+      "avgHealthLost": 20.2,
+      "avgSanityExpended": 8.9,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.31,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.308,
+          "overallScore": 30,
+          "avgHealthLost": 20.2,
+          "avgSanityExpended": 8.9
+        },
+        "2": {
+          "winRate": 0.269,
+          "overallScore": 28,
+          "avgHealthLost": 21.1,
+          "avgSanityExpended": 8.9
+        },
+        "3": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 8.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.63,
+        "bleed_pierce": 1.63,
+        "truth_restore": 1.63,
+        "madness_sacrifice": 1.63,
+        "high_cost_magic": 1.63,
+        "status_attrition": 1.63
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_truth_fragment_1": {
+      "id": "card_truth_fragment_1",
+      "name": "舊日殘頁",
+      "category": "truth",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。",
+      "healthScore": 27,
+      "sanityScore": 35,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.327,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.3,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.27,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.3
+        },
+        "2": {
+          "winRate": 0.212,
+          "overallScore": 23,
+          "avgHealthLost": 21.9,
+          "avgSanityExpended": 9.7
+        },
+        "3": {
+          "winRate": 0.25,
+          "overallScore": 25,
+          "avgHealthLost": 21.5,
+          "avgSanityExpended": 9.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.53,
+        "bleed_pierce": 1.53,
+        "truth_restore": 1.53,
+        "madness_sacrifice": 1.53,
+        "high_cost_magic": 1.53,
+        "status_attrition": 1.53
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_magic_blast_1": {
+      "id": "card_magic_blast_1",
+      "name": "靈能衝擊",
+      "category": "magic",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 1,
+      "description": "造成 9 點秘術傷害。",
+      "healthScore": 32,
+      "sanityScore": 37,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.394,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.38,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.394,
+          "overallScore": 35,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.385,
+          "overallScore": 33,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 10.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.27,
+        "bleed_pierce": 1.27,
+        "truth_restore": 1.27,
+        "madness_sacrifice": 1.27,
+        "high_cost_magic": 1.69,
+        "status_attrition": 1.27
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_magic_gaze_1": {
+      "id": "card_magic_gaze_1",
+      "name": "厄運凝視",
+      "category": "magic",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 2,
+      "description": "造成 16 點秘術傷害。",
+      "healthScore": 35,
+      "sanityScore": 38,
+      "overallScore": 37,
+      "tierRating": "D",
+      "winRate": 0.423,
+      "avgHealthLost": 19,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.44,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.423,
+          "overallScore": 37,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 18.9,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.404,
+          "overallScore": 35,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 10.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.18,
+        "bleed_pierce": 1.18,
+        "truth_restore": 1.18,
+        "madness_sacrifice": 1.18,
+        "high_cost_magic": 1.18,
+        "status_attrition": 1.18
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_astral_ward_1": {
+      "id": "card_astral_ward_1",
+      "name": "星界庇護",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 6 點護甲。",
+      "healthScore": 28,
+      "sanityScore": 34,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.337,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.3,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.337,
+          "overallScore": 30,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.423,
+          "overallScore": 34,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.385,
+          "overallScore": 31,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 11.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.49,
+        "bleed_pierce": 1.98,
+        "truth_restore": 1.49,
+        "madness_sacrifice": 1.49,
+        "high_cost_magic": 1.49,
+        "status_attrition": 1.49
+      },
+      "bestArchetype": "bleed_pierce",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_meditate_1": {
+      "id": "card_meditate_1",
+      "name": "心靈冥想",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "洗回 2 張卡牌至理智牌庫。",
+      "healthScore": 27,
+      "sanityScore": 37,
+      "overallScore": 31,
+      "tierRating": "D",
+      "winRate": 0.337,
+      "avgHealthLost": 20.6,
+      "avgSanityExpended": 9,
+      "avgTurns": 5.7,
+      "faultToleranceRatio": 0.31,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.337,
+          "overallScore": 31,
+          "avgHealthLost": 20.6,
+          "avgSanityExpended": 9
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 29,
+          "avgHealthLost": 20.7,
+          "avgSanityExpended": 8.8
+        },
+        "3": {
+          "winRate": 0.212,
+          "overallScore": 26,
+          "avgHealthLost": 21.7,
+          "avgSanityExpended": 8.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.49,
+        "bleed_pierce": 1.49,
+        "truth_restore": 1.49,
+        "madness_sacrifice": 1.49,
+        "high_cost_magic": 1.98,
+        "status_attrition": 1.49
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_silver_key_1": {
+      "id": "card_silver_key_1",
+      "name": "銀鑰儀式",
+      "category": "truth",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 1 點反噬傷害，向理智牌庫注入 2 張真相卡牌。",
+      "healthScore": 25,
+      "sanityScore": 34,
+      "overallScore": 29,
+      "tierRating": "D",
+      "winRate": 0.298,
+      "avgHealthLost": 20.5,
+      "avgSanityExpended": 9.3,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.33,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.298,
+          "overallScore": 29,
+          "avgHealthLost": 20.5,
+          "avgSanityExpended": 9.3
+        },
+        "2": {
+          "winRate": 0.269,
+          "overallScore": 27,
+          "avgHealthLost": 20.9,
+          "avgSanityExpended": 9.9
+        },
+        "3": {
+          "winRate": 0.25,
+          "overallScore": 26,
+          "avgHealthLost": 21.3,
+          "avgSanityExpended": 9.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.24,
+        "bleed_pierce": 1.68,
+        "truth_restore": 1.68,
+        "madness_sacrifice": 1.68,
+        "high_cost_magic": 1.68,
+        "status_attrition": 1.68
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_ritual_dagger_1": {
+      "id": "card_ritual_dagger_1",
+      "name": "防身短刀",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 3 點物理傷害，獲得 3 點護甲。",
+      "healthScore": 31,
+      "sanityScore": 36,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 19.8,
+      "avgSanityExpended": 9.8,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.34,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 33,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.8
+        },
+        "2": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 10.1
+        },
+        "3": {
+          "winRate": 0.365,
+          "overallScore": 31,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 10.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.3,
+        "bleed_pierce": 1.3,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.3,
+        "status_attrition": 1.73
+      },
+      "bestArchetype": "status_attrition",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_shotgun_1": {
+      "id": "reward_shotgun_1",
+      "name": "雙管獵槍",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 16 點物理傷害；【強烈後座力】打出後自身失去 5 點護甲。",
+      "healthScore": 36,
+      "sanityScore": 40,
+      "overallScore": 39,
+      "tierRating": "D",
+      "winRate": 0.433,
+      "avgHealthLost": 18.7,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.44,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.433,
+          "overallScore": 39,
+          "avgHealthLost": 18.7,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.519,
+          "overallScore": 43,
+          "avgHealthLost": 18.3,
+          "avgSanityExpended": 9.5
+        },
+        "3": {
+          "winRate": 0.423,
+          "overallScore": 38,
+          "avgHealthLost": 18.5,
+          "avgSanityExpended": 9.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.54,
+        "bleed_pierce": 1.16,
+        "truth_restore": 1.16,
+        "madness_sacrifice": 1.16,
+        "high_cost_magic": 1.54,
+        "status_attrition": 1.16
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_quick_draw_1": {
+      "id": "reward_quick_draw_1",
+      "name": "快速拔槍",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 6 點物理傷害；若為本回合打出的首張卡牌，回復 1 點精力並抽取 1 張卡牌。",
+      "healthScore": 34,
+      "sanityScore": 39,
+      "overallScore": 37,
+      "tierRating": "D",
+      "winRate": 0.423,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 9.8,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.41,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.423,
+          "overallScore": 37,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 9.8
+        },
+        "2": {
+          "winRate": 0.385,
+          "overallScore": 35,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 9.8
+        },
+        "3": {
+          "winRate": 0.423,
+          "overallScore": 36,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 10.4
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.58,
+        "bleed_pierce": 1.18,
+        "truth_restore": 1.18,
+        "madness_sacrifice": 1.18,
+        "high_cost_magic": 1.18,
+        "status_attrition": 1.18
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_tactical_roll_1": {
+      "id": "reward_tactical_roll_1",
+      "name": "戰術翻滾",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 4 點護甲，抽取 1 張卡牌。",
+      "healthScore": 31,
+      "sanityScore": 35,
+      "overallScore": 34,
+      "tierRating": "D",
+      "winRate": 0.375,
+      "avgHealthLost": 19.8,
+      "avgSanityExpended": 10.1,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.38,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.375,
+          "overallScore": 34,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 10.1
+        },
+        "2": {
+          "winRate": 0.404,
+          "overallScore": 34,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 10.9
+        },
+        "3": {
+          "winRate": 0.423,
+          "overallScore": 34,
+          "avgHealthLost": 19.2,
+          "avgSanityExpended": 11.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.33,
+        "bleed_pierce": 1.78,
+        "truth_restore": 1.33,
+        "madness_sacrifice": 1.33,
+        "high_cost_magic": 2.22,
+        "status_attrition": 1.78
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_double_tap": {
+      "id": "reward_double_tap",
+      "name": "雙發速射",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 4 點物理傷害 × 2 段（每段獨立享受【力量】與【易傷】印記加成）。",
+      "healthScore": 33,
+      "sanityScore": 38,
+      "overallScore": 36,
+      "tierRating": "D",
+      "winRate": 0.394,
+      "avgHealthLost": 19.4,
+      "avgSanityExpended": 9.7,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.4,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.394,
+          "overallScore": 36,
+          "avgHealthLost": 19.4,
+          "avgSanityExpended": 9.7
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 18.7,
+          "avgSanityExpended": 9.8
+        },
+        "3": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 10.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.27,
+        "bleed_pierce": 1.27,
+        "truth_restore": 1.27,
+        "madness_sacrifice": 1.27,
+        "high_cost_magic": 1.27,
+        "status_attrition": 1.27
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_veteran_instinct": {
+      "id": "reward_veteran_instinct",
+      "name": "老兵本能",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "free",
+      "costValue": 0,
+      "description": "【固有】【消耗】獲得 6 點護甲與 2 層【力量】印記。開局必定抽至手中，打出後移出戰鬥。",
+      "healthScore": 41,
+      "sanityScore": 38,
+      "overallScore": 41,
+      "tierRating": "D",
+      "winRate": 0.462,
+      "avgHealthLost": 16.9,
+      "avgSanityExpended": 10.6,
+      "avgTurns": 5.7,
+      "faultToleranceRatio": 0.45,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.462,
+          "overallScore": 41,
+          "avgHealthLost": 16.9,
+          "avgSanityExpended": 10.6
+        },
+        "2": {
+          "winRate": 0.462,
+          "overallScore": 40,
+          "avgHealthLost": 15.8,
+          "avgSanityExpended": 11.3
+        },
+        "3": {
+          "winRate": 0.538,
+          "overallScore": 45,
+          "avgHealthLost": 13.7,
+          "avgSanityExpended": 12.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.17,
+        "bleed_pierce": 1.08,
+        "truth_restore": 1.08,
+        "madness_sacrifice": 1.08,
+        "high_cost_magic": 1.08,
+        "status_attrition": 1.08
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_void_fire_1": {
+      "id": "reward_void_fire_1",
+      "name": "虛空烈焰",
+      "category": "magic",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 2,
+      "description": "造成 18 點秘術傷害。",
+      "healthScore": 33,
+      "sanityScore": 38,
+      "overallScore": 37,
+      "tierRating": "D",
+      "winRate": 0.404,
+      "avgHealthLost": 19.3,
+      "avgSanityExpended": 9.6,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.49,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.404,
+          "overallScore": 37,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 9.6
+        },
+        "2": {
+          "winRate": 0.404,
+          "overallScore": 36,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 10.2
+        },
+        "3": {
+          "winRate": 0.462,
+          "overallScore": 39,
+          "avgHealthLost": 18.8,
+          "avgSanityExpended": 10.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.24,
+        "bleed_pierce": 1.24,
+        "truth_restore": 1.24,
+        "madness_sacrifice": 1.24,
+        "high_cost_magic": 1.65,
+        "status_attrition": 1.24
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_dread_whisper_1": {
+      "id": "reward_dread_whisper_1",
+      "name": "恐懼低語",
+      "category": "magic",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 1,
+      "description": "造成 10 點秘術傷害。",
+      "healthScore": 32,
+      "sanityScore": 37,
+      "overallScore": 34,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 19.5,
+      "avgSanityExpended": 9.8,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.37,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 9.8
+        },
+        "2": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 10.1
+        },
+        "3": {
+          "winRate": 0.442,
+          "overallScore": 36,
+          "avgHealthLost": 18.9,
+          "avgSanityExpended": 10.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.3,
+        "bleed_pierce": 1.3,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.3,
+        "status_attrition": 1.3
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_astral_insight_1": {
+      "id": "reward_astral_insight_1",
+      "name": "星界洞察",
+      "category": "truth",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+      "healthScore": 24,
+      "sanityScore": 34,
+      "overallScore": 29,
+      "tierRating": "D",
+      "winRate": 0.288,
+      "avgHealthLost": 20.7,
+      "avgSanityExpended": 9.3,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.33,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.288,
+          "overallScore": 29,
+          "avgHealthLost": 20.7,
+          "avgSanityExpended": 9.3
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 29,
+          "avgHealthLost": 21.1,
+          "avgSanityExpended": 9.1
+        },
+        "3": {
+          "winRate": 0.231,
+          "overallScore": 24,
+          "avgHealthLost": 21.5,
+          "avgSanityExpended": 10
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.73,
+        "bleed_pierce": 1.73,
+        "truth_restore": 1.73,
+        "madness_sacrifice": 1.73,
+        "high_cost_magic": 2.31,
+        "status_attrition": 1.73
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_whispers_of_madness": {
+      "id": "reward_whispers_of_madness",
+      "name": "狂亂低語",
+      "category": "magic",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 1,
+      "description": "造成 8 點秘術傷害；理智牌庫每減少 1 張卡牌，傷害提升 1 點；若剩餘理智不高於 4 張，額外追加 6 點秘術傷害。",
+      "healthScore": 38,
+      "sanityScore": 41,
+      "overallScore": 41,
+      "tierRating": "D",
+      "winRate": 0.471,
+      "avgHealthLost": 19,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.2,
+      "faultToleranceRatio": 0.54,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.471,
+          "overallScore": 41,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.5,
+          "overallScore": 42,
+          "avgHealthLost": 18.9,
+          "avgSanityExpended": 10.1
+        },
+        "3": {
+          "winRate": 0.5,
+          "overallScore": 43,
+          "avgHealthLost": 18.2,
+          "avgSanityExpended": 10.4
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.41,
+        "bleed_pierce": 1.41,
+        "truth_restore": 1.06,
+        "madness_sacrifice": 1.06,
+        "high_cost_magic": 1.06,
+        "status_attrition": 1.41
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_astral_refraction": {
+      "id": "reward_astral_refraction",
+      "name": "星界折射",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "【保留】獲得 7 點護甲與 1 層【堅韌】印記。回合結束時不會被棄置。",
+      "healthScore": 30,
+      "sanityScore": 34,
+      "overallScore": 32,
+      "tierRating": "D",
+      "winRate": 0.356,
+      "avgHealthLost": 19.9,
+      "avgSanityExpended": 10,
+      "avgTurns": 5.9,
+      "faultToleranceRatio": 0.33,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.356,
+          "overallScore": 32,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 10
+        },
+        "2": {
+          "winRate": 0.365,
+          "overallScore": 32,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 10.6
+        },
+        "3": {
+          "winRate": 0.385,
+          "overallScore": 32,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 11.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.41,
+        "bleed_pierce": 1.41,
+        "truth_restore": 1.41,
+        "madness_sacrifice": 1.41,
+        "high_cost_magic": 1.41,
+        "status_attrition": 1.41
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_ancient_amulet_1": {
+      "id": "reward_ancient_amulet_1",
+      "name": "遠古護身符",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 8 點護甲。",
+      "healthScore": 30,
+      "sanityScore": 35,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.365,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 10.1,
+      "avgTurns": 6.2,
+      "faultToleranceRatio": 0.37,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 10.1
+        },
+        "2": {
+          "winRate": 0.404,
+          "overallScore": 33,
+          "avgHealthLost": 20,
+          "avgSanityExpended": 11.4
+        },
+        "3": {
+          "winRate": 0.404,
+          "overallScore": 34,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 11.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.37,
+        "bleed_pierce": 1.37,
+        "truth_restore": 1.37,
+        "madness_sacrifice": 1.37,
+        "high_cost_magic": 2.28,
+        "status_attrition": 1.82
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_first_aid_1": {
+      "id": "reward_first_aid_1",
+      "name": "應急急救包",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 3 點護甲，洗回 2 張卡牌至理智牌庫。",
+      "healthScore": 28,
+      "sanityScore": 37,
+      "overallScore": 31,
+      "tierRating": "D",
+      "winRate": 0.346,
+      "avgHealthLost": 20.3,
+      "avgSanityExpended": 9.2,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.29,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.346,
+          "overallScore": 31,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 9.2
+        },
+        "2": {
+          "winRate": 0.327,
+          "overallScore": 31,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 8.9
+        },
+        "3": {
+          "winRate": 0.288,
+          "overallScore": 29,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 8.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.44,
+        "bleed_pierce": 1.44,
+        "truth_restore": 1.44,
+        "madness_sacrifice": 1.44,
+        "high_cost_magic": 1.93,
+        "status_attrition": 1.44
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_field_bandage": {
+      "id": "reward_field_bandage",
+      "name": "戰地急救繃帶",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "【消耗】立即恢復 4 點肉體生命值，並獲得 4 點護甲。打出後移出戰鬥。",
+      "healthScore": 31,
+      "sanityScore": 35,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.365,
+      "avgHealthLost": 19.5,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.7,
+      "faultToleranceRatio": 0.38,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.2,
+          "avgSanityExpended": 10.7
+        },
+        "3": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 11.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.37,
+        "bleed_pierce": 2.28,
+        "truth_restore": 1.37,
+        "madness_sacrifice": 1.37,
+        "high_cost_magic": 1.82,
+        "status_attrition": 1.37
+      },
+      "bestArchetype": "bleed_pierce",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_walls_rat_swarm",
+          "name": "牆中變異鼠群",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_tactical_feint": {
+      "id": "reward_tactical_feint",
+      "name": "戰術佯攻",
+      "category": "combat",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "使目標陷入 2 層【易傷】破綻狀態。",
+      "healthScore": 30,
+      "sanityScore": 36,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.356,
+      "avgHealthLost": 19.8,
+      "avgSanityExpended": 9.7,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.33,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.356,
+          "overallScore": 33,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.7
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.8,
+          "avgSanityExpended": 10.1
+        },
+        "3": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 10.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.41,
+        "bleed_pierce": 1.41,
+        "truth_restore": 1.41,
+        "madness_sacrifice": 1.41,
+        "high_cost_magic": 1.41,
+        "status_attrition": 1.41
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_calm_observation": {
+      "id": "reward_calm_observation",
+      "name": "冷靜觀察",
+      "category": "skill",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 5 點護甲，並敏銳抽取 2 張卡牌。",
+      "healthScore": 36,
+      "sanityScore": 39,
+      "overallScore": 39,
+      "tierRating": "D",
+      "winRate": 0.452,
+      "avgHealthLost": 19.5,
+      "avgSanityExpended": 10.2,
+      "avgTurns": 5.6,
+      "faultToleranceRatio": 0.46,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.452,
+          "overallScore": 39,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 10.2
+        },
+        "2": {
+          "winRate": 0.481,
+          "overallScore": 39,
+          "avgHealthLost": 19.2,
+          "avgSanityExpended": 10.8
+        },
+        "3": {
+          "winRate": 0.481,
+          "overallScore": 38,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 11.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.11,
+        "bleed_pierce": 1.11,
+        "truth_restore": 1.11,
+        "madness_sacrifice": 1.11,
+        "high_cost_magic": 1.11,
+        "status_attrition": 1.11
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "compendium_madness_claw": {
+      "id": "compendium_madness_claw",
+      "name": "盲目爪擊",
+      "category": "madness",
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 10 點物理傷害，自身承受 2 點反噬傷害。",
+      "healthScore": 32,
+      "sanityScore": 38,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.38,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 35,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.365,
+          "overallScore": 34,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.4
+        },
+        "3": {
+          "winRate": 0.442,
+          "overallScore": 37,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 9.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.3,
+        "bleed_pierce": 1.3,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.3,
+        "status_attrition": 1.3
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "compendium_madness_howl": {
+      "id": "compendium_madness_howl",
+      "name": "深淵狂嘯",
+      "category": "madness",
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 14 點秘術傷害，自身承受 3 點反噬傷害。",
+      "healthScore": 30,
+      "sanityScore": 37,
+      "overallScore": 34,
+      "tierRating": "D",
+      "winRate": 0.365,
+      "avgHealthLost": 19.8,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.41,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.365,
+          "overallScore": 34,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.365,
+          "overallScore": 34,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.7
+        },
+        "3": {
+          "winRate": 0.385,
+          "overallScore": 35,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.4
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.37,
+        "bleed_pierce": 1.37,
+        "truth_restore": 1.37,
+        "madness_sacrifice": 1.37,
+        "high_cost_magic": 1.37,
+        "status_attrition": 1.37
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "compendium_madness_blade": {
+      "id": "compendium_madness_blade",
+      "name": "狂亂血刃",
+      "category": "madness",
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 20 點物理傷害，自身承受 5 點反噬傷害。",
+      "healthScore": 29,
+      "sanityScore": 36,
+      "overallScore": 32,
+      "tierRating": "D",
+      "winRate": 0.356,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.35,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.356,
+          "overallScore": 32,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.5
+        },
+        "3": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 9.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.41,
+        "bleed_pierce": 1.41,
+        "truth_restore": 1.41,
+        "madness_sacrifice": 1.41,
+        "high_cost_magic": 1.41,
+        "status_attrition": 1.41
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "compendium_truth_glimmer": {
+      "id": "compendium_truth_glimmer",
+      "name": "真相微光",
+      "category": "truth",
+      "costType": "stamina",
+      "costValue": 0,
+      "description": "獲得 2 點護甲。",
+      "healthScore": 30,
+      "sanityScore": 36,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.365,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.7,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.37,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.365,
+          "overallScore": 33,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.7
+        },
+        "2": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.4,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.5,
+          "avgSanityExpended": 10.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.28,
+        "bleed_pierce": 1.37,
+        "truth_restore": 1.37,
+        "madness_sacrifice": 1.37,
+        "high_cost_magic": 1.37,
+        "status_attrition": 1.37
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_shield_slam": {
+      "id": "reward_shield_slam",
+      "name": "護甲猛擊",
+      "category": "combat",
+      "tier": 2,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 4 點物理傷害，並附加等同於當前護甲 100% 的額外物理傷害。",
+      "healthScore": 32,
+      "sanityScore": 38,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 19.5,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.35,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 35,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.365,
+          "overallScore": 32,
+          "avgHealthLost": 20,
+          "avgSanityExpended": 9.8
+        },
+        "3": {
+          "winRate": 0.365,
+          "overallScore": 32,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 10.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.17,
+        "bleed_pierce": 1.3,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.3,
+        "status_attrition": 1.3
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_weakpoint_snipe": {
+      "id": "reward_weakpoint_snipe",
+      "name": "弱點狙擊",
+      "category": "combat",
+      "tier": 2,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 12 點物理傷害；若目標處於【易傷】狀態，傷害翻倍為 24 點！",
+      "healthScore": 35,
+      "sanityScore": 40,
+      "overallScore": 38,
+      "tierRating": "D",
+      "winRate": 0.423,
+      "avgHealthLost": 18.8,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.43,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.423,
+          "overallScore": 38,
+          "avgHealthLost": 18.8,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.481,
+          "overallScore": 40,
+          "avgHealthLost": 18.6,
+          "avgSanityExpended": 10
+        },
+        "3": {
+          "winRate": 0.481,
+          "overallScore": 41,
+          "avgHealthLost": 18.2,
+          "avgSanityExpended": 9.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.18,
+        "bleed_pierce": 1.18,
+        "truth_restore": 1.18,
+        "madness_sacrifice": 1.18,
+        "high_cost_magic": 1.18,
+        "status_attrition": 1.18
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_pump_shotgun": {
+      "id": "card_tier2_pump_shotgun",
+      "name": "泵動式散彈槍",
+      "category": "combat",
+      "tier": 2,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 12 點物理傷害，並【擊碎目標所有當前護甲】。",
+      "healthScore": 32,
+      "sanityScore": 37,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.375,
+      "avgHealthLost": 19.4,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.2,
+      "faultToleranceRatio": 0.37,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.375,
+          "overallScore": 35,
+          "avgHealthLost": 19.4,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.462,
+          "overallScore": 38,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 10.1
+        },
+        "3": {
+          "winRate": 0.423,
+          "overallScore": 37,
+          "avgHealthLost": 18.6,
+          "avgSanityExpended": 10
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.33,
+        "bleed_pierce": 1.33,
+        "truth_restore": 1.33,
+        "madness_sacrifice": 1.33,
+        "high_cost_magic": 1.78,
+        "status_attrition": 1.33
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_iron_will": {
+      "id": "card_tier2_iron_will",
+      "name": "鋼鐵意志屏障",
+      "category": "skill",
+      "tier": 2,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 12 點護甲。",
+      "healthScore": 33,
+      "sanityScore": 37,
+      "overallScore": 36,
+      "tierRating": "D",
+      "winRate": 0.404,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.9,
+      "faultToleranceRatio": 0.41,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.404,
+          "overallScore": 36,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.404,
+          "overallScore": 34,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 11.3
+        },
+        "3": {
+          "winRate": 0.442,
+          "overallScore": 35,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 11.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.24,
+        "bleed_pierce": 1.65,
+        "truth_restore": 1.24,
+        "madness_sacrifice": 1.24,
+        "high_cost_magic": 1.65,
+        "status_attrition": 1.24
+      },
+      "bestArchetype": "bleed_pierce",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_abyssal_detonation": {
+      "id": "reward_abyssal_detonation",
+      "name": "深淵引爆",
+      "category": "magic",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 2,
+      "description": "造成 10 點秘術傷害，目標身上每有 1 層【流血】或【恐慌】印記，額外造成 3 點秘術傷害。",
+      "healthScore": 32,
+      "sanityScore": 36,
+      "overallScore": 34,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 19.7,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5.3,
+      "faultToleranceRatio": 0.38,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.365,
+          "overallScore": 32,
+          "avgHealthLost": 20,
+          "avgSanityExpended": 10.5
+        },
+        "3": {
+          "winRate": 0.365,
+          "overallScore": 32,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 10.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.3,
+        "bleed_pierce": 1.3,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.3,
+        "status_attrition": 1.3
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_tide_of_truth": {
+      "id": "reward_tide_of_truth",
+      "name": "真相潮汐",
+      "category": "truth",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "free",
+      "costValue": 0,
+      "description": "洗回 3 張卡牌至理智牌庫，並立即抽取 2 張卡牌。",
+      "healthScore": 35,
+      "sanityScore": 40,
+      "overallScore": 38,
+      "tierRating": "D",
+      "winRate": 0.433,
+      "avgHealthLost": 19.1,
+      "avgSanityExpended": 9.3,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.46,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.433,
+          "overallScore": 38,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 9.3
+        },
+        "2": {
+          "winRate": 0.5,
+          "overallScore": 43,
+          "avgHealthLost": 18.5,
+          "avgSanityExpended": 8.4
+        },
+        "3": {
+          "winRate": 0.462,
+          "overallScore": 41,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 8.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.54,
+        "bleed_pierce": 1.16,
+        "truth_restore": 1.16,
+        "madness_sacrifice": 1.16,
+        "high_cost_magic": 1.16,
+        "status_attrition": 1.16
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_silver_blade": {
+      "id": "card_tier2_silver_blade",
+      "name": "破魔銀質短刃",
+      "category": "combat",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 10 點物理傷害。",
+      "healthScore": 33,
+      "sanityScore": 38,
+      "overallScore": 36,
+      "tierRating": "D",
+      "winRate": 0.394,
+      "avgHealthLost": 19.1,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.2,
+      "faultToleranceRatio": 0.39,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.394,
+          "overallScore": 36,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.462,
+          "overallScore": 39,
+          "avgHealthLost": 18.7,
+          "avgSanityExpended": 9.6
+        },
+        "3": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 10
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.27,
+        "bleed_pierce": 1.27,
+        "truth_restore": 1.27,
+        "madness_sacrifice": 1.27,
+        "high_cost_magic": 1.27,
+        "status_attrition": 1.27
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_frost_grasp": {
+      "id": "card_tier2_frost_grasp",
+      "name": "深海冰霜之握",
+      "category": "magic",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 2,
+      "description": "造成 25 點秘術傷害。",
+      "healthScore": 38,
+      "sanityScore": 40,
+      "overallScore": 40,
+      "tierRating": "D",
+      "winRate": 0.471,
+      "avgHealthLost": 18.8,
+      "avgSanityExpended": 10,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.47,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.471,
+          "overallScore": 40,
+          "avgHealthLost": 18.8,
+          "avgSanityExpended": 10
+        },
+        "2": {
+          "winRate": 0.462,
+          "overallScore": 39,
+          "avgHealthLost": 18.9,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.462,
+          "overallScore": 39,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 10.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.77,
+        "bleed_pierce": 1.06,
+        "truth_restore": 1.06,
+        "madness_sacrifice": 1.06,
+        "high_cost_magic": 1.06,
+        "status_attrition": 1.06
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_mind_shock": {
+      "id": "card_tier2_mind_shock",
+      "name": "心靈震波",
+      "category": "magic",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 1,
+      "description": "造成 14 點秘術傷害，抽取 1 張卡牌。",
+      "healthScore": 36,
+      "sanityScore": 39,
+      "overallScore": 38,
+      "tierRating": "D",
+      "winRate": 0.442,
+      "avgHealthLost": 19,
+      "avgSanityExpended": 9.8,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.43,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 9.8
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 18.8,
+          "avgSanityExpended": 10.4
+        },
+        "3": {
+          "winRate": 0.596,
+          "overallScore": 45,
+          "avgHealthLost": 17.4,
+          "avgSanityExpended": 11.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.51,
+        "bleed_pierce": 1.13,
+        "truth_restore": 1.13,
+        "madness_sacrifice": 1.13,
+        "high_cost_magic": 1.51,
+        "status_attrition": 1.51
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_forbidden_tablet": {
+      "id": "card_tier2_forbidden_tablet",
+      "name": "禁忌海蝕石板殘卷",
+      "category": "truth",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 2 點反噬傷害，向理智牌庫注入 4 張真相卡牌。",
+      "healthScore": 27,
+      "sanityScore": 35,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.327,
+      "avgHealthLost": 20.2,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.3,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.2,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 21,
+          "avgSanityExpended": 9.4
+        },
+        "3": {
+          "winRate": 0.231,
+          "overallScore": 24,
+          "avgHealthLost": 21.8,
+          "avgSanityExpended": 9.9
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.04,
+        "bleed_pierce": 1.53,
+        "truth_restore": 1.53,
+        "madness_sacrifice": 1.53,
+        "high_cost_magic": 1.53,
+        "status_attrition": 1.53
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_silver_key_glow": {
+      "id": "card_tier2_silver_key_glow",
+      "name": "銀鑰指引微光",
+      "category": "truth",
+      "tier": 2,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "free",
+      "costValue": 0,
+      "description": "抽取 1 張卡牌，向理智牌庫注入 2 張真相卡牌。",
+      "healthScore": 25,
+      "sanityScore": 33,
+      "overallScore": 28,
+      "tierRating": "D",
+      "winRate": 0.298,
+      "avgHealthLost": 20.8,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.7,
+      "faultToleranceRatio": 0.3,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.298,
+          "overallScore": 28,
+          "avgHealthLost": 20.8,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.5,
+          "avgSanityExpended": 9.3
+        },
+        "3": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.7,
+          "avgSanityExpended": 9.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.24,
+        "bleed_pierce": 1.68,
+        "truth_restore": 1.68,
+        "madness_sacrifice": 1.68,
+        "high_cost_magic": 1.68,
+        "status_attrition": 1.68
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "reward_remnant_seal": {
+      "id": "reward_remnant_seal",
+      "name": "舊印殘印",
+      "category": "truth",
+      "tier": 2,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "free",
+      "costValue": 0,
+      "description": "【消耗】獲得 12 點護甲，洗回 2 張卡牌至理智牌庫。打出後移出戰鬥。",
+      "healthScore": 29,
+      "sanityScore": 35,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.346,
+      "avgHealthLost": 19.9,
+      "avgSanityExpended": 9.7,
+      "avgTurns": 6.3,
+      "faultToleranceRatio": 0.41,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.346,
+          "overallScore": 33,
+          "avgHealthLost": 19.9,
+          "avgSanityExpended": 9.7
+        },
+        "2": {
+          "winRate": 0.423,
+          "overallScore": 37,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.5,
+          "overallScore": 41,
+          "avgHealthLost": 17.9,
+          "avgSanityExpended": 10.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.44,
+        "bleed_pierce": 1.93,
+        "truth_restore": 1.44,
+        "madness_sacrifice": 1.44,
+        "high_cost_magic": 2.41,
+        "status_attrition": 1.93
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier2_rapid_suture": {
+      "id": "card_tier2_rapid_suture",
+      "name": "戰地快速縫合",
+      "category": "skill",
+      "tier": 2,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 6 點護甲，洗回 3 張卡牌至理智牌庫。",
+      "healthScore": 30,
+      "sanityScore": 38,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.365,
+      "avgHealthLost": 19.8,
+      "avgSanityExpended": 9,
+      "avgTurns": 6.3,
+      "faultToleranceRatio": 0.41,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.365,
+          "overallScore": 35,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 39,
+          "avgHealthLost": 19.1,
+          "avgSanityExpended": 8.7
+        },
+        "3": {
+          "winRate": 0.442,
+          "overallScore": 40,
+          "avgHealthLost": 18.9,
+          "avgSanityExpended": 8.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.82,
+        "bleed_pierce": 1.82,
+        "truth_restore": 1.37,
+        "madness_sacrifice": 1.37,
+        "high_cost_magic": 1.82,
+        "status_attrition": 1.82
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_dum_dum": {
+      "id": "card_tier3_dum_dum",
+      "name": "達姆高爆彈連射",
+      "category": "combat",
+      "tier": 3,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 6 點物理傷害 × 4 段（共計 24 點物理傷害），並使目標陷入 2 層【易傷】狀態。",
+      "healthScore": 40,
+      "sanityScore": 43,
+      "overallScore": 42,
+      "tierRating": "C",
+      "winRate": 0.49,
+      "avgHealthLost": 18.5,
+      "avgSanityExpended": 9.6,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.47,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.49,
+          "overallScore": 42,
+          "avgHealthLost": 18.5,
+          "avgSanityExpended": 9.6
+        },
+        "2": {
+          "winRate": 0.5,
+          "overallScore": 43,
+          "avgHealthLost": 18.1,
+          "avgSanityExpended": 9.6
+        },
+        "3": {
+          "winRate": 0.5,
+          "overallScore": 43,
+          "avgHealthLost": 17.9,
+          "avgSanityExpended": 9.5
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.02,
+        "bleed_pierce": 1.02,
+        "truth_restore": 1.02,
+        "madness_sacrifice": 1.36,
+        "high_cost_magic": 1.02,
+        "status_attrition": 1.02
+      },
+      "bestArchetype": "madness_sacrifice",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_demolition_pack": {
+      "id": "card_tier3_demolition_pack",
+      "name": "軍用特種炸藥包",
+      "category": "combat",
+      "tier": 3,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 3,
+      "description": "造成 40 點物理傷害，並對目標施加 3 層【流血】與 2 層【易傷】。【消耗】打出後移出戰鬥。",
+      "healthScore": 43,
+      "sanityScore": 45,
+      "overallScore": 45,
+      "tierRating": "C",
+      "winRate": 0.529,
+      "avgHealthLost": 17.8,
+      "avgSanityExpended": 9.3,
+      "avgTurns": 4.9,
+      "faultToleranceRatio": 0.5,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.529,
+          "overallScore": 45,
+          "avgHealthLost": 17.8,
+          "avgSanityExpended": 9.3
+        },
+        "2": {
+          "winRate": 0.615,
+          "overallScore": 50,
+          "avgHealthLost": 17.1,
+          "avgSanityExpended": 9.4
+        },
+        "3": {
+          "winRate": 0.635,
+          "overallScore": 51,
+          "avgHealthLost": 16.4,
+          "avgSanityExpended": 9.5
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 0.95,
+        "bleed_pierce": 0.95,
+        "truth_restore": 0.95,
+        "madness_sacrifice": 0.95,
+        "high_cost_magic": 1.58,
+        "status_attrition": 0.95
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_impenetrable_bastion": {
+      "id": "card_tier3_impenetrable_bastion",
+      "name": "不可侵犯之壁",
+      "category": "skill",
+      "tier": 3,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "獲得 22 點護甲。",
+      "healthScore": 33,
+      "sanityScore": 36,
+      "overallScore": 36,
+      "tierRating": "D",
+      "winRate": 0.394,
+      "avgHealthLost": 19.3,
+      "avgSanityExpended": 10.3,
+      "avgTurns": 6.1,
+      "faultToleranceRatio": 0.47,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.394,
+          "overallScore": 36,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 10.3
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 37,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 11.5
+        },
+        "3": {
+          "winRate": 0.462,
+          "overallScore": 37,
+          "avgHealthLost": 19.4,
+          "avgSanityExpended": 12.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.27,
+        "bleed_pierce": 1.27,
+        "truth_restore": 1.27,
+        "madness_sacrifice": 1.27,
+        "high_cost_magic": 1.69,
+        "status_attrition": 1.27
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_void_collapse": {
+      "id": "card_tier3_void_collapse",
+      "name": "虛空黑洞坍縮",
+      "category": "magic",
+      "tier": 3,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 2,
+      "description": "造成 34 點秘術傷害。",
+      "healthScore": 41,
+      "sanityScore": 42,
+      "overallScore": 42,
+      "tierRating": "C",
+      "winRate": 0.5,
+      "avgHealthLost": 18.4,
+      "avgSanityExpended": 10,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.46,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.5,
+          "overallScore": 42,
+          "avgHealthLost": 18.4,
+          "avgSanityExpended": 10
+        },
+        "2": {
+          "winRate": 0.519,
+          "overallScore": 42,
+          "avgHealthLost": 18.2,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.5,
+          "overallScore": 41,
+          "avgHealthLost": 18.6,
+          "avgSanityExpended": 10.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1,
+        "bleed_pierce": 1.33,
+        "truth_restore": 1,
+        "madness_sacrifice": 1,
+        "high_cost_magic": 1,
+        "status_attrition": 1
+      },
+      "bestArchetype": "bleed_pierce",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_psionic_cleave": {
+      "id": "card_tier3_psionic_cleave",
+      "name": "深淵靈能撕裂",
+      "category": "magic",
+      "tier": 3,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 1,
+      "description": "造成 20 點秘術傷害。",
+      "healthScore": 35,
+      "sanityScore": 38,
+      "overallScore": 37,
+      "tierRating": "D",
+      "winRate": 0.413,
+      "avgHealthLost": 18.9,
+      "avgSanityExpended": 9.8,
+      "avgTurns": 5.1,
+      "faultToleranceRatio": 0.43,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.413,
+          "overallScore": 37,
+          "avgHealthLost": 18.9,
+          "avgSanityExpended": 9.8
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 38,
+          "avgHealthLost": 19.2,
+          "avgSanityExpended": 9.9
+        },
+        "3": {
+          "winRate": 0.5,
+          "overallScore": 41,
+          "avgHealthLost": 18.2,
+          "avgSanityExpended": 10.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.21,
+        "bleed_pierce": 1.21,
+        "truth_restore": 1.21,
+        "madness_sacrifice": 1.21,
+        "high_cost_magic": 1.61,
+        "status_attrition": 1.21
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_rlyeh_codex": {
+      "id": "card_tier3_rlyeh_codex",
+      "name": "拉萊耶原典啟示",
+      "category": "truth",
+      "tier": 3,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "向理智牌庫注入 6 張真相卡牌。",
+      "healthScore": 22,
+      "sanityScore": 34,
+      "overallScore": 28,
+      "tierRating": "D",
+      "winRate": 0.26,
+      "avgHealthLost": 21.2,
+      "avgSanityExpended": 8.8,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.35,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.26,
+          "overallScore": 28,
+          "avgHealthLost": 21.2,
+          "avgSanityExpended": 8.8
+        },
+        "2": {
+          "winRate": 0.173,
+          "overallScore": 25,
+          "avgHealthLost": 22.1,
+          "avgSanityExpended": 6.8
+        },
+        "3": {
+          "winRate": 0.212,
+          "overallScore": 28,
+          "avgHealthLost": 21.7,
+          "avgSanityExpended": 6.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.93,
+        "bleed_pierce": 1.93,
+        "truth_restore": 1.93,
+        "madness_sacrifice": 1.93,
+        "high_cost_magic": 2.57,
+        "status_attrition": 1.93
+      },
+      "bestArchetype": "high_cost_magic",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_star_resonance": {
+      "id": "card_tier3_star_resonance",
+      "name": "超維星辰共鳴",
+      "category": "truth",
+      "tier": 3,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "free",
+      "costValue": 0,
+      "description": "獲得 10 點護甲，向理智牌庫注入 3 張真相卡牌。",
+      "healthScore": 29,
+      "sanityScore": 35,
+      "overallScore": 32,
+      "tierRating": "D",
+      "winRate": 0.356,
+      "avgHealthLost": 20.2,
+      "avgSanityExpended": 10,
+      "avgTurns": 6.4,
+      "faultToleranceRatio": 0.34,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.356,
+          "overallScore": 32,
+          "avgHealthLost": 20.2,
+          "avgSanityExpended": 10
+        },
+        "2": {
+          "winRate": 0.346,
+          "overallScore": 31,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 10.5
+        },
+        "3": {
+          "winRate": 0.346,
+          "overallScore": 30,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 10.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.41,
+        "bleed_pierce": 1.41,
+        "truth_restore": 1.41,
+        "madness_sacrifice": 1.41,
+        "high_cost_magic": 1.41,
+        "status_attrition": 1.41
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier3_sanity_anchor": {
+      "id": "card_tier3_sanity_anchor",
+      "name": "極限精神錨定",
+      "category": "skill",
+      "tier": 3,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 8 點護甲，洗回 5 張卡牌至理智牌庫。",
+      "healthScore": 31,
+      "sanityScore": 41,
+      "overallScore": 36,
+      "tierRating": "D",
+      "winRate": 0.375,
+      "avgHealthLost": 19.6,
+      "avgSanityExpended": 8.4,
+      "avgTurns": 6.5,
+      "faultToleranceRatio": 0.42,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.375,
+          "overallScore": 36,
+          "avgHealthLost": 19.6,
+          "avgSanityExpended": 8.4
+        },
+        "2": {
+          "winRate": 0.404,
+          "overallScore": 38,
+          "avgHealthLost": 19.2,
+          "avgSanityExpended": 8.2
+        },
+        "3": {
+          "winRate": 0.519,
+          "overallScore": 46,
+          "avgHealthLost": 17.8,
+          "avgSanityExpended": 7.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.33,
+        "bleed_pierce": 1.33,
+        "truth_restore": 1.33,
+        "madness_sacrifice": 1.33,
+        "high_cost_magic": 1.33,
+        "status_attrition": 1.33
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier4_god_slayer": {
+      "id": "card_tier4_god_slayer",
+      "name": "屠神裁決爆轟",
+      "category": "combat",
+      "tier": 4,
+      "occupations": [
+        "investigator"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 5 點物理傷害 × 6 段（真實穿刺，無視護甲直扣生命值）。",
+      "healthScore": 46,
+      "sanityScore": 47,
+      "overallScore": 46,
+      "tierRating": "C",
+      "winRate": 0.567,
+      "avgHealthLost": 17.6,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5,
+      "faultToleranceRatio": 0.46,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.567,
+          "overallScore": 46,
+          "avgHealthLost": 17.6,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.577,
+          "overallScore": 47,
+          "avgHealthLost": 17.2,
+          "avgSanityExpended": 9.3
+        },
+        "3": {
+          "winRate": 0.635,
+          "overallScore": 50,
+          "avgHealthLost": 16.6,
+          "avgSanityExpended": 9.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 0.88,
+        "bleed_pierce": 0.88,
+        "truth_restore": 0.88,
+        "madness_sacrifice": 0.88,
+        "high_cost_magic": 0.88,
+        "status_attrition": 1.18
+      },
+      "bestArchetype": "status_attrition",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier4_void_annihilation": {
+      "id": "card_tier4_void_annihilation",
+      "name": "超維虛空湮滅",
+      "category": "magic",
+      "tier": 4,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "sanity",
+      "costValue": 2,
+      "description": "造成 42 點秘術傷害。",
+      "healthScore": 46,
+      "sanityScore": 46,
+      "overallScore": 46,
+      "tierRating": "C",
+      "winRate": 0.577,
+      "avgHealthLost": 18,
+      "avgSanityExpended": 9.9,
+      "avgTurns": 5,
+      "faultToleranceRatio": 0.46,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.577,
+          "overallScore": 46,
+          "avgHealthLost": 18,
+          "avgSanityExpended": 9.9
+        },
+        "2": {
+          "winRate": 0.558,
+          "overallScore": 45,
+          "avgHealthLost": 17.6,
+          "avgSanityExpended": 10.2
+        },
+        "3": {
+          "winRate": 0.615,
+          "overallScore": 48,
+          "avgHealthLost": 17.1,
+          "avgSanityExpended": 10.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.16,
+        "bleed_pierce": 0.87,
+        "truth_restore": 1.16,
+        "madness_sacrifice": 0.87,
+        "high_cost_magic": 1.16,
+        "status_attrition": 1.16
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier4_astral_revelation": {
+      "id": "card_tier4_astral_revelation",
+      "name": "源初星辰啟示",
+      "category": "truth",
+      "tier": 4,
+      "occupations": [
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 12 點護甲，向理智牌庫注入 8 張真相卡牌。",
+      "healthScore": 29,
+      "sanityScore": 38,
+      "overallScore": 33,
+      "tierRating": "D",
+      "winRate": 0.356,
+      "avgHealthLost": 20.5,
+      "avgSanityExpended": 9,
+      "avgTurns": 7.3,
+      "faultToleranceRatio": 0.34,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.356,
+          "overallScore": 33,
+          "avgHealthLost": 20.5,
+          "avgSanityExpended": 9
+        },
+        "2": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 9
+        },
+        "3": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 20.4,
+          "avgSanityExpended": 8.9
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.87,
+        "bleed_pierce": 1.41,
+        "truth_restore": 1.41,
+        "madness_sacrifice": 1.41,
+        "high_cost_magic": 1.41,
+        "status_attrition": 1.41
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_tier4_elder_aegis": {
+      "id": "card_tier4_elder_aegis",
+      "name": "舊神庇護之陣",
+      "category": "skill",
+      "tier": 4,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "獲得 24 點護甲，抽取 2 張卡牌。",
+      "healthScore": 36,
+      "sanityScore": 38,
+      "overallScore": 40,
+      "tierRating": "D",
+      "winRate": 0.452,
+      "avgHealthLost": 19.4,
+      "avgSanityExpended": 10.3,
+      "avgTurns": 6,
+      "faultToleranceRatio": 0.55,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.452,
+          "overallScore": 40,
+          "avgHealthLost": 19.4,
+          "avgSanityExpended": 10.3
+        },
+        "2": {
+          "winRate": 0.481,
+          "overallScore": 41,
+          "avgHealthLost": 18.6,
+          "avgSanityExpended": 11.1
+        },
+        "3": {
+          "winRate": 0.558,
+          "overallScore": 43,
+          "avgHealthLost": 18.6,
+          "avgSanityExpended": 12.2
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.84,
+        "bleed_pierce": 1.48,
+        "truth_restore": 1.11,
+        "madness_sacrifice": 1.48,
+        "high_cost_magic": 1.48,
+        "status_attrition": 1.11
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_abyssal_fragment_1": {
+      "id": "card_abyssal_fragment_1",
+      "name": "深淵封印殘片·其一",
+      "category": "madness",
+      "costType": "free",
+      "costValue": 0,
+      "description": "無法打出。佔據手牌卡槽。集齊三枚引發星辰共鳴。",
+      "healthScore": 28,
+      "sanityScore": 35,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.337,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.28,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.337,
+          "overallScore": 30,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.308,
+          "overallScore": 28,
+          "avgHealthLost": 20.8,
+          "avgSanityExpended": 10
+        },
+        "3": {
+          "winRate": 0.25,
+          "overallScore": 24,
+          "avgHealthLost": 21,
+          "avgSanityExpended": 10.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.49,
+        "bleed_pierce": 1.49,
+        "truth_restore": 1.49,
+        "madness_sacrifice": 1.49,
+        "high_cost_magic": 1.49,
+        "status_attrition": 1.49
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_walls_rat_swarm",
+          "name": "牆中變異鼠群",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_abyssal_fragment_2": {
+      "id": "card_abyssal_fragment_2",
+      "name": "深淵封印殘片·其二",
+      "category": "madness",
+      "costType": "free",
+      "costValue": 0,
+      "description": "無法打出。佔據手牌卡槽。散發幽暗深海寒意。",
+      "healthScore": 29,
+      "sanityScore": 35,
+      "overallScore": 32,
+      "tierRating": "D",
+      "winRate": 0.346,
+      "avgHealthLost": 19.8,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.35,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 19.8,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.8,
+          "avgSanityExpended": 9.9
+        },
+        "3": {
+          "winRate": 0.25,
+          "overallScore": 25,
+          "avgHealthLost": 21.6,
+          "avgSanityExpended": 10.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.44,
+        "bleed_pierce": 1.44,
+        "truth_restore": 1.44,
+        "madness_sacrifice": 1.44,
+        "high_cost_magic": 1.44,
+        "status_attrition": 1.44
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_abyssal_fragment_3": {
+      "id": "card_abyssal_fragment_3",
+      "name": "深淵封印殘片·其三",
+      "category": "madness",
+      "costType": "free",
+      "costValue": 0,
+      "description": "無法打出。佔據手牌卡槽。三枚齊聚深淵質變。",
+      "healthScore": 28,
+      "sanityScore": 35,
+      "overallScore": 31,
+      "tierRating": "D",
+      "winRate": 0.346,
+      "avgHealthLost": 20.3,
+      "avgSanityExpended": 9.6,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.33,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.346,
+          "overallScore": 31,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 9.6
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.7,
+          "avgSanityExpended": 10
+        },
+        "3": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.9,
+          "avgSanityExpended": 10.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.44,
+        "bleed_pierce": 1.44,
+        "truth_restore": 1.44,
+        "madness_sacrifice": 1.44,
+        "high_cost_magic": 1.44,
+        "status_attrition": 1.44
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_complete_ancient_seal": {
+      "id": "card_complete_ancient_seal",
+      "name": "完整的深淵古印",
+      "category": "truth",
+      "tier": 4,
+      "costType": "free",
+      "costValue": 0,
+      "description": "【固有】開局必定抽至手中。洗回 10 張卡牌至理智牌庫，獲得 20 點護甲，向理智牌庫注入 5 張真相卡牌。終極首領神性未破（生命值大於 1 點）前無法打出；生命值降至 1 點時解鎖釋放，打出即引發太古星辰終極封滅。",
+      "healthScore": 45,
+      "sanityScore": 41,
+      "overallScore": 45,
+      "tierRating": "C",
+      "winRate": 0.51,
+      "avgHealthLost": 15.7,
+      "avgSanityExpended": 10.3,
+      "avgTurns": 9.5,
+      "faultToleranceRatio": 0.52,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.51,
+          "overallScore": 45,
+          "avgHealthLost": 15.7,
+          "avgSanityExpended": 10.3
+        },
+        "2": {
+          "winRate": 0.519,
+          "overallScore": 50,
+          "avgHealthLost": 13.8,
+          "avgSanityExpended": 7.5
+        },
+        "3": {
+          "winRate": 0.481,
+          "overallScore": 55,
+          "avgHealthLost": 10.8,
+          "avgSanityExpended": 4.5
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.64,
+        "bleed_pierce": 1.64,
+        "truth_restore": 0.98,
+        "madness_sacrifice": 1.31,
+        "high_cost_magic": 1.64,
+        "status_attrition": 0.98
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_abyss_curse": {
+      "id": "card_abyss_curse",
+      "name": "深淵詛咒",
+      "category": "madness",
+      "costType": "free",
+      "costValue": 0,
+      "description": "無法打出。佔據手牌卡槽。強行破除太古封印招致的永恆深淵詛咒。",
+      "healthScore": 27,
+      "sanityScore": 34,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.327,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.6,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.34,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.327,
+          "overallScore": 30,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.6
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 27,
+          "avgHealthLost": 21.2,
+          "avgSanityExpended": 9.9
+        },
+        "3": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.8,
+          "avgSanityExpended": 10.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.53,
+        "bleed_pierce": 1.53,
+        "truth_restore": 1.53,
+        "madness_sacrifice": 1.53,
+        "high_cost_magic": 1.53,
+        "status_attrition": 1.53
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_walls_rat_swarm",
+          "name": "牆中變異鼠群",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_whispers_of_shattered_stars": {
+      "id": "card_whispers_of_shattered_stars",
+      "name": "星辰碎裂之囈語",
+      "category": "madness",
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "不可名狀之星辰囈語；打出時侵蝕自身 2 點理智牌庫。",
+      "healthScore": 28,
+      "sanityScore": 35,
+      "overallScore": 30,
+      "tierRating": "D",
+      "winRate": 0.337,
+      "avgHealthLost": 20.1,
+      "avgSanityExpended": 9.7,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.28,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.337,
+          "overallScore": 30,
+          "avgHealthLost": 20.1,
+          "avgSanityExpended": 9.7
+        },
+        "2": {
+          "winRate": 0.269,
+          "overallScore": 25,
+          "avgHealthLost": 21.3,
+          "avgSanityExpended": 10.3
+        },
+        "3": {
+          "winRate": 0.269,
+          "overallScore": 26,
+          "avgHealthLost": 20.9,
+          "avgSanityExpended": 10.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.98,
+        "bleed_pierce": 1.49,
+        "truth_restore": 1.49,
+        "madness_sacrifice": 1.49,
+        "high_cost_magic": 1.49,
+        "status_attrition": 1.49
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_underwater_demolition": {
+      "id": "card_event_underwater_demolition",
+      "name": "水下爆破",
+      "category": "combat",
+      "tier": 2,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "造成 16 點物理傷害。【消耗】引爆強力水下炸藥，打出後移出戰鬥。",
+      "healthScore": 33,
+      "sanityScore": 38,
+      "overallScore": 36,
+      "tierRating": "D",
+      "winRate": 0.394,
+      "avgHealthLost": 19.2,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.2,
+      "faultToleranceRatio": 0.42,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.394,
+          "overallScore": 36,
+          "avgHealthLost": 19.2,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.442,
+          "overallScore": 39,
+          "avgHealthLost": 18.5,
+          "avgSanityExpended": 9.2
+        },
+        "3": {
+          "winRate": 0.481,
+          "overallScore": 41,
+          "avgHealthLost": 18.3,
+          "avgSanityExpended": 9.7
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.27,
+        "bleed_pierce": 1.27,
+        "truth_restore": 1.27,
+        "madness_sacrifice": 1.27,
+        "high_cost_magic": 1.27,
+        "status_attrition": 1.27
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_tide_whisper": {
+      "id": "card_event_tide_whisper",
+      "name": "潮汐之音",
+      "category": "truth",
+      "tier": 2,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "傾聽深海潮音，向理智牌庫注入 3 張真相卡牌。",
+      "healthScore": 23,
+      "sanityScore": 34,
+      "overallScore": 28,
+      "tierRating": "D",
+      "winRate": 0.279,
+      "avgHealthLost": 21.2,
+      "avgSanityExpended": 9.1,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.3,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.279,
+          "overallScore": 28,
+          "avgHealthLost": 21.2,
+          "avgSanityExpended": 9.1
+        },
+        "2": {
+          "winRate": 0.231,
+          "overallScore": 25,
+          "avgHealthLost": 21.7,
+          "avgSanityExpended": 8.8
+        },
+        "3": {
+          "winRate": 0.192,
+          "overallScore": 24,
+          "avgHealthLost": 21.7,
+          "avgSanityExpended": 8.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.79,
+        "bleed_pierce": 1.79,
+        "truth_restore": 1.79,
+        "madness_sacrifice": 1.79,
+        "high_cost_magic": 1.79,
+        "status_attrition": 1.79
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_walls_rat_swarm",
+          "name": "牆中變異鼠群",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_proto_tentacle": {
+      "id": "card_event_proto_tentacle",
+      "name": "原形觸鬚",
+      "category": "combat",
+      "tier": 2,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 14 點物理傷害。揮舞原生質觸手，自身承受 2 點反噬傷害。",
+      "healthScore": 32,
+      "sanityScore": 38,
+      "overallScore": 35,
+      "tierRating": "D",
+      "winRate": 0.394,
+      "avgHealthLost": 19.7,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.2,
+      "faultToleranceRatio": 0.4,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.394,
+          "overallScore": 35,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.462,
+          "overallScore": 39,
+          "avgHealthLost": 19.5,
+          "avgSanityExpended": 9.7
+        },
+        "3": {
+          "winRate": 0.462,
+          "overallScore": 38,
+          "avgHealthLost": 19.3,
+          "avgSanityExpended": 9.8
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.11,
+        "bleed_pierce": 1.27,
+        "truth_restore": 1.27,
+        "madness_sacrifice": 1.27,
+        "high_cost_magic": 2.11,
+        "status_attrition": 1.27
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_elder_geometry": {
+      "id": "card_event_elder_geometry",
+      "name": "太古幾何密卷",
+      "category": "truth",
+      "tier": 2,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 1 點反噬傷害，向理智牌庫注入 4 張真相卡牌。",
+      "healthScore": 28,
+      "sanityScore": 36,
+      "overallScore": 32,
+      "tierRating": "D",
+      "winRate": 0.346,
+      "avgHealthLost": 20.3,
+      "avgSanityExpended": 9.4,
+      "avgTurns": 5.6,
+      "faultToleranceRatio": 0.33,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.346,
+          "overallScore": 32,
+          "avgHealthLost": 20.3,
+          "avgSanityExpended": 9.4
+        },
+        "2": {
+          "winRate": 0.231,
+          "overallScore": 26,
+          "avgHealthLost": 21.4,
+          "avgSanityExpended": 9
+        },
+        "3": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 21,
+          "avgSanityExpended": 9.9
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.44,
+        "bleed_pierce": 1.44,
+        "truth_restore": 1.44,
+        "madness_sacrifice": 1.44,
+        "high_cost_magic": 1.44,
+        "status_attrition": 1.44
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_star_spawn_sigil": {
+      "id": "card_event_star_spawn_sigil",
+      "name": "星之眷族印記",
+      "category": "skill",
+      "tier": 3,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 2,
+      "description": "凝聚星辰護壁，獲得 12 點護甲並向理智牌庫注入 2 張真相卡牌。",
+      "healthScore": 31,
+      "sanityScore": 36,
+      "overallScore": 34,
+      "tierRating": "D",
+      "winRate": 0.385,
+      "avgHealthLost": 20.2,
+      "avgSanityExpended": 10,
+      "avgTurns": 6.5,
+      "faultToleranceRatio": 0.41,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.385,
+          "overallScore": 34,
+          "avgHealthLost": 20.2,
+          "avgSanityExpended": 10
+        },
+        "2": {
+          "winRate": 0.423,
+          "overallScore": 35,
+          "avgHealthLost": 19.4,
+          "avgSanityExpended": 10.8
+        },
+        "3": {
+          "winRate": 0.385,
+          "overallScore": 33,
+          "avgHealthLost": 19.7,
+          "avgSanityExpended": 11.3
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.3,
+        "bleed_pierce": 1.73,
+        "truth_restore": 1.3,
+        "madness_sacrifice": 1.3,
+        "high_cost_magic": 1.73,
+        "status_attrition": 1.3
+      },
+      "bestArchetype": "bleed_pierce",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_dimension_stride": {
+      "id": "card_event_dimension_stride",
+      "name": "維度漫步",
+      "category": "skill",
+      "tier": 3,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "造成 10 點物理傷害，獲得 8 點護甲。穿梭於重力倒錯的維度間。",
+      "healthScore": 36,
+      "sanityScore": 39,
+      "overallScore": 39,
+      "tierRating": "D",
+      "winRate": 0.442,
+      "avgHealthLost": 19,
+      "avgSanityExpended": 10,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.51,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.442,
+          "overallScore": 39,
+          "avgHealthLost": 19,
+          "avgSanityExpended": 10
+        },
+        "2": {
+          "winRate": 0.481,
+          "overallScore": 42,
+          "avgHealthLost": 18.5,
+          "avgSanityExpended": 10
+        },
+        "3": {
+          "winRate": 0.596,
+          "overallScore": 47,
+          "avgHealthLost": 17.5,
+          "avgSanityExpended": 10.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.13,
+        "bleed_pierce": 1.51,
+        "truth_restore": 1.13,
+        "madness_sacrifice": 1.13,
+        "high_cost_magic": 1.13,
+        "status_attrition": 1.13
+      },
+      "bestArchetype": "bleed_pierce",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_final_awakening": {
+      "id": "card_event_final_awakening",
+      "name": "終焉覺悟",
+      "category": "truth",
+      "tier": 4,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 0,
+      "description": "【消耗】。向理智牌庫注入 5 張真相卡牌，堅定最後的理智意志。打出後移出戰鬥。",
+      "healthScore": 27,
+      "sanityScore": 37,
+      "overallScore": 31,
+      "tierRating": "D",
+      "winRate": 0.327,
+      "avgHealthLost": 20.5,
+      "avgSanityExpended": 8.7,
+      "avgTurns": 5.8,
+      "faultToleranceRatio": 0.3,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.327,
+          "overallScore": 31,
+          "avgHealthLost": 20.5,
+          "avgSanityExpended": 8.7
+        },
+        "2": {
+          "winRate": 0.192,
+          "overallScore": 25,
+          "avgHealthLost": 21.8,
+          "avgSanityExpended": 7.3
+        },
+        "3": {
+          "winRate": 0.173,
+          "overallScore": 24,
+          "avgHealthLost": 22.1,
+          "avgSanityExpended": 7.1
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.53,
+        "bleed_pierce": 1.53,
+        "truth_restore": 1.53,
+        "madness_sacrifice": 1.53,
+        "high_cost_magic": 1.53,
+        "status_attrition": 1.53
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "event_card_deep_truth": {
+      "id": "event_card_deep_truth",
+      "name": "深潛者手札",
+      "category": "truth",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+      "healthScore": 25,
+      "sanityScore": 33,
+      "overallScore": 28,
+      "tierRating": "D",
+      "winRate": 0.288,
+      "avgHealthLost": 20.4,
+      "avgSanityExpended": 9.3,
+      "avgTurns": 5.4,
+      "faultToleranceRatio": 0.29,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 20.4,
+          "avgSanityExpended": 9.3
+        },
+        "2": {
+          "winRate": 0.288,
+          "overallScore": 28,
+          "avgHealthLost": 21,
+          "avgSanityExpended": 9.3
+        },
+        "3": {
+          "winRate": 0.25,
+          "overallScore": 25,
+          "avgHealthLost": 21.3,
+          "avgSanityExpended": 9.9
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 1.73,
+        "bleed_pierce": 1.73,
+        "truth_restore": 1.73,
+        "madness_sacrifice": 1.73,
+        "high_cost_magic": 1.73,
+        "status_attrition": 1.73
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    },
+    "card_event_breakwater": {
+      "id": "card_event_breakwater",
+      "name": "心智防波堤",
+      "category": "truth",
+      "tier": 1,
+      "occupations": [
+        "investigator",
+        "occultist"
+      ],
+      "costType": "stamina",
+      "costValue": 1,
+      "description": "自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+      "healthScore": 25,
+      "sanityScore": 33,
+      "overallScore": 29,
+      "tierRating": "D",
+      "winRate": 0.298,
+      "avgHealthLost": 20.5,
+      "avgSanityExpended": 9.5,
+      "avgTurns": 5.5,
+      "faultToleranceRatio": 0.31,
+      "copiesCurve": {
+        "1": {
+          "winRate": 0.298,
+          "overallScore": 29,
+          "avgHealthLost": 20.5,
+          "avgSanityExpended": 9.5
+        },
+        "2": {
+          "winRate": 0.231,
+          "overallScore": 25,
+          "avgHealthLost": 21.7,
+          "avgSanityExpended": 9.6
+        },
+        "3": {
+          "winRate": 0.231,
+          "overallScore": 25,
+          "avgHealthLost": 21.7,
+          "avgSanityExpended": 9.6
+        }
+      },
+      "synergyMultipliers": {
+        "armor_counter": 2.24,
+        "bleed_pierce": 1.68,
+        "truth_restore": 1.68,
+        "madness_sacrifice": 1.68,
+        "high_cost_magic": 2.24,
+        "status_attrition": 1.68
+      },
+      "bestArchetype": "armor_counter",
+      "favorableEnemies": [
+        {
+          "id": "enemy_arkham_cultist",
+          "name": "阿卡姆異教徒",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_ghoul_lurker",
+          "name": "食屍鬼潛伏者",
+          "winRate": 1
+        },
+        {
+          "id": "enemy_nightgaunt",
+          "name": "夜魘",
+          "winRate": 1
+        }
+      ],
+      "unfavorableEnemies": [
+        {
+          "id": "enemy_cosmic_prophet",
+          "name": "終焉星辰先知",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_non_euclidean_construct",
+          "name": "非歐幾何異構體",
+          "winRate": 0
+        },
+        {
+          "id": "enemy_rlyeh_dream_apparition",
+          "name": "拉萊耶夢境具象",
+          "winRate": 0
+        }
+      ]
+    }
+  },
+  "relics": {
+    "elder_sign_amulet": {
+      "id": "elder_sign_amulet",
+      "name": "古神之印護符",
+      "rarity": "common",
+      "description": "古老純銀鍛造之避邪護符。每場戰鬥開始時獲得 5 點初始防禦護甲。",
+      "icon": "Shield",
+      "copiesCurve": {
+        "0": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.5,
+          "avgSanityExpended": 9.5,
+          "score": 64
+        },
+        "1": {
+          "winRate": 0.733,
+          "avgHealthLost": 10.8,
+          "avgSanityExpended": 9.6,
+          "score": 68
+        },
+        "2": {
+          "winRate": 0.767,
+          "avgHealthLost": 9.4,
+          "avgSanityExpended": 9.9,
+          "score": 70
+        },
+        "3": {
+          "winRate": 0.867,
+          "avgHealthLost": 7.2,
+          "avgSanityExpended": 9.7,
+          "score": 76
+        }
+      },
+      "marginalBenefitPerStack": 4,
+      "overallScore": 72,
+      "tierRating": "A"
+    },
+    "pocket_watch": {
+      "id": "pocket_watch",
+      "name": "黃銅懷錶",
+      "rarity": "rare",
+      "description": "指針倒轉的詭譎懷錶。手牌容量永久 +1（每回合抽牌量與保留上限同步提升 1 張）。",
+      "icon": "Watch",
+      "copiesCurve": {
+        "0": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.9,
+          "avgSanityExpended": 9.5,
+          "score": 64
+        },
+        "1": {
+          "winRate": 0.7,
+          "avgHealthLost": 13,
+          "avgSanityExpended": 9.2,
+          "score": 64
+        },
+        "2": {
+          "winRate": 0.667,
+          "avgHealthLost": 14.1,
+          "avgSanityExpended": 9.4,
+          "score": 62
+        },
+        "3": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.5,
+          "avgSanityExpended": 9.4,
+          "score": 64
+        }
+      },
+      "marginalBenefitPerStack": 0,
+      "overallScore": 64,
+      "tierRating": "B"
+    },
+    "vitality_elixir": {
+      "id": "vitality_elixir",
+      "name": "活力秘藥",
+      "rarity": "common",
+      "description": "散發刺鼻草藥氣息的密斯卡托尼克特製補劑。最大生命值永久 +5，獲得時立即恢復 5 點肉體生命。",
+      "icon": "Heart",
+      "copiesCurve": {
+        "0": {
+          "winRate": 0.633,
+          "avgHealthLost": 14.3,
+          "avgSanityExpended": 9.4,
+          "score": 60
+        },
+        "1": {
+          "winRate": 0.667,
+          "avgHealthLost": 13.4,
+          "avgSanityExpended": 9.5,
+          "score": 63
+        },
+        "2": {
+          "winRate": 0.667,
+          "avgHealthLost": 13.5,
+          "avgSanityExpended": 9.3,
+          "score": 62
+        },
+        "3": {
+          "winRate": 0.667,
+          "avgHealthLost": 13.8,
+          "avgSanityExpended": 9.4,
+          "score": 62
+        }
+      },
+      "marginalBenefitPerStack": 0.7,
+      "overallScore": 64,
+      "tierRating": "B"
+    },
+    "obsidian_mirror": {
+      "id": "obsidian_mirror",
+      "name": "黑曜石古鏡",
+      "rarity": "rare",
+      "description": "映照虛空裂隙的深黑鏡片。每場戰鬥開始時獲得 2 層【堅韌】印記。",
+      "icon": "Disc",
+      "copiesCurve": {
+        "0": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.6,
+          "avgSanityExpended": 9.4,
+          "score": 64
+        },
+        "1": {
+          "winRate": 0.667,
+          "avgHealthLost": 13.8,
+          "avgSanityExpended": 9.3,
+          "score": 62
+        },
+        "2": {
+          "winRate": 0.767,
+          "avgHealthLost": 13.3,
+          "avgSanityExpended": 9.4,
+          "score": 67
+        },
+        "3": {
+          "winRate": 0.733,
+          "avgHealthLost": 12.5,
+          "avgSanityExpended": 9.6,
+          "score": 66
+        }
+      },
+      "marginalBenefitPerStack": 0.7,
+      "overallScore": 63,
+      "tierRating": "B"
+    },
+    "dread_talisman": {
+      "id": "dread_talisman",
+      "name": "舊日凶符",
+      "rarity": "rare",
+      "description": "蝕刻著太古符文的骨質雕像。每場戰鬥開始時獲得 1 層【力量】印記。",
+      "icon": "Skull",
+      "copiesCurve": {
+        "0": {
+          "winRate": 0.667,
+          "avgHealthLost": 13.5,
+          "avgSanityExpended": 9.3,
+          "score": 62
+        },
+        "1": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.7,
+          "avgSanityExpended": 9.3,
+          "score": 64
+        },
+        "2": {
+          "winRate": 0.733,
+          "avgHealthLost": 12.1,
+          "avgSanityExpended": 8.9,
+          "score": 67
+        },
+        "3": {
+          "winRate": 0.8,
+          "avgHealthLost": 10.3,
+          "avgSanityExpended": 7.9,
+          "score": 73
+        }
+      },
+      "marginalBenefitPerStack": 3.7,
+      "overallScore": 68,
+      "tierRating": "B"
+    },
+    "eldritch_lantern": {
+      "id": "eldritch_lantern",
+      "name": "異界提燈",
+      "rarity": "mythic",
+      "description": "燃燒幽綠磷火的防風提燈。每場戰鬥開始時獲得 1 點額外行動精力。",
+      "icon": "Flame",
+      "copiesCurve": {
+        "0": {
+          "winRate": 0.667,
+          "avgHealthLost": 14,
+          "avgSanityExpended": 9.3,
+          "score": 62
+        },
+        "1": {
+          "winRate": 0.667,
+          "avgHealthLost": 13.4,
+          "avgSanityExpended": 9.3,
+          "score": 63
+        },
+        "2": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.2,
+          "avgSanityExpended": 9.4,
+          "score": 64
+        },
+        "3": {
+          "winRate": 0.7,
+          "avgHealthLost": 13.9,
+          "avgSanityExpended": 9.4,
+          "score": 64
+        }
+      },
+      "marginalBenefitPerStack": 0.7,
+      "overallScore": 64,
+      "tierRating": "B"
+    }
+  },
+  "enemies": {
+    "enemy_cosmic_acolyte": {
+      "id": "enemy_cosmic_acolyte",
+      "name": "星辰古神侍從",
+      "title": "舊日低語的狂侍",
+      "depth": 4,
+      "role": "normal",
+      "health": 76,
+      "armor": 6,
+      "threatScore": 97,
+      "rank": 1,
+      "investigatorWinRate": 0.007,
+      "avgInvestigatorHealthLost": 24.9,
+      "avgSanityEroded": 12.1,
+      "avgCombatDurationTurns": 6.3,
+      "counteredByCards": [
+        {
+          "id": "card_tier4_void_annihilation",
+          "name": "超維虛空湮滅",
+          "winRate": 0.5
+        },
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_dagon_champion": {
+      "id": "enemy_dagon_champion",
+      "name": "達貢眷族督軍",
+      "title": "深淵王廷武侍",
+      "depth": 2,
+      "role": "elite",
+      "health": 68,
+      "armor": 8,
+      "threatScore": 96,
+      "rank": 2,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 11.5,
+      "avgCombatDurationTurns": 6.2,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "high_cost_magic",
+      "dangerousArchetype": "truth_restore"
+    },
+    "enemy_star_spawn_larva": {
+      "id": "enemy_star_spawn_larva",
+      "name": "星之眷族幼體",
+      "title": "沉睡之神的初生血脈",
+      "depth": 4,
+      "role": "normal",
+      "health": 80,
+      "armor": 8,
+      "threatScore": 96,
+      "rank": 3,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 10.6,
+      "avgCombatDurationTurns": 5.6,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_hound_of_tindalos": {
+      "id": "enemy_hound_of_tindalos",
+      "name": "廷達洛斯獵犬",
+      "title": "非歐維度的獵殺者",
+      "depth": 3,
+      "role": "normal",
+      "health": 58,
+      "armor": 6,
+      "threatScore": 95,
+      "rank": 4,
+      "investigatorWinRate": 0.007,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 10,
+      "avgCombatDurationTurns": 4.1,
+      "counteredByCards": [
+        {
+          "id": "card_complete_ancient_seal",
+          "name": "完整的深淵古印",
+          "winRate": 0.5
+        },
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_void_wanderer": {
+      "id": "enemy_void_wanderer",
+      "name": "虛空漫遊者",
+      "title": "裂隙維度的無形殘影",
+      "depth": 3,
+      "role": "normal",
+      "health": 58,
+      "armor": 4,
+      "threatScore": 94,
+      "rank": 5,
+      "investigatorWinRate": 0.014,
+      "avgInvestigatorHealthLost": 24.9,
+      "avgSanityEroded": 9.8,
+      "avgCombatDurationTurns": 5.4,
+      "counteredByCards": [
+        {
+          "id": "card_tier4_void_annihilation",
+          "name": "超維虛空湮滅",
+          "winRate": 0.75
+        },
+        {
+          "id": "card_tier3_dum_dum",
+          "name": "達姆高爆彈連射",
+          "winRate": 0.25
+        },
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_migo_scout": {
+      "id": "enemy_migo_scout",
+      "name": "米·戈偵察者",
+      "title": "猶格斯真菌甲殼生物",
+      "depth": 3,
+      "role": "normal",
+      "health": 54,
+      "armor": 5,
+      "threatScore": 93,
+      "rank": 6,
+      "investigatorWinRate": 0.041,
+      "avgInvestigatorHealthLost": 24.8,
+      "avgSanityEroded": 10.2,
+      "avgCombatDurationTurns": 5.7,
+      "counteredByCards": [
+        {
+          "id": "card_tier4_god_slayer",
+          "name": "屠神裁決爆轟",
+          "winRate": 1
+        },
+        {
+          "id": "card_tier4_void_annihilation",
+          "name": "超維虛空湮滅",
+          "winRate": 1
+        },
+        {
+          "id": "card_tier3_demolition_pack",
+          "name": "軍用特種炸藥包",
+          "winRate": 0.5
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_rlyeh_sarcophagus_guard": {
+      "id": "enemy_rlyeh_sarcophagus_guard",
+      "name": "拉萊耶石棺守衛",
+      "title": "非歐幾何巨石看守者",
+      "depth": 4,
+      "role": "normal",
+      "health": 80,
+      "armor": 10,
+      "threatScore": 93,
+      "rank": 7,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 8,
+      "avgCombatDurationTurns": 4.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_rlyeh_dream_apparition": {
+      "id": "enemy_rlyeh_dream_apparition",
+      "name": "拉萊耶夢境具象",
+      "title": "舊日沉睡意識的具象化",
+      "depth": 4,
+      "role": "normal",
+      "health": 75,
+      "armor": 6,
+      "threatScore": 93,
+      "rank": 8,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 8.5,
+      "avgCombatDurationTurns": 4.2,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_cosmic_prophet": {
+      "id": "enemy_cosmic_prophet",
+      "name": "終焉星辰先知",
+      "title": "群星歸位的宣講者",
+      "depth": 4,
+      "role": "normal",
+      "health": 72,
+      "armor": 5,
+      "threatScore": 93,
+      "rank": 9,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 8.2,
+      "avgCombatDurationTurns": 4.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_proto_shoggoth_spawn": {
+      "id": "enemy_proto_shoggoth_spawn",
+      "name": "原生黑泥幼體",
+      "title": "太古黏液裂片",
+      "depth": 3,
+      "role": "normal",
+      "health": 60,
+      "armor": 6,
+      "threatScore": 92,
+      "rank": 10,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 7.1,
+      "avgCombatDurationTurns": 4.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_byakhee_rotwing": {
+      "id": "enemy_byakhee_rotwing",
+      "name": "拜亞基腐翼獸",
+      "title": "星間狂嚎死者",
+      "depth": 3,
+      "role": "normal",
+      "health": 56,
+      "armor": 4,
+      "threatScore": 92,
+      "rank": 11,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 7.1,
+      "avgCombatDurationTurns": 4.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_deep_one_elder": {
+      "id": "enemy_deep_one_elder",
+      "name": "深潛者長老",
+      "title": "舊日大袞的祭司",
+      "depth": 2,
+      "role": "normal",
+      "health": 46,
+      "armor": 5,
+      "threatScore": 91,
+      "rank": 12,
+      "investigatorWinRate": 0.068,
+      "avgInvestigatorHealthLost": 24.6,
+      "avgSanityEroded": 10.4,
+      "avgCombatDurationTurns": 6.7,
+      "counteredByCards": [
+        {
+          "id": "card_tier3_demolition_pack",
+          "name": "軍用特種炸藥包",
+          "winRate": 0.75
+        },
+        {
+          "id": "card_tier4_god_slayer",
+          "name": "屠神裁決爆轟",
+          "winRate": 0.75
+        },
+        {
+          "id": "card_tier2_frost_grasp",
+          "name": "深海冰霜之握",
+          "winRate": 0.5
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_non_euclidean_construct": {
+      "id": "enemy_non_euclidean_construct",
+      "name": "非歐幾何異構體",
+      "title": "崩塌維度的活體石塊",
+      "depth": 4,
+      "role": "normal",
+      "health": 78,
+      "armor": 12,
+      "threatScore": 91,
+      "rank": 13,
+      "investigatorWinRate": 0,
+      "avgInvestigatorHealthLost": 25,
+      "avgSanityEroded": 6,
+      "avgCombatDurationTurns": 3.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 0
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 0
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 0
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_abyssal_barnacle_mass": {
+      "id": "enemy_abyssal_barnacle_mass",
+      "name": "深海寄生藤壺群",
+      "title": "礁岩活體寄生體",
+      "depth": 2,
+      "role": "normal",
+      "health": 46,
+      "armor": 6,
+      "threatScore": 84,
+      "rank": 14,
+      "investigatorWinRate": 0.164,
+      "avgInvestigatorHealthLost": 23.9,
+      "avgSanityEroded": 10.4,
+      "avgCombatDurationTurns": 8.6,
+      "counteredByCards": [
+        {
+          "id": "reward_calm_observation",
+          "name": "冷靜觀察",
+          "winRate": 1
+        },
+        {
+          "id": "card_tier3_void_collapse",
+          "name": "虛空黑洞坍縮",
+          "winRate": 1
+        },
+        {
+          "id": "card_tier4_god_slayer",
+          "name": "屠神裁決爆轟",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_ghoul_high_priest": {
+      "id": "enemy_ghoul_high_priest",
+      "name": "食屍鬼大祭司",
+      "title": "納斯谷地底主祭",
+      "depth": 1,
+      "role": "elite",
+      "health": 48,
+      "armor": 5,
+      "threatScore": 81,
+      "rank": 15,
+      "investigatorWinRate": 0.195,
+      "avgInvestigatorHealthLost": 23.7,
+      "avgSanityEroded": 9.5,
+      "avgCombatDurationTurns": 6.7,
+      "counteredByCards": [
+        {
+          "id": "reward_ancient_amulet_1",
+          "name": "遠古護身符",
+          "winRate": 1
+        },
+        {
+          "id": "card_tier3_void_collapse",
+          "name": "虛空黑洞坍縮",
+          "winRate": 1
+        },
+        {
+          "id": "card_tier4_god_slayer",
+          "name": "屠神裁決爆轟",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_deep_one_warrior": {
+      "id": "enemy_deep_one_warrior",
+      "name": "深潛者戰士",
+      "title": "礁岩海蝕巡獵者",
+      "depth": 2,
+      "role": "normal",
+      "health": 42,
+      "armor": 4,
+      "threatScore": 77,
+      "rank": 16,
+      "investigatorWinRate": 0.284,
+      "avgInvestigatorHealthLost": 23.6,
+      "avgSanityEroded": 10.2,
+      "avgCombatDurationTurns": 8.1,
+      "counteredByCards": [
+        {
+          "id": "reward_shotgun_1",
+          "name": "雙管獵槍",
+          "winRate": 1
+        },
+        {
+          "id": "reward_veteran_instinct",
+          "name": "老兵本能",
+          "winRate": 1
+        },
+        {
+          "id": "reward_whispers_of_madness",
+          "name": "狂亂低語",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_innsmouth_hybrid": {
+      "id": "enemy_innsmouth_hybrid",
+      "name": "印斯茅斯混血種",
+      "title": "尚未完全退化的海嗣",
+      "depth": 2,
+      "role": "normal",
+      "health": 44,
+      "armor": 3,
+      "threatScore": 52,
+      "rank": 17,
+      "investigatorWinRate": 0.682,
+      "avgInvestigatorHealthLost": 22.6,
+      "avgSanityEroded": 10.3,
+      "avgCombatDurationTurns": 7.6,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_formless_spawn": {
+      "id": "enemy_formless_spawn",
+      "name": "無形之子",
+      "title": "札特瓜的漆黑流質",
+      "depth": 3,
+      "role": "normal",
+      "health": 60,
+      "armor": 5,
+      "threatScore": 41,
+      "rank": 18,
+      "investigatorWinRate": 0.788,
+      "avgInvestigatorHealthLost": 15.6,
+      "avgSanityEroded": 12.8,
+      "avgCombatDurationTurns": 6.6,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_tidal_siren": {
+      "id": "enemy_tidal_siren",
+      "name": "潮汐塞壬海妖",
+      "title": "海蝕礁岩的誘溺歌者",
+      "depth": 2,
+      "role": "normal",
+      "health": 40,
+      "armor": 0,
+      "threatScore": 39,
+      "rank": 19,
+      "investigatorWinRate": 0.822,
+      "avgInvestigatorHealthLost": 17.2,
+      "avgSanityEroded": 10.9,
+      "avgCombatDurationTurns": 6,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_breathe_1",
+          "name": "深呼吸",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_cultist_zealot": {
+      "id": "enemy_cultist_zealot",
+      "name": "異教狂熱信徒",
+      "title": "盲目癡愚的獻祭者",
+      "depth": 1,
+      "role": "normal",
+      "health": 32,
+      "armor": 2,
+      "threatScore": 29,
+      "rank": 20,
+      "investigatorWinRate": 0.949,
+      "avgInvestigatorHealthLost": 14,
+      "avgSanityEroded": 12.3,
+      "avgCombatDurationTurns": 7.2,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_ghoul_lurker": {
+      "id": "enemy_ghoul_lurker",
+      "name": "食屍鬼潛伏者",
+      "title": "墓穴的腐食者",
+      "depth": 1,
+      "role": "normal",
+      "health": 32,
+      "armor": 2,
+      "threatScore": 26,
+      "rank": 21,
+      "investigatorWinRate": 0.979,
+      "avgInvestigatorHealthLost": 12.8,
+      "avgSanityEroded": 12.3,
+      "avgCombatDurationTurns": 7.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_cemetery_carrion_worm": {
+      "id": "enemy_cemetery_carrion_worm",
+      "name": "墓穴腐生蠕蟲",
+      "title": "死土下的腐食巨蛆",
+      "depth": 1,
+      "role": "normal",
+      "health": 34,
+      "armor": 3,
+      "threatScore": 24,
+      "rank": 22,
+      "investigatorWinRate": 0.99,
+      "avgInvestigatorHealthLost": 12.5,
+      "avgSanityEroded": 10.6,
+      "avgCombatDurationTurns": 7.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_drowned_soul": {
+      "id": "enemy_drowned_soul",
+      "name": "溺死亡魂",
+      "title": "冰冷潮汐的哀鳴者",
+      "depth": 2,
+      "role": "normal",
+      "health": 38,
+      "armor": 0,
+      "threatScore": 21,
+      "rank": 23,
+      "investigatorWinRate": 1,
+      "avgInvestigatorHealthLost": 8.6,
+      "avgSanityEroded": 12.7,
+      "avgCombatDurationTurns": 7.8,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_arkham_cultist": {
+      "id": "enemy_arkham_cultist",
+      "name": "阿卡姆異教徒",
+      "title": "狂熱的舊日崇拜者",
+      "depth": 1,
+      "role": "normal",
+      "health": 28,
+      "armor": 0,
+      "threatScore": 12,
+      "rank": 24,
+      "investigatorWinRate": 1,
+      "avgInvestigatorHealthLost": 5.8,
+      "avgSanityEroded": 6,
+      "avgCombatDurationTurns": 3.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_nightgaunt": {
+      "id": "enemy_nightgaunt",
+      "name": "夜魘",
+      "title": "無貌的黑翼捕食者",
+      "depth": 1,
+      "role": "normal",
+      "health": 30,
+      "armor": 0,
+      "threatScore": 9,
+      "rank": 25,
+      "investigatorWinRate": 1,
+      "avgInvestigatorHealthLost": 2.9,
+      "avgSanityEroded": 6.1,
+      "avgCombatDurationTurns": 3.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    },
+    "enemy_walls_rat_swarm": {
+      "id": "enemy_walls_rat_swarm",
+      "name": "牆中變異鼠群",
+      "title": "陰暗夾壁的囓咬狂潮",
+      "depth": 1,
+      "role": "normal",
+      "health": 30,
+      "armor": 0,
+      "threatScore": 8,
+      "rank": 26,
+      "investigatorWinRate": 1,
+      "avgInvestigatorHealthLost": 1.9,
+      "avgSanityEroded": 6,
+      "avgCombatDurationTurns": 3.1,
+      "counteredByCards": [
+        {
+          "id": "card_revolver_1",
+          "name": "左輪射擊",
+          "winRate": 1
+        },
+        {
+          "id": "card_punch_1",
+          "name": "重拳壓制",
+          "winRate": 1
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "winRate": 1
+        }
+      ],
+      "vulnerableArchetype": "armor_counter",
+      "dangerousArchetype": "armor_counter"
+    }
+  },
+  "archetypeDefinitions": {
+    "armor_counter": {
+      "id": "armor_counter",
+      "name": "護甲反擊 (鐵壁蓄力)",
+      "description": "依賴高額格擋吸收敵怪傷害，配合護甲猛擊或反傷連鎖終結對手的穩健防禦流派。",
+      "coreCardNames": [
+        "就地掩蔽",
+        "星界庇護",
+        "護甲猛擊",
+        "鋼鐵意志屏障",
+        "不可侵犯之壁"
+      ]
+    },
+    "bleed_pierce": {
+      "id": "bleed_pierce",
+      "name": "流血穿刺 (致命精準)",
+      "description": "透過高層數流血持續折磨敵怪，搭配穿刺攻擊撕裂厚重護甲的爆發打擊流派。",
+      "coreCardNames": [
+        "軍刀突刺",
+        "快速拔槍",
+        "弱點狙擊",
+        "破魔銀質短刃",
+        "達姆高爆彈連射"
+      ]
+    },
+    "truth_restore": {
+      "id": "truth_restore",
+      "name": "真相回補 (洞悉神智)",
+      "description": "不斷洗回牌庫並注入真相微光，維持理智充盈與手牌循環的控場長盤流派。",
+      "coreCardNames": [
+        "舊日殘頁",
+        "銀鑰儀式",
+        "星界洞察",
+        "真相潮汐",
+        "拉萊耶原典啟示"
+      ]
+    },
+    "madness_sacrifice": {
+      "id": "madness_sacrifice",
+      "name": "狂亂自殘 (嗜血狂暴)",
+      "description": "壓低肉體生命與精神理智，主動遁入瘋狂或藉自殘效果換取極限爆發的險招流派。",
+      "coreCardNames": [
+        "盲目爪擊",
+        "深淵狂嘯",
+        "狂亂血刃",
+        "深淵引爆",
+        "深淵靈能撕裂"
+      ]
+    },
+    "high_cost_magic": {
+      "id": "high_cost_magic",
+      "name": "高費秘術 (虛空湮滅)",
+      "description": "消耗大量理智召喚星辰偉力，具備全屏碾壓或真實穿透性打擊的高位法術流派。",
+      "coreCardNames": [
+        "靈能衝擊",
+        "厄運凝視",
+        "虛空烈焰",
+        "深海冰霜之握",
+        "超維虛空湮滅"
+      ]
+    },
+    "status_attrition": {
+      "id": "status_attrition",
+      "name": "狀態磨血 (弱化衰敗)",
+      "description": "疊加易傷、恐懼與破勢印記，令敵怪攻擊大幅弱化同時放大調查員後續所有打擊的折磨流派。",
+      "coreCardNames": [
+        "恐懼低語",
+        "狂亂低語",
+        "戰術佯攻",
+        "心靈震波",
+        "鉛頭手杖"
+      ]
+    }
+  }
+}

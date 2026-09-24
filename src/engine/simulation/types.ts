@@ -17,6 +17,7 @@ export interface SingleCombatOptions {
   enemy: Enemy;
   policyMode?: SimulationPolicyMode;
   maxTurns?: number;
+  recordLogs?: boolean;
   randomFn?: () => number;
 }
 

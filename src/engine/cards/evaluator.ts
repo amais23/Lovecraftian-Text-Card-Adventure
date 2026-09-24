@@ -180,7 +180,7 @@ export function evaluateCardPlay(
   let investigatorArmor = investigator.armor;
   let investigatorStatusEffects = investigator.statusEffects ? [...investigator.statusEffects] : [];
   let enemyStatusEffects = enemy.statusEffects ? [...enemy.statusEffects] : [];
-  const newLogs: string[] = [];
+  const newLogs: string[] = context.skipLogs ? ({ push: () => 0, unshift: () => 0, length: 0 } as unknown as string[]) : [];
 
   // 古印神性斬殺：鎖血怪在 1 點生命值時受到古印引動
   if (isAncientSealUnlocked(card, enemy)) {
@@ -536,7 +536,7 @@ export function evaluateCardPlay(
     sanityDeck: newSanityDeck,
     discardPile: finalDiscardPile,
     exhaustPile: finalExhaustPile,
-    logs: newLogs,
+    logs: Array.isArray(newLogs) ? newLogs : [],
     isMadness: isMadnessNow,
     combatOutcome,
     isTrueEnding,

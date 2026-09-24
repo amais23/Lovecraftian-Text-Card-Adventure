@@ -171,6 +171,7 @@ describe('Combat Simulator & 1-Ply Optimal Solver (Issue #63 / ADR-0036)', () =>
         deck: starterDeck,
         enemy: ghoul,
         policyMode: 'optimal',
+        recordLogs: true,
       });
 
       expect(['victory', 'defeat']).toContain(result.outcome);
@@ -229,6 +230,7 @@ describe('Combat Simulator & 1-Ply Optimal Solver (Issue #63 / ADR-0036)', () =>
         deck: testDeck,
         relics: doubleAmulet,
         enemy,
+        recordLogs: true,
       });
       expect(amuletSim.logs.some((l) => l.includes('10 點起始防禦護甲'))).toBe(true);
 
@@ -237,6 +239,7 @@ describe('Combat Simulator & 1-Ply Optimal Solver (Issue #63 / ADR-0036)', () =>
         deck: testDeck,
         relics: doubleTalisman,
         enemy,
+        recordLogs: true,
       });
       expect(talismanSim.logs.some((l) => l.includes('【力量】2層'))).toBe(true);
     });

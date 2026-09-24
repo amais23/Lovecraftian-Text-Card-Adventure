@@ -127,11 +127,14 @@ export function solveBestTurnPlays(
     cardsPlayed: number,
     depth: number
   ) {
-    // 防止極端無限迴圈抽牌（單回合出牌上限 8 張）
-    if (depth >= 8) return;
+    // 防止極端抽牌連鎖造成組合爆炸（單回合出牌上限 5 張，或累積 60 組候選序列）
+    if (depth >= 5 || candidateSequences.length >= 60) return;
 
+    const seenCardNames = new Set<string>();
     for (let i = 0; i < currentHand.length; i++) {
       const card = currentHand[i];
+      if (seenCardNames.has(card.name)) continue;
+      seenCardNames.add(card.name);
 
       const playContext: CardPlayContext = {
         investigator: {
@@ -153,6 +156,7 @@ export function solveBestTurnPlays(
         turn,
         isMadness: currentSanityDeck.length === 0,
         cardsPlayedThisTurn: cardsPlayed,
+        skipLogs: true,
         randomFn,
       };
 

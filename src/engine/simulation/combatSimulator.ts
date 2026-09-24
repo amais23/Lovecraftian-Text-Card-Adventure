@@ -21,6 +21,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
     investigator: customInvestigator,
     policyMode = 'optimal',
     maxTurns = 40,
+    recordLogs = false,
     randomFn = Math.random,
   } = options;
 
@@ -57,7 +58,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
   let isMadness = session.isMadness;
   let currentTurn = session.turn;
 
-  const totalLogs: string[] = [...session.logs];
+  const totalLogs: string[] = recordLogs ? [...session.logs] : [];
   let cardsPlayedTotal = 0;
   const initialSanityCount = deck.length;
 
@@ -108,6 +109,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
         turn: currentTurn,
         isMadness,
         cardsPlayedThisTurn,
+        skipLogs: !recordLogs,
         randomFn,
       };
 
@@ -118,7 +120,9 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
 
       cardsPlayedThisTurn++;
       cardsPlayedTotal++;
-      totalLogs.push(...playResult.logs);
+      if (recordLogs) {
+        totalLogs.push(...playResult.logs);
+      }
 
       currentInvestigator = {
         ...currentInvestigator,
@@ -167,7 +171,9 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
       cardsPlayedThisTurn,
     });
 
-    totalLogs.push(...turnEndResult.logs);
+    if (recordLogs) {
+      totalLogs.push(...turnEndResult.logs);
+    }
 
     currentInvestigator = turnEndResult.investigator;
     currentEnemy = turnEndResult.enemy;
