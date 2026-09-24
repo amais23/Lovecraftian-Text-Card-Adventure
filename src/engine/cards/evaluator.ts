@@ -19,6 +19,7 @@ import {
   createTruthInjectedCards,
 } from '../cardFactory';
 import { hasTrait, interceptEnemyDamage } from '../enemyTraits';
+import { fisherYatesShuffle } from '../shuffleUtils';
 
 export interface DamageResult {
   newHealth: number;
@@ -447,7 +448,8 @@ export function evaluateCardPlay(
             restoredCards.push(cardToRestore);
           }
         }
-        newSanityDeck.unshift(...restoredCards);
+        newSanityDeck.push(...restoredCards);
+        newSanityDeck = fisherYatesShuffle(newSanityDeck, context.randomFn);
         const cardNames = restoredCards.map((c) => `【${c.name}】`).join('、');
         newLogs.push(`調查員打出【${card.name}】，平復焦躁的心智，將 ${cardNames} 洗回理智牌庫！`);
       } else {
@@ -471,7 +473,8 @@ export function evaluateCardPlay(
         ...pastDiscardPile,
       ].filter((c) => c.id.startsWith(`temp_truth_t${turn}_`)).length;
       const injectedCards = createTruthInjectedCards(effect.value, turn, existingTurnTruthCount);
-      newSanityDeck.unshift(...injectedCards);
+      newSanityDeck.push(...injectedCards);
+      newSanityDeck = fisherYatesShuffle(newSanityDeck, context.randomFn);
       newLogs.push(`調查員打出【${card.name}】，向理智牌庫注入了 ${effect.value} 張深淵真相卡牌！`);
     }
   }

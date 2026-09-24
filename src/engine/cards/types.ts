@@ -57,6 +57,7 @@ export interface CardPlayContext {
   turn: number;
   isMadness: boolean;
   cardsPlayedThisTurn?: number;
+  randomFn?: () => number;
 }
 
 export interface CardPlayResult {

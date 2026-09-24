@@ -420,7 +420,7 @@ describe('CardEvaluator (Seam 1)', () => {
       expect(result.hand.every((c) => c.category === 'madness' && c.isTemporary)).toBe(true);
     });
 
-    it('restores discarded cards into sanity deck', () => {
+    it('restores cards to sanity deck and reshuffles the deck when playing restore_sanity card (ADR-0036 / Issue #61)', () => {
       const card: Card = {
         id: 'restore_card',
         name: '心智撫平',
@@ -454,15 +454,54 @@ describe('CardEvaluator (Seam 1)', () => {
         description: '',
         flavorText: '',
       };
+
+      // Mock randomFn to reverse during fisherYatesShuffle
+      const mockRandomZero = () => 0;
+
       const context = createBaseContext({
         discardPile: [discardedCard1, discardedCard2],
+        randomFn: mockRandomZero,
       });
 
       const result = evaluateCardPlay(card, context);
       expect(result.success).toBe(true);
       expect(result.sanityDeck).toHaveLength(4); // 2 initial + 2 restored
-      expect(result.sanityDeck[0].id).toBe('disc_2');
-      expect(result.sanityDeck[1].id).toBe('disc_1');
+      const deckIds = result.sanityDeck.map((c) => c.id);
+      expect(deckIds).toContain('disc_1');
+      expect(deckIds).toContain('disc_2');
+      expect(deckIds).toContain('sanity_card_1');
+      expect(deckIds).toContain('sanity_card_2');
+      // With fisherYatesShuffle and randomFn=0, top of deck is sanity_card_2, not disc_2 (which unshift would do)
+      expect(result.sanityDeck[0].id).toBe('sanity_card_2');
+    });
+
+    it('injects temporary truth cards and reshuffles the sanity deck when playing add_to_deck card (ADR-0036 / Issue #61)', () => {
+      const truthCard: Card = {
+        id: 'truth_ritual',
+        name: '銀鑰儀式',
+        category: 'truth',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'add_to_deck', value: 2 }],
+        description: '注入 2 張真相卡牌至理智牌庫',
+        flavorText: '揭示真實',
+      };
+
+      const mockRandomZero = () => 0;
+      const context = createBaseContext({
+        randomFn: mockRandomZero,
+      });
+
+      const result = evaluateCardPlay(truthCard, context);
+      expect(result.success).toBe(true);
+      expect(result.sanityDeck).toHaveLength(4); // 2 initial + 2 injected truth cards
+      const injectedCards = result.sanityDeck.filter((c) => c.name === '真相微光');
+      expect(injectedCards).toHaveLength(2);
+      expect(injectedCards.every((c) => c.isTemporary)).toBe(true);
+
+      // Verify that fisherYatesShuffle was executed rather than unshift
+      expect(result.sanityDeck[0].id).toBe('sanity_card_2');
     });
 
     it('handles self damage and triggers defeat when investigator health reaches 0', () => {
