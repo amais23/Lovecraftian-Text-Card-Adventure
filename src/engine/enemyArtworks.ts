@@ -241,8 +241,8 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_rlyeh_guard',
     name: '拉萊耶近衛',
     category: 'ancient_guardian',
-    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_guard.png',
-    realisticUrl: '/enemies/realistic/enemy_rlyeh_guard.png',
+    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
+    realisticUrl: '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
     conceptLore: '扛著巨大石柱玩具的小石雕人 vs 沉眠數萬年的非歐幾何巨石構造體衛士。',
   },
   enemy_rlyeh_sarcophagus_guard: {
@@ -265,8 +265,8 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_non_euclidean_construct',
     name: '非歐幾何異構體',
     category: 'ancient_guardian',
-    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_guard.png',
-    realisticUrl: '/enemies/realistic/enemy_rlyeh_guard.png',
+    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
+    realisticUrl: '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
     conceptLore: '常態為滾動的發光綠色幾何積木塊；瘋狂時展現反向折疊維度、引力逆轉的活體非歐幾何巨石。',
   },
   enemy_cosmic_acolyte: {
@@ -302,7 +302,7 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     conceptLore: '第四深度終極首領。擁有巨大碧綠章魚頭、短小龍翼與大眼睛的 Q 版克蘇魯本尊，以永恆假面蔑視一切封印。',
   },
 
-  // === Legacy Alias (相容既有初始怪物) ===
+  // === Legacy & Catalog Aliases (相容初始與目錄敵怪 ID) ===
   enemy_ghoul_01: {
     enemyId: 'enemy_ghoul_01',
     name: '食屍鬼',
@@ -310,6 +310,22 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     cartoonUrl: '/enemies/cartoon/enemy_ghoul_lurker.png',
     realisticUrl: '/enemies/realistic/enemy_ghoul_lurker.png',
     conceptLore: '初次遭遇的食屍鬼，對應食屍鬼潛伏者插圖資產。',
+  },
+  enemy_ancient_hound_of_tindalos: {
+    enemyId: 'enemy_ancient_hound_of_tindalos',
+    name: '廷達洛斯追獵古獸',
+    category: 'hound',
+    cartoonUrl: '/enemies/cartoon/enemy_hound_of_tindalos.png',
+    realisticUrl: '/enemies/realistic/enemy_hound_of_tindalos.png',
+    conceptLore: '穿梭億萬時空死角的廷達洛斯古獸，對應遠古廷達洛斯宿尊美術設定。',
+  },
+  enemy_ancient_eldritch_guardian: {
+    enemyId: 'enemy_ancient_eldritch_guardian',
+    name: '舊日太古守護者',
+    category: 'ancient_guardian',
+    cartoonUrl: '/enemies/cartoon/enemy_ancient_guardian.png',
+    realisticUrl: '/enemies/realistic/enemy_ancient_guardian.png',
+    conceptLore: '拉萊耶永恆守望者，對應遠古不朽守護者美術設定。',
   },
 };
 

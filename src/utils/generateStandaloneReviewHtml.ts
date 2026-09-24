@@ -696,6 +696,37 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
     }
 
+    .art-style-toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .art-style-toggle-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .art-style-toggle-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .art-style-toggle-btn.active {
+      background: rgba(207, 168, 102, 0.2);
+      border-color: var(--gold-bright);
+      color: var(--gold-bright);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
     .review-monsters-layout {
       flex: 1;
       min-height: 0;
@@ -1085,6 +1116,12 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
         <button class="depth-tab-btn" data-depth="2" onclick="setMonsterDepth(2, this)">第二深度 · 深潛者海蝕迷宮 (Depth 2)</button>
         <button class="depth-tab-btn" data-depth="3" onclick="setMonsterDepth(3, this)">第三深度 · 無底深淵祭壇 (Depth 3)</button>
         <button class="depth-tab-btn" data-depth="4" onclick="setMonsterDepth(4, this)">第四深度 · 星辰正位 · 拉萊耶 (Depth 4)</button>
+
+        <div class="art-style-toggle-group">
+          <span class="selector-title">風格：</span>
+          <button type="button" id="btnStyleCartoon" class="art-style-toggle-btn active" onclick="setMonsterArtStyle('cartoon')">可愛卡通</button>
+          <button type="button" id="btnStyleRealistic" class="art-style-toggle-btn" onclick="setMonsterArtStyle('realistic')">1920s暗黑寫實</button>
+        </div>
       </div>
 
       <div id="monstersListContainer" class="review-monsters-layout">
@@ -1138,6 +1175,7 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
 
     let activeMainTab = 'cards';
     let activeDepth = 1;
+    let monsterArtStyle = 'cartoon';
     let filterCategory = 'all';
     let filterOccupation = 'all';
     let filterTier = 'all';
@@ -1517,6 +1555,16 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
       btns[2].classList.toggle('active', dec === 'pending');
     }
 
+    function setMonsterArtStyle(style) {
+      playBeep(650);
+      monsterArtStyle = style;
+      const btnCartoon = document.getElementById('btnStyleCartoon');
+      const btnRealistic = document.getElementById('btnStyleRealistic');
+      if (btnCartoon) btnCartoon.classList.toggle('active', style === 'cartoon');
+      if (btnRealistic) btnRealistic.classList.toggle('active', style === 'realistic');
+      renderMonsters();
+    }
+
     function setMonsterDepth(depth, el) {
       playBeep(600);
       activeDepth = depth;
@@ -1538,12 +1586,16 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
 
         const recCards = m.tacticalTips.recommendedCards.map(c => \`<span class="counter-card-tag">\${c}</span>\`).join('');
 
+        const activeImg = monsterArtStyle === 'realistic' && m.realisticUrl ? m.realisticUrl : m.imageUrl;
+        const avatarHtml = activeImg
+          ? \`<img src="\${activeImg}" alt="\${m.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><div style="display:none; font-size:32px;">💀</div>\`
+          : \`<div style="font-size:32px;">💀</div>\`;
+
         return \`
         <div class="monster-profile-card role-\${m.role}">
           <div class="monster-header">
             <div class="monster-avatar-box">
-              <img src="\${m.imageUrl || ''}" alt="\${m.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-              <div style="display:none;">💀</div>
+              \${avatarHtml}
             </div>
             <div class="monster-title-block">
               <div style="display:flex; align-items:center; gap:6px;">

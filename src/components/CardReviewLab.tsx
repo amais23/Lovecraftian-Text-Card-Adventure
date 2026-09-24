@@ -69,6 +69,10 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
   // Depth Filter for Monsters
   const [monsterDepth, setMonsterDepth] = useState<1 | 2 | 3 | 4>(1);
 
+  // Monster Art Style & Image Fallback
+  const [monsterArtStyle, setMonsterArtStyle] = useState<'cartoon' | 'realistic'>('cartoon');
+  const [failedMonsterImages, setFailedMonsterImages] = useState<Set<string>>(new Set());
+
   // Toast message
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -257,7 +261,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
           } else {
             showToast('JSON 格式無效，未找到 items 陣列。');
           }
-        } catch (err) {
+        } catch {
           showToast('解析 JSON 檔案失敗！');
         }
       };
@@ -776,10 +780,11 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
         ) : (
           /* Monster Bestiary by Depth */
           <div className="review-monsters-wrapper">
-            {/* Depth Filter Tabs */}
+            {/* Depth Filter Tabs & Style Toggle */}
             <div className="depth-selector-bar" onWheel={handleHeaderWheel}>
               <span className="selector-title">選擇調查深度：</span>
               <button
+                type="button"
                 className={`depth-tab-btn ${monsterDepth === 1 ? 'active' : ''}`}
                 onClick={() => {
                   soundEngine.playClick();
@@ -789,6 +794,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                 第一深度 · 阿卡姆封鎖區 (Depth 1)
               </button>
               <button
+                type="button"
                 className={`depth-tab-btn ${monsterDepth === 2 ? 'active' : ''}`}
                 onClick={() => {
                   soundEngine.playClick();
@@ -798,6 +804,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                 第二深度 · 深潛者海蝕迷宮 (Depth 2)
               </button>
               <button
+                type="button"
                 className={`depth-tab-btn ${monsterDepth === 3 ? 'active' : ''}`}
                 onClick={() => {
                   soundEngine.playClick();
@@ -807,6 +814,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                 第三深度 · 無底深淵祭壇 (Depth 3)
               </button>
               <button
+                type="button"
                 className={`depth-tab-btn ${monsterDepth === 4 ? 'active' : ''}`}
                 onClick={() => {
                   soundEngine.playClick();
@@ -815,6 +823,32 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
               >
                 第四深度 · 星辰正位 · 拉萊耶 (Depth 4)
               </button>
+
+              <div className="art-style-toggle-group">
+                <span className="selector-title">風格：</span>
+                <button
+                  type="button"
+                  className={`art-style-toggle-btn ${monsterArtStyle === 'cartoon' ? 'active' : ''}`}
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setMonsterArtStyle('cartoon');
+                  }}
+                  title="切換為常態可愛卡通風格"
+                >
+                  可愛卡通
+                </button>
+                <button
+                  type="button"
+                  className={`art-style-toggle-btn ${monsterArtStyle === 'realistic' ? 'active' : ''}`}
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setMonsterArtStyle('realistic');
+                  }}
+                  title="切換為1920s暗黑寫實風格"
+                >
+                  1920s暗黑寫實
+                </button>
+              </div>
             </div>
 
             {/* Monsters List */}
@@ -826,16 +860,30 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
               aria-label="怪物生態數值列表"
             >
               <div className="monsters-cards-grid">
-                {MONSTERS_BY_DEPTH[monsterDepth].map((monster) => (
-                <div key={monster.id} className={`monster-profile-card role-${monster.role}`}>
-                  <div className="monster-header">
-                    <div className="monster-avatar-box">
-                      {monster.imageUrl ? (
-                        <img src={monster.imageUrl} alt={monster.name} />
-                      ) : (
-                        <Skull size={40} color="#e63946" />
-                      )}
-                    </div>
+                {MONSTERS_BY_DEPTH[monsterDepth].map((monster) => {
+                  const activeImageUrl = monsterArtStyle === 'realistic' && monster.realisticUrl
+                    ? monster.realisticUrl
+                    : monster.imageUrl;
+                  const isImageAvailable = Boolean(activeImageUrl && !failedMonsterImages.has(activeImageUrl));
+
+                  return (
+                    <div key={monster.id} className={`monster-profile-card role-${monster.role}`}>
+                      <div className="monster-header">
+                        <div className="monster-avatar-box">
+                          {isImageAvailable ? (
+                            <img
+                              src={activeImageUrl}
+                              alt={monster.name}
+                              onError={() => {
+                                if (activeImageUrl) {
+                                  setFailedMonsterImages((prev) => new Set(prev).add(activeImageUrl));
+                                }
+                              }}
+                            />
+                          ) : (
+                            <Skull size={40} color="#e63946" />
+                          )}
+                        </div>
                     <div className="monster-title-block">
                       <span className={`role-badge ${monster.role}`}>
                         {monster.role === 'boss'
@@ -910,7 +958,8 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                     </p>
                   </div>
                 </div>
-              ))}
+              );
+            })}
               </div>
             </div>
           </div>

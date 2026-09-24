@@ -784,6 +784,37 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
+.art-style-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.art-style-toggle-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+}
+
+.art-style-toggle-btn:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.art-style-toggle-btn.active {
+  background: rgba(207, 168, 102, 0.2);
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 .monsters-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
