@@ -11,10 +11,9 @@ import { evaluateCardPlay } from '../engine/cards/evaluator';
 import { OCCULTIST_REWARD_CARDS } from '../engine/cards/occultist/rewards';
 import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
 import type { CardPlayContext } from '../engine/cards/types';
-import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode, MapNodeType, MythosEventOption } from '../types/game';
+import { MARKET_PURGE_COST, type DepthLevel, type Enemy, type GameState, type Investigator, type InvestigationMap, type MapNode, type MapNodeType, type MythosEventOption } from '../types/game';
 import { generateProceduralInvestigationMap } from '../engine/mapGenerator';
 import { DEPTH_EVENT_POOLS, getMythosEventsForDepth } from '../engine/eventData';
-import { MARKET_PURGE_COST } from '../engine/nodes';
 import {
   ABYSSAL_FRAGMENT_1,
   ABYSSAL_FRAGMENT_2,

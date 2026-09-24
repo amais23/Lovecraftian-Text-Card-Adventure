@@ -1,5 +1,6 @@
 import type { AdventureStats, Card, MapNode } from '../../../types/game';
-import { isInheritableCard, type NodeActionResult, type NodeEntryResult, type NodeInteractionContext } from '../types';
+import { isInheritableCard } from '../../remainsStorage';
+import type { NodeActionResult, NodeEntryResult, NodeInteractionContext } from '../types';
 
 /**
  * 處理先驅遺骸節點進入結算（純函數）

@@ -47,6 +47,7 @@ import {
   resolveNodeEntry,
   resolveNodeInteraction,
   resolveNodeLeave,
+  type NodeActionResult,
 } from './nodes';
 import {
   clearFallenInvestigator,
@@ -137,6 +138,30 @@ export function createInitialAdventureStats(
 
 export function ensureAdventureStats(state: Partial<GameState>): AdventureStats {
   return state.adventureStats ?? createInitialAdventureStats(state.investigator, state.map);
+}
+
+function applyNodeActionResult(
+  state: GameState,
+  result: NodeActionResult,
+  extraCleans?: Partial<GameState>
+): GameState {
+  if (!result.success) {
+    return result.logs.length > 0
+      ? { ...state, battleLog: [...result.logs, ...state.battleLog] }
+      : state;
+  }
+  const currentStats = ensureAdventureStats(state);
+  return {
+    ...state,
+    investigator: result.investigator,
+    sanityDeck: result.sanityDeck,
+    ...extraCleans,
+    ...result.nodeStateUpdates,
+    adventureStats: result.adventureStatsUpdate
+      ? { ...currentStats, ...result.adventureStatsUpdate }
+      : currentStats,
+    battleLog: result.logs.concat(state.battleLog),
+  };
 }
 
 export function getPermanentDeckCount(state: {
@@ -722,16 +747,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentDepth: state.currentDepth ?? state.map?.depth ?? 1,
         sanctuaryUsed: state.sanctuaryUsed,
       });
-      if (!result.success) return state;
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        hand: action.payload.optionId === 'purge' ? [] : state.hand,
-        discardPile: action.payload.optionId === 'purge' ? [] : state.discardPile,
-        ...result.nodeStateUpdates,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      const extraCleans = action.payload.optionId === 'purge' ? { hand: [], discardPile: [] } : {};
+      return applyNodeActionResult(state, result, extraCleans);
     }
 
     case 'BUY_MARKET_ITEM': {
@@ -741,18 +758,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: state.sanityDeck,
         marketItems: state.marketItems,
       });
-      if (!result.success) {
-        return result.logs.length > 0
-          ? { ...state, battleLog: [...result.logs, ...state.battleLog] }
-          : state;
-      }
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        ...result.nodeStateUpdates,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      return applyNodeActionResult(state, result);
     }
 
     case 'PURGE_CARD_AT_MARKET': {
@@ -763,20 +769,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: permanentCards,
         marketPurgeUsed: state.marketPurgeUsed,
       });
-      if (!result.success) {
-        return result.logs.length > 0
-          ? { ...state, battleLog: [...result.logs, ...state.battleLog] }
-          : state;
-      }
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        hand: [],
-        discardPile: [],
-        ...result.nodeStateUpdates,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      return applyNodeActionResult(state, result, { hand: [], discardPile: [] });
     }
 
     case 'PROCEED_TO_REWARD': {
@@ -1282,17 +1275,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         turn: state.turn,
         adventureStats: currentStats,
       });
-      if (!result.success) return state;
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        ...result.nodeStateUpdates,
-        adventureStats: result.adventureStatsUpdate
-          ? { ...currentStats, ...result.adventureStatsUpdate }
-          : currentStats,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      return applyNodeActionResult(state, result);
     }
 
     case 'CLAIM_VAULT_RELIC': {
@@ -1305,17 +1288,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         vaultRelics: state.vaultRelics,
         adventureStats: currentStats,
       });
-      if (!result.success) return state;
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        ...result.nodeStateUpdates,
-        adventureStats: result.adventureStatsUpdate
-          ? { ...currentStats, ...result.adventureStatsUpdate }
-          : currentStats,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      return applyNodeActionResult(state, result);
     }
 
     case 'SACRIFICE_CARDS_AT_BLOOD_ALTAR': {
@@ -1326,16 +1299,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         sanityDeck: permanentCards,
         bloodAltarUsed: state.bloodAltarUsed,
       });
-      if (!result.success) return state;
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        hand: [],
-        discardPile: [],
-        ...result.nodeStateUpdates,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      return applyNodeActionResult(state, result, { hand: [], discardPile: [] });
     }
 
     case 'INHERIT_REMAINS': {
@@ -1348,20 +1312,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         remainsClaimed: state.remainsClaimed,
         adventureStats: currentStats,
       });
-      if (!result.success) return state;
       if (result.clearFallenRecord) {
         clearFallenInvestigator();
       }
-      return {
-        ...state,
-        investigator: result.investigator,
-        sanityDeck: result.sanityDeck,
-        ...result.nodeStateUpdates,
-        adventureStats: result.adventureStatsUpdate
-          ? { ...currentStats, ...result.adventureStatsUpdate }
-          : currentStats,
-        battleLog: result.logs.concat(state.battleLog),
-      };
+      return applyNodeActionResult(state, result);
     }
 
     case 'LEAVE_NODE': {

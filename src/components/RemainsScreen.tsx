@@ -3,7 +3,7 @@ import type { Card, GameAction, GameState } from '../types/game';
 import { Ghost, Coins, BookOpen, LogOut, Check, Sparkles, Skull } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
-import { isInheritableCard } from '../engine/nodes';
+import { isInheritableCard } from '../engine/remainsStorage';
 
 interface RemainsScreenProps {
   state: GameState;

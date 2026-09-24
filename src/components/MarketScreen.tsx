@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Card, GameAction, GameState, MarketItem } from '../types/game';
+import { MARKET_PURGE_COST, type Card, type GameAction, type GameState, type MarketItem } from '../types/game';
 import {
   ShoppingBag,
   Coins,
@@ -18,7 +18,6 @@ import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { getAllPermanentCards } from '../engine/abyssalSeals';
 import { getCardArtwork, getSupplyArtwork } from '../engine/cardArtworks';
-import { MARKET_PURGE_COST } from '../engine/nodes';
 
 interface MarketScreenProps {
   state: GameState;

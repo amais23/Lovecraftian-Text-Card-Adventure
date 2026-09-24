@@ -1,9 +1,9 @@
-import type { DepthLevel, MarketItem, OccupationId, Relic } from '../../../types/game';
+import { MARKET_PURGE_COST, type DepthLevel, type MarketItem, type OccupationId, type Relic } from '../../../types/game';
 import { CardRegistry } from '../../cards/registry';
 import { getSupplyArtwork } from '../../cardArtworks';
 import { applyRelicToInvestigator, PRESET_RELICS } from '../../relics';
 import { fisherYatesShuffle } from '../../shuffleUtils';
-import { MARKET_PURGE_COST, type NodeActionResult, type NodeInteractionContext } from '../types';
+import type { NodeActionResult, NodeInteractionContext } from '../types';
 export { MARKET_PURGE_COST };
 
 export interface GenerateMarketItemsOptions {

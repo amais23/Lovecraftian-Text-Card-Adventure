@@ -1,7 +1,20 @@
-import type { FallenInvestigatorRecord, GameState } from '../types/game';
-import { isInheritableCard } from './nodes/types';
+import type { Card, FallenInvestigatorRecord, GameState } from '../types/game';
+import { isAbyssalFragment, isCompleteAncientSeal } from './abyssalSeals';
 
 export const FALLEN_INVESTIGATOR_STORAGE_KEY = 'arkham_fallen_investigator';
+
+/**
+ * 判斷卡牌是否可供後繼調查員傳承繼承
+ * 排除臨時卡、無法打出的卡牌、深淵封印殘片與完整的深淵古印
+ */
+export function isInheritableCard(card: Card): boolean {
+  if (!card) return false;
+  if (card.isTemporary) return false;
+  if (card.isUnplayable) return false;
+  if (isAbyssalFragment(card)) return false;
+  if (isCompleteAncientSeal(card)) return false;
+  return true;
+}
 
 /**
  * 儲存殉職調查員傳承紀錄至本機儲存空間

@@ -262,6 +262,8 @@ export interface MythosEvent {
   resolvedOutcomeText?: string[];
 }
 
+export const MARKET_PURGE_COST = 30;
+
 export interface MarketItem {
   id: string;
   name: string;

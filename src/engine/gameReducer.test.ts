@@ -30,10 +30,7 @@ import {
   INITIAL_COLOSSAL_SHOGGOTH,
   INITIAL_STAR_SPAWN,
 } from './eventData';
-import {
-  generateDefaultMarketItems,
-  generateMarketItemsForDepth,
-} from './nodes/handlers/market';
+import { resolveNodeEntry } from './nodes';
 import { getCardsByTier } from './cards/registry';
 import {
   ABYSSAL_FRAGMENT_1,
@@ -2020,25 +2017,26 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
   it('Black Market allows purchasing cards and healing supplies with Ancient Obols', () => {
     const map = generateInvestigationMap();
     map.nodes['node_1_2'].status = 'accessible';
-    const defaultItems = generateDefaultMarketItems();
 
-    const marketState: GameState = {
-      ...createInitialCombatState(),
-      phase: 'market',
-      investigator: {
-        ...INITIAL_INVESTIGATOR,
-        health: 15,
-        maxHealth: 25,
-        obols: 35,
+    const marketState = gameReducer(
+      {
+        ...createInitialCombatState(),
+        phase: 'map',
+        investigator: {
+          ...INITIAL_INVESTIGATOR,
+          health: 15,
+          maxHealth: 25,
+          obols: 35,
+        },
+        map,
+        hand: [],
       },
-      map: {
-        ...map,
-        currentNodeId: 'node_1_2',
-      },
-      marketItems: defaultItems,
-      hand: [],
-    };
-
+      {
+        type: 'NAVIGATE_TO_NODE',
+        payload: { nodeId: 'node_1_2' },
+      }
+    );
+    const defaultItems = marketState.marketItems!;
     const cardItem = defaultItems.find((i) => i.type === 'card' && i.price <= 30)!;
     expect(cardItem).toBeDefined();
 
@@ -2131,9 +2129,19 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       }
     }
 
-    // Market items
-    const items = generateDefaultMarketItems();
-    for (const item of items) {
+    // Market items via public resolveNodeEntry seam
+    const marketEntry = resolveNodeEntry({
+      id: 'market_node',
+      type: 'market',
+      layer: 0,
+      col: 0,
+      label: '黑市',
+      title: '黑市商人',
+      description: '黑市',
+      nextNodes: [],
+      status: 'accessible',
+    }, { depth: 1 });
+    for (const item of marketEntry.nodeStateUpdates.marketItems ?? []) {
       expect(item.name).not.toMatch(forbiddenRegex);
       expect(item.description).not.toMatch(forbiddenRegex);
     }
@@ -2235,12 +2243,28 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
       expect(sanctuaryCard.id).toBe(`sanctuary_truth_${baseState.sanityDeck.length + 1}`);
 
       // 3. Market buy card ID determinism
+      const mockCardItem: MarketItem = {
+        id: 'item_test_card',
+        name: '測試商品',
+        type: 'card',
+        price: 20,
+        card: {
+          id: 'card_punch',
+          name: '重拳壓制',
+          category: 'combat',
+          costType: 'stamina',
+          costValue: 1,
+          effects: [],
+          description: '測試',
+        },
+        description: '測試',
+      };
       const marketState: GameState = {
         ...baseState,
         phase: 'market',
-        marketItems: generateDefaultMarketItems(),
+        marketItems: [mockCardItem],
       };
-      const marketCardItem = marketState.marketItems!.find((i) => i.type === 'card')!;
+      const marketCardItem = mockCardItem;
       const marketResult = gameReducer(marketState, {
         type: 'BUY_MARKET_ITEM',
         payload: { itemId: marketCardItem.id },
@@ -3070,29 +3094,41 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     });
 
     it('evolves Black Market inventory dynamically across Depth 1, Depth 2, and Depth 3', () => {
+      const marketNode = {
+        id: 'node_market',
+        type: 'market' as const,
+        layer: 0,
+        col: 0,
+        label: '黑市',
+        title: '黑市商人',
+        description: '黑市',
+        nextNodes: [],
+        status: 'current' as const,
+      };
+
       // Depth 1 Market
-      const depth1Items = generateMarketItemsForDepth(1);
-      const d1Cards = depth1Items.filter((item) => item.type === 'card');
+      const depth1Result = resolveNodeEntry(marketNode, { depth: 1 });
+      const d1Cards = (depth1Result.nodeStateUpdates.marketItems ?? []).filter((item) => item.type === 'card');
       expect(d1Cards).toHaveLength(3);
       expect(d1Cards.every((item) => item.card?.tier === 1)).toBe(true);
-      expect(depth1Items.some((item) => item.type === 'heal' && (item.healAmount ?? 0) > 0)).toBe(true);
-      expect(depth1Items.some((item) => item.type === 'relic')).toBe(true);
+      expect(depth1Result.nodeStateUpdates.marketItems?.some((item) => item.type === 'heal' && (item.healAmount ?? 0) > 0)).toBe(true);
+      expect(depth1Result.nodeStateUpdates.marketItems?.some((item) => item.type === 'relic')).toBe(true);
 
       // Depth 2 Market
-      const depth2Items = generateMarketItemsForDepth(2);
-      const d2Cards = depth2Items.filter((item) => item.type === 'card');
+      const depth2Result = resolveNodeEntry(marketNode, { depth: 2 });
+      const d2Cards = (depth2Result.nodeStateUpdates.marketItems ?? []).filter((item) => item.type === 'card');
       expect(d2Cards).toHaveLength(3);
       expect(d2Cards.every((item) => item.card?.tier === 2)).toBe(true);
-      expect(depth2Items.some((item) => item.type === 'heal' && (item.healAmount ?? 0) >= 8)).toBe(true);
-      expect(depth2Items.some((item) => item.type === 'relic')).toBe(true);
+      expect(depth2Result.nodeStateUpdates.marketItems?.some((item) => item.type === 'heal' && (item.healAmount ?? 0) >= 8)).toBe(true);
+      expect(depth2Result.nodeStateUpdates.marketItems?.some((item) => item.type === 'relic')).toBe(true);
 
       // Depth 3 Market
-      const depth3Items = generateMarketItemsForDepth(3);
-      const d3Cards = depth3Items.filter((item) => item.type === 'card');
+      const depth3Result = resolveNodeEntry(marketNode, { depth: 3 });
+      const d3Cards = (depth3Result.nodeStateUpdates.marketItems ?? []).filter((item) => item.type === 'card');
       expect(d3Cards).toHaveLength(3);
       expect(d3Cards.every((item) => item.card?.tier === 3)).toBe(true);
-      expect(depth3Items.some((item) => item.type === 'heal' && (item.healAmount ?? 0) >= 10)).toBe(true);
-      expect(depth3Items.some((item) => item.type === 'relic')).toBe(true);
+      expect(depth3Result.nodeStateUpdates.marketItems?.some((item) => item.type === 'heal' && (item.healAmount ?? 0) >= 10)).toBe(true);
+      expect(depth3Result.nodeStateUpdates.marketItems?.some((item) => item.type === 'relic')).toBe(true);
     });
 
     it('claims Tier 4+ card and executes its combat effect accurately', () => {
