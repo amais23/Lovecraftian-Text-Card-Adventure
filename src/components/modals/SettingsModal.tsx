@@ -1,8 +1,10 @@
 import React from 'react';
-import { Settings, X, Volume2, VolumeX, Sparkles, Swords, Shield, Flame, Activity, Keyboard } from 'lucide-react';
+import { Settings, X, Volume2, VolumeX, Sparkles, Swords, Shield, Flame, Activity, Keyboard, Terminal } from 'lucide-react';
 import { soundEngine } from '../../engine/audioManager';
 import { useSoundMuted } from '../../hooks/useSoundMuted';
 import { useModalDismiss } from '../../hooks/useModalDismiss';
+import { useDevMode } from '../../hooks/useDevMode';
+import { devModeManager } from '../../engine/devModeManager';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,12 +13,18 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const isMuted = useSoundMuted();
+  const isDevMode = useDevMode();
   const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
 
   if (!isOpen) return null;
 
   const handleToggleMute = () => {
     soundEngine.toggleMuteWithFeedback();
+  };
+
+  const handleToggleDevMode = () => {
+    soundEngine.playClick();
+    devModeManager.toggleDevMode();
   };
 
   return (
@@ -164,6 +172,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <span>黑色瘋狂卡 · 狂亂深淵</span>
               </button>
             </div>
+          </section>
+
+          {/* Section: Dev Mode (ADR-0036 / #62) */}
+          <section className="settings-section">
+            <div className="settings-section-header">
+              <div className="section-title-wrap">
+                <Terminal size={20} color={isDevMode ? '#ffd700' : '#9d9685'} />
+                <h3>開發者模式 (Dev Mode)</h3>
+              </div>
+              <button
+                id="settings-dev-mode-toggle-btn"
+                className={`settings-toggle-switch ${isDevMode ? 'active' : ''}`}
+                onClick={handleToggleDevMode}
+                aria-label={isDevMode ? '關閉開發者模式' : '開啟開發者模式'}
+              >
+                <span className="toggle-slider-knob" />
+                <span className="toggle-status-text">{isDevMode ? '已啟用' : '已關閉'}</span>
+              </button>
+            </div>
+            <p className="settings-hint">
+              啟用後可於主選單進入卡牌改動審查室與開發除錯工具。
+            </p>
           </section>
 
           {/* Section 3: About & Version */}

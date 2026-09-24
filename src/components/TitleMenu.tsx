@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
+import { useDevMode } from '../hooks/useDevMode';
 
 export interface TitleMenuProps {
   onStartNewGame: () => void;
@@ -19,6 +20,7 @@ export interface TitleMenuProps {
   onOpenSettings: () => void;
   onOpenExit: () => void;
   onOpenCardReview?: () => void;
+  isDevMode?: boolean;
 }
 
 export const TitleMenu: React.FC<TitleMenuProps> = ({
@@ -28,7 +30,11 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
   onOpenSettings,
   onOpenExit,
   onOpenCardReview,
+  isDevMode: explicitDevMode,
 }) => {
+  const devModeFromHook = useDevMode();
+  const isDevMode = explicitDevMode !== undefined ? explicitDevMode : devModeFromHook;
+
   const handleItemClick = (action: () => void) => {
     soundEngine.playClick();
     action();
@@ -112,12 +118,13 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
             <ChevronRight size={18} className="btn-arrow" />
           </button>
 
-          {/* 3.5. Card Balance & Review Lab */}
-          {onOpenCardReview && (
+          {/* 3.5. Card Balance & Review Lab (ADR-0036 / #62: Only visible when Dev Mode is active) */}
+          {isDevMode && onOpenCardReview && (
             <button
               id="menu-card-review-btn"
               className="title-menu-btn"
               onClick={() => handleItemClick(onOpenCardReview)}
+              aria-label="⚖️ 卡牌改動審查室"
               style={{ borderColor: 'rgba(207, 168, 102, 0.4)' }}
             >
               <div className="btn-icon-wrap">

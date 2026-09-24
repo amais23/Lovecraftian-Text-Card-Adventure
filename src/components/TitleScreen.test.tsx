@@ -2,12 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TitleScreen } from './TitleScreen';
 import { soundEngine } from '../engine/audioManager';
+import { devModeManager } from '../engine/devModeManager';
 
 describe('TitleScreen & TitleMenu Integration', () => {
   const mockDispatch = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    devModeManager.setDevMode(false);
   });
 
   it('renders the classic Title Menu by default and does not immediately show character selection', () => {
@@ -24,6 +27,10 @@ describe('TitleScreen & TitleMenu Integration', () => {
     expect(screen.getByText('卡牌圖鑑')).toBeDefined();
     expect(screen.getByText('遊戲設定')).toBeDefined();
     expect(screen.getByText('離開遊戲')).toBeDefined();
+
+    // Card Review Lab is hidden by default in normal mode (ADR-0036 / #62)
+    expect(screen.queryByRole('button', { name: /卡牌改動審查室/i })).toBeNull();
+    expect(screen.queryByText(/卡牌改動審查室/i)).toBeNull();
 
     // Investigator selection cards are NOT visible initially
     expect(screen.queryByText('命運的十字路口 · 選擇你的調查員')).toBeNull();
@@ -210,5 +217,35 @@ describe('TitleScreen & TitleMenu Integration', () => {
     render(<TitleScreen dispatch={mockDispatch} />);
     const bgImage = screen.getByTestId('title-screen-bg-image');
     expect(bgImage).toBeDefined();
+  });
+
+  it('toggles Dev Mode in SettingsModal and dynamically reveals Card Review Lab in TitleMenu', () => {
+    render(<TitleScreen dispatch={mockDispatch} />);
+
+    // Initially, Card Review Lab button is not present
+    expect(screen.queryByRole('button', { name: /卡牌改動審查室/i })).toBeNull();
+
+    // Open SettingsModal
+    fireEvent.click(screen.getByRole('button', { name: /遊戲設定/i }));
+    expect(screen.getByRole('heading', { level: 3, name: /開發者模式/i })).toBeDefined();
+
+    // Turn on Dev Mode
+    const devToggle = screen.getByRole('button', { name: '開啟開發者模式' });
+    fireEvent.click(devToggle);
+
+    // Close SettingsModal
+    fireEvent.click(screen.getByRole('button', { name: '關閉設定' }));
+
+    // Card Review Lab button should now be dynamically visible in TitleMenu
+    const reviewBtn = screen.getByRole('button', { name: /卡牌改動審查室/i });
+    expect(reviewBtn).toBeDefined();
+
+    // Click Card Review Lab button: opens CardReviewLab modal
+    fireEvent.click(reviewBtn);
+    expect(screen.getByRole('heading', { name: /卡牌改動審查與數值實驗室/i })).toBeDefined();
+
+    // Close CardReviewLab via return button
+    fireEvent.click(screen.getByTitle('返回主選單'));
+    expect(screen.queryByRole('heading', { name: /卡牌改動審查與數值實驗室/i })).toBeNull();
   });
 });
