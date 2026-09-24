@@ -264,11 +264,15 @@ export function checkDescriptionDrift(
   const differences: string[] = [];
   const detailedDifferences: CardDriftDifference[] = [];
 
-  // 抽取手寫描述中的阿拉伯數字
-  const writtenNumbers = (writtenDescription.match(/\d+/g) || []).map(Number);
-  // 若手寫描述包含百分比（如 100%），實質對應數值 1 (100% = 1.0)
-  if (writtenDescription.includes('100%') || writtenDescription.includes('100 %')) {
-    writtenNumbers.push(1);
+  // 抽取手寫描述中的阿拉伯數字（包含小數與整數）
+  const writtenNumbers = (writtenDescription.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+  // 通用百分比正規化：手寫描述若包含 X% (如 100%, 50%, 200%)，除了數值 X 外，亦同步轉換為對應之倍率/比率 (X / 100)
+  const percentMatches = writtenDescription.matchAll(/(\d+(?:\.\d+)?)\s*%/g);
+  for (const match of percentMatches) {
+    const rawVal = parseFloat(match[1]);
+    if (!Number.isNaN(rawVal)) {
+      writtenNumbers.push(rawVal / 100);
+    }
   }
 
   // 過濾合成描述中的單位量詞（如 "每具有 1 點", "每減少 1 張"），避免 1:1 比例縮放產生誤報
@@ -279,7 +283,7 @@ export function checkDescriptionDrift(
     .replace(/每有\s*1\s*層/g, '')
     .replace(/每保留\s*1\s*回合/g, '');
 
-  const synthNumbers = (synthTextWithoutScaleUnit.match(/\d+/g) || []).map(Number);
+  const synthNumbers = (synthTextWithoutScaleUnit.match(/\d+(?:\.\d+)?/g) || []).map(Number);
 
   // 檢查所有合成數字是否在手寫描述中出現過
   for (const num of synthNumbers) {

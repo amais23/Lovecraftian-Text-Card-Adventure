@@ -383,6 +383,27 @@ export function getEnemyArtwork(enemyId: string): EnemyArtworkInfo | undefined {
   return ENEMY_ARTWORKS_REGISTRY[enemyId];
 }
 
+export interface ResolvedEnemyArtworks {
+  cartoonUrl?: string;
+  realisticUrl?: string;
+}
+
+/**
+ * 依據敵怪 ID 與可選之備援插畫資訊，高階解析並校驗實體磁碟存在之可用立繪 (ADR-0035)
+ */
+export function resolveVerifiedEnemyArtworks(
+  enemyId: string,
+  fallbackIllustration?: { cartoonUrl?: string; realisticUrl?: string }
+): ResolvedEnemyArtworks {
+  const artwork = getEnemyArtwork(enemyId);
+  const rawCartoon = artwork?.cartoonUrl ?? fallbackIllustration?.cartoonUrl;
+  const rawRealistic = artwork?.realisticUrl ?? fallbackIllustration?.realisticUrl;
+  return {
+    cartoonUrl: isEnemyImageVerified(rawCartoon) ? rawCartoon : undefined,
+    realisticUrl: isEnemyImageVerified(rawRealistic) ? rawRealistic : undefined,
+  };
+}
+
 export interface ResolveIllustrationOptions {
   isMadness?: boolean;
   isFlickering?: boolean;

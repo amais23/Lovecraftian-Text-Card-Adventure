@@ -10,7 +10,7 @@ import {
   DEPTH_4_ELITE_ENEMIES,
   getBossByDepth,
 } from '../engine/enemyCatalog';
-import { getEnemyArtwork, isEnemyImageVerified } from '../engine/enemyArtworks';
+import { resolveVerifiedEnemyArtworks } from '../engine/enemyArtworks';
 import { MONSTER_TACTICAL_TIPS } from './monsterTips';
 
 export interface MonsterReviewData {
@@ -80,11 +80,9 @@ function convertEnemyToReviewData(
         strategy: '及時建立護甲並使用高傷卡牌斬殺。',
       };
 
-  const artwork = getEnemyArtwork(enemy.id);
-  const rawCartoon = artwork?.cartoonUrl ?? enemy.illustration?.cartoonUrl;
-  const rawRealistic = artwork?.realisticUrl ?? enemy.illustration?.realisticUrl;
-  const imageUrl = isEnemyImageVerified(rawCartoon) ? rawCartoon : undefined;
-  const realisticUrl = isEnemyImageVerified(rawRealistic) ? rawRealistic : undefined;
+  const resolvedArt = resolveVerifiedEnemyArtworks(enemy.id, enemy.illustration);
+  const imageUrl = resolvedArt.cartoonUrl;
+  const realisticUrl = resolvedArt.realisticUrl;
 
   return {
     id: enemy.id,

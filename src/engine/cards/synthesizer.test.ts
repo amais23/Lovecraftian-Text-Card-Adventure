@@ -78,6 +78,18 @@ describe('Card Effect Synthesizer (ADR-0035)', () => {
     expect(drift.differences).toHaveLength(0);
   });
 
+  it('avoids false positives on arbitrary percentage scaling (200% vs 2, 50% vs 0.5)', () => {
+    const written200 = '造成 6 點物理傷害，並附加當前護甲 200% 的額外傷害。';
+    const synth200 = '造成 6 點物理傷害（每具有 1 點護甲額外造成 2 點傷害）。';
+    const drift200 = checkDescriptionDrift(written200, synth200);
+    expect(drift200.isMatch).toBe(true);
+
+    const written50 = '造成 8 點物理傷害（破甲 50%）。';
+    const synth50 = '造成 8 點物理傷害（每具有 1 點護甲額外造成 0.5 點傷害）。';
+    const drift50 = checkDescriptionDrift(written50, synth50);
+    expect(drift50.isMatch).toBe(true);
+  });
+
   it('detects missing keywords or numbers in description drift check with structured detailedDifferences', () => {
     const written = '造成 5 點物理傷害。';
     const synth = '【消耗】打出後移出戰鬥 造成 5 點物理傷害；獲得 6 點護甲；使敵方陷入 1 層【易傷】。';

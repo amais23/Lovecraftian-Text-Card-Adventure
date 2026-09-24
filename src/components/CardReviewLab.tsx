@@ -210,7 +210,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
       };
     }
     setDecisions(updated);
-    showToast('已將全體 64 張卡牌設置為【全部接受】！');
+    showToast(`已將全體 ${ALL_CARD_REVIEW_ITEMS.length} 張卡牌設置為【全部接受】！`);
   };
 
   const handleResetAll = () => {
@@ -391,7 +391,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
             </button>
             <div className="header-titles">
               <h2>⚖️ 克蘇魯卡牌改動審查與數值實驗室</h2>
-              <p>方案 A：可組合原子效應與印記聯動 · 全 64 張卡牌改動審核 & 怪物數值對策圖鑑</p>
+              <p>方案 A：可組合原子效應與印記聯動 · 全 {ALL_CARD_REVIEW_ITEMS.length} 張卡牌改動審核 & 怪物數值對策圖鑑</p>
             </div>
           </div>
 

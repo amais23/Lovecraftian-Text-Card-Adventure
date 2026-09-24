@@ -10,6 +10,7 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
   const initialDecisions = options.currentDecisions || {};
   const pageTitle = options.title || '克蘇魯卡牌改動審查與數值實驗室 (可攜式單一 HTML 版)';
 
+  const totalCardsCount = ALL_CARD_REVIEW_ITEMS.length;
   const cardsDataJson = JSON.stringify(ALL_CARD_REVIEW_ITEMS);
   const monstersDataJson = JSON.stringify(MONSTERS_BY_DEPTH);
   const initialDecisionsJson = JSON.stringify(initialDecisions);
@@ -557,6 +558,58 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
       color: #7dd3fc;
     }
 
+    /* ⚙️ 程式合成效果與一致性檢測區塊 */
+    .synthesized-desc-box {
+      background: rgba(14, 20, 32, 0.7);
+      border: 1px dashed rgba(56, 189, 248, 0.35);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-top: 10px;
+    }
+
+    .synth-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .synth-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .drift-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      cursor: help;
+    }
+
+    .drift-badge.match {
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .drift-badge.warning {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    .synth-text {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #94a3b8;
+      margin: 0;
+    }
+
     /* Right Decision & Note Column */
     .card-decision-col {
       display: flex;
@@ -1014,11 +1067,11 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
     <header class="review-lab-header">
       <div class="header-titles">
         <h1>⚖️ 克蘇魯卡牌改動審查與數值實驗室</h1>
-        <p>方案 A：可組合原子效應與印記聯動 · 全 64 張卡牌改動審核 & 怪物數值對策圖鑑 · 可攜式獨立版</p>
+        <p>方案 A：可組合原子效應與印記聯動 · 全 ${totalCardsCount} 張卡牌改動審核 & 怪物數值對策圖鑑 · 可攜式獨立版</p>
       </div>
       <div class="header-mode-tabs">
         <button id="tabCardsBtn" class="mode-tab-btn active" onclick="switchMainTab('cards')">
-          📖 卡牌改動審查 (64張)
+          📖 卡牌改動審查 (${totalCardsCount}張)
         </button>
         <button id="tabMonstersBtn" class="mode-tab-btn" onclick="switchMainTab('monsters')">
           💀 怪物生態數值表 (分深度 1~4)
@@ -1033,7 +1086,7 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
         <div class="stats-cluster">
           <div class="stat-pill total">
             <span>總卡牌</span>
-            <strong id="statTotal">64 張</strong>
+            <strong id="statTotal">${totalCardsCount} 張</strong>
           </div>
           <div class="stat-pill accepted">
             <span>🟢 已接受</span>
@@ -1045,7 +1098,7 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
           </div>
           <div class="stat-pill pending">
             <span>🟡 待審核</span>
-            <strong id="statPending">64</strong>
+            <strong id="statPending">${totalCardsCount}</strong>
           </div>
         </div>
 
@@ -1305,7 +1358,7 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
       });
       saveDecisions();
       renderCards();
-      showToast('已將全體 64 張卡牌設置為【全部接受】！');
+      showToast('已將全體 ' + ALL_CARD_REVIEW_ITEMS.length + ' 張卡牌設置為【全部接受】！');
     }
 
     function resetAllCards() {
@@ -1496,6 +1549,18 @@ export function generateStandaloneReviewHtml(options: GenerateHtmlOptions = {}):
               </div>
               <p class="desc-text">\${card.original.description}</p>
               \${card.original.flavorText ? '<p class="flavor-text">' + card.original.flavorText + '</p>' : ''}
+              \${card.synthesizedDescription ? \`
+              <div class="synthesized-desc-box">
+                <div class="synth-header">
+                  <span class="synth-title">⚙️ 程式實際效果合成：</span>
+                  \${card.hasDrift ? \`
+                    <span class="drift-badge warning" title="\${(card.driftDifferences || []).join('&#10;') || '文案與程式實際效果存在微差'}">⚠️ 效果微差</span>
+                  \` : \`
+                    <span class="drift-badge match" title="手寫文案與程式邏輯數值吻合">✓ 文實相符</span>
+                  \`}
+                </div>
+                <p class="synth-text">\${card.synthesizedDescription}</p>
+              </div>\` : ''}
             </div>
 
             <!-- Proposed -->
