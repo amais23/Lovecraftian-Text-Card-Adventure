@@ -1971,6 +1971,7 @@
   color: #38bdf8;
 }
 
+.life-loss,
 .hp-loss {
   display: block;
   color: #f87171;
@@ -2002,5 +2003,87 @@
   color: #ffd700;
   font-size: 11px;
   margin-right: 4px;
+}
+
+/* Radar & Line Charts Styles */
+.radar-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(207, 168, 102, 0.15);
+  border-radius: 8px;
+}
+
+.radar-svg {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  overflow: visible;
+}
+
+.radar-data-polygon {
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.3));
+  transition: all 0.3s ease;
+}
+
+.radar-vertex-group:hover circle {
+  r: 4.5;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+
+.copies-line-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(207, 168, 102, 0.15);
+  border-radius: 8px;
+}
+
+.line-chart-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.legend-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.legend-line.score {
+  background: #ffd700;
+}
+
+.legend-line.winrate {
+  background: #38bdf8;
+}
+
+.copies-line-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.copies-curve.score {
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+}
+
+.copies-curve.winrate {
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
 }
 

@@ -26,9 +26,18 @@ import type {
   EnemyThreatReport,
   ArchetypeId,
 } from '../engine/simulation/balanceTypes';
-import type { CardCategory } from '../types/game';
+import type { CardCategory, OccupationId } from '../types/game';
 
 const balanceData = balanceSummaryDataRaw as unknown as BalanceSummaryData;
+
+const ARCHETYPE_ORDER: ArchetypeId[] = [
+  'armor_counter',
+  'bleed_pierce',
+  'truth_restore',
+  'madness_sacrifice',
+  'high_cost_magic',
+  'status_attrition',
+];
 
 const ARCHETYPE_NAMES: Record<ArchetypeId, string> = {
   armor_counter: '護甲反擊',
@@ -63,6 +72,218 @@ const TIER_COLORS: Record<string, string> = {
   D: '#64748b',
 };
 
+/**
+ * 六角形流派協同倍率雷達圖 (Hexagonal Archetype Synergy Radar Chart)
+ */
+interface RadarChartProps {
+  synergies: Record<ArchetypeId, number>;
+  bestArchetype: ArchetypeId;
+}
+
+const ArchetypeRadarChart: React.FC<RadarChartProps> = ({ synergies, bestArchetype }) => {
+  const cx = 110;
+  const cy = 100;
+  const maxR = 64;
+  const maxVal = 2.0; // scale up to 2.0x
+
+  // Compute 6 vertex positions
+  const getCoordinates = (value: number, index: number) => {
+    const angle = (Math.PI / 3) * index - Math.PI / 2;
+    const r = Math.min(maxR, Math.max(10, (value / maxVal) * maxR));
+    return {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle),
+    };
+  };
+
+  const polygonPoints = ARCHETYPE_ORDER.map((arch, i) => {
+    const mult = synergies[arch] || 1.0;
+    const { x, y } = getCoordinates(mult, i);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  // Concentric background grid rings at 0.5x, 1.0x, 1.5x, 2.0x
+  const rings = [0.5, 1.0, 1.5, 2.0];
+
+  return (
+    <div className="radar-chart-container" data-testid="archetype-radar-chart">
+      <svg viewBox="0 0 220 200" className="radar-svg" role="img" aria-label="六大流派協同倍率雷達圖">
+        {/* Concentric Hexagons */}
+        {rings.map((ringVal) => {
+          const ringPoints = ARCHETYPE_ORDER.map((_, i) => {
+            const { x, y } = getCoordinates(ringVal, i);
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          }).join(' ');
+          const isBaseline = ringVal === 1.0;
+          return (
+            <polygon
+              key={ringVal}
+              points={ringPoints}
+              fill="none"
+              stroke={isBaseline ? '#cfa866' : '#334155'}
+              strokeWidth={isBaseline ? 1.2 : 0.8}
+              strokeDasharray={isBaseline ? '3 3' : undefined}
+              opacity={isBaseline ? 0.7 : 0.5}
+            />
+          );
+        })}
+
+        {/* Axis Spokes from center */}
+        {ARCHETYPE_ORDER.map((arch, i) => {
+          const { x, y } = getCoordinates(maxVal, i);
+          return (
+            <line
+              key={arch}
+              x1={cx}
+              y1={cy}
+              x2={x}
+              y2={y}
+              stroke="#334155"
+              strokeWidth={0.8}
+            />
+          );
+        })}
+
+        {/* Data Polygon */}
+        <polygon
+          points={polygonPoints}
+          fill="rgba(207, 168, 102, 0.25)"
+          stroke="#ffd700"
+          strokeWidth={2}
+          className="radar-data-polygon"
+        />
+
+        {/* Vertices and Labels */}
+        {ARCHETYPE_ORDER.map((arch, i) => {
+          const mult = synergies[arch] || 1.0;
+          const { x, y } = getCoordinates(mult, i);
+          const labelCoord = getCoordinates(maxVal + 0.35, i);
+          const isBest = arch === bestArchetype;
+
+          return (
+            <g key={arch} className="radar-vertex-group">
+              <circle
+                cx={x}
+                cy={y}
+                r={isBest ? 4 : 2.5}
+                fill={isBest ? '#ffd700' : '#38bdf8'}
+                stroke="#0b0f19"
+                strokeWidth={1}
+              />
+              <text
+                x={labelCoord.x}
+                y={labelCoord.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={9}
+                fill={isBest ? '#ffd700' : '#94a3b8'}
+                fontWeight={isBest ? '700' : '400'}
+              >
+                {ARCHETYPE_NAMES[arch]}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+/**
+ * 重複堆疊效益折線圖 (Copies Benefit Line Chart)
+ */
+interface CopiesLineChartProps {
+  curve: Record<number, { winRate: number; overallScore?: number; score?: number }>;
+  isRelic?: boolean;
+}
+
+const CopiesLineChart: React.FC<CopiesLineChartProps> = ({ curve, isRelic = false }) => {
+  const steps = isRelic ? [0, 1, 2, 3] : [1, 2, 3];
+  const chartW = 280;
+  const chartH = 110;
+  const paddingX = 35;
+  const paddingY = 20;
+
+  const getX = (stepIndex: number) => {
+    const total = steps.length - 1;
+    return paddingX + (stepIndex / total) * (chartW - paddingX * 2);
+  };
+
+  const getYScore = (score: number) => {
+    // 0 to 100 maps to (chartH - paddingY) down to paddingY
+    return chartH - paddingY - (score / 100) * (chartH - paddingY * 2);
+  };
+
+  const getYWinRate = (winRate: number) => {
+    // 0.0 to 1.0 maps similarly
+    return chartH - paddingY - winRate * (chartH - paddingY * 2);
+  };
+
+  const scorePoints = steps.map((s, i) => {
+    const val = curve[s]?.score ?? curve[s]?.overallScore ?? 50;
+    return `${getX(i).toFixed(1)},${getYScore(val).toFixed(1)}`;
+  }).join(' ');
+
+  const winRatePoints = steps.map((s, i) => {
+    const val = curve[s]?.winRate ?? 0.5;
+    return `${getX(i).toFixed(1)},${getYWinRate(val).toFixed(1)}`;
+  }).join(' ');
+
+  return (
+    <div className="copies-line-chart-container" data-testid="copies-benefit-line-chart">
+      <div className="line-chart-legend">
+        <span className="legend-label score-legend">
+          <span className="legend-line score" /> 綜合評分 (Score)
+        </span>
+        <span className="legend-label winrate-legend">
+          <span className="legend-line winrate" /> 勝率 (Win Rate)
+        </span>
+      </div>
+
+      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="copies-line-svg" role="img" aria-label="重複堆疊效益折線圖">
+        {/* Baseline grid */}
+        <line x1={paddingX} y1={paddingY} x2={chartW - paddingX} y2={paddingY} stroke="#1e293b" strokeDasharray="3 3" />
+        <line x1={paddingX} y1={chartH / 2} x2={chartW - paddingX} y2={chartH / 2} stroke="#1e293b" strokeDasharray="3 3" />
+        <line x1={paddingX} y1={chartH - paddingY} x2={chartW - paddingX} y2={chartH - paddingY} stroke="#334155" />
+
+        {/* Polylines */}
+        <polyline className="copies-curve score" points={scorePoints} fill="none" stroke="#ffd700" strokeWidth={2} />
+        <polyline className="copies-curve winrate" points={winRatePoints} fill="none" stroke="#38bdf8" strokeWidth={1.8} strokeDasharray="4 2" />
+
+        {/* Step Nodes and Labels */}
+        {steps.map((s, i) => {
+          const x = getX(i);
+          const scoreVal = curve[s]?.score ?? curve[s]?.overallScore ?? 50;
+          const winRateVal = curve[s]?.winRate ?? 0.5;
+          const yScore = getYScore(scoreVal);
+          const yWin = getYWinRate(winRateVal);
+
+          return (
+            <g key={s}>
+              {/* Score Node */}
+              <circle cx={x} cy={yScore} r={3.5} fill="#ffd700" stroke="#0b0f19" strokeWidth={1} />
+              <text x={x} y={yScore - 7} textAnchor="middle" fontSize={8.5} fill="#ffd700" fontWeight="700">
+                {scoreVal}分
+              </text>
+
+              {/* WinRate Node */}
+              <circle cx={x} cy={yWin} r={3} fill="#38bdf8" stroke="#0b0f19" strokeWidth={1} />
+              <text x={x} y={yWin + 11} textAnchor="middle" fontSize={8} fill="#38bdf8">
+                {(winRateVal * 100).toFixed(0)}%
+              </text>
+
+              {/* X Axis Step Label */}
+              <text x={x} y={chartH - 4} textAnchor="middle" fontSize={9} fill="#94a3b8">
+                {s}x {isRelic ? '持有' : '重複'}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
 export const BalanceMatrixDashboard: React.FC = () => {
   // Navigation sub-tab: 'scatter' (cards & relics) | 'enemies' (26-threat leaderboard)
   const [subTab, setSubTab] = useState<'scatter' | 'enemies'>('scatter');
@@ -72,6 +293,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
 
   // Filters for Cards
   const [categoryFilter, setCategoryFilter] = useState<CardCategory | 'all'>('all');
+  const [occupationFilter, setOccupationFilter] = useState<OccupationId | 'all' | 'neutral'>('all');
   const [tierFilter, setTierFilter] = useState<string | 'all'>('all');
   const [archetypeFilter, setArchetypeFilter] = useState<ArchetypeId | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,6 +312,16 @@ export const BalanceMatrixDashboard: React.FC = () => {
       if (categoryFilter !== 'all' && card.category !== categoryFilter) return false;
       if (tierFilter !== 'all' && String(card.tier) !== tierFilter) return false;
       if (archetypeFilter !== 'all' && card.bestArchetype !== archetypeFilter) return false;
+
+      // Occupation Filter
+      if (occupationFilter !== 'all') {
+        if (occupationFilter === 'neutral') {
+          if (card.occupations && card.occupations.length > 0) return false;
+        } else {
+          if (!card.occupations || !card.occupations.includes(occupationFilter)) return false;
+        }
+      }
+
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchName = card.name.toLowerCase().includes(query);
@@ -98,7 +330,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
       }
       return true;
     });
-  }, [categoryFilter, tierFilter, archetypeFilter, searchQuery]);
+  }, [categoryFilter, occupationFilter, tierFilter, archetypeFilter, searchQuery]);
 
   // Relics list
   const allRelics = useMemo(() => Object.values(balanceData.relics), []);
@@ -204,6 +436,22 @@ export const BalanceMatrixDashboard: React.FC = () => {
                       {CATEGORY_NAMES[cat]}
                     </button>
                   ))}
+                </div>
+
+                {/* Occupation Filter */}
+                <div className="filter-group">
+                  <span className="filter-label">職業：</span>
+                  <select
+                    className="balance-select"
+                    value={occupationFilter}
+                    onChange={(e) => setOccupationFilter(e.target.value as OccupationId | 'all' | 'neutral')}
+                    aria-label="職業篩選"
+                  >
+                    <option value="all">全部職業</option>
+                    <option value="investigator">私家偵探</option>
+                    <option value="occultist">秘術學者</option>
+                    <option value="neutral">通用無職業</option>
+                  </select>
                 </div>
 
                 {/* Tier Filter */}
@@ -331,7 +579,6 @@ export const BalanceMatrixDashboard: React.FC = () => {
                     {/* Data Points */}
                     {targetType === 'cards'
                       ? filteredCards.map((card) => {
-                          // Scale coordinates: X from 50 to 480 (range 430), Y from 300 to 20 (inverted)
                           const cx = 50 + (card.healthScore / 100) * 430;
                           const cy = 300 - (card.sanityScore / 100) * 280;
                           const isSelected = card.id === currentCard?.id;
@@ -367,8 +614,15 @@ export const BalanceMatrixDashboard: React.FC = () => {
                           );
                         })
                       : allRelics.map((relic) => {
-                          const cx = 50 + (relic.overallScore / 100) * 430;
-                          const cy = 300 - (relic.copiesCurve[1].score / 100) * 280;
+                          // Map relic's survival and sanity efficiency onto same 0-100 axes
+                          const relicSurvivalScore = Math.round(
+                            Math.max(0, Math.min(100, (1 - relic.copiesCurve[1].avgHealthLost / 25) * 100))
+                          );
+                          const relicSanityScore = Math.round(
+                            Math.max(0, Math.min(100, (1 - relic.copiesCurve[1].avgSanityExpended / 15) * 100))
+                          );
+                          const cx = 50 + (relicSurvivalScore / 100) * 430;
+                          const cy = 300 - (relicSanityScore / 100) * 280;
                           const isSelected = relic.id === currentRelic?.id;
                           const color = TIER_COLORS[relic.tierRating] || '#38bdf8';
 
@@ -411,7 +665,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
                   <h5>{targetType === 'cards' ? `卡牌列表 (${filteredCards.length} 張)` : `遺物列表 (${allRelics.length} 件)`}</h5>
                   <span className="list-hint">點選卡牌或遺物以切換深度檢視</span>
                 </div>
-                <div className="balance-items-grid">
+                <div className="balance-items-grid" data-testid="balance-items-grid">
                   {targetType === 'cards'
                     ? filteredCards.map((card) => {
                         const isSelected = card.id === currentCard?.id;
@@ -519,9 +773,9 @@ export const BalanceMatrixDashboard: React.FC = () => {
                       </strong>
                     </div>
                     <div className="metric-box">
-                      <span className="metric-title">肉體掉血</span>
+                      <span className="metric-title">肉體生命損失</span>
                       <strong className="metric-val text-red">
-                        {currentCard.avgHealthLost.toFixed(1)} HP
+                        {currentCard.avgHealthLost.toFixed(1)} 點生命
                       </strong>
                     </div>
                     <div className="metric-box">
@@ -532,12 +786,16 @@ export const BalanceMatrixDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 1x, 2x, 3x Copies Curve */}
+                  {/* 1x, 2x, 3x Copies Curve with SVG Line Chart */}
                   <div className="inspector-section">
                     <h5 className="section-heading">
                       <TrendingUp size={15} />
                       <span>重複堆疊效益曲線 (1x / 2x / 3x 重複)</span>
                     </h5>
+                    {/* SVG Line Chart */}
+                    <CopiesLineChart curve={currentCard.copiesCurve} isRelic={false} />
+
+                    {/* Step Cards Detail */}
                     <div className="copies-curve-container">
                       {[1, 2, 3].map((copyNum) => {
                         const copyData = currentCard.copiesCurve[copyNum as 1 | 2 | 3];
@@ -553,8 +811,8 @@ export const BalanceMatrixDashboard: React.FC = () => {
                                 <strong>{(copyData.winRate * 100).toFixed(1)}%</strong>
                               </div>
                               <div className="copy-metric-row">
-                                <span>平均掉血</span>
-                                <strong>{copyData.avgHealthLost.toFixed(1)} HP</strong>
+                                <span>平均生命損失</span>
+                                <strong>{copyData.avgHealthLost.toFixed(1)} 點生命</strong>
                               </div>
                               <div className="copy-metric-row">
                                 <span>理智消耗</span>
@@ -567,14 +825,21 @@ export const BalanceMatrixDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Six Archetypes Synergy Multipliers */}
+                  {/* Six Archetypes Synergy Multipliers with Hexagonal Radar Chart */}
                   <div className="inspector-section">
                     <h5 className="section-heading">
                       <Target size={15} />
-                      <span>六大流派協同倍率 (Synergy Multipliers)</span>
+                      <span>六大流派協同倍率 (六邊形雷達圖)</span>
                     </h5>
+                    {/* Hexagonal Radar Chart */}
+                    <ArchetypeRadarChart
+                      synergies={currentCard.synergyMultipliers}
+                      bestArchetype={currentCard.bestArchetype}
+                    />
+
+                    {/* Synergy Bars Breakdown */}
                     <div className="archetype-synergy-grid">
-                      {(Object.keys(ARCHETYPE_NAMES) as ArchetypeId[]).map((arch) => {
+                      {ARCHETYPE_ORDER.map((arch) => {
                         const mult = currentCard.synergyMultipliers[arch] || 1.0;
                         const isBest = currentCard.bestArchetype === arch;
                         const pct = Math.min(100, Math.round((mult / 2.0) * 100));
@@ -664,12 +929,15 @@ export const BalanceMatrixDashboard: React.FC = () => {
                     <strong className="text-gold">+{currentRelic.marginalBenefitPerStack.toFixed(1)}% / 件</strong>
                   </div>
 
-                  {/* 0x ~ 3x Relic Curve */}
+                  {/* 0x ~ 3x Relic Curve with Line Chart */}
                   <div className="inspector-section">
                     <h5 className="section-heading">
                       <TrendingUp size={15} />
                       <span>持有件數效益變化 (0x ~ 3x 持有)</span>
                     </h5>
+                    {/* SVG Line Chart for Relic */}
+                    <CopiesLineChart curve={currentRelic.copiesCurve} isRelic={true} />
+
                     <div className="copies-curve-container">
                       {([0, 1, 2, 3] as const).map((stack) => {
                         const stackData = currentRelic.copiesCurve[stack];
@@ -685,8 +953,8 @@ export const BalanceMatrixDashboard: React.FC = () => {
                                 <strong>{(stackData.winRate * 100).toFixed(1)}%</strong>
                               </div>
                               <div className="copy-metric-row">
-                                <span>肉體掉血</span>
-                                <strong>{stackData.avgHealthLost.toFixed(1)} HP</strong>
+                                <span>平均生命損失</span>
+                                <strong>{stackData.avgHealthLost.toFixed(1)} 點生命</strong>
                               </div>
                               <div className="copy-metric-row">
                                 <span>理智消耗</span>
@@ -788,7 +1056,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
               <span className="th-cell depth">深度 / 定位</span>
               <span className="th-cell threat">威脅指數</span>
               <span className="th-cell winrate">調查員勝率</span>
-              <span className="th-cell damage">平均傷害 (HP / 理智)</span>
+              <span className="th-cell damage">平均損失 (生命 / 理智)</span>
               <span className="th-cell counter">剋制情報 (攻克 / 崩盤)</span>
               <span className="th-cell cards">最佳應對卡牌</span>
             </div>
@@ -822,7 +1090,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
                       </strong>
                     </div>
                     <div className="td-cell damage">
-                      <span className="hp-loss">{enemy.avgInvestigatorHealthLost.toFixed(1)} HP</span>
+                      <span className="life-loss">{enemy.avgInvestigatorHealthLost.toFixed(1)} 點生命</span>
                       <span className="sanity-loss">{enemy.avgSanityEroded.toFixed(1)} 理智</span>
                     </div>
                     <div className="td-cell counter">

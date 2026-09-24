@@ -105,4 +105,69 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
     // Depth 4 monster should not be visible
     expect(screen.queryByText('星辰古神侍從')).toBeNull();
   });
+
+  it('filters cards by occupation (investigator, occultist, neutral)', () => {
+    render(<BalanceMatrixDashboard />);
+
+    const occupationSelect = screen.getByLabelText(/職業/);
+    const itemsGrid = screen.getByTestId('balance-items-grid');
+
+    // Filter by investigator
+    fireEvent.change(occupationSelect, { target: { value: 'investigator' } });
+    expect(itemsGrid.textContent).toContain('左輪射擊');
+    expect(itemsGrid.textContent).not.toContain('靈能衝擊');
+
+    // Filter by occultist
+    fireEvent.change(occupationSelect, { target: { value: 'occultist' } });
+    expect(itemsGrid.textContent).toContain('靈能衝擊');
+    expect(itemsGrid.textContent).not.toContain('左輪射擊');
+
+    // Filter by neutral
+    fireEvent.change(occupationSelect, { target: { value: 'neutral' } });
+    expect(itemsGrid.textContent).toContain('盲目爪擊');
+    expect(itemsGrid.textContent).not.toContain('左輪射擊');
+    expect(itemsGrid.textContent).not.toContain('靈能衝擊');
+  });
+
+  it('renders SVG hexagonal radar chart and copies benefit line chart for selected card', () => {
+    render(<BalanceMatrixDashboard />);
+
+    // Select card "左輪射擊"
+    fireEvent.click(screen.getAllByText('左輪射擊')[0]);
+
+    // Archetype radar chart should exist and render SVG polygon
+    const radar = screen.getByTestId('archetype-radar-chart');
+    expect(radar).toBeDefined();
+    const radarSvg = radar.querySelector('svg.radar-svg');
+    expect(radarSvg).not.toBeNull();
+    const dataPolygon = radar.querySelector('polygon.radar-data-polygon');
+    expect(dataPolygon).not.toBeNull();
+
+    // Copies benefit line chart should exist and render SVG polylines
+    const lineChart = screen.getByTestId('copies-benefit-line-chart');
+    expect(lineChart).toBeDefined();
+    const lineSvg = lineChart.querySelector('svg.copies-line-svg');
+    expect(lineSvg).not.toBeNull();
+    const curves = lineChart.querySelectorAll('polyline.copies-curve');
+    expect(curves.length).toBe(2); // score curve and winrate curve
+  });
+
+  it('strictly adheres to domain language with zero occurrences of forbidden HP and 血量 terms', () => {
+    const { container } = render(<BalanceMatrixDashboard />);
+
+    // Check scatter & inspector view
+    const scatterHtml = container.innerHTML;
+    expect(scatterHtml).not.toMatch(/\bHP\b/i);
+    expect(scatterHtml).not.toContain('血量');
+    expect(scatterHtml).not.toContain('掉血');
+
+    // Switch to enemies leaderboard tab
+    const enemyTabBtn = screen.getByRole('button', { name: /敵怪威脅排行榜/i });
+    fireEvent.click(enemyTabBtn);
+
+    const enemyHtml = container.innerHTML;
+    expect(enemyHtml).not.toMatch(/\bHP\b/i);
+    expect(enemyHtml).not.toContain('血量');
+    expect(enemyHtml).not.toContain('掉血');
+  });
 });
