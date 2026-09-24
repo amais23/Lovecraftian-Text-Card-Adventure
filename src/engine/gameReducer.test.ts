@@ -33,7 +33,7 @@ import {
 import {
   generateDefaultMarketItems,
   generateMarketItemsForDepth,
-} from './nodes';
+} from './nodes/handlers/market';
 import { getCardsByTier } from './cards/registry';
 import {
   ABYSSAL_FRAGMENT_1,

@@ -4,10 +4,6 @@ import {
   resolveNodeEntry,
   resolveNodeInteraction,
   resolveNodeLeave,
-  saveFallenInvestigator,
-  getFallenInvestigator,
-  clearFallenInvestigator,
-  FALLEN_INVESTIGATOR_STORAGE_KEY,
 } from './index';
 import { PRESET_RELICS } from '../relics';
 import { TRUTH_CARD_BREAKWATER } from '../eventData';
@@ -38,8 +34,6 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       { id: 'c3', name: '重拳壓制', category: 'combat', costType: 'stamina', costValue: 1, effects: [], description: '3' },
       { id: 'c4', name: '戰術閃避', category: 'skill', costType: 'stamina', costValue: 1, effects: [], description: '4' },
     ];
-
-    clearFallenInvestigator();
   });
 
   /* =========================================================
@@ -155,7 +149,6 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
         causeOfDeath: '戰死',
         timestamp: 12345,
       };
-      saveFallenInvestigator(fallenRecord);
 
       const node: MapNode = {
         id: 'node_6',
@@ -181,7 +174,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
      2. Sanctuary Interaction Tests
      ========================================================= */
   describe('Sanctuary Interaction', () => {
-    it('heals 8 HP on normal sanctuary layer and caps at maxHealth', () => {
+    it('heals 8 生命值 on normal sanctuary layer and caps at maxHealth', () => {
       mockInvestigator.health = 20;
       mockInvestigator.maxHealth = 25;
 
@@ -196,7 +189,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       expect(res.logs[0]).toContain('恢復了 5 點肉體生命值');
     });
 
-    it('heals 15 HP on layer 8 Mid-Depth Haven sanctuary', () => {
+    it('heals 15 生命值 on layer 8 Mid-Depth Haven sanctuary', () => {
       mockInvestigator.health = 5;
       mockInvestigator.maxHealth = 25;
 
@@ -249,7 +242,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
      3. Market Interaction Tests
      ========================================================= */
   describe('Market Interaction', () => {
-    it('purchases medical supplies and restores HP', () => {
+    it('purchases medical supplies and restores 生命值', () => {
       mockInvestigator.health = 10;
       mockInvestigator.maxHealth = 25;
       mockInvestigator.obols = 30;
@@ -324,7 +317,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
      4. Altar Interaction Tests
      ========================================================= */
   describe('Altar Interaction', () => {
-    it('executes flesh ritual: costs 6 HP, increases maxHealth by 5, heals 5', () => {
+    it('executes flesh ritual: costs 6 生命值, increases maxHealth by 5, heals 5', () => {
       mockInvestigator.health = 15;
       mockInvestigator.maxHealth = 25;
 
@@ -361,7 +354,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       expect(res.investigator.handCapacity).toBe(3);
     });
 
-    it('executes chaos ritual: costs 4 HP, purges 1 card, gains 50 obols', () => {
+    it('executes chaos ritual: costs 4 生命值, purges 1 card, gains 50 obols', () => {
       mockInvestigator.health = 10;
       mockInvestigator.obols = 10;
 
@@ -434,7 +427,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       expect(res.nodeStateUpdates.bloodAltarUsed).toBe(true);
     });
 
-    it('purges 1 card and heals 5 HP under reshape branch', () => {
+    it('purges 1 card and heals 5 生命值 under reshape branch', () => {
       mockInvestigator.health = 10;
       mockInvestigator.maxHealth = 25;
 
@@ -472,7 +465,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       expect(res.success).toBe(true);
       expect(res.sanityDeck.length).toBe(mockDeck.length + 1);
       expect(res.nodeStateUpdates.remainsClaimed).toBe(true);
-      expect(getFallenInvestigator()).toBeNull();
+      expect(res.clearFallenRecord).toBe(true);
     });
 
     it('inherits 50% obols from fallen investigator', () => {

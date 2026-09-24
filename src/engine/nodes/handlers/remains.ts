@@ -1,119 +1,27 @@
-import type { AdventureStats, Card, FallenInvestigatorRecord, GameState } from '../../../types/game';
-import { isAbyssalFragment, isCompleteAncientSeal } from '../../abyssalSeals';
-import type { NodeActionResult, NodeInteractionContext } from '../types';
-
-export const FALLEN_INVESTIGATOR_STORAGE_KEY = 'arkham_fallen_investigator';
+import type { AdventureStats, Card, MapNode } from '../../../types/game';
+import { isInheritableCard, type NodeActionResult, type NodeEntryResult, type NodeInteractionContext } from '../types';
 
 /**
- * 判斷卡牌是否可供後繼調查員傳承繼承
- * 排除臨時卡、無法打出的卡牌、深淵封印殘片與完整的深淵古印
+ * 處理先驅遺骸節點進入結算（純函數）
  */
-export function isInheritableCard(card: Card): boolean {
-  if (!card) return false;
-  if (card.isTemporary) return false;
-  if (card.isUnplayable) return false;
-  if (isAbyssalFragment(card)) return false;
-  if (isCompleteAncientSeal(card)) return false;
-  return true;
+export function resolveRemainsEntry(
+  node: MapNode,
+  fallenName?: string
+): NodeEntryResult {
+  return {
+    nodeStateUpdates: {
+      phase: 'remains',
+      remainsClaimed: false,
+    },
+    log: fallenName
+      ? `抵達先驅殘骸節點【${node.title}】。此處倒著前代殉職調查員【${fallenName}】的枯骨遺骸，遺物與筆記散落一地。`
+      : `抵達先驅殘骸節點【${node.title}】。此處枯骨散落，但歲月已將前人的所有痕跡磨滅殆盡。`,
+  };
 }
 
 /**
- * 儲存殉職調查員傳承紀錄至本機儲存空間
+ * 結算先驅遺骸傳承互動動作（純函數，無全域副作用）
  */
-export function saveFallenInvestigator(record: FallenInvestigatorRecord): void {
-  try {
-    if (typeof localStorage === 'undefined') return;
-    const sanitizedRecord: FallenInvestigatorRecord = {
-      ...record,
-      deck: (record.deck || []).filter(isInheritableCard),
-    };
-    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, JSON.stringify(sanitizedRecord));
-  } catch (err) {
-    console.warn('[RemainsInheritance] Failed to save fallen investigator record:', err);
-  }
-}
-
-/**
- * 自遊戲狀態結算殉職調查員資訊並持久化儲存
- */
-export function saveFallenInvestigatorFromState(
-  state: GameState,
-  causeOfDeath: string = '肉體傷重殞命'
-): void {
-  try {
-    const permanentCards = [
-      ...(state.sanityDeck || []),
-      ...(state.hand || []),
-      ...(state.discardPile || []),
-    ].filter((c) => !c.isTemporary).filter(isInheritableCard);
-
-    if (!permanentCards || permanentCards.length === 0) return;
-
-    const record: FallenInvestigatorRecord = {
-      name: state.investigator.name || '無名調查員',
-      occupation: state.investigator.occupation || '調查員',
-      occupationId: state.investigator.occupationId,
-      deck: permanentCards,
-      obols: state.investigator.obols ?? 0,
-      depth: state.currentDepth ?? state.map?.depth ?? 1,
-      causeOfDeath,
-      timestamp: Date.now(),
-    };
-
-    saveFallenInvestigator(record);
-  } catch (err) {
-    console.warn('[RemainsInheritance] Failed to extract fallen investigator from state:', err);
-  }
-}
-
-/**
- * 自本機儲存空間讀取殉職調查員傳承紀錄
- */
-export function getFallenInvestigator(): FallenInvestigatorRecord | null {
-  try {
-    if (typeof localStorage === 'undefined') return null;
-    const raw = localStorage.getItem(FALLEN_INVESTIGATOR_STORAGE_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw);
-    if (
-      parsed &&
-      typeof parsed === 'object' &&
-      typeof parsed.name === 'string' &&
-      Array.isArray(parsed.deck) &&
-      typeof parsed.obols === 'number'
-    ) {
-      return {
-        ...parsed,
-        deck: parsed.deck.filter(isInheritableCard),
-      } as FallenInvestigatorRecord;
-    }
-    return null;
-  } catch (err) {
-    console.warn('[RemainsInheritance] Failed to read fallen investigator record:', err);
-    return null;
-  }
-}
-
-/**
- * 檢驗當前是否存在前人壞結局遺骸傳承紀錄
- */
-export function hasFallenInvestigatorRecord(): boolean {
-  return getFallenInvestigator() !== null;
-}
-
-/**
- * 清除本機儲存空間之殉職調查員傳承紀錄
- */
-export function clearFallenInvestigator(): void {
-  try {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.removeItem(FALLEN_INVESTIGATOR_STORAGE_KEY);
-  } catch (err) {
-    console.warn('[RemainsInheritance] Failed to clear fallen investigator record:', err);
-  }
-}
-
 export function resolveRemainsAction(
   payload: { type: 'card'; cardId: string } | { type: 'obols' },
   context: NodeInteractionContext
@@ -133,9 +41,10 @@ export function resolveRemainsAction(
     const cardId = payload.cardId;
     const targetCard = fallenInvestigator.deck.find((c) => c.id === cardId);
     if (targetCard && isInheritableCard(targetCard)) {
+      const timestamp = context.timestamp ?? fallenInvestigator.timestamp ?? 1;
       const inheritedCard: Card = {
         ...targetCard,
-        id: `${targetCard.id}_inherited_${Date.now()}`,
+        id: `${targetCard.id}_inherited_${timestamp}`,
         isTemporary: false,
       };
       newSanityDeck.push(inheritedCard);

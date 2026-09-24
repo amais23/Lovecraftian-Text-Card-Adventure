@@ -1,15 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-  FALLEN_INVESTIGATOR_STORAGE_KEY,
-  saveFallenInvestigator,
-  saveFallenInvestigatorFromState,
-  getFallenInvestigator,
-  hasFallenInvestigatorRecord,
-  clearFallenInvestigator,
-} from './handlers/remains';
-import type { Card, FallenInvestigatorRecord, GameState } from '../../types/game';
+import { describe, it, expect } from 'vitest';
+import { resolveRemainsEntry, resolveRemainsAction } from './handlers/remains';
+import type { Card, FallenInvestigatorRecord, Investigator } from '../../types/game';
 
-const MOCK_CARD_1: Card = {
+const MOCK_CARD: Card = {
   id: 'card_gun_1',
   name: '.38 左輪手槍',
   category: 'combat',
@@ -21,161 +14,117 @@ const MOCK_CARD_1: Card = {
   flavorText: '防身配槍',
 };
 
-const MOCK_CARD_2: Card = {
-  id: 'card_evasion_1',
-  name: '機敏閃避',
-  category: 'skill',
-  costType: 'stamina',
-  costValue: 1,
-  isTemporary: false,
-  effects: [{ type: 'armor', value: 4 }],
-  description: '獲得 4 點護甲',
-  flavorText: '側身翻滾',
+const MOCK_INVESTIGATOR: Investigator = {
+  name: '哈維·華特斯',
+  occupation: '教授',
+  occupationId: 'investigator',
+  health: 20,
+  maxHealth: 25,
+  stamina: 3,
+  maxStamina: 3,
+  armor: 0,
+  handCapacity: 2,
+  relics: [],
+  obols: 20,
 };
 
-describe('remainsInheritance in nodes module', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    vi.restoreAllMocks();
-  });
-
-  afterEach(() => {
-    localStorage.clear();
-    vi.restoreAllMocks();
-  });
-
-  it('correctly saves, reads and clears a fallen investigator record', () => {
-    expect(hasFallenInvestigatorRecord()).toBe(false);
-    expect(getFallenInvestigator()).toBeNull();
-
-    const record: FallenInvestigatorRecord = {
-      name: '愛德華·皮斯利',
-      occupation: '私家偵探',
-      occupationId: 'investigator',
-      deck: [MOCK_CARD_1, MOCK_CARD_2],
-      obols: 45,
-      depth: 2,
-      causeOfDeath: '遭深潛者長老撕裂',
-      timestamp: 1700000000000,
+describe('remains handler (pure engine)', () => {
+  it('resolveRemainsEntry initializes node state updates and literary log', () => {
+    const node = {
+      id: 'node_remains_1',
+      type: 'remains' as const,
+      layer: 1,
+      col: 0,
+      label: '先驅殘骸',
+      title: '前輩枯骨',
+      description: '骸骨散落',
+      nextNodes: [],
+      status: 'current' as const,
     };
 
-    saveFallenInvestigator(record);
-    expect(hasFallenInvestigatorRecord()).toBe(true);
+    const entryWithName = resolveRemainsEntry(node, '愛德華');
+    expect(entryWithName.nodeStateUpdates.phase).toBe('remains');
+    expect(entryWithName.nodeStateUpdates.remainsClaimed).toBe(false);
+    expect(entryWithName.log).toContain('愛德華');
 
-    const loaded = getFallenInvestigator();
-    expect(loaded).toEqual(record);
-
-    clearFallenInvestigator();
-    expect(hasFallenInvestigatorRecord()).toBe(false);
-    expect(getFallenInvestigator()).toBeNull();
+    const entryWithoutName = resolveRemainsEntry(node);
+    expect(entryWithoutName.log).toContain('痕跡磨滅殆盡');
   });
 
-  it('correctly extracts and saves record from GameState', () => {
-    const mockState = {
-      phase: 'gameover',
-      currentDepth: 3,
-      investigator: {
-        name: '湯瑪斯·奧恩',
-        occupation: '秘術學者',
-        occupationId: 'occultist',
-        health: 0,
-        maxHealth: 25,
-        stamina: 0,
-        maxStamina: 3,
-        armor: 0,
-        obols: 80,
-      },
-      sanityDeck: [MOCK_CARD_1],
-      hand: [MOCK_CARD_2],
-      discardPile: [],
-    } as unknown as GameState;
-
-    saveFallenInvestigatorFromState(mockState, '遭修格斯黑泥吞噬');
-
-    expect(hasFallenInvestigatorRecord()).toBe(true);
-    const loaded = getFallenInvestigator();
-    expect(loaded?.name).toBe('湯瑪斯·奧恩');
-    expect(loaded?.occupation).toBe('秘術學者');
-    expect(loaded?.occupationId).toBe('occultist');
-    expect(loaded?.obols).toBe(80);
-    expect(loaded?.depth).toBe(3);
-    expect(loaded?.causeOfDeath).toBe('遭修格斯黑泥吞噬');
-    expect(loaded?.deck).toHaveLength(2);
-  });
-
-  it('handles corrupted localStorage data safely without crashing', () => {
-    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, 'invalid_json_{{');
-    expect(getFallenInvestigator()).toBeNull();
-    expect(hasFallenInvestigatorRecord()).toBe(false);
-
-    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, JSON.stringify({ random: 'data' }));
-    expect(getFallenInvestigator()).toBeNull();
-  });
-
-  it('handles storage exceptions gracefully when localStorage throws', () => {
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('QuotaExceeded');
-    });
-
-    const record: FallenInvestigatorRecord = {
-      name: '測試者',
+  it('resolveRemainsAction inherits card deterministically without ambient Date.now()', () => {
+    const fallen: FallenInvestigatorRecord = {
+      name: '威廉',
       occupation: '私家偵探',
-      deck: [MOCK_CARD_1],
-      obols: 10,
+      deck: [MOCK_CARD],
+      obols: 50,
       depth: 1,
-      causeOfDeath: '測試死因',
-      timestamp: 12345,
+      causeOfDeath: '戰死',
+      timestamp: 9999,
     };
 
-    expect(() => saveFallenInvestigator(record)).not.toThrow();
-    setItemSpy.mockRestore();
+    const res = resolveRemainsAction(
+      { type: 'card', cardId: MOCK_CARD.id },
+      {
+        investigator: MOCK_INVESTIGATOR,
+        sanityDeck: [],
+        fallenInvestigator: fallen,
+        timestamp: 123456,
+      }
+    );
+
+    expect(res.success).toBe(true);
+    expect(res.sanityDeck).toHaveLength(1);
+    expect(res.sanityDeck[0].id).toBe(`${MOCK_CARD.id}_inherited_123456`);
+    expect(res.clearFallenRecord).toBe(true);
+    expect(res.nodeStateUpdates.remainsClaimed).toBe(true);
+    expect(res.logs[0]).toContain('撫摸著枯骨旁沾血的筆記');
   });
 
-  it('filters out abyssal fragments and unplayable cards when saving from state', () => {
-    const unplayableFragment: Card = {
-      id: 'card_abyssal_fragment_1',
-      name: '深淵封印殘片·其一',
-      category: 'madness',
-      costType: 'free',
-      costValue: 0,
-      isTemporary: false,
-      isUnplayable: true,
-      effects: [],
-      description: '無法打出。',
-      flavorText: '殘片',
+  it('resolveRemainsAction inherits obols accurately and marks clearFallenRecord', () => {
+    const fallen: FallenInvestigatorRecord = {
+      name: '威廉',
+      occupation: '私家偵探',
+      deck: [],
+      obols: 60,
+      depth: 1,
+      causeOfDeath: '戰死',
+      timestamp: 9999,
     };
 
-    const temporaryCard: Card = {
-      id: 'temp_madness_card',
-      name: '臨時瘋狂卡',
-      category: 'madness',
-      costType: 'free',
-      costValue: 0,
-      isTemporary: true,
-      effects: [],
-      description: '臨時卡',
-      flavorText: '消散',
-    };
+    const res = resolveRemainsAction(
+      { type: 'obols' },
+      {
+        investigator: MOCK_INVESTIGATOR,
+        sanityDeck: [],
+        fallenInvestigator: fallen,
+      }
+    );
 
-    const mockState = {
-      phase: 'gameover',
-      currentDepth: 2,
-      investigator: {
-        name: '探險家',
-        occupation: '私家偵探',
-        obols: 20,
-      },
-      sanityDeck: [MOCK_CARD_1, unplayableFragment, temporaryCard],
-      hand: [],
-      discardPile: [],
-    } as unknown as GameState;
+    expect(res.success).toBe(true);
+    expect(res.investigator.obols).toBe(20 + 30); // 20 + 50% of 60
+    expect(res.clearFallenRecord).toBe(true);
+    expect(res.logs[0]).toContain('30 枚殘存古金幣');
+  });
 
-    saveFallenInvestigatorFromState(mockState, '遭深淵吞噬');
+  it('resolveRemainsAction rejects if remains are already claimed or fallen is missing', () => {
+    const resClaimed = resolveRemainsAction(
+      { type: 'obols' },
+      {
+        investigator: MOCK_INVESTIGATOR,
+        sanityDeck: [],
+        remainsClaimed: true,
+      }
+    );
+    expect(resClaimed.success).toBe(false);
 
-    const loaded = getFallenInvestigator();
-    expect(loaded).not.toBeNull();
-    // Only MOCK_CARD_1 should be saved in legacy deck
-    expect(loaded?.deck).toHaveLength(1);
-    expect(loaded?.deck[0].id).toBe(MOCK_CARD_1.id);
+    const resNoFallen = resolveRemainsAction(
+      { type: 'obols' },
+      {
+        investigator: MOCK_INVESTIGATOR,
+        sanityDeck: [],
+        fallenInvestigator: null,
+      }
+    );
+    expect(resNoFallen.success).toBe(false);
   });
 });

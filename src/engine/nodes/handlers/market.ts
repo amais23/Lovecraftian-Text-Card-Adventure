@@ -3,9 +3,8 @@ import { CardRegistry } from '../../cards/registry';
 import { getSupplyArtwork } from '../../cardArtworks';
 import { applyRelicToInvestigator, PRESET_RELICS } from '../../relics';
 import { fisherYatesShuffle } from '../../shuffleUtils';
-import type { NodeActionResult, NodeInteractionContext } from '../types';
-
-export const MARKET_PURGE_COST = 30;
+import { MARKET_PURGE_COST, type NodeActionResult, type NodeInteractionContext } from '../types';
+export { MARKET_PURGE_COST };
 
 export interface GenerateMarketItemsOptions {
   ownedRelicIds?: string[];

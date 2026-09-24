@@ -44,13 +44,15 @@ import {
 } from './cards';
 import { applyRelicCombatStart, applyRelicToInvestigator } from './relics';
 import {
-  clearFallenInvestigator,
-  getFallenInvestigator,
   resolveNodeEntry,
   resolveNodeInteraction,
   resolveNodeLeave,
-  saveFallenInvestigatorFromState,
 } from './nodes';
+import {
+  clearFallenInvestigator,
+  getFallenInvestigator,
+  saveFallenInvestigatorFromState,
+} from './remainsStorage';
 import {
   resolveCombatTurnEnd,
   initializeCombatSession,
