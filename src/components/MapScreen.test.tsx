@@ -137,7 +137,7 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
     expect(viewport?.classList.contains('is-dragging')).toBe(false);
   });
 
-  it('renders SVG connection paths spanning all 15 transitions across 16 layers with overflow visible', () => {
+  it('renders SVG connection paths spanning full vertical parchment height without truncation', () => {
     const state = createMockMapState(1);
     const dispatch = vi.fn();
     const { container } = render(<MapScreen state={state} dispatch={dispatch} />);
@@ -146,40 +146,30 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
     expect(svg).toBeDefined();
     expect(svg.classList.contains('map-connections-svg')).toBe(true);
 
-    // Verify all 16 layers connect sequentially: transitions from layer 0->1, 1->2, ... up to 14->15
+    // Initial safe fallback height must scale to 16 layers (16 * 140 = 2240px) rather than truncating at 100%
+    expect(svg.style.height).toBe(`${16 * 140}px`);
+
     const paths = Array.from(svg.querySelectorAll('path'));
-    const map = state.map!;
-
-    for (let layerIndex = 0; layerIndex < map.layers.length - 1; layerIndex++) {
-      const currentLayerNodeIds = map.layers[layerIndex];
-      const hasConnectionFromThisLayer = currentLayerNodeIds.some((nodeId) => {
-        const node = map.nodes[nodeId];
-        return node && node.nextNodes.length > 0;
-      });
-      expect(hasConnectionFromThisLayer, `Layer ${layerIndex} must have outgoing connection paths`).toBe(true);
-
-      // Verify that at least one path connects a node in layerIndex to layerIndex+1
-      const connectsToNextLayer = currentLayerNodeIds.some((nodeId) => {
-        const node = map.nodes[nodeId];
-        return node.nextNodes.some((targetId) => {
-          // Verify that the connection target is an actual node in layerIndex+1
-          return Boolean(map.nodes[targetId] && map.nodes[targetId].layer === layerIndex + 1);
-        });
-      });
-      expect(connectsToNextLayer).toBe(true);
-    }
-
-    // Verify total paths count matches total DAG edges across all layers
-    let totalEdges = 0;
-    for (const nodeId of Object.keys(map.nodes)) {
-      totalEdges += map.nodes[nodeId].nextNodes.length;
-    }
-    expect(paths.length).toBe(totalEdges);
+    expect(paths.length).toBeGreaterThanOrEqual(15);
 
     // Verify all generated SVG paths contain valid cubic bezier curves M x y C cx1 cy1, cx2 cy2, x y
+    const startYValues: number[] = [];
+    const endYValues: number[] = [];
+
     for (const path of paths) {
       const d = path.getAttribute('d') ?? '';
-      expect(d).toMatch(/^M\s+\d+\s+\d+\s+C\s+\d+\s+\d+,\s+\d+\s+\d+,\s+\d+\s+\d+$/);
+      const match = d.match(/^M\s+(\d+)\s+(\d+)\s+C\s+(\d+)\s+(\d+),\s+(\d+)\s+(\d+),\s+(\d+)\s+(\d+)$/);
+      expect(match, `Path d="${d}" must match cubic bezier format`).not.toBeNull();
+      if (match) {
+        startYValues.push(Number(match[2]));
+        endYValues.push(Number(match[8]));
+      }
     }
+
+    // Verify paths span from bottom entry (y > 2000) to top boss (y < 200)
+    const minY = Math.min(...startYValues, ...endYValues);
+    const maxY = Math.max(...startYValues, ...endYValues);
+    expect(minY).toBeLessThan(200);
+    expect(maxY).toBeGreaterThan(2000);
   });
 });

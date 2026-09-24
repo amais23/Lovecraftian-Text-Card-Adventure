@@ -119,17 +119,18 @@ const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = 
 function getNodeCoordinates(
   node: MapNode,
   map: InvestigationMap,
-  canvasWidth = 800,
-  canvasHeight?: number
+  dimensions?: { width?: number; height?: number }
 ): { x: number; y: number } {
   const layerLength = map.layers[node.layer]?.length ?? 1;
   const totalLayers = map.layers.length;
   // 縱向翻轉：Layer 0 在底，Layer totalLayers-1 在頂
   const visualRow = totalLayers - 1 - node.layer;
-  const rowSpacing =
-    canvasHeight && canvasHeight > 140
-      ? (canvasHeight - 140) / Math.max(1, totalLayers - 1)
-      : 140;
+  const canvasWidth = dimensions?.width && dimensions.width > 0 ? dimensions.width : 800;
+  const canvasHeight =
+    dimensions?.height && dimensions.height > 140
+      ? dimensions.height
+      : totalLayers * 140;
+  const rowSpacing = (canvasHeight - 140) / Math.max(1, totalLayers - 1);
 
   return {
     x: Math.round((node.col + 1) * (canvasWidth / (layerLength + 1))),
@@ -362,7 +363,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
             className="map-connections-svg"
             style={{
               width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : '100%',
-              height: canvasDimensions.height > 0 ? `${canvasDimensions.height}px` : '100%',
+              height:
+                canvasDimensions.height > 0
+                  ? `${canvasDimensions.height}px`
+                  : `${map.layers.length * 140}px`,
             }}
           >
             <defs>
@@ -373,28 +377,24 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
               </linearGradient>
             </defs>
 
-            {(() => {
-              const fallbackWidth = canvasDimensions.width || undefined;
-              const fallbackHeight = canvasDimensions.height || undefined;
+            {map.layers.map((layerNodeIds) =>
+              layerNodeIds.map((nodeId) => {
+                const node = map.nodes[nodeId];
+                if (!node || !node.nextNodes.length) return null;
 
-              return map.layers.map((layerNodeIds) =>
-                layerNodeIds.map((nodeId) => {
-                  const node = map.nodes[nodeId];
-                  if (!node || !node.nextNodes.length) return null;
+                return node.nextNodes.map((targetId) => {
+                  const target = map.nodes[targetId];
+                  if (!target) return null;
 
-                  return node.nextNodes.map((targetId) => {
-                    const target = map.nodes[targetId];
-                    if (!target) return null;
+                  const isPathAvailable =
+                    (node.status === 'current' && target.status === 'accessible') ||
+                    (node.status === 'visited' && (target.status === 'visited' || target.status === 'current'));
 
-                    const isPathAvailable =
-                      (node.status === 'current' && target.status === 'accessible') ||
-                      (node.status === 'visited' && (target.status === 'visited' || target.status === 'current'));
+                  const sourcePos = nodePositions[node.id];
+                  const targetPos = nodePositions[target.id];
 
-                    const sourcePos = nodePositions[node.id];
-                    const targetPos = nodePositions[target.id];
-
-                    const sourceCoord = sourcePos ?? getNodeCoordinates(node, map, fallbackWidth, fallbackHeight);
-                    const targetCoord = targetPos ?? getNodeCoordinates(target, map, fallbackWidth, fallbackHeight);
+                  const sourceCoord = sourcePos ?? getNodeCoordinates(node, map, canvasDimensions);
+                  const targetCoord = targetPos ?? getNodeCoordinates(target, map, canvasDimensions);
 
                   // 墨水三次貝茲曲線 (Cubic Bezier S-Curve)
                   const deltaY = targetCoord.y - sourceCoord.y;
@@ -417,8 +417,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                     );
                   });
                 })
-              );
-            })()}
+              )}
           </svg>
 
           {/* Render Layers Vertically from Top (Boss) to Bottom (Entry) */}
