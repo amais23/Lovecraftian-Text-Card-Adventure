@@ -14,7 +14,6 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
 
   beforeEach(() => {
     mockInvestigator = {
-      id: 'inv_1',
       name: '愛德華·皮爾斯',
       occupation: '私家偵探',
       occupationId: 'investigator',
@@ -29,10 +28,10 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
     };
 
     mockDeck = [
-      { id: 'c1', name: '左輪射擊', category: 'combat', costType: 'stamina', costValue: 1, effects: [], description: '1' },
-      { id: 'c2', name: '掩體射擊', category: 'skill', costType: 'stamina', costValue: 1, effects: [], description: '2' },
-      { id: 'c3', name: '重拳壓制', category: 'combat', costType: 'stamina', costValue: 1, effects: [], description: '3' },
-      { id: 'c4', name: '戰術閃避', category: 'skill', costType: 'stamina', costValue: 1, effects: [], description: '4' },
+      { id: 'c1', name: '左輪射擊', category: 'combat', costType: 'stamina', costValue: 1, effects: [], description: '1', flavorText: '1', isTemporary: false },
+      { id: 'c2', name: '掩體射擊', category: 'skill', costType: 'stamina', costValue: 1, effects: [], description: '2', flavorText: '2', isTemporary: false },
+      { id: 'c3', name: '重拳壓制', category: 'combat', costType: 'stamina', costValue: 1, effects: [], description: '3', flavorText: '3', isTemporary: false },
+      { id: 'c4', name: '戰術閃避', category: 'skill', costType: 'stamina', costValue: 1, effects: [], description: '4', flavorText: '4', isTemporary: false },
     ];
   });
 

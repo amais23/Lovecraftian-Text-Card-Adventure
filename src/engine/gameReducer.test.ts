@@ -57,7 +57,7 @@ import {
   DEPTH_4_NORMAL_ENEMIES,
 } from './enemyCatalog';
 import { getFreshEnemyTemplate } from './gameReducer';
-import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent, Relic } from '../types/game';
+import type { Card, GameState, Enemy, InvestigationMap, DepthLevel, MythosEvent, Relic, MarketItem } from '../types/game';
 
 function createMockCard(overrides?: Partial<Card>): Card {
   return {
@@ -2256,6 +2256,8 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           costValue: 1,
           effects: [],
           description: '測試',
+          flavorText: '測試',
+          isTemporary: false,
         },
         description: '測試',
       };
