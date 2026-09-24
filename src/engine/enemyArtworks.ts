@@ -315,19 +315,66 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_ancient_hound_of_tindalos',
     name: '廷達洛斯追獵古獸',
     category: 'hound',
-    cartoonUrl: '/enemies/cartoon/enemy_hound_of_tindalos.png',
-    realisticUrl: '/enemies/realistic/enemy_hound_of_tindalos.png',
+    cartoonUrl: '/enemies/cartoon/enemy_void_wanderer.png',
+    realisticUrl: '/enemies/realistic/enemy_void_wanderer.png',
     conceptLore: '穿梭億萬時空死角的廷達洛斯古獸，對應遠古廷達洛斯宿尊美術設定。',
   },
   enemy_ancient_eldritch_guardian: {
     enemyId: 'enemy_ancient_eldritch_guardian',
     name: '舊日太古守護者',
     category: 'ancient_guardian',
-    cartoonUrl: '/enemies/cartoon/enemy_ancient_guardian.png',
-    realisticUrl: '/enemies/realistic/enemy_ancient_guardian.png',
+    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
+    realisticUrl: '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
     conceptLore: '拉萊耶永恆守望者，對應遠古不朽守護者美術設定。',
   },
 };
+
+/**
+ * 實體磁碟存在之怪獸圖檔白名單 (確保 Review Lab、圖鑑與遊戲運行零破圖)
+ */
+export const VERIFIED_ENEMY_IMAGE_PATHS = new Set<string>([
+  '/enemies/cartoon/enemy_abyssal_barnacle_mass.png',
+  '/enemies/cartoon/enemy_arkham_cultist.png',
+  '/enemies/cartoon/enemy_cemetery_carrion_worm.png',
+  '/enemies/cartoon/enemy_cosmic_prophet.png',
+  '/enemies/cartoon/enemy_cultist_zealot.png',
+  '/enemies/cartoon/enemy_ghoul_high_priest.png',
+  '/enemies/cartoon/enemy_ghoul_lurker.png',
+  '/enemies/cartoon/enemy_innsmouth_hybrid.png',
+  '/enemies/cartoon/enemy_migo_scout.png',
+  '/enemies/cartoon/enemy_nightgaunt.png',
+  '/enemies/cartoon/enemy_outer_god_piper.png',
+  '/enemies/cartoon/enemy_rlyeh_dream_apparition.png',
+  '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
+  '/enemies/cartoon/enemy_shoggoth_progeny.png',
+  '/enemies/cartoon/enemy_tidal_siren.png',
+  '/enemies/cartoon/enemy_void_wanderer.png',
+  '/enemies/cartoon/enemy_walls_rat_swarm.png',
+  '/enemies/realistic/enemy_abyssal_barnacle_mass.png',
+  '/enemies/realistic/enemy_arkham_cultist.png',
+  '/enemies/realistic/enemy_cemetery_carrion_worm.png',
+  '/enemies/realistic/enemy_cosmic_prophet.png',
+  '/enemies/realistic/enemy_cultist_zealot.png',
+  '/enemies/realistic/enemy_ghoul_high_priest.png',
+  '/enemies/realistic/enemy_ghoul_lurker.png',
+  '/enemies/realistic/enemy_innsmouth_hybrid.png',
+  '/enemies/realistic/enemy_migo_scout.png',
+  '/enemies/realistic/enemy_nightgaunt.png',
+  '/enemies/realistic/enemy_outer_god_piper.png',
+  '/enemies/realistic/enemy_rlyeh_dream_apparition.png',
+  '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
+  '/enemies/realistic/enemy_tidal_siren.png',
+  '/enemies/realistic/enemy_void_wanderer.png',
+  '/enemies/realistic/enemy_walls_rat_swarm.png',
+]);
+
+/**
+ * 檢查給定之圖檔路徑是否為實體磁碟存在之可用資產
+ */
+export function isEnemyImageVerified(url?: string): boolean {
+  if (!url) return false;
+  return VERIFIED_ENEMY_IMAGE_PATHS.has(url);
+}
 
 /**
  * 依敵怪 ID 查詢美術插圖資訊

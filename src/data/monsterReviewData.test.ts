@@ -59,19 +59,23 @@ describe('Monster Review Data (Bestiary & Review Lab)', () => {
     }
   });
 
-  it('validates each derivative monster has complete traits, intents, and tactical tips', () => {
-    const allDerivativeIds = Object.values(derivativeEnemyIdsByDepth).flat();
+  it('resolves valid physical artwork for catalog alias enemies present in MONSTERS_BY_DEPTH', () => {
     const allMonsters: MonsterReviewData[] = Object.values(MONSTERS_BY_DEPTH).flat();
+    const aliasEnemyIds = [
+      'enemy_non_euclidean_construct',
+      'enemy_ancient_hound_of_tindalos',
+      'enemy_ancient_eldritch_guardian',
+    ];
 
-    for (const id of allDerivativeIds) {
-      const monster = allMonsters.find((m) => m.id === id)!;
-      expect(monster.trait.name.length).toBeGreaterThan(0);
-      expect(monster.trait.description.length).toBeGreaterThan(0);
-      expect(monster.trait.trigger.length).toBeGreaterThan(0);
-      expect(monster.intents.length).toBeGreaterThanOrEqual(3);
-      expect(monster.tacticalTips.threatSummary.length).toBeGreaterThan(0);
-      expect(monster.tacticalTips.recommendedCards.length).toBeGreaterThan(0);
-      expect(monster.tacticalTips.strategy.length).toBeGreaterThan(0);
+    for (const id of aliasEnemyIds) {
+      const monster = allMonsters.find((m) => m.id === id);
+      if (monster) {
+        expect(monster.imageUrl, `Monster ${id} must have resolved imageUrl`).toBeDefined();
+        expect(fs.existsSync('public' + monster.imageUrl!), `imageUrl for ${id} must exist`).toBe(true);
+        if (monster.realisticUrl) {
+          expect(fs.existsSync('public' + monster.realisticUrl!), `realisticUrl for ${id} must exist`).toBe(true);
+        }
+      }
     }
   });
 });

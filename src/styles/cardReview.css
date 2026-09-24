@@ -598,6 +598,69 @@
   color: #f1f5f9;
 }
 
+/* ⚙️ 程式合成效果與一致性檢測區塊 */
+.synthesized-desc-box {
+  background: rgba(14, 20, 32, 0.7);
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-top: 10px;
+}
+
+.synth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.synth-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.drift-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  cursor: help;
+}
+
+.drift-badge.match {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.drift-badge.warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.synth-text {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.no-proposal-notice {
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
 .flavor-italic {
   font-size: 11px;
   color: #64748b;

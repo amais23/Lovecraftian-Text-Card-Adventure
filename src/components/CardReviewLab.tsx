@@ -671,7 +671,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                       <div className="card-comparison-col">
                         <div className="comparison-box before-box">
                           <div className="box-header">
-                            <span className="version-label current">【目前原版效果】</span>
+                            <span className="version-label current">【現行實裝基準】</span>
                             <span className="cost-tag">
                               {card.original.costType === 'free'
                                 ? '0 費'
@@ -684,11 +684,35 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                           {card.original.flavorText && (
                             <p className="flavor-italic">{card.original.flavorText}</p>
                           )}
+
+                          {/* ⚙️ 程式實際效果文字合成與一致性比對 */}
+                          {card.synthesizedDescription && (
+                            <div className="synthesized-desc-box">
+                              <div className="synth-header">
+                                <span className="synth-title">⚙️ 程式實際效果合成：</span>
+                                {card.hasDrift ? (
+                                  <span
+                                    className="drift-badge warning"
+                                    title={card.driftDifferences?.join('\n') || '文案與程式實際效果存在微差'}
+                                  >
+                                    ⚠️ 效果微差
+                                  </span>
+                                ) : (
+                                  <span className="drift-badge match" title="手寫文案與程式邏輯數值吻合">
+                                    ✓ 文實相符
+                                  </span>
+                                )}
+                              </div>
+                              <p className="synth-text">{card.synthesizedDescription}</p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="comparison-box after-box">
                           <div className="box-header">
-                            <span className="version-label proposed">【方案 A 改造後效果】</span>
+                            <span className="version-label proposed">
+                              {card.hasActiveProposal ? '【待審改動提案】' : '【審查狀態：最新實裝】'}
+                            </span>
                             <span className="cost-tag highlight">
                               {card.proposed.costType === 'free'
                                 ? '0 費 (免費)'
@@ -697,33 +721,43 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                                   }`}
                             </span>
                           </div>
-                          <div className="keywords-badge-row">
-                            {card.proposed.keywords?.map((kw, i) => (
-                              <span key={i} className="kw-badge">
-                                {kw}
-                              </span>
-                            ))}
-                          </div>
+                          {card.proposed.keywords && card.proposed.keywords.length > 0 && (
+                            <div className="keywords-badge-row">
+                              {card.proposed.keywords.map((kw, i) => (
+                                <span key={i} className="kw-badge">
+                                  {kw}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <p className="card-desc-text new-desc">{card.proposed.description}</p>
 
-                          <div className="rationale-block">
-                            <div className="rationale-item">
-                              <strong>🎯 設計意圖：</strong>
-                              <span>{card.proposed.designRationale}</span>
-                            </div>
-                            {card.proposed.counterplay && (
-                              <div className="rationale-item counter">
-                                <strong>⚔️ 對策克制：</strong>
-                                <span>{card.proposed.counterplay}</span>
+                          {card.hasActiveProposal ? (
+                            <div className="rationale-block">
+                              <div className="rationale-item">
+                                <strong>🎯 設計意圖：</strong>
+                                <span>{card.proposed.designRationale}</span>
                               </div>
-                            )}
-                            <div className="rationale-item synergy">
-                              <strong>🔗 推薦連動：</strong>
-                              <span className="synergy-tags">
-                                {card.proposed.synergies.join(' · ')}
-                              </span>
+                              {card.proposed.counterplay && (
+                                <div className="rationale-item counter">
+                                  <strong>⚔️ 對策克制：</strong>
+                                  <span>{card.proposed.counterplay}</span>
+                                </div>
+                              )}
+                              {card.proposed.synergies.length > 0 && (
+                                <div className="rationale-item synergy">
+                                  <strong>🔗 推薦連動：</strong>
+                                  <span className="synergy-tags">
+                                    {card.proposed.synergies.join(' · ')}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          </div>
+                          ) : (
+                            <div className="no-proposal-notice">
+                              ✓ 此卡牌已完全落實於核心引擎基準線（Live Baseline），當前無待審提案。若需調整數值，可於 <code>activeProposals.ts</code> 掛載草案。
+                            </div>
+                          )}
                         </div>
                       </div>
 

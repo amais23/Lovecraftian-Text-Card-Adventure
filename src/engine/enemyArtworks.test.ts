@@ -314,14 +314,20 @@ describe('Enemy Artworks Registry & Dual-Perception Engine (ADR-0021)', () => {
       expect(guardianArt?.enemyId).toBe('enemy_ancient_eldritch_guardian');
     });
 
-    it('ensures enemy_non_euclidean_construct points to physically existing assets on disk', () => {
+    it('ensures enemy_non_euclidean_construct, enemy_ancient_hound_of_tindalos, and enemy_ancient_eldritch_guardian point to physically existing assets on disk', () => {
       const enemyImages = import.meta.glob('/public/enemies/**/*.{webp,png}');
       const imagePaths = Object.keys(enemyImages);
 
-      const constructArt = getEnemyArtwork('enemy_non_euclidean_construct');
-      expect(constructArt).toBeDefined();
-      expect(imagePaths).toContain(`/public${constructArt!.cartoonUrl}`);
-      expect(imagePaths).toContain(`/public${constructArt!.realisticUrl}`);
+      for (const aliasId of [
+        'enemy_non_euclidean_construct',
+        'enemy_ancient_hound_of_tindalos',
+        'enemy_ancient_eldritch_guardian',
+      ]) {
+        const art = getEnemyArtwork(aliasId);
+        expect(art, `Artwork for ${aliasId} must exist`).toBeDefined();
+        expect(imagePaths, `Cartoon for ${aliasId} must exist on disk`).toContain(`/public${art!.cartoonUrl}`);
+        expect(imagePaths, `Realistic for ${aliasId} must exist on disk`).toContain(`/public${art!.realisticUrl}`);
+      }
     });
   });
 });
