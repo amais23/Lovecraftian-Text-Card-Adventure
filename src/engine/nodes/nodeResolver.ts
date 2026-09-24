@@ -7,7 +7,7 @@ import { generateMarketItemsForDepth, resolveMarketBuyItem, resolveMarketPurgeCa
 import { generateAltarRituals, resolveAltarAction } from './handlers/altar';
 import { resolveVaultAction } from './handlers/vault';
 import { resolveBloodAltarAction } from './handlers/bloodAltar';
-import { resolveRemainsAction } from './handlers/remains';
+import { resolveRemainsAction, resolveRemainsEntry } from './handlers/remains';
 import type {
   NodeActionResult,
   NodeEntryContext,
@@ -90,13 +90,13 @@ export function resolveNodeEntry(node: MapNode, context: NodeEntryContext): Node
     }
 
     case 'remains': {
+      const entryResult = resolveRemainsEntry(node, fallenInvestigator?.name);
       return {
         nodeStateUpdates: {
-          phase: 'remains',
+          ...entryResult.nodeStateUpdates,
           fallenInvestigator: fallenInvestigator ?? null,
-          remainsClaimed: false,
         },
-        log: `探索【${node.title}】！在迷霧與碎石間發現了前代殉職調查員的殘破骸骨與行囊。`,
+        log: entryResult.log,
       };
     }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { resolveRemainsEntry, resolveRemainsAction } from './handlers/remains';
-import type { Card, FallenInvestigatorRecord, Investigator } from '../../types/game';
+import { resolveNodeEntry, resolveNodeInteraction } from './index';
+import type { Card, FallenInvestigatorRecord, Investigator, MapNode } from '../../types/game';
 
 const MOCK_CARD: Card = {
   id: 'card_gun_1',
@@ -28,30 +28,41 @@ const MOCK_INVESTIGATOR: Investigator = {
   obols: 20,
 };
 
-describe('remains handler (pure engine)', () => {
-  it('resolveRemainsEntry initializes node state updates and literary log', () => {
-    const node = {
+describe('remains handler via public engine seam', () => {
+  it('resolveNodeEntry for remains initializes node state updates and literary log', () => {
+    const node: MapNode = {
       id: 'node_remains_1',
-      type: 'remains' as const,
+      type: 'remains',
       layer: 1,
       col: 0,
       label: '先驅殘骸',
       title: '前輩枯骨',
       description: '骸骨散落',
       nextNodes: [],
-      status: 'current' as const,
+      status: 'current',
     };
 
-    const entryWithName = resolveRemainsEntry(node, '愛德華');
+    const entryWithName = resolveNodeEntry(node, {
+      depth: 1,
+      fallenInvestigator: {
+        name: '愛德華',
+        occupation: '探險家',
+        deck: [],
+        obols: 0,
+        depth: 1,
+        causeOfDeath: '戰死',
+        timestamp: 1,
+      },
+    });
     expect(entryWithName.nodeStateUpdates.phase).toBe('remains');
     expect(entryWithName.nodeStateUpdates.remainsClaimed).toBe(false);
     expect(entryWithName.log).toContain('愛德華');
 
-    const entryWithoutName = resolveRemainsEntry(node);
+    const entryWithoutName = resolveNodeEntry(node, { depth: 1 });
     expect(entryWithoutName.log).toContain('痕跡磨滅殆盡');
   });
 
-  it('resolveRemainsAction inherits card deterministically without ambient Date.now()', () => {
+  it('resolveNodeInteraction for remains inherits card deterministically without ambient Date.now()', () => {
     const fallen: FallenInvestigatorRecord = {
       name: '威廉',
       occupation: '私家偵探',
@@ -62,8 +73,8 @@ describe('remains handler (pure engine)', () => {
       timestamp: 9999,
     };
 
-    const res = resolveRemainsAction(
-      { type: 'card', cardId: MOCK_CARD.id },
+    const res = resolveNodeInteraction(
+      { type: 'INHERIT_REMAINS', payload: { type: 'card', cardId: MOCK_CARD.id } },
       {
         investigator: MOCK_INVESTIGATOR,
         sanityDeck: [],
@@ -80,7 +91,7 @@ describe('remains handler (pure engine)', () => {
     expect(res.logs[0]).toContain('撫摸著枯骨旁沾血的筆記');
   });
 
-  it('resolveRemainsAction inherits obols accurately and marks clearFallenRecord', () => {
+  it('resolveNodeInteraction for remains inherits obols accurately and marks clearFallenRecord', () => {
     const fallen: FallenInvestigatorRecord = {
       name: '威廉',
       occupation: '私家偵探',
@@ -91,8 +102,8 @@ describe('remains handler (pure engine)', () => {
       timestamp: 9999,
     };
 
-    const res = resolveRemainsAction(
-      { type: 'obols' },
+    const res = resolveNodeInteraction(
+      { type: 'INHERIT_REMAINS', payload: { type: 'obols' } },
       {
         investigator: MOCK_INVESTIGATOR,
         sanityDeck: [],
@@ -106,9 +117,9 @@ describe('remains handler (pure engine)', () => {
     expect(res.logs[0]).toContain('30 枚殘存古金幣');
   });
 
-  it('resolveRemainsAction rejects if remains are already claimed or fallen is missing', () => {
-    const resClaimed = resolveRemainsAction(
-      { type: 'obols' },
+  it('resolveNodeInteraction for remains rejects if remains are already claimed or fallen is missing', () => {
+    const resClaimed = resolveNodeInteraction(
+      { type: 'INHERIT_REMAINS', payload: { type: 'obols' } },
       {
         investigator: MOCK_INVESTIGATOR,
         sanityDeck: [],
@@ -117,8 +128,8 @@ describe('remains handler (pure engine)', () => {
     );
     expect(resClaimed.success).toBe(false);
 
-    const resNoFallen = resolveRemainsAction(
-      { type: 'obols' },
+    const resNoFallen = resolveNodeInteraction(
+      { type: 'INHERIT_REMAINS', payload: { type: 'obols' } },
       {
         investigator: MOCK_INVESTIGATOR,
         sanityDeck: [],

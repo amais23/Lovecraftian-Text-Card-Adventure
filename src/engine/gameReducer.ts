@@ -53,7 +53,7 @@ import {
   clearFallenInvestigator,
   getFallenInvestigator,
   saveFallenInvestigatorFromState,
-} from './remainsStorage';
+} from './nodes/remainsStorage';
 import {
   resolveCombatTurnEnd,
   initializeCombatSession,

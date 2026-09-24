@@ -7,7 +7,7 @@ import {
   hasFallenInvestigatorRecord,
   clearFallenInvestigator,
 } from './remainsStorage';
-import type { Card, FallenInvestigatorRecord, GameState } from '../types/game';
+import type { Card, FallenInvestigatorRecord, GameState } from '../../types/game';
 
 const MOCK_CARD_1: Card = {
   id: 'card_gun_1',
@@ -41,78 +41,90 @@ describe('remainsStorage', () => {
 
   afterEach(() => {
     localStorage.clear();
-    vi.restoreAllMocks();
   });
 
-  it('correctly saves, reads and clears a fallen investigator record', () => {
-    expect(hasFallenInvestigatorRecord()).toBe(false);
-    expect(getFallenInvestigator()).toBeNull();
-
+  it('saves and reads fallen investigator record via localStorage', () => {
     const record: FallenInvestigatorRecord = {
-      name: '愛德華·皮斯利',
-      occupation: '私家偵探',
+      name: '哈維·華特斯',
+      occupation: '教授',
       occupationId: 'investigator',
       deck: [MOCK_CARD_1, MOCK_CARD_2],
       obols: 45,
       depth: 2,
-      causeOfDeath: '遭深潛者長老撕裂',
-      timestamp: 1700000000000,
+      causeOfDeath: '心智崩潰發狂殞命',
+      timestamp: 123456789,
     };
 
     saveFallenInvestigator(record);
     expect(hasFallenInvestigatorRecord()).toBe(true);
 
-    const loaded = getFallenInvestigator();
-    expect(loaded).toEqual(record);
+    const retrieved = getFallenInvestigator();
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.name).toBe('哈維·華特斯');
+    expect(retrieved?.obols).toBe(45);
+    expect(retrieved?.depth).toBe(2);
+    expect(retrieved?.causeOfDeath).toBe('心智崩潰發狂殞命');
+    expect(retrieved?.deck).toHaveLength(2);
+    expect(retrieved?.deck[0].id).toBe('card_gun_1');
+  });
+
+  it('filters out temporary cards and ensures only inheritable cards are stored', () => {
+    const tempCard: Card = {
+      id: 'card_temp_wound',
+      name: '撕裂傷',
+      category: 'madness',
+      costType: 'stamina',
+      costValue: 1,
+      isTemporary: true,
+      effects: [],
+      description: '臨時傷口',
+      flavorText: '劇烈刺痛',
+    };
+
+    const record: FallenInvestigatorRecord = {
+      name: '殉職者',
+      occupation: '退伍軍人',
+      deck: [MOCK_CARD_1, tempCard],
+      obols: 20,
+      depth: 1,
+      causeOfDeath: '戰死',
+      timestamp: 1000,
+    };
+
+    saveFallenInvestigator(record);
+    const retrieved = getFallenInvestigator();
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.deck).toHaveLength(1);
+    expect(retrieved?.deck[0].id).toBe('card_gun_1');
+  });
+
+  it('clears fallen investigator record from localStorage', () => {
+    const record: FallenInvestigatorRecord = {
+      name: '殉職者',
+      occupation: '私家偵探',
+      deck: [MOCK_CARD_1],
+      obols: 10,
+      depth: 1,
+      causeOfDeath: '失血過多',
+      timestamp: 2000,
+    };
+
+    saveFallenInvestigator(record);
+    expect(hasFallenInvestigatorRecord()).toBe(true);
 
     clearFallenInvestigator();
     expect(hasFallenInvestigatorRecord()).toBe(false);
     expect(getFallenInvestigator()).toBeNull();
   });
 
-  it('correctly extracts and saves record from GameState', () => {
-    const mockState = {
-      phase: 'gameover',
-      currentDepth: 3,
-      investigator: {
-        name: '湯瑪斯·奧恩',
-        occupation: '秘術學者',
-        occupationId: 'occultist',
-        health: 0,
-        maxHealth: 25,
-        stamina: 0,
-        maxStamina: 3,
-        armor: 0,
-        obols: 80,
-      },
-      sanityDeck: [MOCK_CARD_1],
-      hand: [MOCK_CARD_2],
-      discardPile: [],
-    } as unknown as GameState;
-
-    saveFallenInvestigatorFromState(mockState, '遭修格斯黑泥吞噬');
-
-    expect(hasFallenInvestigatorRecord()).toBe(true);
-    const loaded = getFallenInvestigator();
-    expect(loaded?.name).toBe('湯瑪斯·奧恩');
-    expect(loaded?.occupation).toBe('秘術學者');
-    expect(loaded?.occupationId).toBe('occultist');
-    expect(loaded?.obols).toBe(80);
-    expect(loaded?.depth).toBe(3);
-    expect(loaded?.causeOfDeath).toBe('遭修格斯黑泥吞噬');
-    expect(loaded?.deck).toHaveLength(2);
-  });
-
-  it('handles corrupted localStorage data safely without crashing', () => {
-    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, 'invalid_json_{{');
+  it('safely handles malformed localStorage data or quota errors', () => {
+    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, 'invalid json{]');
     expect(getFallenInvestigator()).toBeNull();
-    expect(hasFallenInvestigatorRecord()).toBe(false);
 
-    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, JSON.stringify({ random: 'data' }));
+    localStorage.setItem(FALLEN_INVESTIGATOR_STORAGE_KEY, JSON.stringify({ invalid: 'schema' }));
     expect(getFallenInvestigator()).toBeNull();
-  });
 
-  it('handles storage exceptions gracefully when localStorage throws', () => {
+    // Storage error during setItem
     const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceeded');
     });

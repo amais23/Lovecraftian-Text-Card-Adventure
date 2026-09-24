@@ -1,5 +1,5 @@
 import type { AdventureStats, Card, MapNode } from '../../../types/game';
-import { isInheritableCard } from '../../remainsStorage';
+import { isInheritableCard } from '../remainsStorage';
 import type { NodeActionResult, NodeEntryResult, NodeInteractionContext } from '../types';
 
 /**

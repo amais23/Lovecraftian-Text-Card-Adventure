@@ -10,12 +10,12 @@ Accepted（延續 ADR-0029、ADR-0030 推進探索領域深層模組化架構）
 
 1. **生命週期三截割裂與程式碼重複**：
    - **進入階段**：全數擠在 `NAVIGATE_TO_NODE`（超過 230 行的 `if-else` 分支），手動初始化各節點狀態、抽取商品或抽樣儀式。
-   - **互動階段**：6 組獨立的 Action Types，每個 Action 皆在 Reducer 行內直接檢驗血量、古金幣、牌庫張數等領域守門限制，並手動解包組裝 `investigator` 的各項屬性與文字日誌。
+   - **互動階段**：6 組獨立的 Action Types，每個 Action 皆在 Reducer 行內直接檢驗生命值、古金幣、牌庫張數等領域守門限制，並手動解包組裝 `investigator` 的各項屬性與文字日誌。
    - **退場階段**：存在 6 個實作完全相同的退場 Action（`LEAVE_SANCTUARY`、`LEAVE_MARKET`、`LEAVE_ALTAR`、`LEAVE_VAULT`、`LEAVE_BLOOD_ALTAR`、`LEAVE_REMAINS`），皆重複執行 `advanceMapAfterNode`、清理節點暫態並切換 `phase = 'map'`。
 2. **淺模組（Shallow Modules）與局部性（Locality）喪失**：
-   - 既有的 `altarService.ts` 與 `marketService.ts` 僅宣告靜態資料池與陣列洗牌函式，依據刪除測試（Deletion Test），若將其刪除，真正的核心領域規則（如祭壇血量檢驗、代價計算、黑市醫療補血與牌庫除役限制）根本未受影響，因為這些規則全裸露在 Reducer 之中。
+   - 既有的 `altarService.ts` 與 `marketService.ts` 僅宣告靜態資料池與陣列洗牌函式，依據刪除測試（Deletion Test），若將其刪除，真正的核心領域規則（如祭壇生命值檢驗、代價計算、黑市醫療補血與牌庫除役限制）根本未受影響，因為這些規則全裸露在 Reducer 之中。
 3. **測試表面過寬（Wide Test Surface）**：
-   - 驗證單一節點的簡單規則（例如血量不足時禁忌祭壇是否守門）必須構造一個擁有 40+ 欄位的龐大 `GameState` 物件，透過 `gameReducer` 派發 Action 驗證，導致 `gameReducer.test.ts` 膨脹至超過 215 KB（逾 5,000 行）。
+   - 驗證單一節點的簡單規則（例如生命值不足時禁忌祭壇是否守門）必須構造一個擁有 40+ 欄位的龐大 `GameState` 物件，透過 `gameReducer` 派發 Action 驗證，導致 `gameReducer.test.ts` 膨脹至超過 215 KB（逾 5,000 行）。
 
 為此，我們採納 `codebase-design` 之深層模組（Deep Module）原則，為探索節點建立集中且內聚的領域純函數引擎。
 

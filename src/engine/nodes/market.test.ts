@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { generateMarketItemsForDepth, MARKET_PURGE_COST } from './handlers/market';
+import { generateMarketItemsForDepth } from './handlers/market';
 import { PRESET_RELICS } from '../relics';
 import { gameReducer } from '../gameReducer';
-import type { GameState, Card } from '../../types/game';
+import { MARKET_PURGE_COST, type GameState, type Card } from '../../types/game';
 import { INITIAL_INVESTIGATOR, INITIAL_GHOUL } from '../initialData';
 import { cloneEnemy } from '../enemyCatalog';
 

@@ -1,5 +1,5 @@
-import type { Card, FallenInvestigatorRecord, GameState } from '../types/game';
-import { isAbyssalFragment, isCompleteAncientSeal } from './abyssalSeals';
+import type { Card, FallenInvestigatorRecord, GameState } from '../../types/game';
+import { getAllPermanentCards, isAbyssalFragment, isCompleteAncientSeal } from '../abyssalSeals';
 
 export const FALLEN_INVESTIGATOR_STORAGE_KEY = 'arkham_fallen_investigator';
 
@@ -40,11 +40,7 @@ export function saveFallenInvestigatorFromState(
   causeOfDeath: string = '肉體傷重殞命'
 ): void {
   try {
-    const permanentCards = [
-      ...(state.sanityDeck || []),
-      ...(state.hand || []),
-      ...(state.discardPile || []),
-    ].filter((c) => !c.isTemporary).filter(isInheritableCard);
+    const permanentCards = getAllPermanentCards(state).filter(isInheritableCard);
 
     if (!permanentCards || permanentCards.length === 0) return;
 
