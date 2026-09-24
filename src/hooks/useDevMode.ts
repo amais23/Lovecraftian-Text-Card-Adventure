@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { devModeManager } from '../engine/devModeManager';
 
 function subscribe(callback: () => void) {
-  return devModeManager.subscribe(() => callback());
+  return devModeManager.subscribe(callback);
 }
 
 function getSnapshot(): boolean {

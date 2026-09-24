@@ -20,14 +20,15 @@ describe('TitleMenu - Dev Mode Conditional Entry (ADR-0036 / #62)', () => {
   });
 
   it('hides the Card Review Lab button when dev mode is disabled by default', () => {
-    render(<TitleMenu {...defaultProps} isDevMode={false} />);
+    render(<TitleMenu {...defaultProps} />);
 
     expect(screen.queryByRole('button', { name: /卡牌改動審查室/i })).toBeNull();
     expect(screen.queryByText(/卡牌改動審查室/i)).toBeNull();
   });
 
   it('displays the Card Review Lab button when dev mode is enabled and triggers callback on click', () => {
-    render(<TitleMenu {...defaultProps} isDevMode={true} />);
+    devModeManager.setDevMode(true);
+    render(<TitleMenu {...defaultProps} />);
 
     const reviewBtn = screen.getByRole('button', { name: /卡牌改動審查室/i });
     expect(reviewBtn).toBeDefined();
@@ -36,7 +37,7 @@ describe('TitleMenu - Dev Mode Conditional Entry (ADR-0036 / #62)', () => {
     expect(defaultProps.onOpenCardReview).toHaveBeenCalledTimes(1);
   });
 
-  it('reads reactive dev mode state from useDevMode hook when isDevMode prop is omitted', () => {
+  it('reactively reveals and hides the Card Review Lab button when dev mode is toggled while mounted', () => {
     render(<TitleMenu {...defaultProps} />);
 
     // Default: false
@@ -52,5 +53,12 @@ describe('TitleMenu - Dev Mode Conditional Entry (ADR-0036 / #62)', () => {
 
     fireEvent.click(reviewBtn);
     expect(defaultProps.onOpenCardReview).toHaveBeenCalledTimes(1);
+
+    // Toggle dev mode back off
+    act(() => {
+      devModeManager.setDevMode(false);
+    });
+
+    expect(screen.queryByRole('button', { name: /卡牌改動審查室/i })).toBeNull();
   });
 });

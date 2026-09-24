@@ -20,7 +20,6 @@ export interface TitleMenuProps {
   onOpenSettings: () => void;
   onOpenExit: () => void;
   onOpenCardReview?: () => void;
-  isDevMode?: boolean;
 }
 
 export const TitleMenu: React.FC<TitleMenuProps> = ({
@@ -30,10 +29,8 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
   onOpenSettings,
   onOpenExit,
   onOpenCardReview,
-  isDevMode: explicitDevMode,
 }) => {
-  const devModeFromHook = useDevMode();
-  const isDevMode = explicitDevMode !== undefined ? explicitDevMode : devModeFromHook;
+  const isDevMode = useDevMode();
 
   const handleItemClick = (action: () => void) => {
     soundEngine.playClick();
