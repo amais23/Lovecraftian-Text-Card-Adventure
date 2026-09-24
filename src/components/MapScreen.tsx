@@ -113,28 +113,45 @@ const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = 
   },
 };
 
+export interface CanvasDimensions {
+  width: number;
+  height: number;
+}
+
+const DEFAULT_CANVAS_WIDTH = 800;
+const ESTIMATED_ROW_HEIGHT = 140;
+const ROW_CENTER_OFFSET = 70;
+
+function getEffectiveCanvasDimensions(
+  dimensions: Partial<CanvasDimensions> | undefined,
+  totalLayers: number
+): { width: number; height: number } {
+  const width = dimensions?.width && dimensions.width > 0 ? dimensions.width : DEFAULT_CANVAS_WIDTH;
+  const height =
+    dimensions?.height && dimensions.height > ESTIMATED_ROW_HEIGHT
+      ? dimensions.height
+      : totalLayers * ESTIMATED_ROW_HEIGHT;
+  return { width, height };
+}
+
 /**
  * 計算地圖節點在 SVG 畫布中的相對像素座標（無 DOM 測量時的平滑降級）
  */
 function getNodeCoordinates(
   node: MapNode,
   map: InvestigationMap,
-  dimensions?: { width?: number; height?: number }
+  dimensions?: Partial<CanvasDimensions>
 ): { x: number; y: number } {
   const layerLength = map.layers[node.layer]?.length ?? 1;
   const totalLayers = map.layers.length;
   // 縱向翻轉：Layer 0 在底，Layer totalLayers-1 在頂
   const visualRow = totalLayers - 1 - node.layer;
-  const canvasWidth = dimensions?.width && dimensions.width > 0 ? dimensions.width : 800;
-  const canvasHeight =
-    dimensions?.height && dimensions.height > 140
-      ? dimensions.height
-      : totalLayers * 140;
-  const rowSpacing = (canvasHeight - 140) / Math.max(1, totalLayers - 1);
+  const { width, height } = getEffectiveCanvasDimensions(dimensions, totalLayers);
+  const rowSpacing = (height - ESTIMATED_ROW_HEIGHT) / Math.max(1, totalLayers - 1);
 
   return {
-    x: Math.round((node.col + 1) * (canvasWidth / (layerLength + 1))),
-    y: Math.round(visualRow * rowSpacing + 70),
+    x: Math.round((node.col + 1) * (width / (layerLength + 1))),
+    y: Math.round(visualRow * rowSpacing + ROW_CENTER_OFFSET),
   };
 }
 
@@ -144,7 +161,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const viewportRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
-  const [canvasDimensions, setCanvasDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [canvasDimensions, setCanvasDimensions] = useState<CanvasDimensions>({ width: 0, height: 0 });
 
   // 滑鼠與觸控拖曳卷軸手勢狀態
   const [isDragging, setIsDragging] = useState(false);
@@ -363,10 +380,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
             className="map-connections-svg"
             style={{
               width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : '100%',
-              height:
-                canvasDimensions.height > 0
-                  ? `${canvasDimensions.height}px`
-                  : `${map.layers.length * 140}px`,
+              height: `${getEffectiveCanvasDimensions(canvasDimensions, totalLayers).height}px`,
             }}
           >
             <defs>
