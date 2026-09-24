@@ -144,25 +144,26 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
 
     const svg = container.querySelector('svg.map-connections-svg') as SVGSVGElement;
     expect(svg).toBeDefined();
+    expect(svg.classList.contains('map-connections-svg')).toBe(true);
 
     // Verify all 16 layers connect sequentially: transitions from layer 0->1, 1->2, ... up to 14->15
     const paths = Array.from(svg.querySelectorAll('path'));
     const map = state.map!;
 
-    for (let l = 0; l < map.layers.length - 1; l++) {
-      const currentLayerNodeIds = map.layers[l];
+    for (let layerIndex = 0; layerIndex < map.layers.length - 1; layerIndex++) {
+      const currentLayerNodeIds = map.layers[layerIndex];
       const hasConnectionFromThisLayer = currentLayerNodeIds.some((nodeId) => {
         const node = map.nodes[nodeId];
         return node && node.nextNodes.length > 0;
       });
-      expect(hasConnectionFromThisLayer, `Layer ${l} must have outgoing connection paths`).toBe(true);
+      expect(hasConnectionFromThisLayer, `Layer ${layerIndex} must have outgoing connection paths`).toBe(true);
 
-      // Verify that at least one path connects a node in layer l to layer l+1
+      // Verify that at least one path connects a node in layerIndex to layerIndex+1
       const connectsToNextLayer = currentLayerNodeIds.some((nodeId) => {
         const node = map.nodes[nodeId];
         return node.nextNodes.some((targetId) => {
-          // Verify that the connection target is an actual node in layer l+1
-          return Boolean(map.nodes[targetId] && map.nodes[targetId].layer === l + 1);
+          // Verify that the connection target is an actual node in layerIndex+1
+          return Boolean(map.nodes[targetId] && map.nodes[targetId].layer === layerIndex + 1);
         });
       });
       expect(connectsToNextLayer).toBe(true);
@@ -174,5 +175,11 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
       totalEdges += map.nodes[nodeId].nextNodes.length;
     }
     expect(paths.length).toBe(totalEdges);
+
+    // Verify all generated SVG paths contain valid cubic bezier curves M x y C cx1 cy1, cx2 cy2, x y
+    for (const path of paths) {
+      const d = path.getAttribute('d') ?? '';
+      expect(d).toMatch(/^M\s+\d+\s+\d+\s+C\s+\d+\s+\d+,\s+\d+\s+\d+,\s+\d+\s+\d+$/);
+    }
   });
 });

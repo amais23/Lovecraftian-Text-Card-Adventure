@@ -116,14 +116,24 @@ const DEPTH_DISPLAY_INFO: Record<number, { title: string; subtitle: string }> = 
 /**
  * 計算地圖節點在 SVG 畫布中的相對像素座標（無 DOM 測量時的平滑降級）
  */
-function getNodeCoordinates(node: MapNode, map: InvestigationMap, canvasWidth = 800): { x: number; y: number } {
+function getNodeCoordinates(
+  node: MapNode,
+  map: InvestigationMap,
+  canvasWidth = 800,
+  canvasHeight?: number
+): { x: number; y: number } {
   const layerLength = map.layers[node.layer]?.length ?? 1;
   const totalLayers = map.layers.length;
   // 縱向翻轉：Layer 0 在底，Layer totalLayers-1 在頂
   const visualRow = totalLayers - 1 - node.layer;
+  const rowSpacing =
+    canvasHeight && canvasHeight > 140
+      ? (canvasHeight - 140) / Math.max(1, totalLayers - 1)
+      : 140;
+
   return {
     x: Math.round((node.col + 1) * (canvasWidth / (layerLength + 1))),
-    y: visualRow * 140 + 70,
+    y: Math.round(visualRow * rowSpacing + 70),
   };
 }
 
@@ -167,16 +177,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
 
   useLayoutEffect(() => {
     updatePositions();
-    let ro: ResizeObserver | null = null;
+    let resizeObserver: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined' && canvasRef.current) {
-      ro = new ResizeObserver(() => {
+      resizeObserver = new ResizeObserver(() => {
         updatePositions();
       });
-      ro.observe(canvasRef.current);
+      resizeObserver.observe(canvasRef.current);
     }
     window.addEventListener('resize', updatePositions);
     return () => {
-      if (ro) ro.disconnect();
+      if (resizeObserver) resizeObserver.disconnect();
       window.removeEventListener('resize', updatePositions);
     };
   }, [updatePositions]);
@@ -353,7 +363,6 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
             style={{
               width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : '100%',
               height: canvasDimensions.height > 0 ? `${canvasDimensions.height}px` : '100%',
-              overflow: 'visible',
             }}
           >
             <defs>
@@ -364,24 +373,28 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
               </linearGradient>
             </defs>
 
-            {map.layers.map((layerNodeIds) =>
-              layerNodeIds.map((nodeId) => {
-                const node = map.nodes[nodeId];
-                if (!node || !node.nextNodes.length) return null;
+            {(() => {
+              const fallbackWidth = canvasDimensions.width || undefined;
+              const fallbackHeight = canvasDimensions.height || undefined;
 
-                return node.nextNodes.map((targetId) => {
-                  const target = map.nodes[targetId];
-                  if (!target) return null;
+              return map.layers.map((layerNodeIds) =>
+                layerNodeIds.map((nodeId) => {
+                  const node = map.nodes[nodeId];
+                  if (!node || !node.nextNodes.length) return null;
 
-                  const isPathAvailable =
-                    (node.status === 'current' && target.status === 'accessible') ||
-                    (node.status === 'visited' && (target.status === 'visited' || target.status === 'current'));
+                  return node.nextNodes.map((targetId) => {
+                    const target = map.nodes[targetId];
+                    if (!target) return null;
 
-                  const sourcePos = nodePositions[node.id];
-                  const targetPos = nodePositions[target.id];
+                    const isPathAvailable =
+                      (node.status === 'current' && target.status === 'accessible') ||
+                      (node.status === 'visited' && (target.status === 'visited' || target.status === 'current'));
 
-                  const sourceCoord = sourcePos ?? getNodeCoordinates(node, map, canvasDimensions.width || undefined);
-                  const targetCoord = targetPos ?? getNodeCoordinates(target, map, canvasDimensions.width || undefined);
+                    const sourcePos = nodePositions[node.id];
+                    const targetPos = nodePositions[target.id];
+
+                    const sourceCoord = sourcePos ?? getNodeCoordinates(node, map, fallbackWidth, fallbackHeight);
+                    const targetCoord = targetPos ?? getNodeCoordinates(target, map, fallbackWidth, fallbackHeight);
 
                   // 墨水三次貝茲曲線 (Cubic Bezier S-Curve)
                   const deltaY = targetCoord.y - sourceCoord.y;
@@ -389,22 +402,23 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                     sourceCoord.y + deltaY * 0.5
                   }, ${targetCoord.x} ${sourceCoord.y + deltaY * 0.5}, ${targetCoord.x} ${targetCoord.y}`;
 
-                  return (
-                    <path
-                      key={`${node.id}->${target.id}`}
-                      d={curveD}
-                      className={
-                        isPathAvailable
-                          ? 'map-ink-path map-ink-path-active'
-                          : node.status === 'visited'
-                          ? 'map-ink-path map-ink-path-visited'
-                          : 'map-ink-path'
-                      }
-                    />
-                  );
-                });
-              })
-            )}
+                    return (
+                      <path
+                        key={`${node.id}->${target.id}`}
+                        d={curveD}
+                        className={
+                          isPathAvailable
+                            ? 'map-ink-path map-ink-path-active'
+                            : node.status === 'visited'
+                            ? 'map-ink-path map-ink-path-visited'
+                            : 'map-ink-path'
+                        }
+                      />
+                    );
+                  });
+                })
+              );
+            })()}
           </svg>
 
           {/* Render Layers Vertically from Top (Boss) to Bottom (Entry) */}
