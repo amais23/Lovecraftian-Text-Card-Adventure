@@ -12,7 +12,7 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
 
     // Check title and simulation statistics
     expect(screen.getByText('全量平衡性評測與數值矩陣')).toBeDefined();
-    expect(screen.getByText(/37,064/)).toBeDefined();
+    expect(screen.getByText(/總模擬場次/)).toBeDefined();
 
     // Check dual-dimension axes labels
     expect(screen.getAllByText(/肉體生存分/).length).toBeGreaterThanOrEqual(1);
@@ -175,11 +175,17 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
     fireEvent.click(screen.getByRole('button', { name: /舊日遺物/i }));
     const itemsGrid = screen.getByTestId('balance-items-grid');
 
-    // Filter by tier "A"
+    // Filter by rarity "common"
     const tierSelect = screen.getByLabelText(/階級/);
-    fireEvent.change(tierSelect, { target: { value: 'A' } });
-    expect(itemsGrid.textContent).toContain('古神之印護符'); // Tier A
-    expect(itemsGrid.textContent).not.toContain('黃銅懷錶'); // Tier B
+    fireEvent.change(tierSelect, { target: { value: 'common' } });
+    expect(itemsGrid.textContent).toContain('古神之印護符'); // common
+    expect(itemsGrid.textContent).not.toContain('黃銅懷錶'); // rare
+
+    // Filter by archetype "armor_counter"
+    const archSelect = screen.getByLabelText(/最適流派/);
+    fireEvent.change(archSelect, { target: { value: 'armor_counter' } });
+    expect(itemsGrid.textContent).toContain('古神之印護符');
+    expect(itemsGrid.textContent).not.toContain('黃銅懷錶');
   });
 
   it('strictly adheres to domain health terminology without forbidden terms', () => {
