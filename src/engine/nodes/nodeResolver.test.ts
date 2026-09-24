@@ -169,7 +169,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
         status: 'current',
       };
 
-      const result = resolveNodeEntry(node, { depth: 1 });
+      const result = resolveNodeEntry(node, { depth: 1, fallenInvestigator: fallenRecord });
       expect(result.nodeStateUpdates.phase).toBe('remains');
       expect(result.nodeStateUpdates.remainsClaimed).toBe(false);
       expect(result.nodeStateUpdates.fallenInvestigator?.name).toBe('前人');
@@ -186,7 +186,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       mockInvestigator.maxHealth = 25;
 
       const res = resolveNodeInteraction(
-        { type: 'USE_SANCTUARY', payload: { actionType: 'rest' } },
+        { type: 'USE_SANCTUARY', payload: { optionId: 'bandage' } },
         { investigator: mockInvestigator, sanityDeck: mockDeck, currentNode: { layer: 3 } as any }
       );
 
@@ -201,7 +201,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
       mockInvestigator.maxHealth = 25;
 
       const res = resolveNodeInteraction(
-        { type: 'USE_SANCTUARY', payload: { actionType: 'rest' } },
+        { type: 'USE_SANCTUARY', payload: { optionId: 'bandage' } },
         { investigator: mockInvestigator, sanityDeck: mockDeck, currentNode: { layer: 8 } as any }
       );
 
@@ -212,7 +212,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
 
     it('injects Truth Card Breakwater on meditate action', () => {
       const res = resolveNodeInteraction(
-        { type: 'USE_SANCTUARY', payload: { actionType: 'meditate' } },
+        { type: 'USE_SANCTUARY', payload: { optionId: 'meditate' } },
         { investigator: mockInvestigator, sanityDeck: mockDeck, currentDepth: 1 }
       );
 
@@ -224,7 +224,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
 
     it('purges selected card on purge action', () => {
       const res = resolveNodeInteraction(
-        { type: 'USE_SANCTUARY', payload: { actionType: 'purge', cardId: 'c2' } },
+        { type: 'USE_SANCTUARY', payload: { optionId: 'purge', cardId: 'c2' } },
         { investigator: mockInvestigator, sanityDeck: mockDeck }
       );
 
@@ -236,7 +236,7 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
 
     it('blocks purge action if deck has 1 or fewer cards', () => {
       const res = resolveNodeInteraction(
-        { type: 'USE_SANCTUARY', payload: { actionType: 'purge', cardId: 'c1' } },
+        { type: 'USE_SANCTUARY', payload: { optionId: 'purge', cardId: 'c1' } },
         { investigator: mockInvestigator, sanityDeck: [mockDeck[0]] }
       );
 
@@ -535,12 +535,11 @@ describe('NodeResolver Pure Engine (ADR-0034)', () => {
     });
 
     it('advances map, clears fallen record and remains state with literary log', () => {
-      saveFallenInvestigator({ name: '測試', deck: [], obols: 0, depth: 1, causeOfDeath: '傷重', timestamp: 0 });
       const res = resolveNodeLeave({ phase: 'remains', map: { nodes: {}, currentNodeId: 'n1' } as any });
       expect(res.nodeStateCleans.fallenInvestigator).toBeUndefined();
       expect(res.nodeStateCleans.remainsClaimed).toBeUndefined();
       expect(res.logs[0]).toContain('向殉職前輩的骸骨致敬默哀');
-      expect(getFallenInvestigator()).toBeNull();
+      expect(res.clearFallenRecord).toBe(true);
     });
   });
 });

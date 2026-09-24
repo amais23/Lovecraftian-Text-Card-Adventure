@@ -363,10 +363,8 @@ export type GameAction =
   | { type: 'COMPLETE_EVENT' }
   | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' | 'purge'; cardId?: string } }
   | { type: 'LEAVE_NODE' }
-  | { type: 'LEAVE_SANCTUARY' }
   | { type: 'BUY_MARKET_ITEM'; payload: { itemId: string } }
   | { type: 'PURGE_CARD_AT_MARKET'; payload: { cardId: string } }
-  | { type: 'LEAVE_MARKET' }
   | { type: 'PROCEED_TO_REWARD'; payload?: { rewardCards?: Card[]; rewardObols?: number; shuffledDeck?: Card[] } }
   | { type: 'CLAIM_CARD_REWARD'; payload?: { cardId?: string; shuffledDeck?: Card[] } }
   | { type: 'CLAIM_FIELD_DRESSING'; payload?: { healAmount?: number; shuffledDeck?: Card[] } }
@@ -384,10 +382,6 @@ export type GameAction =
   | { type: 'APPLY_STATUS_EFFECT'; payload: { target: 'investigator' | 'enemy'; effect: StatusEffect } }
   | { type: 'RESET_COMBAT'; payload?: { occupationId?: OccupationId; enemy?: Enemy; initialCards?: Card[]; initialHealth?: number } }
   | { type: 'USE_ALTAR'; payload: { optionId: AltarRitualId; costType?: 'health' | 'sanity'; cardId?: string } }
-  | { type: 'LEAVE_ALTAR' }
   | { type: 'CLAIM_VAULT_RELIC'; payload: { relicId?: string; relicIds?: string[]; desecrate?: boolean; claimObols?: boolean } }
-  | { type: 'LEAVE_VAULT' }
   | { type: 'SACRIFICE_CARDS_AT_BLOOD_ALTAR'; payload: { cardIds: string[]; branch?: 'pure' | 'reshape' } }
-  | { type: 'LEAVE_BLOOD_ALTAR' }
-  | { type: 'INHERIT_REMAINS'; payload: { type: 'card'; cardId: string } | { type: 'obols' } }
-  | { type: 'LEAVE_REMAINS' };
+  | { type: 'INHERIT_REMAINS'; payload: { type: 'card'; cardId: string } | { type: 'obols' } };

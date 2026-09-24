@@ -3,8 +3,7 @@ import { TRUTH_CARD_BREAKWATER } from '../../eventData';
 import type { NodeActionResult, NodeInteractionContext } from '../types';
 
 export interface SanctuaryActionPayload {
-  optionId?: 'bandage' | 'meditate' | 'purge';
-  actionType?: 'rest' | 'meditate' | 'purge';
+  optionId: 'bandage' | 'meditate' | 'purge';
   cardId?: string;
 }
 
@@ -24,7 +23,7 @@ export function resolveSanctuaryAction(
     };
   }
 
-  const action = payload.optionId ?? (payload.actionType === 'rest' ? 'bandage' : payload.actionType);
+  const action = payload.optionId;
 
   if (action === 'bandage') {
     if (investigator.health >= investigator.maxHealth) {

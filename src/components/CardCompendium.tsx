@@ -6,7 +6,8 @@ import { soundEngine } from '../engine/audioManager';
 import { X, BookOpen, Sparkles, Filter, Info, Shield, Swords, Eye, Flame, Users, Search, Scroll, Compass } from 'lucide-react';
 
 import { INVESTIGATOR_DECK, OCCULTIST_DECK, REWARD_CARD_POOL, MADNESS_CARD_TEMPLATES, TRUTH_INJECTED_TEMPLATE } from '../engine/initialData';
-import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER, generateDefaultMarketItems } from '../engine/eventData';
+import { MYTHOS_EVENTS, TRUTH_CARD_BREAKWATER } from '../engine/eventData';
+import { generateDefaultMarketItems } from '../engine/nodes';
 import { ALL_ABYSSAL_CARDS } from '../engine/abyssalSeals';
 import { getAllCompendiumCards, getAllTieredCards } from '../engine/cards/registry';
 

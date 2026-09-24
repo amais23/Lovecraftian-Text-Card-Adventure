@@ -1333,15 +1333,4 @@ export function getMythosEventForNode(
   return getMythosEvent(effectiveDepth, visitedEventIds, randomFn);
 }
 
-/* =========================================================
-   Black Market Stock Generator (Re-exported from nodes module)
-   ========================================================= */
-
-export {
-  generateMarketItemsForDepth,
-  generateDefaultMarketItems,
-  MARKET_PURGE_COST,
-  type GenerateMarketItemsOptions,
-} from './nodes/handlers/market';
-
 

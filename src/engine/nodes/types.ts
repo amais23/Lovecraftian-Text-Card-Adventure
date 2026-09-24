@@ -23,6 +23,7 @@ export interface NodeEntryContext {
   depth: DepthLevel;
   occupationId?: OccupationId;
   investigatorRelicIds?: string[];
+  fallenInvestigator?: FallenInvestigatorRecord | null;
   randomFn?: () => number;
 }
 
@@ -36,7 +37,7 @@ export interface NodeEntryResult {
    ========================================================= */
 
 export type NodeInteractionAction =
-  | { type: 'USE_SANCTUARY'; payload: { optionId?: 'bandage' | 'meditate' | 'purge'; actionType?: 'rest' | 'meditate' | 'purge'; cardId?: string } }
+  | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' | 'purge'; cardId?: string } }
   | { type: 'BUY_MARKET_ITEM'; payload: { itemId: string } }
   | { type: 'PURGE_CARD_AT_MARKET'; payload: { cardId: string } }
   | { type: 'USE_ALTAR'; payload: { optionId: AltarRitualId; costType?: 'health' | 'sanity'; cardId?: string } }
@@ -51,6 +52,7 @@ export interface NodeInteractionContext {
   currentDepth?: DepthLevel;
   turn?: number;
   adventureStats?: AdventureStats;
+  randomFn?: () => number;
   // Node-specific transient states
   marketItems?: MarketItem[];
   marketPurgeUsed?: boolean;
@@ -70,6 +72,7 @@ export interface NodeActionResult {
   sanityDeck: Card[];
   nodeStateUpdates: Partial<GameState>;
   adventureStatsUpdate?: Partial<AdventureStats>;
+  clearFallenRecord?: boolean;
   logs: string[];
 }
 
@@ -85,5 +88,6 @@ export interface NodeLeaveContext {
 export interface NodeLeaveResult {
   map?: InvestigationMap;
   nodeStateCleans: Partial<GameState>;
+  clearFallenRecord?: boolean;
   logs: string[];
 }

@@ -7,11 +7,7 @@ import { generateMarketItemsForDepth, resolveMarketBuyItem, resolveMarketPurgeCa
 import { generateAltarRituals, resolveAltarAction } from './handlers/altar';
 import { resolveVaultAction } from './handlers/vault';
 import { resolveBloodAltarAction } from './handlers/bloodAltar';
-import {
-  clearFallenInvestigator,
-  getFallenInvestigator,
-  resolveRemainsAction,
-} from './handlers/remains';
+import { resolveRemainsAction } from './handlers/remains';
 import type {
   NodeActionResult,
   NodeEntryContext,
@@ -26,7 +22,7 @@ import type {
  * 處理非戰鬥探索節點之進入初始化
  */
 export function resolveNodeEntry(node: MapNode, context: NodeEntryContext): NodeEntryResult {
-  const { depth, occupationId, investigatorRelicIds, randomFn = Math.random } = context;
+  const { depth, occupationId, investigatorRelicIds, fallenInvestigator, randomFn = Math.random } = context;
 
   switch (node.type) {
     case 'sanctuary': {
@@ -94,11 +90,10 @@ export function resolveNodeEntry(node: MapNode, context: NodeEntryContext): Node
     }
 
     case 'remains': {
-      const fallen = getFallenInvestigator();
       return {
         nodeStateUpdates: {
           phase: 'remains',
-          fallenInvestigator: fallen,
+          fallenInvestigator: fallenInvestigator ?? null,
           remainsClaimed: false,
         },
         log: `探索【${node.title}】！在迷霧與碎石間發現了前代殉職調查員的殘破骸骨與行囊。`,
@@ -163,6 +158,7 @@ export function resolveNodeLeave(context: NodeLeaveContext): NodeLeaveResult {
   const updatedMap = advanceMapAfterNode(map);
 
   let log = '離開節點，重返調查地圖。';
+  let clearFallenRecord = false;
   const nodeStateCleans: Record<string, undefined> = {};
 
   if (phase === 'sanctuary') {
@@ -184,7 +180,7 @@ export function resolveNodeLeave(context: NodeLeaveContext): NodeLeaveResult {
     log = '離開血之祭壇，牌庫精簡洗鍊，神識重歸清明。';
     nodeStateCleans.bloodAltarUsed = undefined;
   } else if (phase === 'remains') {
-    clearFallenInvestigator();
+    clearFallenRecord = true;
     log = '向殉職前輩的骸骨致敬默哀後，調查員背起行囊繼續踏入迷霧。';
     nodeStateCleans.fallenInvestigator = undefined;
     nodeStateCleans.remainsClaimed = undefined;
@@ -193,6 +189,7 @@ export function resolveNodeLeave(context: NodeLeaveContext): NodeLeaveResult {
   return {
     map: updatedMap,
     nodeStateCleans,
+    clearFallenRecord,
     logs: [log],
   };
 }

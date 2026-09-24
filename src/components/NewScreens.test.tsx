@@ -9,7 +9,7 @@ import type { GameState } from '../types/game';
 
 describe('New Node Screens (Issue #30)', () => {
   describe('AltarScreen', () => {
-    it('renders altar screen and dispatches USE_ALTAR and LEAVE_ALTAR', () => {
+    it('renders altar screen and dispatches USE_ALTAR and LEAVE_NODE', () => {
       const dispatch = vi.fn();
       const state: GameState = {
         ...createInitialCombatState(),

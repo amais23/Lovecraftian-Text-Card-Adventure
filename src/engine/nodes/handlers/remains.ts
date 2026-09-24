@@ -152,14 +152,13 @@ export function resolveRemainsAction(
     logs.push(`自前代殉職調查員的殘破行囊中，拾取了 ${inheritedObols} 枚殘存古金幣。`);
   }
 
-  clearFallenInvestigator();
-
   return {
     success: true,
     investigator: updatedInvestigator,
     sanityDeck: newSanityDeck,
     nodeStateUpdates: { remainsClaimed: true },
     adventureStatsUpdate: statsUpdate,
+    clearFallenRecord: true,
     logs,
   };
 }

@@ -24,14 +24,16 @@ import {
 } from './mapGenerator';
 import {
   MYTHOS_EVENTS,
-  generateDefaultMarketItems,
-  generateMarketItemsForDepth,
   INITIAL_DEEP_ONE,
   INITIAL_SHOGGOTH,
   INITIAL_DAGON_PRIEST,
   INITIAL_COLOSSAL_SHOGGOTH,
   INITIAL_STAR_SPAWN,
 } from './eventData';
+import {
+  generateDefaultMarketItems,
+  generateMarketItemsForDepth,
+} from './nodes';
 import { getCardsByTier } from './cards/registry';
 import {
   ABYSSAL_FRAGMENT_1,
@@ -1770,7 +1772,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     // Leave sanctuary
     const mapState = gameReducer(healedState, {
-      type: 'LEAVE_SANCTUARY',
+      type: 'LEAVE_NODE',
     });
 
     expect(mapState.phase).toBe('map');
@@ -2092,7 +2094,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
     // 5. Leave market
     const leaveState = gameReducer(healedState, {
-      type: 'LEAVE_MARKET',
+      type: 'LEAVE_NODE',
     });
     expect(leaveState.phase).toBe('map');
     expect(leaveState.marketItems).toBeUndefined();
@@ -2170,7 +2172,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
     expect(afterBuyState.hand.length).toBe(initialState.hand.length);
     expect(afterBuyState.sanityDeck.some((c) => c.name === cardItem.card!.name)).toBe(true);
 
-    const leftMarketState = gameReducer(afterBuyState, { type: 'LEAVE_MARKET' });
+    const leftMarketState = gameReducer(afterBuyState, { type: 'LEAVE_NODE' });
     expect(leftMarketState.phase).toBe('map');
 
     // 2. Now navigate to a combat node
@@ -4323,7 +4325,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(next.altarUsed).toBe(false);
       });
 
-      it('LEAVE_ALTAR advances map and returns to map phase', () => {
+      it('LEAVE_NODE from altar advances map and returns to map phase', () => {
         const state: GameState = {
           ...createInitialCombatState(),
           phase: 'altar',
@@ -4359,7 +4361,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           },
         };
 
-        const next = gameReducer(state, { type: 'LEAVE_ALTAR' });
+        const next = gameReducer(state, { type: 'LEAVE_NODE' });
         expect(next.phase).toBe('map');
         expect(next.altarRituals).toBeUndefined();
         expect(next.map?.nodes['node_0_0'].status).toBe('visited');
@@ -4528,7 +4530,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(duplicateNext.vaultClaimed).toBe(false);
       });
 
-      it('LEAVE_VAULT returns to map and advances node', () => {
+      it('LEAVE_NODE from vault returns to map and advances node', () => {
         const state: GameState = {
           ...createInitialCombatState(),
           phase: 'vault',
@@ -4553,7 +4555,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           },
         };
 
-        const next = gameReducer(state, { type: 'LEAVE_VAULT' });
+        const next = gameReducer(state, { type: 'LEAVE_NODE' });
         expect(next.phase).toBe('map');
         expect(next.vaultRelics).toBeUndefined();
       });
@@ -4709,7 +4711,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(reject2.bloodAltarUsed).toBe(false);
       });
 
-      it('LEAVE_BLOOD_ALTAR returns to map and advances node', () => {
+      it('LEAVE_NODE from blood altar returns to map and advances node', () => {
         const state: GameState = {
           ...createInitialCombatState(),
           phase: 'blood_altar',
@@ -4734,7 +4736,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
           },
         };
 
-        const next = gameReducer(state, { type: 'LEAVE_BLOOD_ALTAR' });
+        const next = gameReducer(state, { type: 'LEAVE_NODE' });
         expect(next.phase).toBe('map');
       });
     });
@@ -4832,7 +4834,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
         expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
       });
 
-      it('LEAVE_REMAINS clears tomb record and advances map', () => {
+      it('LEAVE_NODE from remains clears tomb record and advances map', () => {
         const state: GameState = {
           ...createInitialCombatState(),
           phase: 'remains',
@@ -4868,7 +4870,7 @@ describe('Investigation Map & Mythos Events System (Issue #6)', () => {
 
         localStorage.setItem('arkham_fallen_investigator', JSON.stringify(state.fallenInvestigator));
 
-        const next = gameReducer(state, { type: 'LEAVE_REMAINS' });
+        const next = gameReducer(state, { type: 'LEAVE_NODE' });
         expect(next.phase).toBe('map');
         expect(localStorage.getItem('arkham_fallen_investigator')).toBeNull();
       });

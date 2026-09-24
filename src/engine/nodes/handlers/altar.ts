@@ -87,7 +87,7 @@ export function resolveAltarAction(
   payload: { optionId: AltarRitualId; costType?: 'health' | 'sanity'; cardId?: string },
   context: NodeInteractionContext
 ): NodeActionResult {
-  const { investigator, sanityDeck, altarUsed, currentDepth, turn = 1, adventureStats } = context;
+  const { investigator, sanityDeck, altarUsed, currentDepth, turn = 1, adventureStats, randomFn = Math.random } = context;
 
   if (altarUsed) {
     return { success: false, investigator, sanityDeck, nodeStateUpdates: {}, logs: [] };
@@ -142,7 +142,7 @@ export function resolveAltarAction(
     const ownedIds = new Set(updatedRelics.map((r) => r.id));
     const unowned = PRESET_RELICS.filter((r) => !ownedIds.has(r.id));
     if (unowned.length > 0) {
-      const chosenRelic = unowned[Math.floor(Math.random() * unowned.length)];
+      const chosenRelic = unowned[Math.floor(randomFn() * unowned.length)];
       const invWithRelic = applyRelicToInvestigator(
         {
           ...investigator,

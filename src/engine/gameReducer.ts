@@ -45,6 +45,7 @@ import {
 import { applyRelicCombatStart, applyRelicToInvestigator } from './relics';
 import {
   clearFallenInvestigator,
+  getFallenInvestigator,
   resolveNodeEntry,
   resolveNodeInteraction,
   resolveNodeLeave,
@@ -542,6 +543,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           depth: state.currentDepth ?? state.map?.depth ?? 1,
           occupationId: state.investigator.occupationId,
           investigatorRelicIds: (state.investigator.relics ?? []).map((r) => r.id),
+          fallenInvestigator: targetNode.type === 'remains' ? getFallenInvestigator() : undefined,
         });
         return {
           ...state,
@@ -1345,6 +1347,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         adventureStats: currentStats,
       });
       if (!result.success) return state;
+      if (result.clearFallenRecord) {
+        clearFallenInvestigator();
+      }
       return {
         ...state,
         investigator: result.investigator,
@@ -1357,19 +1362,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'LEAVE_NODE':
-    case 'LEAVE_SANCTUARY':
-    case 'LEAVE_MARKET':
-    case 'LEAVE_ALTAR':
-    case 'LEAVE_VAULT':
-    case 'LEAVE_BLOOD_ALTAR':
-    case 'LEAVE_REMAINS': {
+    case 'LEAVE_NODE': {
       const allowedPhases = ['sanctuary', 'market', 'altar', 'vault', 'blood_altar', 'remains'];
       if (!allowedPhases.includes(state.phase)) return state;
       const result = resolveNodeLeave({
         phase: state.phase,
         map: state.map,
       });
+      if (result.clearFallenRecord) {
+        clearFallenInvestigator();
+      }
       return {
         ...state,
         phase: 'map',

@@ -278,13 +278,8 @@ describe('Black Market Relic Purchase & Card Purge Service (Reducer)', () => {
     expect(nextState.battleLog[0]).toContain('牌庫卡牌數量過少');
   });
 
-  it('clears market items and purge used flag when leaving market via LEAVE_MARKET or LEAVE_NODE', () => {
+  it('clears market items and purge used flag when leaving market via LEAVE_NODE', () => {
     const state = createMarketTestState();
-    const leaveStateLegacy = gameReducer(state, { type: 'LEAVE_MARKET' });
-    expect(leaveStateLegacy.phase).toBe('map');
-    expect(leaveStateLegacy.marketItems).toBeUndefined();
-    expect(leaveStateLegacy.marketPurgeUsed).toBeUndefined();
-
     const leaveStateUnified = gameReducer(state, { type: 'LEAVE_NODE' });
     expect(leaveStateUnified.phase).toBe('map');
     expect(leaveStateUnified.marketItems).toBeUndefined();

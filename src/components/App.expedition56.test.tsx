@@ -13,7 +13,8 @@ import { OCCULTIST_STARTER_CARDS } from '../engine/cards/occultist/starter';
 import type { CardPlayContext } from '../engine/cards/types';
 import type { DepthLevel, Enemy, GameState, Investigator, InvestigationMap, MapNode, MapNodeType, MythosEventOption } from '../types/game';
 import { generateProceduralInvestigationMap } from '../engine/mapGenerator';
-import { MARKET_PURGE_COST, DEPTH_EVENT_POOLS, getMythosEventsForDepth } from '../engine/eventData';
+import { DEPTH_EVENT_POOLS, getMythosEventsForDepth } from '../engine/eventData';
+import { MARKET_PURGE_COST } from '../engine/nodes';
 import {
   ABYSSAL_FRAGMENT_1,
   ABYSSAL_FRAGMENT_2,
@@ -136,7 +137,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(state.sanctuaryUsed).toBe(true);
 
       // Leave Sanctuary back to map
-      state = gameReducer(state, { type: 'LEAVE_SANCTUARY' });
+      state = gameReducer(state, { type: 'LEAVE_NODE' });
       expect(state.phase).toBe('map');
       expect(state.investigator.health).toBe(25);
     });
@@ -594,7 +595,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
         }
         case 'sanctuary': {
           nextState = gameReducer(nextState, { type: 'USE_SANCTUARY', payload: { optionId: 'meditate' } });
-          nextState = gameReducer(nextState, { type: 'LEAVE_SANCTUARY' });
+          nextState = gameReducer(nextState, { type: 'LEAVE_NODE' });
           break;
         }
         case 'event': {
@@ -610,23 +611,23 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
           break;
         }
         case 'market': {
-          nextState = gameReducer(nextState, { type: 'LEAVE_MARKET' });
+          nextState = gameReducer(nextState, { type: 'LEAVE_NODE' });
           break;
         }
         case 'vault': {
-          nextState = gameReducer(nextState, { type: 'LEAVE_VAULT' });
+          nextState = gameReducer(nextState, { type: 'LEAVE_NODE' });
           break;
         }
         case 'altar': {
-          nextState = gameReducer(nextState, { type: 'LEAVE_ALTAR' });
+          nextState = gameReducer(nextState, { type: 'LEAVE_NODE' });
           break;
         }
         case 'blood_altar': {
-          nextState = gameReducer(nextState, { type: 'LEAVE_BLOOD_ALTAR' });
+          nextState = gameReducer(nextState, { type: 'LEAVE_NODE' });
           break;
         }
         case 'remains': {
-          nextState = gameReducer(nextState, { type: 'LEAVE_REMAINS' });
+          nextState = gameReducer(nextState, { type: 'LEAVE_NODE' });
           break;
         }
       }
@@ -900,7 +901,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       });
       expect(state.sanctuaryUsed).toBe(true);
       expect(state.sanityDeck.some((c) => c.id === purgedCard.id)).toBe(false);
-      state = gameReducer(state, { type: 'LEAVE_SANCTUARY' });
+      state = gameReducer(state, { type: 'LEAVE_NODE' });
       expect(state.phase).toBe('map');
     });
 
@@ -918,7 +919,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       });
       expect(state.altarUsed).toBe(true);
       expect(state.investigator.maxHealth).toBe(oldMaxHealth + 5);
-      state = gameReducer(state, { type: 'LEAVE_ALTAR' });
+      state = gameReducer(state, { type: 'LEAVE_NODE' });
       expect(state.phase).toBe('map');
     });
 
@@ -947,7 +948,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(state1.investigator.health).toBe(20); // 15 + 5
       expect(getAllPermanentCards(state1)).toHaveLength(countBeforeReshape - 1);
       expect(getAllPermanentCards(state1).some((c) => c.id === reshapeCard.id)).toBe(false);
-      state1 = gameReducer(state1, { type: 'LEAVE_BLOOD_ALTAR' });
+      state1 = gameReducer(state1, { type: 'LEAVE_NODE' });
       expect(state1.phase).toBe('map');
 
       // (b) Branch 2: 'pure' on distinct authentic blood altar visit (sacrifice 2 cards, permanent deck purge)
@@ -966,7 +967,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(state2.bloodAltarUsed).toBe(true);
       expect(getAllPermanentCards(state2)).toHaveLength(countBeforePure - 2);
       expect(getAllPermanentCards(state2).some((c) => c.id === pureCard1.id || c.id === pureCard2.id)).toBe(false);
-      state2 = gameReducer(state2, { type: 'LEAVE_BLOOD_ALTAR' });
+      state2 = gameReducer(state2, { type: 'LEAVE_NODE' });
       expect(state2.phase).toBe('map');
     });
 
@@ -1018,7 +1019,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       expect(evalRes.logs[0]).toContain('無法被打出');
       expect(evalRes.logs[0]).toContain('佔據著手牌');
 
-      state = gameReducer(state, { type: 'LEAVE_VAULT' });
+      state = gameReducer(state, { type: 'LEAVE_NODE' });
       expect(state.phase).toBe('map');
     });
 
