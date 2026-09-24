@@ -1,0 +1,848 @@
+import React, { useState, useMemo } from 'react';
+import {
+  Activity,
+  Shield,
+  Swords,
+  Sparkles,
+  Flame,
+  Skull,
+  TrendingUp,
+  AlertTriangle,
+  Award,
+  Layers,
+  ChevronRight,
+  Eye,
+  Check,
+  Target,
+  BarChart3,
+  Search,
+  Filter,
+} from 'lucide-react';
+import balanceSummaryDataRaw from '../data/balance/balance_summary_data.json';
+import type {
+  BalanceSummaryData,
+  CardBalanceReport,
+  RelicBalanceReport,
+  EnemyThreatReport,
+  ArchetypeId,
+} from '../engine/simulation/balanceTypes';
+import type { CardCategory } from '../types/game';
+
+const balanceData = balanceSummaryDataRaw as unknown as BalanceSummaryData;
+
+const ARCHETYPE_NAMES: Record<ArchetypeId, string> = {
+  armor_counter: '護甲反擊',
+  bleed_pierce: '流血穿刺',
+  truth_restore: '真相回補',
+  madness_sacrifice: '狂亂自殘',
+  high_cost_magic: '高費秘術',
+  status_attrition: '狀態磨血',
+};
+
+const CATEGORY_NAMES: Record<CardCategory, string> = {
+  combat: '紅色戰鬥',
+  skill: '黃色技能',
+  magic: '紫色魔法',
+  truth: '白色真相',
+  madness: '黑色瘋狂',
+};
+
+const CATEGORY_COLORS: Record<CardCategory, string> = {
+  combat: '#ef4444',
+  skill: '#f59e0b',
+  magic: '#c084fc',
+  truth: '#e2e8f0',
+  madness: '#64748b',
+};
+
+const TIER_COLORS: Record<string, string> = {
+  S: '#ffd700',
+  A: '#cfa866',
+  B: '#38bdf8',
+  C: '#94a3b8',
+  D: '#64748b',
+};
+
+export const BalanceMatrixDashboard: React.FC = () => {
+  // Navigation sub-tab: 'scatter' (cards & relics) | 'enemies' (26-threat leaderboard)
+  const [subTab, setSubTab] = useState<'scatter' | 'enemies'>('scatter');
+
+  // Scatter sub-tab: 'cards' | 'relics'
+  const [targetType, setTargetType] = useState<'cards' | 'relics'>('cards');
+
+  // Filters for Cards
+  const [categoryFilter, setCategoryFilter] = useState<CardCategory | 'all'>('all');
+  const [tierFilter, setTierFilter] = useState<string | 'all'>('all');
+  const [archetypeFilter, setArchetypeFilter] = useState<ArchetypeId | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Selected item
+  const [selectedCardId, setSelectedCardId] = useState<string>('card_revolver_1');
+  const [selectedRelicId, setSelectedRelicId] = useState<string>('elder_sign_amulet');
+
+  // Filters for Enemies
+  const [enemyDepthFilter, setEnemyDepthFilter] = useState<number | 'all'>('all');
+  const [enemyRoleFilter, setEnemyRoleFilter] = useState<'all' | 'normal' | 'elite' | 'boss'>('all');
+
+  // Filtered Cards
+  const filteredCards = useMemo(() => {
+    return Object.values(balanceData.cards).filter((card) => {
+      if (categoryFilter !== 'all' && card.category !== categoryFilter) return false;
+      if (tierFilter !== 'all' && String(card.tier) !== tierFilter) return false;
+      if (archetypeFilter !== 'all' && card.bestArchetype !== archetypeFilter) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchName = card.name.toLowerCase().includes(query);
+        const matchDesc = card.description.toLowerCase().includes(query);
+        if (!matchName && !matchDesc) return false;
+      }
+      return true;
+    });
+  }, [categoryFilter, tierFilter, archetypeFilter, searchQuery]);
+
+  // Relics list
+  const allRelics = useMemo(() => Object.values(balanceData.relics), []);
+
+  // Filtered Enemies sorted by rank
+  const filteredEnemies = useMemo(() => {
+    return Object.values(balanceData.enemies)
+      .sort((a, b) => a.rank - b.rank)
+      .filter((enemy) => {
+        if (enemyDepthFilter !== 'all' && enemy.depth !== enemyDepthFilter) return false;
+        if (enemyRoleFilter !== 'all' && enemy.role !== enemyRoleFilter) return false;
+        return true;
+      });
+  }, [enemyDepthFilter, enemyRoleFilter]);
+
+  // Selected card / relic reports
+  const currentCard = balanceData.cards[selectedCardId] || filteredCards[0] || Object.values(balanceData.cards)[0];
+  const currentRelic = balanceData.relics[selectedRelicId] || allRelics[0];
+
+  return (
+    <div className="balance-matrix-dashboard" data-testid="balance-matrix-dashboard">
+      {/* Top Header & Metrics Banner */}
+      <header className="balance-dashboard-header">
+        <div className="balance-title-block">
+          <div className="balance-badge">
+            <Activity size={18} color="#ffd700" />
+            <span>ADR-0036 數值平衡天梯</span>
+          </div>
+          <h3>全量平衡性評測與數值矩陣</h3>
+          <p className="balance-subtitle">
+            分層正交蒙地卡羅全量採樣 · 總模擬場次 {balanceData.totalCombatsSimulated.toLocaleString()} 場 · 數據版本 v{balanceData.version}
+          </p>
+        </div>
+
+        {/* Sub-view switcher */}
+        <div className="balance-sub-nav">
+          <button
+            type="button"
+            className={`balance-nav-btn ${subTab === 'scatter' ? 'active' : ''}`}
+            onClick={() => setSubTab('scatter')}
+          >
+            <BarChart3 size={16} />
+            <span>卡牌/遺物數值天梯 (散布圖與曲線)</span>
+          </button>
+          <button
+            type="button"
+            className={`balance-nav-btn ${subTab === 'enemies' ? 'active' : ''}`}
+            onClick={() => setSubTab('enemies')}
+          >
+            <Skull size={16} />
+            <span>敵怪威脅排行榜 (全26隻)</span>
+          </button>
+        </div>
+      </header>
+
+      {subTab === 'scatter' ? (
+        <div className="balance-scatter-layout">
+          {/* Controls Bar */}
+          <div className="balance-controls-bar">
+            {/* Target Type Toggle */}
+            <div className="balance-type-toggle">
+              <button
+                type="button"
+                className={`type-btn ${targetType === 'cards' ? 'active' : ''}`}
+                onClick={() => setTargetType('cards')}
+              >
+                <Layers size={14} />
+                <span>五色卡牌 ({Object.keys(balanceData.cards).length})</span>
+              </button>
+              <button
+                type="button"
+                className={`type-btn ${targetType === 'relics' ? 'active' : ''}`}
+                onClick={() => setTargetType('relics')}
+              >
+                <Award size={14} />
+                <span>舊日遺物 ({allRelics.length})</span>
+              </button>
+            </div>
+
+            {targetType === 'cards' && (
+              <div className="balance-filters-row">
+                {/* Category Filter */}
+                <div className="filter-group">
+                  <span className="filter-label">類別：</span>
+                  <button
+                    type="button"
+                    className={`filter-btn ${categoryFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setCategoryFilter('all')}
+                  >
+                    全部
+                  </button>
+                  {(Object.keys(CATEGORY_NAMES) as CardCategory[]).map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`filter-btn ${categoryFilter === cat ? 'active' : ''}`}
+                      onClick={() => setCategoryFilter(cat)}
+                      style={{
+                        borderColor: categoryFilter === cat ? CATEGORY_COLORS[cat] : undefined,
+                        color: categoryFilter === cat ? CATEGORY_COLORS[cat] : undefined,
+                      }}
+                    >
+                      {CATEGORY_NAMES[cat]}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tier Filter */}
+                <div className="filter-group">
+                  <span className="filter-label">階級：</span>
+                  <select
+                    className="balance-select"
+                    value={tierFilter}
+                    onChange={(e) => setTierFilter(e.target.value)}
+                    aria-label="卡牌階級篩選"
+                  >
+                    <option value="all">全部階級</option>
+                    <option value="1">Tier 1 基礎</option>
+                    <option value="2">Tier 2 進階</option>
+                    <option value="3">Tier 3 核心</option>
+                    <option value="4">Tier 4 神話</option>
+                  </select>
+                </div>
+
+                {/* Archetype Filter */}
+                <div className="filter-group">
+                  <span className="filter-label">最適流派：</span>
+                  <select
+                    className="balance-select"
+                    value={archetypeFilter}
+                    onChange={(e) => setArchetypeFilter(e.target.value as ArchetypeId | 'all')}
+                    aria-label="最適流派篩選"
+                  >
+                    <option value="all">全部流派</option>
+                    {(Object.keys(ARCHETYPE_NAMES) as ArchetypeId[]).map((arch) => (
+                      <option key={arch} value={arch}>
+                        {ARCHETYPE_NAMES[arch]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Search */}
+                <div className="balance-search-wrap">
+                  <Search size={14} className="search-icon" />
+                  <input
+                    type="text"
+                    className="balance-search-input"
+                    placeholder="搜尋卡名或描述..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Main Visualizer Body: Left (Scatter / Items) & Right (Detail Inspector) */}
+          <div className="balance-main-grid">
+            {/* Left Column: Dual Dimension Scatter Chart & Item List */}
+            <div className="balance-visual-column">
+              {/* Dual Dimension Scatter Plot */}
+              <div className="scatter-plot-card" data-testid="balance-scatter-plot">
+                <div className="scatter-header">
+                  <h4>雙維度天梯散布圖 (肉體生存分 vs 心智效率分)</h4>
+                  <div className="scatter-legend">
+                    <span className="legend-item"><span className="legend-dot tier-s" /> S階 卓越基石</span>
+                    <span className="legend-item"><span className="legend-dot tier-a" /> A階 強勢主力</span>
+                    <span className="legend-item"><span className="legend-dot tier-b" /> B階 穩健良牌</span>
+                    <span className="legend-item"><span className="legend-dot tier-c" /> C/D階 特化陷阱</span>
+                  </div>
+                </div>
+
+                {/* SVG Coordinate Space */}
+                <div className="scatter-canvas-wrap">
+                  <svg
+                    viewBox="0 0 500 340"
+                    className="scatter-svg"
+                    role="img"
+                    aria-label="雙維度散布圖"
+                  >
+                    {/* Background Grid */}
+                    <rect x="50" y="20" width="430" height="280" fill="#080c14" rx="4" />
+                    <line x1="50" y1="160" x2="480" y2="160" stroke="#1e293b" strokeDasharray="4 4" />
+                    <line x1="265" y1="20" x2="265" y2="300" stroke="#1e293b" strokeDasharray="4 4" />
+
+                    {/* Quadrant Labels */}
+                    <text x="470" y="40" fill="#38bdf8" opacity="0.3" textAnchor="end" fontSize="11">
+                      S級 · 全能基石區
+                    </text>
+                    <text x="60" y="40" fill="#a855f7" opacity="0.3" fontSize="11">
+                      高智低抗 · 秘術專精
+                    </text>
+                    <text x="470" y="290" fill="#f59e0b" opacity="0.3" textAnchor="end" fontSize="11">
+                      鐵壁重盾 · 物理蓄力
+                    </text>
+                    <text x="60" y="290" fill="#ef4444" opacity="0.3" fontSize="11">
+                      極限自殘 · 特化下限
+                    </text>
+
+                    {/* Axes lines & labels */}
+                    <line x1="50" y1="300" x2="480" y2="300" stroke="#475569" strokeWidth="1.5" />
+                    <line x1="50" y1="20" x2="50" y2="300" stroke="#475569" strokeWidth="1.5" />
+
+                    {/* Y Axis Label (Sanity Score) */}
+                    <text
+                      x="-160"
+                      y="20"
+                      transform="rotate(-90)"
+                      fill="#ffd700"
+                      fontSize="12"
+                      fontWeight="600"
+                      textAnchor="middle"
+                    >
+                      心智效率分 (Sanity Score) ↑
+                    </text>
+
+                    {/* X Axis Label (Health Score) */}
+                    <text
+                      x="265"
+                      y="330"
+                      fill="#ffd700"
+                      fontSize="12"
+                      fontWeight="600"
+                      textAnchor="middle"
+                    >
+                      肉體生存分 (Health Score) →
+                    </text>
+
+                    {/* Data Points */}
+                    {targetType === 'cards'
+                      ? filteredCards.map((card) => {
+                          // Scale coordinates: X from 50 to 480 (range 430), Y from 300 to 20 (inverted)
+                          const cx = 50 + (card.healthScore / 100) * 430;
+                          const cy = 300 - (card.sanityScore / 100) * 280;
+                          const isSelected = card.id === currentCard?.id;
+                          const color = TIER_COLORS[card.tierRating] || '#94a3b8';
+
+                          return (
+                            <g
+                              key={card.id}
+                              className="scatter-point-group"
+                              onClick={() => setSelectedCardId(card.id)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {isSelected && (
+                                <circle
+                                  cx={cx}
+                                  cy={cy}
+                                  r={10}
+                                  fill="none"
+                                  stroke="#ffd700"
+                                  strokeWidth={2}
+                                  className="scatter-pulse"
+                                />
+                              )}
+                              <circle
+                                cx={cx}
+                                cy={cy}
+                                r={isSelected ? 6 : 4}
+                                fill={color}
+                                stroke={isSelected ? '#ffffff' : '#0b0f19'}
+                                strokeWidth={1.5}
+                              />
+                            </g>
+                          );
+                        })
+                      : allRelics.map((relic) => {
+                          const cx = 50 + (relic.overallScore / 100) * 430;
+                          const cy = 300 - (relic.copiesCurve[1].score / 100) * 280;
+                          const isSelected = relic.id === currentRelic?.id;
+                          const color = TIER_COLORS[relic.tierRating] || '#38bdf8';
+
+                          return (
+                            <g
+                              key={relic.id}
+                              className="scatter-point-group"
+                              onClick={() => setSelectedRelicId(relic.id)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {isSelected && (
+                                <circle
+                                  cx={cx}
+                                  cy={cy}
+                                  r={11}
+                                  fill="none"
+                                  stroke="#38bdf8"
+                                  strokeWidth={2}
+                                />
+                              )}
+                              <rect
+                                x={cx - (isSelected ? 6 : 4)}
+                                y={cy - (isSelected ? 6 : 4)}
+                                width={isSelected ? 12 : 8}
+                                height={isSelected ? 12 : 8}
+                                fill={color}
+                                stroke="#ffffff"
+                                strokeWidth={1}
+                              />
+                            </g>
+                          );
+                        })}
+                  </svg>
+                </div>
+              </div>
+
+              {/* Items Compact Grid List */}
+              <div className="balance-item-list-wrap">
+                <div className="list-header">
+                  <h5>{targetType === 'cards' ? `卡牌列表 (${filteredCards.length} 張)` : `遺物列表 (${allRelics.length} 件)`}</h5>
+                  <span className="list-hint">點選卡牌或遺物以切換深度檢視</span>
+                </div>
+                <div className="balance-items-grid">
+                  {targetType === 'cards'
+                    ? filteredCards.map((card) => {
+                        const isSelected = card.id === currentCard?.id;
+                        return (
+                          <button
+                            key={card.id}
+                            type="button"
+                            className={`balance-card-pill ${isSelected ? 'selected' : ''}`}
+                            onClick={() => setSelectedCardId(card.id)}
+                          >
+                            <span
+                              className="tier-badge"
+                              style={{
+                                backgroundColor: `${TIER_COLORS[card.tierRating]}22`,
+                                color: TIER_COLORS[card.tierRating],
+                                borderColor: TIER_COLORS[card.tierRating],
+                              }}
+                            >
+                              {card.tierRating}
+                            </span>
+                            <span className="card-pill-name">{card.name}</span>
+                            <span className="card-pill-score">{card.overallScore}分</span>
+                          </button>
+                        );
+                      })
+                    : allRelics.map((relic) => {
+                        const isSelected = relic.id === currentRelic?.id;
+                        return (
+                          <button
+                            key={relic.id}
+                            type="button"
+                            className={`balance-card-pill relic ${isSelected ? 'selected' : ''}`}
+                            onClick={() => setSelectedRelicId(relic.id)}
+                          >
+                            <span
+                              className="tier-badge"
+                              style={{
+                                backgroundColor: `${TIER_COLORS[relic.tierRating]}22`,
+                                color: TIER_COLORS[relic.tierRating],
+                                borderColor: TIER_COLORS[relic.tierRating],
+                              }}
+                            >
+                              {relic.tierRating}
+                            </span>
+                            <span className="card-pill-name">{relic.name}</span>
+                            <span className="card-pill-score">{relic.overallScore}分</span>
+                          </button>
+                        );
+                      })}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Deep Inspection Panel */}
+            <div className="balance-inspector-column" data-testid="balance-detail-inspector">
+              {targetType === 'cards' && currentCard ? (
+                <div className="inspector-card">
+                  {/* Item Title & Rating Banner */}
+                  <div className="inspector-header">
+                    <div className="inspector-title-row">
+                      <span
+                        className="tier-giant-badge"
+                        style={{
+                          borderColor: TIER_COLORS[currentCard.tierRating],
+                          color: TIER_COLORS[currentCard.tierRating],
+                        }}
+                      >
+                        {currentCard.tierRating}
+                      </span>
+                      <div>
+                        <h4>{currentCard.name}</h4>
+                        <div className="inspector-tags">
+                          <span
+                            className="category-tag"
+                            style={{ color: CATEGORY_COLORS[currentCard.category] }}
+                          >
+                            {CATEGORY_NAMES[currentCard.category]}
+                          </span>
+                          {currentCard.tier && <span className="tier-tag">Tier {currentCard.tier}</span>}
+                          <span className="archetype-tag">最適：{ARCHETYPE_NAMES[currentCard.bestArchetype]}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="overall-score-badge">
+                      <span className="score-num">{currentCard.overallScore}</span>
+                      <span className="score-lbl">天梯評分</span>
+                    </div>
+                  </div>
+
+                  <p className="inspector-desc">{currentCard.description}</p>
+
+                  {/* Core Metrics Grid */}
+                  <div className="metrics-quad-grid">
+                    <div className="metric-box">
+                      <span className="metric-title">綜合勝率</span>
+                      <strong className="metric-val text-gold">
+                        {(currentCard.winRate * 100).toFixed(1)}%
+                      </strong>
+                    </div>
+                    <div className="metric-box">
+                      <span className="metric-title">容錯穩定係數</span>
+                      <strong className="metric-val text-cyan">
+                        {(currentCard.faultToleranceRatio * 100).toFixed(0)}%
+                      </strong>
+                    </div>
+                    <div className="metric-box">
+                      <span className="metric-title">肉體掉血</span>
+                      <strong className="metric-val text-red">
+                        {currentCard.avgHealthLost.toFixed(1)} HP
+                      </strong>
+                    </div>
+                    <div className="metric-box">
+                      <span className="metric-title">理智消耗</span>
+                      <strong className="metric-val text-purple">
+                        {currentCard.avgSanityExpended.toFixed(1)} 張
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* 1x, 2x, 3x Copies Curve */}
+                  <div className="inspector-section">
+                    <h5 className="section-heading">
+                      <TrendingUp size={15} />
+                      <span>重複堆疊效益曲線 (1x / 2x / 3x 重複)</span>
+                    </h5>
+                    <div className="copies-curve-container">
+                      {[1, 2, 3].map((copyNum) => {
+                        const copyData = currentCard.copiesCurve[copyNum as 1 | 2 | 3];
+                        return (
+                          <div key={copyNum} className="copy-step-card">
+                            <div className="copy-step-header">
+                              <span className="copy-badge">{copyNum}x 重複</span>
+                              <span className="copy-score">{copyData.overallScore} 分</span>
+                            </div>
+                            <div className="copy-metrics">
+                              <div className="copy-metric-row">
+                                <span>勝率</span>
+                                <strong>{(copyData.winRate * 100).toFixed(1)}%</strong>
+                              </div>
+                              <div className="copy-metric-row">
+                                <span>平均掉血</span>
+                                <strong>{copyData.avgHealthLost.toFixed(1)} HP</strong>
+                              </div>
+                              <div className="copy-metric-row">
+                                <span>理智消耗</span>
+                                <strong>{copyData.avgSanityExpended.toFixed(1)} 張</strong>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Six Archetypes Synergy Multipliers */}
+                  <div className="inspector-section">
+                    <h5 className="section-heading">
+                      <Target size={15} />
+                      <span>六大流派協同倍率 (Synergy Multipliers)</span>
+                    </h5>
+                    <div className="archetype-synergy-grid">
+                      {(Object.keys(ARCHETYPE_NAMES) as ArchetypeId[]).map((arch) => {
+                        const mult = currentCard.synergyMultipliers[arch] || 1.0;
+                        const isBest = currentCard.bestArchetype === arch;
+                        const pct = Math.min(100, Math.round((mult / 2.0) * 100));
+
+                        return (
+                          <div key={arch} className={`synergy-row ${isBest ? 'best' : ''}`}>
+                            <div className="synergy-label-row">
+                              <span>{ARCHETYPE_NAMES[arch]}</span>
+                              <strong>{mult.toFixed(2)}x {isBest && '★'}</strong>
+                            </div>
+                            <div className="synergy-bar-track">
+                              <div
+                                className={`synergy-bar-fill ${isBest ? 'gold' : ''}`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Matchup Enemies: Favorable vs Unfavorable */}
+                  <div className="inspector-section matchups-section">
+                    <div className="matchup-half favorable">
+                      <h6 className="matchup-title text-green">
+                        <Check size={14} />
+                        <span>優勢剋制敵怪</span>
+                      </h6>
+                      <ul className="matchup-list">
+                        {currentCard.favorableEnemies.map((e) => (
+                          <li key={e.id}>
+                            <span className="enemy-name">{e.name}</span>
+                            <span className="enemy-winrate">{(e.winRate * 100).toFixed(0)}% 勝率</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="matchup-half unfavorable">
+                      <h6 className="matchup-title text-red">
+                        <AlertTriangle size={14} />
+                        <span>劣勢威脅敵怪</span>
+                      </h6>
+                      <ul className="matchup-list">
+                        {currentCard.unfavorableEnemies.map((e) => (
+                          <li key={e.id}>
+                            <span className="enemy-name">{e.name}</span>
+                            <span className="enemy-winrate">{(e.winRate * 100).toFixed(0)}% 勝率</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : targetType === 'relics' && currentRelic ? (
+                <div className="inspector-card">
+                  <div className="inspector-header">
+                    <div className="inspector-title-row">
+                      <span
+                        className="tier-giant-badge"
+                        style={{
+                          borderColor: TIER_COLORS[currentRelic.tierRating],
+                          color: TIER_COLORS[currentRelic.tierRating],
+                        }}
+                      >
+                        {currentRelic.tierRating}
+                      </span>
+                      <div>
+                        <h4>{currentRelic.name}</h4>
+                        <div className="inspector-tags">
+                          <span className="tier-tag">稀有度：{currentRelic.rarity}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="overall-score-badge">
+                      <span className="score-num">{currentRelic.overallScore}</span>
+                      <span className="score-lbl">遺物價值評分</span>
+                    </div>
+                  </div>
+
+                  <p className="inspector-desc">{currentRelic.description}</p>
+
+                  <div className="relic-marginal-box">
+                    <span>每件疊加邊際效益：</span>
+                    <strong className="text-gold">+{currentRelic.marginalBenefitPerStack.toFixed(1)}% / 件</strong>
+                  </div>
+
+                  {/* 0x ~ 3x Relic Curve */}
+                  <div className="inspector-section">
+                    <h5 className="section-heading">
+                      <TrendingUp size={15} />
+                      <span>持有件數效益變化 (0x ~ 3x 持有)</span>
+                    </h5>
+                    <div className="copies-curve-container">
+                      {([0, 1, 2, 3] as const).map((stack) => {
+                        const stackData = currentRelic.copiesCurve[stack];
+                        return (
+                          <div key={stack} className="copy-step-card">
+                            <div className="copy-step-header">
+                              <span className="copy-badge">{stack}x 持有</span>
+                              <span className="copy-score">{stackData.score} 分</span>
+                            </div>
+                            <div className="copy-metrics">
+                              <div className="copy-metric-row">
+                                <span>勝率</span>
+                                <strong>{(stackData.winRate * 100).toFixed(1)}%</strong>
+                              </div>
+                              <div className="copy-metric-row">
+                                <span>肉體掉血</span>
+                                <strong>{stackData.avgHealthLost.toFixed(1)} HP</strong>
+                              </div>
+                              <div className="copy-metric-row">
+                                <span>理智消耗</span>
+                                <strong>{stackData.avgSanityExpended.toFixed(1)} 張</strong>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Enemies Threat Leaderboard (All 26 Enemies) */
+        <div className="balance-enemies-layout" data-testid="enemy-threat-leaderboard">
+          {/* Depth & Role Filter Bar */}
+          <div className="enemy-leaderboard-filters">
+            <div className="filter-group">
+              <span className="filter-label">調查深度：</span>
+              <button
+                type="button"
+                className={`filter-btn ${enemyDepthFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setEnemyDepthFilter('all')}
+              >
+                全部深度
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyDepthFilter === 1 ? 'active' : ''}`}
+                onClick={() => setEnemyDepthFilter(1)}
+              >
+                第一深度
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyDepthFilter === 2 ? 'active' : ''}`}
+                onClick={() => setEnemyDepthFilter(2)}
+              >
+                第二深度
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyDepthFilter === 3 ? 'active' : ''}`}
+                onClick={() => setEnemyDepthFilter(3)}
+              >
+                第三深度
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyDepthFilter === 4 ? 'active' : ''}`}
+                onClick={() => setEnemyDepthFilter(4)}
+              >
+                第四深度
+              </button>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">敵怪階級：</span>
+              <button
+                type="button"
+                className={`filter-btn ${enemyRoleFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setEnemyRoleFilter('all')}
+              >
+                全部階級
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyRoleFilter === 'normal' ? 'active' : ''}`}
+                onClick={() => setEnemyRoleFilter('normal')}
+              >
+                常態敵怪
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyRoleFilter === 'elite' ? 'active' : ''}`}
+                onClick={() => setEnemyRoleFilter('elite')}
+              >
+                精英宿敵
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${enemyRoleFilter === 'boss' ? 'active' : ''}`}
+                onClick={() => setEnemyRoleFilter('boss')}
+              >
+                守關首領
+              </button>
+            </div>
+          </div>
+
+          {/* Enemies Ranking Table */}
+          <div className="enemy-ranking-table-card">
+            <div className="table-header-row">
+              <span className="th-cell rank">排名</span>
+              <span className="th-cell name">敵怪名稱與稱號</span>
+              <span className="th-cell depth">深度 / 定位</span>
+              <span className="th-cell threat">威脅指數</span>
+              <span className="th-cell winrate">調查員勝率</span>
+              <span className="th-cell damage">平均傷害 (HP / 理智)</span>
+              <span className="th-cell counter">剋制情報 (攻克 / 崩盤)</span>
+              <span className="th-cell cards">最佳應對卡牌</span>
+            </div>
+
+            <div className="table-body">
+              {filteredEnemies.map((enemy) => {
+                const threatColor =
+                  enemy.threatScore >= 80 ? '#ef4444' : enemy.threatScore >= 60 ? '#f59e0b' : '#38bdf8';
+
+                return (
+                  <div key={enemy.id} className="table-row">
+                    <span className="td-cell rank">
+                      <strong className="rank-num">#{enemy.rank}</strong>
+                    </span>
+                    <div className="td-cell name">
+                      <strong>{enemy.name}</strong>
+                      <span className="enemy-sub-title">{enemy.title}</span>
+                    </div>
+                    <div className="td-cell depth">
+                      <span className="depth-badge">Depth {enemy.depth}</span>
+                      <span className={`role-badge ${enemy.role}`}>{enemy.role}</span>
+                    </div>
+                    <div className="td-cell threat">
+                      <span className="threat-score-pill" style={{ borderColor: threatColor, color: threatColor }}>
+                        {enemy.threatScore}
+                      </span>
+                    </div>
+                    <div className="td-cell winrate">
+                      <strong className="winrate-num">
+                        {(enemy.investigatorWinRate * 100).toFixed(1)}%
+                      </strong>
+                    </div>
+                    <div className="td-cell damage">
+                      <span className="hp-loss">{enemy.avgInvestigatorHealthLost.toFixed(1)} HP</span>
+                      <span className="sanity-loss">{enemy.avgSanityEroded.toFixed(1)} 理智</span>
+                    </div>
+                    <div className="td-cell counter">
+                      <span className="vuln-tag">✓ {ARCHETYPE_NAMES[enemy.vulnerableArchetype]}</span>
+                      <span className="danger-tag">✕ {ARCHETYPE_NAMES[enemy.dangerousArchetype]}</span>
+                    </div>
+                    <div className="td-cell cards">
+                      {enemy.counteredByCards.slice(0, 2).map((c) => (
+                        <span key={c.id} className="counter-card-chip">
+                          {c.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

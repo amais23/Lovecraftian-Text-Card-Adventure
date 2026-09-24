@@ -91,4 +91,19 @@ describe('CardReviewLab - Monster Ecology and Image Artworks', () => {
     // The broken img should now be unmounted / replaced with fallback
     expect(screen.queryByAltText('牆中變異鼠群')).toBeNull();
   });
+
+  it('renders the third tab "數值平衡天梯與模擬矩陣" and switches view seamlessly', () => {
+    render(<CardReviewLab onClose={vi.fn()} />);
+
+    // Find third tab button
+    const balanceTabBtn = screen.getByRole('button', { name: /數值平衡天梯與模擬矩陣/i });
+    expect(balanceTabBtn).toBeDefined();
+
+    // Click third tab
+    fireEvent.click(balanceTabBtn);
+
+    // Verify balance matrix dashboard container is displayed
+    expect(screen.getByTestId('balance-matrix-dashboard')).toBeDefined();
+    expect(screen.getByText(/全量平衡性評測/i)).toBeDefined();
+  });
 });

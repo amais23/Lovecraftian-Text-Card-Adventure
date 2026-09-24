@@ -32,8 +32,10 @@ import {
   ChevronUp,
   ChevronDown,
   FileCode,
+  Activity,
 } from 'lucide-react';
 import { generateStandaloneReviewHtml } from '../utils/generateStandaloneReviewHtml';
+import { BalanceMatrixDashboard } from './BalanceMatrixDashboard';
 import '../styles/cardReview.css';
 
 const STORAGE_KEY = 'arkham_card_review_decisions';
@@ -79,8 +81,8 @@ interface CardReviewLabProps {
 }
 
 export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
-  // Navigation Tabs: 'cards' or 'monsters'
-  const [activeTab, setActiveTab] = useState<'cards' | 'monsters'>('cards');
+  // Navigation Tabs: 'cards' or 'monsters' or 'balance'
+  const [activeTab, setActiveTab] = useState<'cards' | 'monsters' | 'balance'>('cards');
 
   // Storage state for card decisions: { [cardId]: { decision: 'accepted'|'rejected'|'pending', note: string } }
   const [decisions, setDecisions] = useState<Record<string, StoredReviewDecision>>(() => {
@@ -416,6 +418,16 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
             >
               <Skull size={16} />
               <span>怪物生態數值表 (分深度 1~4)</span>
+            </button>
+            <button
+              className={`mode-tab-btn ${activeTab === 'balance' ? 'active' : ''}`}
+              onClick={() => {
+                soundEngine.playClick();
+                setActiveTab('balance');
+              }}
+            >
+              <Activity size={16} />
+              <span>數值平衡天梯與模擬矩陣</span>
             </button>
           </div>
         </header>
@@ -847,7 +859,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
               )}
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'monsters' ? (
           /* Monster Bestiary by Depth */
           <div className="review-monsters-wrapper">
             {/* Depth Filter Tabs & Style Toggle */}
@@ -1012,6 +1024,8 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
               </div>
             </div>
           </div>
+        ) : (
+          <BalanceMatrixDashboard />
         )}
 
         {/* Quick Floating Scroll Controls */}
