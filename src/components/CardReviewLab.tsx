@@ -38,6 +38,42 @@ import '../styles/cardReview.css';
 
 const STORAGE_KEY = 'arkham_card_review_decisions';
 
+interface MonsterArtStyleToggleProps {
+  artStyle: 'cartoon' | 'realistic';
+  onStyleChange: (style: 'cartoon' | 'realistic') => void;
+}
+
+export const MonsterArtStyleToggleGroup: React.FC<MonsterArtStyleToggleProps> = ({
+  artStyle,
+  onStyleChange,
+}) => (
+  <div className="art-style-toggle-group">
+    <span className="selector-title">風格：</span>
+    <button
+      type="button"
+      className={`art-style-toggle-btn ${artStyle === 'cartoon' ? 'active' : ''}`}
+      onClick={() => {
+        soundEngine.playClick();
+        onStyleChange('cartoon');
+      }}
+      title="切換為常態可愛卡通風格"
+    >
+      可愛卡通
+    </button>
+    <button
+      type="button"
+      className={`art-style-toggle-btn ${artStyle === 'realistic' ? 'active' : ''}`}
+      onClick={() => {
+        soundEngine.playClick();
+        onStyleChange('realistic');
+      }}
+      title="切換為1920s暗黑寫實風格"
+    >
+      1920s暗黑寫實
+    </button>
+  </div>
+);
+
 interface CardReviewLabProps {
   onClose: () => void;
 }
@@ -858,31 +894,10 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                 第四深度 · 星辰正位 · 拉萊耶 (Depth 4)
               </button>
 
-              <div className="art-style-toggle-group">
-                <span className="selector-title">風格：</span>
-                <button
-                  type="button"
-                  className={`art-style-toggle-btn ${monsterArtStyle === 'cartoon' ? 'active' : ''}`}
-                  onClick={() => {
-                    soundEngine.playClick();
-                    setMonsterArtStyle('cartoon');
-                  }}
-                  title="切換為常態可愛卡通風格"
-                >
-                  可愛卡通
-                </button>
-                <button
-                  type="button"
-                  className={`art-style-toggle-btn ${monsterArtStyle === 'realistic' ? 'active' : ''}`}
-                  onClick={() => {
-                    soundEngine.playClick();
-                    setMonsterArtStyle('realistic');
-                  }}
-                  title="切換為1920s暗黑寫實風格"
-                >
-                  1920s暗黑寫實
-                </button>
-              </div>
+              <MonsterArtStyleToggleGroup
+                artStyle={monsterArtStyle}
+                onStyleChange={setMonsterArtStyle}
+              />
             </div>
 
             {/* Monsters List */}

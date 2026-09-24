@@ -5,17 +5,32 @@ export const STATUS_NAMES: Record<StatusEffectType, string> = {
   resilience: '堅韌',
   vulnerable: '易傷',
   bleed: '流血',
-  horror: '驚恐',
+  horror: '恐慌',
   weak: '破勢',
 };
 
-export interface CardDriftDifference {
-  type: 'value' | 'keyword' | 'status';
-  field: string;
-  expected?: any;
-  actual?: any;
-  message: string;
-}
+export type CardDriftDifference =
+  | {
+      type: 'value';
+      field: string;
+      expected: number;
+      actual: number[];
+      message: string;
+    }
+  | {
+      type: 'keyword';
+      field: string;
+      expected: string;
+      actual: null | string;
+      message: string;
+    }
+  | {
+      type: 'status';
+      field: string;
+      expected: string;
+      actual: null | string;
+      message: string;
+    };
 
 export interface DescriptionDriftResult {
   isMatch: boolean;
@@ -166,9 +181,11 @@ export function synthesizeSingleEffect(effect: CardEffect): string {
       mainClause = `回復 ${effect.value} 點精力`;
       break;
 
-    default:
-      mainClause = `觸發特殊效果 (${(effect as any).type})`;
+    default: {
+      const effectType = (effect as CardEffect).type;
+      mainClause = `觸發特殊效果 (${effectType})`;
       break;
+    }
   }
 
   // 套用條件子句
@@ -188,12 +205,17 @@ export function synthesizeSingleEffect(effect: CardEffect): string {
 /**
  * 依據卡牌效果、關鍵字與數值，純程式自動合成中文標準效果描述
  */
-export function synthesizeCardDescription(card: Pick<Card, 'effects' | 'keywords'>): string {
+export function synthesizeCardDescription(
+  card: Pick<Card, 'effects' | 'keywords'> & { isUnplayable?: boolean }
+): string {
   const clauses: string[] = [];
 
   // 1. 關鍵字標籤
   const keywords = card.keywords || [];
   const keywordTags: string[] = [];
+  if (card.isUnplayable) {
+    keywordTags.push('【無法打出】');
+  }
   if (keywords.includes('innate')) {
     keywordTags.push('【固有】');
   }
@@ -215,6 +237,8 @@ export function synthesizeCardDescription(card: Pick<Card, 'effects' | 'keywords
         clauses.push(clause);
       }
     }
+  } else if (card.isUnplayable) {
+    clauses.push('佔據手牌卡槽');
   }
 
   // 組合句子
@@ -273,6 +297,17 @@ export function checkDescriptionDrift(
   }
 
   // 檢查關鍵字
+  if (synthesizedDescription.includes('【無法打出】') && !writtenDescription.includes('無法打出')) {
+    const msg = '缺少【無法打出】關鍵字標註';
+    differences.push(msg);
+    detailedDifferences.push({
+      type: 'keyword',
+      field: 'isUnplayable',
+      expected: '【無法打出】',
+      actual: null,
+      message: msg,
+    });
+  }
   if (synthesizedDescription.includes('【消耗】') && !writtenDescription.includes('【消耗】')) {
     const msg = '缺少【消耗】關鍵字標註';
     differences.push(msg);

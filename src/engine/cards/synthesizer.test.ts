@@ -95,4 +95,35 @@ describe('Card Effect Synthesizer (ADR-0035)', () => {
     expect(drift.detailedDifferences.some((d) => d.type === 'status' && d.field === '易傷')).toBe(true);
     expect(drift.detailedDifferences.some((d) => d.type === 'keyword' && d.field === 'exhaust')).toBe(true);
   });
+
+  it('correctly synthesizes canonical 【恐慌】 status effect name (ADR-0035 & CONTEXT.md)', () => {
+    const card: Pick<Card, 'effects' | 'keywords'> = {
+      effects: [{ type: 'apply_status', target: 'enemy', statusType: 'horror', value: 3 }],
+    };
+
+    const text = synthesizeCardDescription(card);
+    expect(text).toContain('使敵方陷入 3 層【恐慌】');
+    expect(text).not.toContain('驚恐');
+
+    // Matching handwritten description with 【恐慌】 should be a clean match
+    const written = '使敵方陷入 3 層【恐慌】。';
+    const drift = checkDescriptionDrift(written, text);
+    expect(drift.isMatch).toBe(true);
+  });
+
+  it('synthesizes 【無法打出】 and slot occupation for unplayable cards like abyssal fragments', () => {
+    const unplayableCard: Pick<Card, 'effects' | 'keywords' | 'isUnplayable'> = {
+      isUnplayable: true,
+      effects: [],
+    };
+
+    const text = synthesizeCardDescription(unplayableCard);
+    expect(text).toContain('【無法打出】');
+    expect(text).toContain('佔據手牌卡槽');
+
+    // Matching written description with "無法打出" should pass drift check
+    const written = '無法打出。佔據手牌卡槽。集齊三枚引發星辰共鳴。';
+    const drift = checkDescriptionDrift(written, text);
+    expect(drift.isMatch).toBe(true);
+  });
 });

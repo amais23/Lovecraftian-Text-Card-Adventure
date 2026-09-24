@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import fs from 'fs';
 import { MONSTERS_BY_DEPTH, type MonsterReviewData } from './monsterReviewData';
 
 describe('Monster Review Data (Bestiary & Review Lab)', () => {
+  const enemyImages = import.meta.glob('/public/enemies/**/*.{webp,png}');
+  const existingImagePaths = new Set(Object.keys(enemyImages));
+
   const derivativeEnemyIdsByDepth: Record<1 | 2 | 3 | 4, string[]> = {
     1: ['enemy_walls_rat_swarm', 'enemy_cultist_zealot', 'enemy_cemetery_carrion_worm'],
     2: ['enemy_innsmouth_hybrid', 'enemy_tidal_siren', 'enemy_abyssal_barnacle_mass'],
@@ -27,17 +29,17 @@ describe('Monster Review Data (Bestiary & Review Lab)', () => {
       const depth = Number(depthStr);
       for (const monster of monsters) {
         if (monster.imageUrl) {
-          const filePath = 'public' + monster.imageUrl;
+          const filePath = '/public' + monster.imageUrl;
           expect(
-            fs.existsSync(filePath),
+            existingImagePaths.has(filePath),
             `Monster ${monster.id} (Depth ${depth}) imageUrl ${monster.imageUrl} must physically exist on disk`
           ).toBe(true);
         }
 
         if (monster.realisticUrl) {
-          const filePath = 'public' + monster.realisticUrl;
+          const filePath = '/public' + monster.realisticUrl;
           expect(
-            fs.existsSync(filePath),
+            existingImagePaths.has(filePath),
             `Monster ${monster.id} (Depth ${depth}) realisticUrl ${monster.realisticUrl} must physically exist on disk`
           ).toBe(true);
         }
@@ -54,8 +56,8 @@ describe('Monster Review Data (Bestiary & Review Lab)', () => {
       expect(monster, `Monster ${id} must be in review data`).toBeDefined();
       expect(monster?.imageUrl, `Monster ${id} must have cartoon imageUrl`).toBe(`/enemies/cartoon/${id}.png`);
       expect(monster?.realisticUrl, `Monster ${id} must have realistic realisticUrl`).toBe(`/enemies/realistic/${id}.png`);
-      expect(fs.existsSync('public' + monster!.imageUrl!)).toBe(true);
-      expect(fs.existsSync('public' + monster!.realisticUrl!)).toBe(true);
+      expect(existingImagePaths.has('/public' + monster!.imageUrl!)).toBe(true);
+      expect(existingImagePaths.has('/public' + monster!.realisticUrl!)).toBe(true);
     }
   });
 
@@ -71,9 +73,9 @@ describe('Monster Review Data (Bestiary & Review Lab)', () => {
       const monster = allMonsters.find((m) => m.id === id);
       if (monster) {
         expect(monster.imageUrl, `Monster ${id} must have resolved imageUrl`).toBeDefined();
-        expect(fs.existsSync('public' + monster.imageUrl!), `imageUrl for ${id} must exist`).toBe(true);
+        expect(existingImagePaths.has('/public' + monster.imageUrl!), `imageUrl for ${id} must exist`).toBe(true);
         if (monster.realisticUrl) {
-          expect(fs.existsSync('public' + monster.realisticUrl!), `realisticUrl for ${id} must exist`).toBe(true);
+          expect(existingImagePaths.has('/public' + monster.realisticUrl!), `realisticUrl for ${id} must exist`).toBe(true);
         }
       }
     }

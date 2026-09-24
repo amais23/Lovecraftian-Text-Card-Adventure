@@ -1,20 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
 import { generateStandaloneReviewHtml } from './generateStandaloneReviewHtml';
 
-describe('generateStandaloneReviewHtml', () => {
-  it('generates standalone review html containing cards and monsters data and keeps files in sync', () => {
+describe('generateStandaloneReviewHtml (Pure Unit Test without FS Side-effects)', () => {
+  it('generates valid standalone review html structure with embedded cards and monsters data', () => {
     const html = generateStandaloneReviewHtml();
     expect(html).toContain('<!DOCTYPE html>');
+    expect(html).toContain('<html lang="zh-TW">');
     expect(html).toContain('ALL_CARD_REVIEW_ITEMS');
     expect(html).toContain('MONSTERS_BY_DEPTH');
+    expect(html).toContain('EMBEDDED_INITIAL_DECISIONS');
+  });
 
-    const rootPath = path.resolve(process.cwd(), 'card_review_lab.html');
-    const publicPath = path.resolve(process.cwd(), 'public/card_review_lab.html');
-    fs.writeFileSync(rootPath, html, 'utf-8');
-    fs.writeFileSync(publicPath, html, 'utf-8');
-    expect(fs.existsSync(rootPath)).toBe(true);
-    expect(fs.existsSync(publicPath)).toBe(true);
+  it('accepts custom options such as title and current decisions', () => {
+    const customTitle = '測試卡牌實驗室';
+    const html = generateStandaloneReviewHtml({
+      title: customTitle,
+      currentDecisions: {
+        card_revolver_1: { decision: 'accepted', updatedAt: '2026-09-25T00:00:00Z' },
+      },
+    });
+
+    expect(html).toContain(`<title>${customTitle}</title>`);
+    expect(html).toContain('"card_revolver_1":{"decision":"accepted"');
   });
 });
