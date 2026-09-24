@@ -72,8 +72,12 @@ export interface RelicBalanceReport {
   };
 
   marginalBenefitPerStack: number; // 每多持有一件的邊際效益增幅 (百分比, 例如 +12.5%)
+  healthScore: number;            // 基準肉體生存分 (0 ~ 100)
+  sanityScore: number;            // 基準心智效率分 (0 ~ 100)
   overallScore: number;           // 遺物總體價值評分 (0 ~ 100)
   tierRating: 'S' | 'A' | 'B' | 'C' | 'D';
+  synergyMultipliers?: Record<ArchetypeId, number>; // 六大流派協同倍率
+  bestArchetype?: ArchetypeId;    // 最適流派
 }
 
 /**

@@ -1971,8 +1971,7 @@
   color: #38bdf8;
 }
 
-.life-loss,
-.hp-loss {
+.life-loss {
   display: block;
   color: #f87171;
 }

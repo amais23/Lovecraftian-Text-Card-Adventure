@@ -152,7 +152,37 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
     expect(curves.length).toBe(2); // score curve and winrate curve
   });
 
-  it('strictly adheres to domain language with zero occurrences of forbidden HP and 血量 terms', () => {
+  it('renders SVG hexagonal radar chart and copies benefit line chart for selected relic', () => {
+    render(<BalanceMatrixDashboard />);
+
+    // Switch to relics
+    fireEvent.click(screen.getByRole('button', { name: /舊日遺物/i }));
+    fireEvent.click(screen.getAllByText('古神之印護符')[0]);
+
+    // Archetype radar chart should exist for relic
+    const radar = screen.getByTestId('archetype-radar-chart');
+    expect(radar).toBeDefined();
+
+    // Copies benefit line chart should exist for relic
+    const lineChart = screen.getByTestId('copies-benefit-line-chart');
+    expect(lineChart).toBeDefined();
+  });
+
+  it('filters relics by tier and archetype on scatter plot and list', () => {
+    render(<BalanceMatrixDashboard />);
+
+    // Switch to relics
+    fireEvent.click(screen.getByRole('button', { name: /舊日遺物/i }));
+    const itemsGrid = screen.getByTestId('balance-items-grid');
+
+    // Filter by tier "A"
+    const tierSelect = screen.getByLabelText(/階級/);
+    fireEvent.change(tierSelect, { target: { value: 'A' } });
+    expect(itemsGrid.textContent).toContain('古神之印護符'); // Tier A
+    expect(itemsGrid.textContent).not.toContain('黃銅懷錶'); // Tier B
+  });
+
+  it('strictly adheres to domain health terminology without forbidden terms', () => {
     const { container } = render(<BalanceMatrixDashboard />);
 
     // Check scatter & inspector view

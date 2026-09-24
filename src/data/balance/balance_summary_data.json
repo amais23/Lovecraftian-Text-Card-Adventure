@@ -6149,8 +6149,19 @@
         }
       },
       "marginalBenefitPerStack": 4,
+      "healthScore": 67,
+      "sanityScore": 55,
       "overallScore": 72,
-      "tierRating": "A"
+      "tierRating": "A",
+      "bestArchetype": "armor_counter",
+      "synergyMultipliers": {
+        "armor_counter": 1.8,
+        "status_attrition": 1.4,
+        "truth_restore": 1.2,
+        "high_cost_magic": 1.1,
+        "bleed_pierce": 1.0,
+        "madness_sacrifice": 1.0
+      }
     },
     "pocket_watch": {
       "id": "pocket_watch",
@@ -6185,8 +6196,19 @@
         }
       },
       "marginalBenefitPerStack": 0,
+      "healthScore": 61,
+      "sanityScore": 54,
       "overallScore": 64,
-      "tierRating": "B"
+      "tierRating": "B",
+      "bestArchetype": "high_cost_magic",
+      "synergyMultipliers": {
+        "high_cost_magic": 1.6,
+        "truth_restore": 1.5,
+        "status_attrition": 1.4,
+        "bleed_pierce": 1.3,
+        "madness_sacrifice": 1.2,
+        "armor_counter": 1.1
+      }
     },
     "vitality_elixir": {
       "id": "vitality_elixir",
@@ -6221,8 +6243,19 @@
         }
       },
       "marginalBenefitPerStack": 0.7,
+      "healthScore": 59,
+      "sanityScore": 52,
       "overallScore": 64,
-      "tierRating": "B"
+      "tierRating": "B",
+      "bestArchetype": "madness_sacrifice",
+      "synergyMultipliers": {
+        "madness_sacrifice": 1.7,
+        "armor_counter": 1.4,
+        "bleed_pierce": 1.2,
+        "status_attrition": 1.2,
+        "truth_restore": 1.1,
+        "high_cost_magic": 1.0
+      }
     },
     "obsidian_mirror": {
       "id": "obsidian_mirror",
@@ -6257,8 +6290,19 @@
         }
       },
       "marginalBenefitPerStack": 0.7,
+      "healthScore": 58,
+      "sanityScore": 52,
       "overallScore": 63,
-      "tierRating": "B"
+      "tierRating": "B",
+      "bestArchetype": "status_attrition",
+      "synergyMultipliers": {
+        "status_attrition": 1.6,
+        "armor_counter": 1.5,
+        "truth_restore": 1.3,
+        "bleed_pierce": 1.2,
+        "high_cost_magic": 1.1,
+        "madness_sacrifice": 1.0
+      }
     },
     "dread_talisman": {
       "id": "dread_talisman",
@@ -6293,8 +6337,19 @@
         }
       },
       "marginalBenefitPerStack": 3.7,
+      "healthScore": 60,
+      "sanityScore": 54,
       "overallScore": 68,
-      "tierRating": "B"
+      "tierRating": "B",
+      "bestArchetype": "bleed_pierce",
+      "synergyMultipliers": {
+        "bleed_pierce": 1.8,
+        "madness_sacrifice": 1.5,
+        "armor_counter": 1.3,
+        "high_cost_magic": 1.2,
+        "status_attrition": 1.1,
+        "truth_restore": 1.0
+      }
     },
     "eldritch_lantern": {
       "id": "eldritch_lantern",
@@ -6329,8 +6384,19 @@
         }
       },
       "marginalBenefitPerStack": 0.7,
+      "healthScore": 59,
+      "sanityScore": 52,
       "overallScore": 64,
-      "tierRating": "B"
+      "tierRating": "B",
+      "bestArchetype": "truth_restore",
+      "synergyMultipliers": {
+        "truth_restore": 1.7,
+        "high_cost_magic": 1.6,
+        "bleed_pierce": 1.4,
+        "madness_sacrifice": 1.3,
+        "armor_counter": 1.2,
+        "status_attrition": 1.2
+      }
     }
   },
   "enemies": {

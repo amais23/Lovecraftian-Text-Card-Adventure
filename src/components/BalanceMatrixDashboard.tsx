@@ -72,6 +72,12 @@ const TIER_COLORS: Record<string, string> = {
   D: '#64748b',
 };
 
+const RELIC_RARITY_LABELS: Record<string, string> = {
+  common: '普通階級',
+  rare: '珍稀階級',
+  mythic: '神話階級',
+};
+
 /**
  * 六角形流派協同倍率雷達圖 (Hexagonal Archetype Synergy Radar Chart)
  */
@@ -190,6 +196,46 @@ const ArchetypeRadarChart: React.FC<RadarChartProps> = ({ synergies, bestArchety
 };
 
 /**
+ * 重複堆疊指標卡片 (Copies Step Card)
+ */
+interface CopiesStepCardProps {
+  label: string;
+  score: number;
+  winRate: number;
+  avgHealthLost: number;
+  avgSanityExpended: number;
+}
+
+const CopiesStepCard: React.FC<CopiesStepCardProps> = ({
+  label,
+  score,
+  winRate,
+  avgHealthLost,
+  avgSanityExpended,
+}) => (
+  <div className="copy-step-card">
+    <div className="copy-step-header">
+      <span className="copy-badge">{label}</span>
+      <span className="copy-score">{score} 分</span>
+    </div>
+    <div className="copy-metrics">
+      <div className="copy-metric-row">
+        <span>勝率</span>
+        <strong>{(winRate * 100).toFixed(1)}%</strong>
+      </div>
+      <div className="copy-metric-row">
+        <span>平均生命損失</span>
+        <strong>{avgHealthLost.toFixed(1)} 點生命</strong>
+      </div>
+      <div className="copy-metric-row">
+        <span>理智消耗</span>
+        <strong>{avgSanityExpended.toFixed(1)} 張</strong>
+      </div>
+    </div>
+  </div>
+);
+
+/**
  * 重複堆疊效益折線圖 (Copies Benefit Line Chart)
  */
 interface CopiesLineChartProps {
@@ -199,9 +245,9 @@ interface CopiesLineChartProps {
 
 const CopiesLineChart: React.FC<CopiesLineChartProps> = ({ curve, isRelic = false }) => {
   const steps = isRelic ? [0, 1, 2, 3] : [1, 2, 3];
-  const chartW = 280;
-  const chartH = 110;
-  const paddingX = 35;
+  const chartW = 300;
+  const chartH = 115;
+  const paddingX = 40;
   const paddingY = 20;
 
   const getX = (stepIndex: number) => {
@@ -233,10 +279,10 @@ const CopiesLineChart: React.FC<CopiesLineChartProps> = ({ curve, isRelic = fals
     <div className="copies-line-chart-container" data-testid="copies-benefit-line-chart">
       <div className="line-chart-legend">
         <span className="legend-label score-legend">
-          <span className="legend-line score" /> 綜合評分 (Score)
+          <span className="legend-line score" /> 評分 (左軸 0-100)
         </span>
         <span className="legend-label winrate-legend">
-          <span className="legend-line winrate" /> 勝率 (Win Rate)
+          <span className="legend-line winrate" /> 勝率 (右軸 0%-100%)
         </span>
       </div>
 
@@ -245,6 +291,17 @@ const CopiesLineChart: React.FC<CopiesLineChartProps> = ({ curve, isRelic = fals
         <line x1={paddingX} y1={paddingY} x2={chartW - paddingX} y2={paddingY} stroke="#1e293b" strokeDasharray="3 3" />
         <line x1={paddingX} y1={chartH / 2} x2={chartW - paddingX} y2={chartH / 2} stroke="#1e293b" strokeDasharray="3 3" />
         <line x1={paddingX} y1={chartH - paddingY} x2={chartW - paddingX} y2={chartH - paddingY} stroke="#334155" />
+
+        {/* Dual Axis Tick Labels */}
+        {/* Left Y Axis: Score (Gold) */}
+        <text x={paddingX - 6} y={paddingY + 4} textAnchor="end" fontSize={8} fill="#ffd700">100</text>
+        <text x={paddingX - 6} y={chartH / 2 + 3} textAnchor="end" fontSize={8} fill="#ffd700">50</text>
+        <text x={paddingX - 6} y={chartH - paddingY + 2} textAnchor="end" fontSize={8} fill="#ffd700">0</text>
+
+        {/* Right Y Axis: WinRate (Cyan) */}
+        <text x={chartW - paddingX + 6} y={paddingY + 4} textAnchor="start" fontSize={8} fill="#38bdf8">100%</text>
+        <text x={chartW - paddingX + 6} y={chartH / 2 + 3} textAnchor="start" fontSize={8} fill="#38bdf8">50%</text>
+        <text x={chartW - paddingX + 6} y={chartH - paddingY + 2} textAnchor="start" fontSize={8} fill="#38bdf8">0%</text>
 
         {/* Polylines */}
         <polyline className="copies-curve score" points={scorePoints} fill="none" stroke="#ffd700" strokeWidth={2} />
@@ -335,6 +392,26 @@ export const BalanceMatrixDashboard: React.FC = () => {
   // Relics list
   const allRelics = useMemo(() => Object.values(balanceData.relics), []);
 
+  // Filtered Relics
+  const filteredRelics = useMemo(() => {
+    return allRelics.filter((relic) => {
+      if (tierFilter !== 'all') {
+        if (relic.tierRating !== tierFilter && relic.rarity !== tierFilter) return false;
+      }
+      if (archetypeFilter !== 'all' && relic.bestArchetype !== archetypeFilter) return false;
+      if (occupationFilter === 'neutral') {
+        // relics are universal / neutral
+      }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchName = relic.name.toLowerCase().includes(query);
+        const matchDesc = relic.description.toLowerCase().includes(query);
+        if (!matchName && !matchDesc) return false;
+      }
+      return true;
+    });
+  }, [allRelics, tierFilter, archetypeFilter, occupationFilter, searchQuery]);
+
   // Filtered Enemies sorted by rank
   const filteredEnemies = useMemo(() => {
     return Object.values(balanceData.enemies)
@@ -348,7 +425,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
 
   // Selected card / relic reports
   const currentCard = balanceData.cards[selectedCardId] || filteredCards[0] || Object.values(balanceData.cards)[0];
-  const currentRelic = balanceData.relics[selectedRelicId] || allRelics[0];
+  const currentRelic = balanceData.relics[selectedRelicId] || filteredRelics[0] || allRelics[0];
 
   return (
     <div className="balance-matrix-dashboard" data-testid="balance-matrix-dashboard">
@@ -410,9 +487,9 @@ export const BalanceMatrixDashboard: React.FC = () => {
               </button>
             </div>
 
-            {targetType === 'cards' && (
-              <div className="balance-filters-row">
-                {/* Category Filter */}
+            <div className="balance-filters-row">
+              {/* Category Filter (Cards only) */}
+              {targetType === 'cards' && (
                 <div className="filter-group">
                   <span className="filter-label">類別：</span>
                   <button
@@ -437,71 +514,85 @@ export const BalanceMatrixDashboard: React.FC = () => {
                     </button>
                   ))}
                 </div>
+              )}
 
-                {/* Occupation Filter */}
-                <div className="filter-group">
-                  <span className="filter-label">職業：</span>
-                  <select
-                    className="balance-select"
-                    value={occupationFilter}
-                    onChange={(e) => setOccupationFilter(e.target.value as OccupationId | 'all' | 'neutral')}
-                    aria-label="職業篩選"
-                  >
-                    <option value="all">全部職業</option>
-                    <option value="investigator">私家偵探</option>
-                    <option value="occultist">秘術學者</option>
-                    <option value="neutral">通用無職業</option>
-                  </select>
-                </div>
-
-                {/* Tier Filter */}
-                <div className="filter-group">
-                  <span className="filter-label">階級：</span>
-                  <select
-                    className="balance-select"
-                    value={tierFilter}
-                    onChange={(e) => setTierFilter(e.target.value)}
-                    aria-label="卡牌階級篩選"
-                  >
-                    <option value="all">全部階級</option>
-                    <option value="1">Tier 1 基礎</option>
-                    <option value="2">Tier 2 進階</option>
-                    <option value="3">Tier 3 核心</option>
-                    <option value="4">Tier 4 神話</option>
-                  </select>
-                </div>
-
-                {/* Archetype Filter */}
-                <div className="filter-group">
-                  <span className="filter-label">最適流派：</span>
-                  <select
-                    className="balance-select"
-                    value={archetypeFilter}
-                    onChange={(e) => setArchetypeFilter(e.target.value as ArchetypeId | 'all')}
-                    aria-label="最適流派篩選"
-                  >
-                    <option value="all">全部流派</option>
-                    {(Object.keys(ARCHETYPE_NAMES) as ArchetypeId[]).map((arch) => (
-                      <option key={arch} value={arch}>
-                        {ARCHETYPE_NAMES[arch]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Search */}
-                <div className="balance-search-wrap">
-                  <Search size={14} className="search-icon" />
-                  <input
-                    type="text"
-                    className="balance-search-input"
-                    placeholder="搜尋卡名或描述..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
+              {/* Occupation Filter */}
+              <div className="filter-group">
+                <span className="filter-label">職業：</span>
+                <select
+                  className="balance-select"
+                  value={occupationFilter}
+                  onChange={(e) => setOccupationFilter(e.target.value as OccupationId | 'all' | 'neutral')}
+                  aria-label="職業篩選"
+                >
+                  <option value="all">全部職業</option>
+                  <option value="investigator">私家偵探</option>
+                  <option value="occultist">秘術學者</option>
+                  <option value="neutral">通用無職業</option>
+                </select>
               </div>
-            )}
+
+              {/* Tier Filter */}
+              <div className="filter-group">
+                <span className="filter-label">階級：</span>
+                <select
+                  className="balance-select"
+                  value={tierFilter}
+                  onChange={(e) => setTierFilter(e.target.value)}
+                  aria-label="階級篩選"
+                >
+                  <option value="all">全部階級</option>
+                  {targetType === 'cards' ? (
+                    <>
+                      <option value="1">Tier 1 基礎</option>
+                      <option value="2">Tier 2 進階</option>
+                      <option value="3">Tier 3 核心</option>
+                      <option value="4">Tier 4 神話</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="common">普通階級</option>
+                      <option value="rare">珍稀階級</option>
+                      <option value="mythic">神話階級</option>
+                      <option value="S">S 級評定</option>
+                      <option value="A">A 級評定</option>
+                      <option value="B">B 級評定</option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              {/* Archetype Filter */}
+              <div className="filter-group">
+                <span className="filter-label">最適流派：</span>
+                <select
+                  className="balance-select"
+                  value={archetypeFilter}
+                  onChange={(e) => setArchetypeFilter(e.target.value as ArchetypeId | 'all')}
+                  aria-label="最適流派篩選"
+                >
+                  <option value="all">全部流派</option>
+                  {Object.entries(ARCHETYPE_NAMES).map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Search input */}
+              <div className="balance-search-wrap">
+                <Search size={14} className="search-icon" />
+                <input
+                  type="text"
+                  className="balance-search-input"
+                  placeholder={targetType === 'cards' ? '搜尋卡牌名稱或效果...' : '搜尋遺物名稱或效果...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="搜尋名稱或效果"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Main Visualizer Body: Left (Scatter / Items) & Right (Detail Inspector) */}
@@ -613,16 +704,10 @@ export const BalanceMatrixDashboard: React.FC = () => {
                             </g>
                           );
                         })
-                      : allRelics.map((relic) => {
-                          // Map relic's survival and sanity efficiency onto same 0-100 axes
-                          const relicSurvivalScore = Math.round(
-                            Math.max(0, Math.min(100, (1 - relic.copiesCurve[1].avgHealthLost / 25) * 100))
-                          );
-                          const relicSanityScore = Math.round(
-                            Math.max(0, Math.min(100, (1 - relic.copiesCurve[1].avgSanityExpended / 15) * 100))
-                          );
-                          const cx = 50 + (relicSurvivalScore / 100) * 430;
-                          const cy = 300 - (relicSanityScore / 100) * 280;
+                      : filteredRelics.map((relic) => {
+                          // Static relic survival and sanity scores directly from balance matrix
+                          const cx = 50 + (relic.healthScore / 100) * 430;
+                          const cy = 300 - (relic.sanityScore / 100) * 280;
                           const isSelected = relic.id === currentRelic?.id;
                           const color = TIER_COLORS[relic.tierRating] || '#38bdf8';
 
@@ -662,7 +747,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
               {/* Items Compact Grid List */}
               <div className="balance-item-list-wrap">
                 <div className="list-header">
-                  <h5>{targetType === 'cards' ? `卡牌列表 (${filteredCards.length} 張)` : `遺物列表 (${allRelics.length} 件)`}</h5>
+                  <h5>{targetType === 'cards' ? `卡牌列表 (${filteredCards.length} 張)` : `遺物列表 (${filteredRelics.length} 件)`}</h5>
                   <span className="list-hint">點選卡牌或遺物以切換深度檢視</span>
                 </div>
                 <div className="balance-items-grid" data-testid="balance-items-grid">
@@ -691,7 +776,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
                           </button>
                         );
                       })
-                    : allRelics.map((relic) => {
+                    : filteredRelics.map((relic) => {
                         const isSelected = relic.id === currentRelic?.id;
                         return (
                           <button
@@ -800,26 +885,14 @@ export const BalanceMatrixDashboard: React.FC = () => {
                       {[1, 2, 3].map((copyNum) => {
                         const copyData = currentCard.copiesCurve[copyNum as 1 | 2 | 3];
                         return (
-                          <div key={copyNum} className="copy-step-card">
-                            <div className="copy-step-header">
-                              <span className="copy-badge">{copyNum}x 重複</span>
-                              <span className="copy-score">{copyData.overallScore} 分</span>
-                            </div>
-                            <div className="copy-metrics">
-                              <div className="copy-metric-row">
-                                <span>勝率</span>
-                                <strong>{(copyData.winRate * 100).toFixed(1)}%</strong>
-                              </div>
-                              <div className="copy-metric-row">
-                                <span>平均生命損失</span>
-                                <strong>{copyData.avgHealthLost.toFixed(1)} 點生命</strong>
-                              </div>
-                              <div className="copy-metric-row">
-                                <span>理智消耗</span>
-                                <strong>{copyData.avgSanityExpended.toFixed(1)} 張</strong>
-                              </div>
-                            </div>
-                          </div>
+                          <CopiesStepCard
+                            key={copyNum}
+                            label={`${copyNum}x 重複`}
+                            score={copyData.overallScore}
+                            winRate={copyData.winRate}
+                            avgHealthLost={copyData.avgHealthLost}
+                            avgSanityExpended={copyData.avgSanityExpended}
+                          />
                         );
                       })}
                     </div>
@@ -911,7 +984,9 @@ export const BalanceMatrixDashboard: React.FC = () => {
                       <div>
                         <h4>{currentRelic.name}</h4>
                         <div className="inspector-tags">
-                          <span className="tier-tag">稀有度：{currentRelic.rarity}</span>
+                          <span className="tier-tag">
+                            階級：{RELIC_RARITY_LABELS[currentRelic.rarity] || currentRelic.rarity}（{currentRelic.tierRating}級）
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -942,30 +1017,32 @@ export const BalanceMatrixDashboard: React.FC = () => {
                       {([0, 1, 2, 3] as const).map((stack) => {
                         const stackData = currentRelic.copiesCurve[stack];
                         return (
-                          <div key={stack} className="copy-step-card">
-                            <div className="copy-step-header">
-                              <span className="copy-badge">{stack}x 持有</span>
-                              <span className="copy-score">{stackData.score} 分</span>
-                            </div>
-                            <div className="copy-metrics">
-                              <div className="copy-metric-row">
-                                <span>勝率</span>
-                                <strong>{(stackData.winRate * 100).toFixed(1)}%</strong>
-                              </div>
-                              <div className="copy-metric-row">
-                                <span>平均生命損失</span>
-                                <strong>{stackData.avgHealthLost.toFixed(1)} 點生命</strong>
-                              </div>
-                              <div className="copy-metric-row">
-                                <span>理智消耗</span>
-                                <strong>{stackData.avgSanityExpended.toFixed(1)} 張</strong>
-                              </div>
-                            </div>
-                          </div>
+                          <CopiesStepCard
+                            key={stack}
+                            label={`${stack}x 持有`}
+                            score={stackData.score}
+                            winRate={stackData.winRate}
+                            avgHealthLost={stackData.avgHealthLost}
+                            avgSanityExpended={stackData.avgSanityExpended}
+                          />
                         );
                       })}
                     </div>
                   </div>
+
+                  {/* Six Archetypes Synergy Multipliers for Relic */}
+                  {currentRelic.synergyMultipliers && (
+                    <div className="inspector-section">
+                      <h5 className="section-heading">
+                        <Target size={15} />
+                        <span>六大流派協同倍率 (六邊形雷達圖)</span>
+                      </h5>
+                      <ArchetypeRadarChart
+                        synergies={currentRelic.synergyMultipliers}
+                        bestArchetype={currentRelic.bestArchetype || 'armor_counter'}
+                      />
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -1053,7 +1130,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
             <div className="table-header-row">
               <span className="th-cell rank">排名</span>
               <span className="th-cell name">敵怪名稱與稱號</span>
-              <span className="th-cell depth">深度 / 定位</span>
+              <span className="th-cell depth">深度 / 階級</span>
               <span className="th-cell threat">威脅指數</span>
               <span className="th-cell winrate">調查員勝率</span>
               <span className="th-cell damage">平均損失 (生命 / 理智)</span>
