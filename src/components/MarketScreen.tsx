@@ -18,7 +18,7 @@ import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { getAllPermanentCards } from '../engine/abyssalSeals';
 import { getCardArtwork, getSupplyArtwork } from '../engine/cardArtworks';
-import { MARKET_PURGE_COST } from '../engine/marketService';
+import { MARKET_PURGE_COST } from '../engine/nodes';
 
 interface MarketScreenProps {
   state: GameState;
@@ -81,7 +81,7 @@ export const MarketScreen: React.FC<MarketScreenProps> = ({ state, dispatch }) =
 
   const handleLeave = () => {
     soundEngine.playClick();
-    dispatch({ type: 'LEAVE_MARKET' });
+    dispatch({ type: 'LEAVE_NODE' });
   };
 
   return (

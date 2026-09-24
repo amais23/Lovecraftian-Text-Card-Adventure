@@ -215,13 +215,13 @@ describe('MarketScreen Component (Issue #53)', () => {
     expect(openPurgeBtn.hasAttribute('disabled')).toBe(true);
   });
 
-  it('dispatches LEAVE_MARKET when clicking leave button', () => {
+  it('dispatches LEAVE_NODE when clicking leave button', () => {
     const state = createScreenTestState();
     const dispatch = vi.fn();
     render(<MarketScreen state={state} dispatch={dispatch} />);
 
     const leaveBtn = screen.getByRole('button', { name: /離開黑市/ });
     fireEvent.click(leaveBtn);
-    expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_MARKET' });
+    expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_NODE' });
   });
 });

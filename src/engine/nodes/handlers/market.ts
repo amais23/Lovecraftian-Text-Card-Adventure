@@ -1,8 +1,9 @@
-import type { DepthLevel, MarketItem, OccupationId, Relic } from '../types/game';
-import { CardRegistry } from './cards/registry';
-import { getSupplyArtwork } from './cardArtworks';
-import { PRESET_RELICS } from './relics';
-import { fisherYatesShuffle } from './shuffleUtils';
+import type { DepthLevel, MarketItem, OccupationId, Relic } from '../../../types/game';
+import { CardRegistry } from '../../cards/registry';
+import { getSupplyArtwork } from '../../cardArtworks';
+import { applyRelicToInvestigator, PRESET_RELICS } from '../../relics';
+import { fisherYatesShuffle } from '../../shuffleUtils';
+import type { NodeActionResult, NodeInteractionContext } from '../types';
 
 export const MARKET_PURGE_COST = 30;
 
@@ -85,10 +86,6 @@ export function getRelicPrice(relic: Relic): number {
 
 /**
  * 依據當前探索深度、調查員職業與已持有遺物動態生成黑市商品清單 (ADR-0032, Issue #53)
- * - 3 張卡牌（透過 CardRegistry 適配當前職業與深度階級）
- * - 1~2 件未持有的 PRESET_RELICS
- * - 1 件應急醫療物資
- * - 支援 20% 機率單一商品隨機半價或特惠標籤
  */
 export function generateMarketItemsForDepth(
   depth: DepthLevel = 1,
@@ -127,7 +124,7 @@ export function generateMarketItemsForDepth(
     description: c.description,
   }));
 
-  // 2. 動態抽取 1~2 件未持有之舊日遺物（若全數持有則不重複販售）
+  // 2. 動態抽取 1~2 件未持有之舊日遺物
   const ownedSet = new Set(ownedRelicIds);
   const unownedRelics = PRESET_RELICS.filter((r) => !ownedSet.has(r.id));
   let relicItems: MarketItem[] = [];
@@ -160,7 +157,7 @@ export function generateMarketItemsForDepth(
     artworkUrl: pickedMed.artworkUrl,
   };
 
-  // 4. 支援 20% 機率單一卡牌隨機半價或特惠標籤 (ADR-0032 §2, CONTEXT.md)
+  // 4. 支援 20% 機率單一卡牌隨機半價或特惠標籤
   if (randomFn() < 0.2 && cardItems.length > 0) {
     const discountIdx = Math.floor(randomFn() * cardItems.length);
     const targetItem = cardItems[discountIdx];
@@ -175,11 +172,121 @@ export function generateMarketItemsForDepth(
     };
   }
 
-  const allItems: MarketItem[] = [...cardItems, ...relicItems, healItem];
-
-  return allItems;
+  return [...cardItems, ...relicItems, healItem];
 }
 
 export function generateDefaultMarketItems(occupationId?: OccupationId): MarketItem[] {
   return generateMarketItemsForDepth(1, occupationId);
+}
+
+export function resolveMarketBuyItem(
+  payload: { itemId: string },
+  context: NodeInteractionContext
+): NodeActionResult {
+  const { investigator, sanityDeck, marketItems } = context;
+  if (!marketItems) {
+    return { success: false, investigator, sanityDeck, nodeStateUpdates: {}, logs: [] };
+  }
+
+  const item = marketItems.find((i) => i.id === payload.itemId);
+  if (!item || item.isPurchased) {
+    return { success: false, investigator, sanityDeck, nodeStateUpdates: {}, logs: [] };
+  }
+
+  if (investigator.obols < item.price) {
+    return {
+      success: false,
+      investigator,
+      sanityDeck,
+      nodeStateUpdates: {},
+      logs: [`古金幣不足！【${item.name}】需要 ${item.price} 古金幣，目前僅有 ${investigator.obols} 枚。`],
+    };
+  }
+
+  let updatedInvestigator = { ...investigator };
+  const newSanityDeck = [...sanityDeck];
+  const logs: string[] = [];
+
+  if (item.type === 'heal' && item.healAmount) {
+    const newHealth = Math.min(updatedInvestigator.maxHealth, updatedInvestigator.health + item.healAmount);
+    updatedInvestigator.health = newHealth;
+    logs.push(`在黑市購買【${item.name}】，立即恢復了 ${item.healAmount} 點生命值（當前: ${newHealth} / ${updatedInvestigator.maxHealth}）。`);
+  } else if (item.type === 'card' && item.card) {
+    newSanityDeck.push({
+      ...item.card,
+      id: `${item.card.id}_purchased_${newSanityDeck.length + 1}`,
+      isTemporary: false,
+    });
+    logs.push(`在黑市花費 ${item.price} 古金幣購入卡牌【${item.card.name}】納入理智牌庫！`);
+  } else if (item.type === 'relic' && item.relic) {
+    updatedInvestigator = applyRelicToInvestigator(updatedInvestigator, item.relic);
+    logs.push(`在黑市花費 ${item.price} 古金幣購入舊日遺物【${item.relic.name}】！${item.relic.description}`);
+  }
+
+  updatedInvestigator.obols -= item.price;
+
+  const updatedItems = marketItems.map((i) =>
+    i.id === item.id ? { ...i, isPurchased: true } : i
+  );
+
+  return {
+    success: true,
+    investigator: updatedInvestigator,
+    sanityDeck: newSanityDeck,
+    nodeStateUpdates: { marketItems: updatedItems },
+    logs,
+  };
+}
+
+export function resolveMarketPurgeCard(
+  payload: { cardId: string },
+  context: NodeInteractionContext
+): NodeActionResult {
+  const { investigator, sanityDeck, marketPurgeUsed } = context;
+  if (marketPurgeUsed) {
+    return { success: false, investigator, sanityDeck, nodeStateUpdates: {}, logs: [] };
+  }
+
+  if (investigator.obols < MARKET_PURGE_COST) {
+    return {
+      success: false,
+      investigator,
+      sanityDeck,
+      nodeStateUpdates: {},
+      logs: [
+        `古金幣不足！黑市牌庫除役服務需要 ${MARKET_PURGE_COST} 古金幣，目前僅有 ${investigator.obols} 枚。`,
+      ],
+    };
+  }
+
+  if (sanityDeck.length <= 1) {
+    return {
+      success: false,
+      investigator,
+      sanityDeck,
+      nodeStateUpdates: {},
+      logs: ['牌庫卡牌數量過少，無法進一步除役焚毀！'],
+    };
+  }
+
+  const targetIdx = sanityDeck.findIndex((c) => c.id === payload.cardId);
+  if (targetIdx === -1) {
+    return { success: false, investigator, sanityDeck, nodeStateUpdates: {}, logs: [] };
+  }
+
+  const remainingCards = [...sanityDeck];
+  const [targetCard] = remainingCards.splice(targetIdx, 1);
+
+  return {
+    success: true,
+    investigator: {
+      ...investigator,
+      obols: investigator.obols - MARKET_PURGE_COST,
+    },
+    sanityDeck: remainingCards,
+    nodeStateUpdates: { marketPurgeUsed: true },
+    logs: [
+      `在黑市支付 ${MARKET_PURGE_COST} 枚古金幣，將卡牌【${targetCard.name}】投入灰面卡斯楚的碎形焚爐中永久除役焚毀！`,
+    ],
+  };
 }

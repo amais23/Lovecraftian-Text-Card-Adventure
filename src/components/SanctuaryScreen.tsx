@@ -69,7 +69,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ state, dispatc
 
   const handleLeave = () => {
     soundEngine.playClick();
-    dispatch({ type: 'LEAVE_SANCTUARY' });
+    dispatch({ type: 'LEAVE_NODE' });
   };
 
   return (

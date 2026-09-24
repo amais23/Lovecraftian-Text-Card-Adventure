@@ -50,7 +50,7 @@ export const BloodAltarScreen: React.FC<BloodAltarScreenProps> = ({ state, dispa
 
   const handleLeave = () => {
     soundEngine.playClick();
-    dispatch({ type: 'LEAVE_BLOOD_ALTAR' });
+    dispatch({ type: 'LEAVE_NODE' });
   };
 
   return (

@@ -1,5 +1,6 @@
-import type { Card, FallenInvestigatorRecord, GameState } from '../types/game';
-import { getAllPermanentCards, isAbyssalFragment, isCompleteAncientSeal } from './abyssalSeals';
+import type { AdventureStats, Card, FallenInvestigatorRecord, GameState } from '../../../types/game';
+import { isAbyssalFragment, isCompleteAncientSeal } from '../../abyssalSeals';
+import type { NodeActionResult, NodeInteractionContext } from '../types';
 
 export const FALLEN_INVESTIGATOR_STORAGE_KEY = 'arkham_fallen_investigator';
 
@@ -40,7 +41,12 @@ export function saveFallenInvestigatorFromState(
   causeOfDeath: string = '肉體傷重殞命'
 ): void {
   try {
-    const permanentCards = getAllPermanentCards(state).filter(isInheritableCard);
+    const permanentCards = [
+      ...(state.sanityDeck || []),
+      ...(state.hand || []),
+      ...(state.discardPile || []),
+    ].filter((c) => !c.isTemporary).filter(isInheritableCard);
+
     if (!permanentCards || permanentCards.length === 0) return;
 
     const record: FallenInvestigatorRecord = {
@@ -97,7 +103,7 @@ export function hasFallenInvestigatorRecord(): boolean {
 }
 
 /**
- * 清除本機儲存空間之殉職調查員傳承紀錄（領取遺產或探索離開後清除）
+ * 清除本機儲存空間之殉職調查員傳承紀錄
  */
 export function clearFallenInvestigator(): void {
   try {
@@ -106,4 +112,54 @@ export function clearFallenInvestigator(): void {
   } catch (err) {
     console.warn('[RemainsInheritance] Failed to clear fallen investigator record:', err);
   }
+}
+
+export function resolveRemainsAction(
+  payload: { type: 'card'; cardId: string } | { type: 'obols' },
+  context: NodeInteractionContext
+): NodeActionResult {
+  const { investigator, sanityDeck, remainsClaimed, fallenInvestigator, adventureStats } = context;
+
+  if (remainsClaimed || !fallenInvestigator) {
+    return { success: false, investigator, sanityDeck, nodeStateUpdates: {}, logs: [] };
+  }
+
+  const logs: string[] = [];
+  let updatedInvestigator = { ...investigator };
+  let newSanityDeck = [...sanityDeck];
+  let statsUpdate: Partial<AdventureStats> | undefined = undefined;
+
+  if (payload.type === 'card') {
+    const cardId = payload.cardId;
+    const targetCard = fallenInvestigator.deck.find((c) => c.id === cardId);
+    if (targetCard && isInheritableCard(targetCard)) {
+      const inheritedCard: Card = {
+        ...targetCard,
+        id: `${targetCard.id}_inherited_${Date.now()}`,
+        isTemporary: false,
+      };
+      newSanityDeck.push(inheritedCard);
+      logs.push(
+        `撫摸著枯骨旁沾血的筆記，繼承了前人遺留的卡牌【${targetCard.name}】納入理智牌庫！`
+      );
+    }
+  } else if (payload.type === 'obols') {
+    const inheritedObols = Math.max(15, Math.floor(fallenInvestigator.obols * 0.5));
+    updatedInvestigator.obols += inheritedObols;
+    statsUpdate = {
+      totalObolsCollected: (adventureStats?.totalObolsCollected ?? investigator.obols) + inheritedObols,
+    };
+    logs.push(`自前代殉職調查員的殘破行囊中，拾取了 ${inheritedObols} 枚殘存古金幣。`);
+  }
+
+  clearFallenInvestigator();
+
+  return {
+    success: true,
+    investigator: updatedInvestigator,
+    sanityDeck: newSanityDeck,
+    nodeStateUpdates: { remainsClaimed: true },
+    adventureStatsUpdate: statsUpdate,
+    logs,
+  };
 }

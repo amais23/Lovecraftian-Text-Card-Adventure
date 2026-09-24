@@ -3,7 +3,7 @@ import type { AltarRitual, AltarRitualId, GameAction, GameState } from '../types
 import { Flame, Heart, BookOpen, Sparkles, LogOut, ShieldAlert, Coins } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
-import { getDefaultAltarRituals } from '../engine/altarService';
+import { getDefaultAltarRituals } from '../engine/nodes';
 
 interface AltarScreenProps {
   state: GameState;
@@ -50,7 +50,7 @@ export const AltarScreen: React.FC<AltarScreenProps> = ({ state, dispatch }) => 
 
   const handleLeave = () => {
     soundEngine.playClick();
-    dispatch({ type: 'LEAVE_ALTAR' });
+    dispatch({ type: 'LEAVE_NODE' });
   };
 
   const getRitualMeta = (ritual: AltarRitual) => {

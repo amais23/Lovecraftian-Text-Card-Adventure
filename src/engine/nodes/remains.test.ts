@@ -6,8 +6,8 @@ import {
   getFallenInvestigator,
   hasFallenInvestigatorRecord,
   clearFallenInvestigator,
-} from './remainsInheritance';
-import type { Card, FallenInvestigatorRecord, GameState } from '../types/game';
+} from './handlers/remains';
+import type { Card, FallenInvestigatorRecord, GameState } from '../../types/game';
 
 const MOCK_CARD_1: Card = {
   id: 'card_gun_1',
@@ -33,7 +33,7 @@ const MOCK_CARD_2: Card = {
   flavorText: '側身翻滾',
 };
 
-describe('remainsInheritance', () => {
+describe('remainsInheritance in nodes module', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();

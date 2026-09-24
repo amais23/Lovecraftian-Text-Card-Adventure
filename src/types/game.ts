@@ -362,6 +362,7 @@ export type GameAction =
   | { type: 'RESOLVE_EVENT_OPTION'; payload: { optionId: string; shuffledDeck?: Card[] } }
   | { type: 'COMPLETE_EVENT' }
   | { type: 'USE_SANCTUARY'; payload: { optionId: 'bandage' | 'meditate' | 'purge'; cardId?: string } }
+  | { type: 'LEAVE_NODE' }
   | { type: 'LEAVE_SANCTUARY' }
   | { type: 'BUY_MARKET_ITEM'; payload: { itemId: string } }
   | { type: 'PURGE_CARD_AT_MARKET'; payload: { cardId: string } }

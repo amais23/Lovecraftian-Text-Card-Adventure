@@ -39,7 +39,7 @@ describe('New Node Screens (Issue #30)', () => {
 
       const leaveBtn = screen.getByText(/轉身離開/);
       fireEvent.click(leaveBtn);
-      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_ALTAR' });
+      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_NODE' });
     });
 
     it('handles mind sacrifice with sanity payment option', () => {
@@ -191,7 +191,7 @@ describe('New Node Screens (Issue #30)', () => {
       // Leave
       const leaveBtn = screen.getByText(/離開遺物秘閣/);
       fireEvent.click(leaveBtn);
-      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_VAULT' });
+      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_NODE' });
     });
 
     it('supports desecration mode to select 2 relics and dispatch CLAIM_VAULT_RELIC with desecrate flag (Issue #54)', () => {
@@ -271,7 +271,7 @@ describe('New Node Screens (Issue #30)', () => {
 
       const leaveBtn = screen.getByText(/保留牌組 · 離開血之祭壇/);
       fireEvent.click(leaveBtn);
-      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_BLOOD_ALTAR' });
+      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_NODE' });
     });
 
     it('selects only the clicked card and does NOT select all copies when multiple copies of the same card exist', () => {
@@ -474,7 +474,7 @@ describe('New Node Screens (Issue #30)', () => {
       // Leave
       const leaveBtn = screen.getByText(/致敬默哀 · 離開遺骨/);
       fireEvent.click(leaveBtn);
-      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_REMAINS' });
+      expect(dispatch).toHaveBeenCalledWith({ type: 'LEAVE_NODE' });
     });
 
     it('filters out abyssal fragments and unplayable cards from remains card selection', () => {

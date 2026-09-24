@@ -1334,7 +1334,7 @@ export function getMythosEventForNode(
 }
 
 /* =========================================================
-   Black Market Stock Generator (Re-exported from marketService)
+   Black Market Stock Generator (Re-exported from nodes module)
    ========================================================= */
 
 export {
@@ -1342,5 +1342,6 @@ export {
   generateDefaultMarketItems,
   MARKET_PURGE_COST,
   type GenerateMarketItemsOptions,
-} from './marketService';
+} from './nodes/handlers/market';
+
 

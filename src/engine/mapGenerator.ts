@@ -1,6 +1,6 @@
 import type { DepthLevel, InvestigationMap, MapNode, MapNodeType } from '../types/game';
 import { getEncounterEnemy } from './enemyCatalog';
-import { hasFallenInvestigatorRecord } from './remainsInheritance';
+import { hasFallenInvestigatorRecord } from './nodes/handlers/remains';
 
 export interface RawNodeConfig {
   id: string;

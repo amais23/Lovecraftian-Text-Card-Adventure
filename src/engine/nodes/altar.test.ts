@@ -4,9 +4,9 @@ import {
   ALTAR_RITUALS_BY_ID,
   generateAltarRituals,
   getDefaultAltarRituals,
-} from './altarService';
+} from './handlers/altar';
 
-describe('altarService', () => {
+describe('altar handler and ritual service', () => {
   it('defines 5 unique rituals in the pool', () => {
     expect(ALTAR_RITUAL_POOL).toHaveLength(5);
     const ids = ALTAR_RITUAL_POOL.map((r) => r.id);

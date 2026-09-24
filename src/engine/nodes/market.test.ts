@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { generateMarketItemsForDepth, MARKET_PURGE_COST } from './marketService';
-import { PRESET_RELICS } from './relics';
-import { gameReducer } from './gameReducer';
-import type { GameState, Card } from '../types/game';
-import { INITIAL_INVESTIGATOR, INITIAL_GHOUL } from './initialData';
-import { cloneEnemy } from './enemyCatalog';
+import { generateMarketItemsForDepth, MARKET_PURGE_COST } from './handlers/market';
+import { PRESET_RELICS } from '../relics';
+import { gameReducer } from '../gameReducer';
+import type { GameState, Card } from '../../types/game';
+import { INITIAL_INVESTIGATOR, INITIAL_GHOUL } from '../initialData';
+import { cloneEnemy } from '../enemyCatalog';
 
 function createMarketTestState(): GameState {
   const starterCards: Card[] = [
@@ -278,13 +278,16 @@ describe('Black Market Relic Purchase & Card Purge Service (Reducer)', () => {
     expect(nextState.battleLog[0]).toContain('牌庫卡牌數量過少');
   });
 
-  it('clears market items and purge used flag when leaving market', () => {
+  it('clears market items and purge used flag when leaving market via LEAVE_MARKET or LEAVE_NODE', () => {
     const state = createMarketTestState();
-    const leaveState = gameReducer(state, { type: 'LEAVE_MARKET' });
+    const leaveStateLegacy = gameReducer(state, { type: 'LEAVE_MARKET' });
+    expect(leaveStateLegacy.phase).toBe('map');
+    expect(leaveStateLegacy.marketItems).toBeUndefined();
+    expect(leaveStateLegacy.marketPurgeUsed).toBeUndefined();
 
-    expect(leaveState.phase).toBe('map');
-    expect(leaveState.marketItems).toBeUndefined();
-    expect(leaveState.marketPurgeUsed).toBeUndefined();
+    const leaveStateUnified = gameReducer(state, { type: 'LEAVE_NODE' });
+    expect(leaveStateUnified.phase).toBe('map');
+    expect(leaveStateUnified.marketItems).toBeUndefined();
+    expect(leaveStateUnified.marketPurgeUsed).toBeUndefined();
   });
 });
-

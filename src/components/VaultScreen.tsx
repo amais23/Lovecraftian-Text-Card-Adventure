@@ -67,7 +67,7 @@ export const VaultScreen: React.FC<VaultScreenProps> = ({ state, dispatch }) => 
 
   const handleLeave = () => {
     soundEngine.playClick();
-    dispatch({ type: 'LEAVE_VAULT' });
+    dispatch({ type: 'LEAVE_NODE' });
   };
 
   return (

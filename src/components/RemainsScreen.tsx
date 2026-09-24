@@ -3,7 +3,7 @@ import type { Card, GameAction, GameState } from '../types/game';
 import { Ghost, Coins, BookOpen, LogOut, Check, Sparkles, Skull } from 'lucide-react';
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
-import { isInheritableCard } from '../engine/remainsInheritance';
+import { isInheritableCard } from '../engine/nodes';
 
 interface RemainsScreenProps {
   state: GameState;
@@ -38,7 +38,7 @@ export const RemainsScreen: React.FC<RemainsScreenProps> = ({ state, dispatch })
 
   const handleLeave = () => {
     soundEngine.playClick();
-    dispatch({ type: 'LEAVE_REMAINS' });
+    dispatch({ type: 'LEAVE_NODE' });
   };
 
   return (
