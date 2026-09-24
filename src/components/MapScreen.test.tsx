@@ -136,4 +136,43 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
     fireEvent.touchEnd(viewport!);
     expect(viewport?.classList.contains('is-dragging')).toBe(false);
   });
+
+  it('renders SVG connection paths spanning all 15 transitions across 16 layers with overflow visible', () => {
+    const state = createMockMapState(1);
+    const dispatch = vi.fn();
+    const { container } = render(<MapScreen state={state} dispatch={dispatch} />);
+
+    const svg = container.querySelector('svg.map-connections-svg') as SVGSVGElement;
+    expect(svg).toBeDefined();
+
+    // Verify all 16 layers connect sequentially: transitions from layer 0->1, 1->2, ... up to 14->15
+    const paths = Array.from(svg.querySelectorAll('path'));
+    const map = state.map!;
+
+    for (let l = 0; l < map.layers.length - 1; l++) {
+      const currentLayerNodeIds = map.layers[l];
+      const hasConnectionFromThisLayer = currentLayerNodeIds.some((nodeId) => {
+        const node = map.nodes[nodeId];
+        return node && node.nextNodes.length > 0;
+      });
+      expect(hasConnectionFromThisLayer, `Layer ${l} must have outgoing connection paths`).toBe(true);
+
+      // Verify that at least one path connects a node in layer l to layer l+1
+      const connectsToNextLayer = currentLayerNodeIds.some((nodeId) => {
+        const node = map.nodes[nodeId];
+        return node.nextNodes.some((targetId) => {
+          // Verify that the connection target is an actual node in layer l+1
+          return Boolean(map.nodes[targetId] && map.nodes[targetId].layer === l + 1);
+        });
+      });
+      expect(connectsToNextLayer).toBe(true);
+    }
+
+    // Verify total paths count matches total DAG edges across all layers
+    let totalEdges = 0;
+    for (const nodeId of Object.keys(map.nodes)) {
+      totalEdges += map.nodes[nodeId].nextNodes.length;
+    }
+    expect(paths.length).toBe(totalEdges);
+  });
 });

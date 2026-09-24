@@ -133,6 +133,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const viewportRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [canvasDimensions, setCanvasDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   // 滑鼠與觸控拖曳卷軸手勢狀態
   const [isDragging, setIsDragging] = useState(false);
@@ -141,10 +142,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
 
   const updatePositions = useCallback(() => {
     if (!canvasRef.current || !map) return;
-    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const canvasEl = canvasRef.current;
+    const canvasRect = canvasEl.getBoundingClientRect();
     if (canvasRect.width === 0) return;
-    const positions: Record<string, { x: number; y: number }> = {};
 
+    // 取得畫布實體完整高度與寬度，避免 WebKit / Safari 下 flex 子元素百分比高度截斷
+    const fullHeight = Math.max(canvasEl.scrollHeight, canvasEl.offsetHeight, Math.round(canvasRect.height));
+    const fullWidth = Math.max(canvasEl.scrollWidth, canvasEl.offsetWidth, Math.round(canvasRect.width));
+    setCanvasDimensions((prev) => (prev.width === fullWidth && prev.height === fullHeight ? prev : { width: fullWidth, height: fullHeight }));
+
+    const positions: Record<string, { x: number; y: number }> = {};
     for (const nodeId of Object.keys(map.nodes)) {
       const el = document.getElementById(`map-node-${nodeId}`);
       if (el) {
@@ -160,8 +167,18 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
 
   useLayoutEffect(() => {
     updatePositions();
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && canvasRef.current) {
+      ro = new ResizeObserver(() => {
+        updatePositions();
+      });
+      ro.observe(canvasRef.current);
+    }
     window.addEventListener('resize', updatePositions);
-    return () => window.removeEventListener('resize', updatePositions);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', updatePositions);
+    };
   }, [updatePositions]);
 
   const entryNodeId = map?.layers[0]?.[0];
@@ -331,7 +348,14 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
       >
         <div ref={canvasRef} className="map-canvas parchment-canvas">
           {/* SVG Connecting Bezier Ink Curves between reachable nodes */}
-          <svg className="map-connections-svg">
+          <svg
+            className="map-connections-svg"
+            style={{
+              width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : '100%',
+              height: canvasDimensions.height > 0 ? `${canvasDimensions.height}px` : '100%',
+              overflow: 'visible',
+            }}
+          >
             <defs>
               <linearGradient id="activeInkGradient" x1="0%" y1="100%" x2="0%" y2="0%">
                 <stop offset="0%" stopColor="#d4af37" stopOpacity="0.6" />
@@ -356,8 +380,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
                   const sourcePos = nodePositions[node.id];
                   const targetPos = nodePositions[target.id];
 
-                  const sourceCoord = sourcePos ?? getNodeCoordinates(node, map);
-                  const targetCoord = targetPos ?? getNodeCoordinates(target, map);
+                  const sourceCoord = sourcePos ?? getNodeCoordinates(node, map, canvasDimensions.width || undefined);
+                  const targetCoord = targetPos ?? getNodeCoordinates(target, map, canvasDimensions.width || undefined);
 
                   // 墨水三次貝茲曲線 (Cubic Bezier S-Curve)
                   const deltaY = targetCoord.y - sourceCoord.y;
