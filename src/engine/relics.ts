@@ -1,5 +1,5 @@
 import type { Investigator, Relic, RelicModifier, StatusEffect } from '../types/game';
-import { createStatusEffect } from './statusEffects';
+import { createStatusEffect, addStatusEffect } from './statusEffects';
 
 export const ELDER_SIGN_AMULET: Relic = {
   id: 'elder_sign_amulet',
@@ -154,13 +154,16 @@ export interface RelicCombatBonus {
  */
 export function getRelicCombatBonus(relics?: Relic[]): RelicCombatBonus {
   const mods = calculateRelicModifiers(relics);
-  const startingStatusEffects: StatusEffect[] = [];
+  let startingStatusEffects: StatusEffect[] = [];
 
   if (relics) {
     for (const relic of relics) {
       if (relic.modifiers?.startingStatusEffects) {
         for (const eff of relic.modifiers.startingStatusEffects) {
-          startingStatusEffects.push(createStatusEffect(eff.type, eff.stacks));
+          startingStatusEffects = addStatusEffect(
+            startingStatusEffects,
+            createStatusEffect(eff.type, eff.stacks)
+          );
         }
       }
     }
