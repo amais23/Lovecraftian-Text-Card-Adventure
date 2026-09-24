@@ -516,21 +516,23 @@ export const BalanceMatrixDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Occupation Filter */}
-              <div className="filter-group">
-                <span className="filter-label">職業：</span>
-                <select
-                  className="balance-select"
-                  value={occupationFilter}
-                  onChange={(e) => setOccupationFilter(e.target.value as OccupationId | 'all' | 'neutral')}
-                  aria-label="職業篩選"
-                >
-                  <option value="all">全部職業</option>
-                  <option value="investigator">私家偵探</option>
-                  <option value="occultist">秘術學者</option>
-                  <option value="neutral">通用無職業</option>
-                </select>
-              </div>
+              {/* Occupation Filter (Cards only) */}
+              {targetType === 'cards' && (
+                <div className="filter-group">
+                  <span className="filter-label">職業：</span>
+                  <select
+                    className="balance-select"
+                    value={occupationFilter}
+                    onChange={(e) => setOccupationFilter(e.target.value as OccupationId | 'all' | 'neutral')}
+                    aria-label="職業篩選"
+                  >
+                    <option value="all">全部職業</option>
+                    <option value="investigator">私家偵探</option>
+                    <option value="occultist">秘術學者</option>
+                    <option value="neutral">通用無職業</option>
+                  </select>
+                </div>
+              )}
 
               {/* Tier Filter */}
               <div className="filter-group">

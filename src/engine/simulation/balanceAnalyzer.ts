@@ -147,6 +147,33 @@ export function createCardBalanceReport(params: {
 /**
  * 組合舊日遺物的完整平衡性評測報告
  */
+const RELIC_SYNERGIES: Record<string, { bestArchetype: ArchetypeId; synergies: Record<ArchetypeId, number> }> = {
+  elder_sign_amulet: {
+    bestArchetype: 'armor_counter',
+    synergies: { armor_counter: 1.8, status_attrition: 1.4, truth_restore: 1.2, high_cost_magic: 1.1, bleed_pierce: 1.0, madness_sacrifice: 1.0 },
+  },
+  pocket_watch: {
+    bestArchetype: 'high_cost_magic',
+    synergies: { high_cost_magic: 1.6, truth_restore: 1.5, status_attrition: 1.4, bleed_pierce: 1.3, madness_sacrifice: 1.2, armor_counter: 1.1 },
+  },
+  vitality_elixir: {
+    bestArchetype: 'madness_sacrifice',
+    synergies: { madness_sacrifice: 1.7, armor_counter: 1.4, bleed_pierce: 1.2, status_attrition: 1.2, truth_restore: 1.1, high_cost_magic: 1.0 },
+  },
+  obsidian_mirror: {
+    bestArchetype: 'status_attrition',
+    synergies: { status_attrition: 1.6, armor_counter: 1.5, truth_restore: 1.3, bleed_pierce: 1.2, high_cost_magic: 1.1, madness_sacrifice: 1.0 },
+  },
+  dread_talisman: {
+    bestArchetype: 'bleed_pierce',
+    synergies: { bleed_pierce: 1.8, madness_sacrifice: 1.5, armor_counter: 1.3, high_cost_magic: 1.2, status_attrition: 1.1, truth_restore: 1.0 },
+  },
+  eldritch_lantern: {
+    bestArchetype: 'truth_restore',
+    synergies: { truth_restore: 1.7, high_cost_magic: 1.6, bleed_pierce: 1.4, madness_sacrifice: 1.3, armor_counter: 1.2, status_attrition: 1.2 },
+  },
+};
+
 export function createRelicBalanceReport(params: {
   relic: Relic;
   copiesMetrics: Record<0 | 1 | 2 | 3, { winRate: number; avgHealthLost: number; avgSanityExpended: number }>;
@@ -182,33 +209,6 @@ export function createRelicBalanceReport(params: {
   const tierRating = getTierRating(overallScore);
   const healthScore = calculateHealthScore(copiesMetrics[1].winRate, copiesMetrics[1].avgHealthLost);
   const sanityScore = calculateSanityScore(copiesMetrics[1].winRate, copiesMetrics[1].avgSanityExpended);
-
-  const RELIC_SYNERGIES: Record<string, { bestArchetype: ArchetypeId; synergies: Record<ArchetypeId, number> }> = {
-    elder_sign_amulet: {
-      bestArchetype: 'armor_counter',
-      synergies: { armor_counter: 1.8, status_attrition: 1.4, truth_restore: 1.2, high_cost_magic: 1.1, bleed_pierce: 1.0, madness_sacrifice: 1.0 },
-    },
-    pocket_watch: {
-      bestArchetype: 'high_cost_magic',
-      synergies: { high_cost_magic: 1.6, truth_restore: 1.5, status_attrition: 1.4, bleed_pierce: 1.3, madness_sacrifice: 1.2, armor_counter: 1.1 },
-    },
-    vitality_elixir: {
-      bestArchetype: 'madness_sacrifice',
-      synergies: { madness_sacrifice: 1.7, armor_counter: 1.4, bleed_pierce: 1.2, status_attrition: 1.2, truth_restore: 1.1, high_cost_magic: 1.0 },
-    },
-    obsidian_mirror: {
-      bestArchetype: 'status_attrition',
-      synergies: { status_attrition: 1.6, armor_counter: 1.5, truth_restore: 1.3, bleed_pierce: 1.2, high_cost_magic: 1.1, madness_sacrifice: 1.0 },
-    },
-    dread_talisman: {
-      bestArchetype: 'bleed_pierce',
-      synergies: { bleed_pierce: 1.8, madness_sacrifice: 1.5, armor_counter: 1.3, high_cost_magic: 1.2, status_attrition: 1.1, truth_restore: 1.0 },
-    },
-    eldritch_lantern: {
-      bestArchetype: 'truth_restore',
-      synergies: { truth_restore: 1.7, high_cost_magic: 1.6, bleed_pierce: 1.4, madness_sacrifice: 1.3, armor_counter: 1.2, status_attrition: 1.2 },
-    },
-  };
 
   const synergyInfo = RELIC_SYNERGIES[relic.id] || {
     bestArchetype: 'armor_counter' as ArchetypeId,
