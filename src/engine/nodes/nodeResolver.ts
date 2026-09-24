@@ -138,7 +138,8 @@ export function resolveNodeInteraction(
       return resolveRemainsAction(action.payload, context);
 
     default: {
-      const exhaustiveCheck: never = action;
+      const _exhaustiveCheck: never = action;
+      void _exhaustiveCheck;
       return {
         success: false,
         investigator: context.investigator,

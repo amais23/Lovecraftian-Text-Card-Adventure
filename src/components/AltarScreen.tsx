@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   DEFAULT_ALTAR_RITUALS,
+  type AltarRitual,
   type AltarRitualId,
   type GameAction,
   type GameState,
