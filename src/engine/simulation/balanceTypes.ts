@@ -159,6 +159,7 @@ export interface BalanceSummaryData {
   // ADR-0038: 自然湧現流派與理智牌庫拓撲生態數據
   deckTopology?: DeckTopologyNode[];
   emergentArchetypes?: EmergentArchetype[];
+  cardSimilarityMatrix?: Record<string, Record<string, number>>;
 }
 
 /**

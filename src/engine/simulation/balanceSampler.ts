@@ -19,6 +19,7 @@ import {
   classicalMDS,
   detectEmergentArchetypes,
 } from './deckTopology';
+import { computeCardMechanicsEmbeddings } from './cardEmbedding';
 import type {
   ArchetypeId,
   BalanceSummaryData,
@@ -670,6 +671,9 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     maxCommunities: 6,
   });
 
+  // ADR-0038 / Issue #68: 計算 73x73 卡牌力學 SVD 餘弦相似度矩陣
+  const cardSimilarityResult = computeCardMechanicsEmbeddings(cards, { synergyMatrix });
+
   // ==========================================
   // 階段五：代表牌庫加權 Jaccard 距離矩陣與經典 MDS 降維 (ADR-0038)
   // ==========================================
@@ -805,6 +809,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     archetypeDefinitions: ARCHETYPE_DEFINITIONS,
     deckTopology: deckTopologyNodes,
     emergentArchetypes,
+    cardSimilarityMatrix: cardSimilarityResult.toRecord(),
   };
 
   return { summary, rawLogs };
