@@ -128,7 +128,7 @@ export const DeckTopologyView: React.FC<DeckTopologyViewProps> = ({
 
             {/* Axes Labels */}
             <text x="350" y="468" textAnchor="middle" fill="#94a3b8" fontSize="12" fontWeight="600">
-              MDS 維度 1 (加權 Jaccard 卡牌構成親疏空間) →
+              力導向星系維度 1 (卡牌機制語意親疏軸) →
             </text>
             <text
               x="-240"
@@ -139,7 +139,7 @@ export const DeckTopologyView: React.FC<DeckTopologyViewProps> = ({
               fontWeight="600"
               transform="rotate(-90)"
             >
-              MDS 維度 2 (流派演化過渡軸) →
+              力導向星系維度 2 (流派演化過渡軸) →
             </text>
 
             {/* Scatter Nodes */}
@@ -192,13 +192,13 @@ export const DeckTopologyView: React.FC<DeckTopologyViewProps> = ({
           {/* Color Bar */}
           <div className="topology-color-bar-container" data-testid="topology-color-bar">
             <div className="color-bar-ticks">
-              <span>0 分 (弱勢組合 / 冰藍)</span>
-              <span>50 分 (中位平衡 / 青綠)</span>
-              <span>100 分 (頂級強勢 / 明黃)</span>
+              <span>&lt; 40 分 (弱勢 / 深海冰藍)</span>
+              <span>40 ~ 70 分 (中位平衡 / 青綠)</span>
+              <span>&ge; 70 分 (頂級強勢 / 明亮鮮黃)</span>
             </div>
             <div className="color-bar-strip" />
             <div className="color-bar-hint">
-              以雙軸綜合評分 (肉體生存 75% + 心智消耗 15% + 容錯穩定 10%) 為熱力漸變映射 · 距離表徵加權 Jaccard 相似度
+              以雙軸綜合評分 (肉體生存 75% + 心智消耗 15% + 容錯穩定 10%) 為熱力漸變映射 · 空間距離表徵力導向星系投影 (Soft Cosine Distance)
             </div>
           </div>
         </div>

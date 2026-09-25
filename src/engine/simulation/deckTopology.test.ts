@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  getHeatmapColor,
   computeWeightedJaccardDistance,
   computeSoftCosineSimilarity,
   computeSoftCosineDistance,
   computeAllPairSoftCosineDistances,
   classicalMDS,
+  forceDirectedGalaxyProjection,
   detectEmergentArchetypes,
   generateArchetypeFamilyDecks,
 } from './deckTopology';
@@ -484,6 +486,129 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
       expect(intraDist).toBeLessThan(0.35);
       expect(crossDist).toBeGreaterThan(0.50);
       expect(crossDist).toBeGreaterThan(intraDist + 0.20);
+    });
+  });
+
+  describe('Scientific Heatmap Color Spectrum (ADR-0038 / Issue #71)', () => {
+    it('strictly maps < 40 to Cold Blue, 40~70 to Cyan-Green, and >= 70 to Bright Yellow', () => {
+      // Score < 40: Cold Blue (Deep Sea to Ice Blue, B > R)
+      const color0 = getHeatmapColor(0);
+      const color20 = getHeatmapColor(20);
+      const color39 = getHeatmapColor(39);
+
+      expect(color0).toBe('rgb(29, 78, 216)');
+      const rgb0 = color0.match(/\d+/g)!.map(Number);
+      const rgb20 = color20.match(/\d+/g)!.map(Number);
+      const rgb39 = color39.match(/\d+/g)!.map(Number);
+
+      expect(rgb0[2]).toBeGreaterThan(rgb0[0]); // B > R
+      expect(rgb20[2]).toBeGreaterThan(rgb20[0]); // B > R
+      expect(rgb39[2]).toBeGreaterThan(rgb39[0]); // B > R
+
+      // Score 40~70: Cyan-Green / Warm Green (G is dominant)
+      const color40 = getHeatmapColor(40);
+      const color55 = getHeatmapColor(55);
+      const rgb40 = color40.match(/\d+/g)!.map(Number);
+      const rgb55 = color55.match(/\d+/g)!.map(Number);
+
+      expect(rgb40[1]).toBe(185); // Emerald Green
+      expect(rgb40[1]).toBeGreaterThan(rgb40[0]);
+      expect(rgb55[1]).toBeGreaterThan(rgb55[2]);
+
+      // Score >= 70: Bright Hot Yellow (R >= 250, G >= 200, B <= 60)
+      const color70 = getHeatmapColor(70);
+      const color90 = getHeatmapColor(90);
+      const color100 = getHeatmapColor(100);
+
+      const rgb70 = color70.match(/\d+/g)!.map(Number);
+      const rgb90 = color90.match(/\d+/g)!.map(Number);
+      const rgb100 = color100.match(/\d+/g)!.map(Number);
+
+      expect(rgb70[0]).toBe(250);
+      expect(rgb70[1]).toBe(204);
+      expect(rgb70[2]).toBe(21);
+
+      expect(rgb90[0]).toBeGreaterThanOrEqual(250);
+      expect(rgb90[1]).toBeGreaterThanOrEqual(200);
+      expect(rgb90[2]).toBeLessThanOrEqual(60);
+
+      expect(rgb100[0]).toBe(255);
+      expect(rgb100[1]).toBe(235);
+      expect(rgb100[2]).toBe(59);
+    });
+  });
+
+  describe('Non-linear Force-Directed Galaxy Projection (Issue #71)', () => {
+    it('executes 60 iterations on 380-node matrix in under 100ms and guarantees 100% determinism', () => {
+      const n = 380;
+      const matrix: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+
+      for (let i = 0; i < n; i++) {
+        const clusterI = Math.floor(i / 95);
+        for (let j = i + 1; j < n; j++) {
+          const clusterJ = Math.floor(j / 95);
+          const d = clusterI === clusterJ ? 0.20 + ((i + j) % 10) * 0.01 : 0.75 + ((i + j) % 10) * 0.01;
+          matrix[i][j] = d;
+          matrix[j][i] = d;
+        }
+      }
+
+      const start = performance.now();
+      const coords1 = forceDirectedGalaxyProjection(matrix);
+      const elapsed = performance.now() - start;
+
+      // Performance assertion: strictly < 100ms
+      expect(elapsed).toBeLessThan(100);
+      expect(coords1).toHaveLength(380);
+
+      // Determinism assertion: run again, must yield identical coordinates
+      const coords2 = forceDirectedGalaxyProjection(matrix);
+      for (let i = 0; i < n; i++) {
+        expect(coords1[i][0]).toBe(coords2[i][0]);
+        expect(coords1[i][1]).toBe(coords2[i][1]);
+      }
+    });
+
+    it('eliminates false neighbors: 2D nearest neighbors within an island have high-dimensional distance < 0.35', () => {
+      const n = 40;
+      const matrix: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+
+      for (let i = 0; i < n; i++) {
+        const cI = i < 20 ? 0 : 1;
+        for (let j = i + 1; j < n; j++) {
+          const cJ = j < 20 ? 0 : 1;
+          const d = cI === cJ ? 0.20 : 0.80;
+          matrix[i][j] = d;
+          matrix[j][i] = d;
+        }
+      }
+
+      const coords = forceDirectedGalaxyProjection(matrix, { iterations: 60 });
+
+      // For every point, find its nearest neighbor in 2D Euclidean space
+      for (let i = 0; i < n; i++) {
+        let nearestIdx = -1;
+        let min2DDist = Infinity;
+
+        for (let j = 0; j < n; j++) {
+          if (i === j) continue;
+          const dist2D = Math.hypot(coords[i][0] - coords[j][0], coords[i][1] - coords[j][1]);
+          if (dist2D < min2DDist) {
+            min2DDist = dist2D;
+            nearestIdx = j;
+          }
+        }
+
+        expect(nearestIdx).not.toBe(-1);
+        // The nearest neighbor in 2D MUST belong to the same cluster
+        const cI = i < 20 ? 0 : 1;
+        const cNearest = nearestIdx < 20 ? 0 : 1;
+        expect(cNearest).toBe(cI);
+
+        // The actual high-dimensional distance to this 2D nearest neighbor must be < 0.35 (No false neighbors!)
+        const actualHighDimDist = matrix[i][nearestIdx];
+        expect(actualHighDimDist).toBeLessThan(0.35);
+      }
     });
   });
 });

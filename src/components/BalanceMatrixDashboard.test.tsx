@@ -228,9 +228,9 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
       // Verify scientific heatmap color bar and ticks
       const colorBar = screen.getByTestId('topology-color-bar');
       expect(colorBar).toBeDefined();
-      expect(screen.getByText(/0 分 \(弱勢組合 \/ 冰藍\)/)).toBeDefined();
-      expect(screen.getByText(/50 分 \(中位平衡 \/ 青綠\)/)).toBeDefined();
-      expect(screen.getByText(/100 分 \(頂級強勢 \/ 明黃\)/)).toBeDefined();
+      expect(screen.getByText(/<\s*40\s*分/)).toBeDefined();
+      expect(screen.getByText(/40\s*~\s*70\s*分/)).toBeDefined();
+      expect(screen.getByText(/[≥>=]\s*70\s*分/)).toBeDefined();
 
       // Verify presence of representative deck nodes
       const sampleNode = screen.getByTestId('deck-node-deck_node_1');

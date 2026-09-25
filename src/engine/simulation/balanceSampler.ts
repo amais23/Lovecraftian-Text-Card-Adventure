@@ -16,10 +16,11 @@ import {
 } from './balanceAnalyzer';
 import {
   computeAllPairSoftCosineDistances,
-  classicalMDS,
+  forceDirectedGalaxyProjection,
   detectEmergentArchetypes,
   generateArchetypeFamilyDecks,
 } from './deckTopology';
+
 
 
 import { computeCardMechanicsEmbeddings } from './cardEmbedding';
@@ -662,7 +663,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     cardSimilarityResult.cardIndexMap
   );
 
-  const mdsCoords = classicalMDS(distMatrix);
+  const galaxyCoords = forceDirectedGalaxyProjection(distMatrix);
 
   // 2. 封裝 DeckTopologyNode 列表並聚合實戰戰績
   const deckTopologyNodes: DeckTopologyNode[] = [];
@@ -677,7 +678,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
 
   for (let i = 0; i < numDecks; i++) {
     const s = familyDecks[i];
-    const coords = mdsCoords[i] || [0.5, 0.5];
+    const coords = galaxyCoords[i] || [0.5, 0.5];
 
     // 進行實戰模擬以獲取勝率與耗損數據
     let wins = 0;
