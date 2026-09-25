@@ -828,10 +828,10 @@ export const MYTHOS_EVENTS: Record<string, MythosEvent> = {
             relic: {
               id: 'relic_stellar_lens',
               name: '群星透鏡',
-              description: '折射高維冷光的黑曜石透鏡。手牌容量永久 +1。',
+              description: '折射高維冷光的黑曜石透鏡。手牌保留數永久 +1。',
               flavorText: '「窺探群星運行的透鏡。」',
               rarity: 'rare',
-              modifiers: { handCapacity: 1 },
+              modifiers: { handRetention: 1, handCapacity: 1 },
             },
             narrative: '自鏡框上取下核心鏡片，獲得舊日遺物【群星透鏡】！',
           },

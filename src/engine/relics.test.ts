@@ -77,6 +77,7 @@ describe('Relics System (ADR-0018)', () => {
       const mods = calculateRelicModifiers(relics);
 
       expect(mods.maxHealth).toBe(5);
+      expect(mods.handRetention).toBe(1);
       expect(mods.handCapacity).toBe(1);
       expect(mods.startingArmor).toBe(5);
       expect(mods.startingStamina).toBe(0);
@@ -85,6 +86,7 @@ describe('Relics System (ADR-0018)', () => {
     it('returns zeroes for empty or undefined relics', () => {
       expect(calculateRelicModifiers(undefined)).toEqual({
         maxHealth: 0,
+        handRetention: 0,
         handCapacity: 0,
         startingArmor: 0,
         startingStamina: 0,

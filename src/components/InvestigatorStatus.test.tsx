@@ -38,7 +38,7 @@ describe('InvestigatorStatus Component (ADR-0018)', () => {
     expect(screen.getByText('4')).toBeDefined();
     expect(screen.getByText('2 / 3')).toBeDefined();
     expect(screen.getByText('10 / 12')).toBeDefined();
-    expect(screen.getByText('手牌容量')).toBeDefined();
+    expect(screen.getByText('手牌保留數')).toBeDefined();
   });
 
   it('renders relics tray when investigator holds relics', () => {

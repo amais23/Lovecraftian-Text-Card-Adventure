@@ -91,7 +91,7 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
         [1, 0, 1],
         [1, 1, 0],
       ];
-      const coords = classicalMDS(distMatrix, 2);
+      const coords = classicalMDS(distMatrix);
       expect(coords).toHaveLength(3);
 
       // Verify all coordinates are normalized within [0, 1]
@@ -113,7 +113,7 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
 
     it('handles small or edge-case distance matrices gracefully', () => {
       const distMatrix1 = [[0]];
-      const coords1 = classicalMDS(distMatrix1, 2);
+      const coords1 = classicalMDS(distMatrix1);
       expect(coords1).toHaveLength(1);
       expect(coords1[0]).toEqual([0.5, 0.5]);
 
@@ -121,7 +121,7 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
         [0, 2],
         [2, 0],
       ];
-      const coords2 = classicalMDS(distMatrix2, 2);
+      const coords2 = classicalMDS(distMatrix2);
       expect(coords2).toHaveLength(2);
     });
   });

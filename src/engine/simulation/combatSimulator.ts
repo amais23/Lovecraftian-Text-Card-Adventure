@@ -24,6 +24,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
     recordLogs = false,
     randomFn = Math.random,
     uncappedHealth = false,
+    handRetention: optionsHandRetention,
     handCapacity: optionsHandCapacity,
   } = options;
 
@@ -32,7 +33,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
   const defaultMaxHealth = uncappedHealth ? 100000 : INITIAL_INVESTIGATOR.maxHealth;
   const initialHealth = customInvestigator?.health ?? (uncappedHealth ? defaultInitialHealth : (customInvestigator?.maxHealth ?? INITIAL_INVESTIGATOR.health));
   const initialMaxHealth = customInvestigator?.maxHealth ?? defaultMaxHealth;
-  const resolvedHandCapacity = optionsHandCapacity ?? customInvestigator?.handCapacity ?? INITIAL_INVESTIGATOR.handCapacity ?? 2;
+  const resolvedHandCapacity = optionsHandRetention ?? optionsHandCapacity ?? customInvestigator?.handRetention ?? customInvestigator?.handCapacity ?? INITIAL_INVESTIGATOR.handCapacity ?? 2;
   const baseInvestigator: Investigator = {
     ...INITIAL_INVESTIGATOR,
     ...customInvestigator,
@@ -44,6 +45,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
     statusEffects: customInvestigator?.statusEffects ? [...customInvestigator.statusEffects] : [],
     occupationId: customInvestigator?.occupationId ?? INITIAL_INVESTIGATOR.occupationId ?? 'investigator',
     relics: [...relics],
+    handRetention: resolvedHandCapacity,
     handCapacity: resolvedHandCapacity,
   };
 

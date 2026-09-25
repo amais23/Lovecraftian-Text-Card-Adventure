@@ -106,14 +106,16 @@ export interface EnemyThreatReport {
 }
 
 /**
- * ADR-0038: 牌組拓撲星系散布圖之節點實體
+ * ADR-0038: 理智牌庫拓撲星系散布圖之節點實體
  */
 export interface DeckTopologyNode {
   id: string;
   name: string;
   cards: Array<{ id: string; name: string; copies: number; category: CardCategory }>;
   totalCards: number;
-  handCapacity: number;
+  handRetention: number;
+  /** @deprecated 領域術語已規範化為 handRetention，此欄位保留以相容舊版結構 */
+  handCapacity?: number;
   winRate: number;
   avgHealthLost: number;
   avgSanityExpended: number;
@@ -121,8 +123,8 @@ export interface DeckTopologyNode {
   archetypeId: string;
   archetypeName: string;
   drivingCombos: Array<{ cards: string[]; synergy: number }>;
-  x: number; // 0.0 ~ 1.0 (MDS 投影歸一化 X 座標)
-  y: number; // 0.0 ~ 1.0 (MDS 投影歸一化 Y 座標)
+  x: number; // 0.0 ~ 1.0 (投影歸一化 X 座標)
+  y: number; // 0.0 ~ 1.0 (投影歸一化 Y 座標)
 }
 
 /**
@@ -154,7 +156,7 @@ export interface BalanceSummaryData {
     ArchetypeId,
     { name: string; description: string; coreCardNames: string[] }
   >;
-  // ADR-0038: 自然湧現流派與牌組拓撲生態數據
+  // ADR-0038: 自然湧現流派與理智牌庫拓撲生態數據
   deckTopology?: DeckTopologyNode[];
   emergentArchetypes?: EmergentArchetype[];
 }

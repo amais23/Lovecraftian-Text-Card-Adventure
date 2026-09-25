@@ -36,7 +36,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
 }) => {
   const { isShaking: isHealthShaking, shakeKey: healthShakeKey } = useTraumaShake(investigator.health);
   const { isShaking: isSanityShaking, shakeKey: sanityShakeKey } = useTraumaShake(sanityCount);
-  const handCapacity = investigator.handCapacity ?? 2;
+  const handRetention = investigator.handRetention ?? investigator.handCapacity ?? 2;
   const relics = investigator.relics ?? [];
   const statusEffects = investigator.statusEffects ?? [];
 
@@ -140,15 +140,15 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
           </div>
         </div>
 
-        {/* Hand Capacity */}
+        {/* Hand Retention */}
         <div
           className="resource-badge hand-capacity"
-          title={`手牌容量（每回合固定抽取 ${handCapacity} 張，回合結束保留上限 ${handCapacity} 張）`}
+          title={`手牌保留數（每回合固定抽取 ${handRetention} 張，回合結束保留上限 ${handRetention} 張）`}
         >
           <Layers size={20} className="res-icon" />
           <div className="res-content">
-            <span className="res-label">手牌容量</span>
-            <span className="res-value">{handCapacity}</span>
+            <span className="res-label">手牌保留數</span>
+            <span className="res-value">{handRetention}</span>
           </div>
         </div>
       </div>
@@ -162,7 +162,7 @@ export const InvestigatorStatus: React.FC<InvestigatorStatusProps> = ({
         title={
           isDiscardMode
             ? `正在進行主動棄牌選擇，請挑選多餘手牌確認棄置`
-            : `結束當前回合，保留至多 ${handCapacity} 張手牌並固定抽取新卡牌，承受敵人反擊`
+            : `結束當前回合，保留至多 ${handRetention} 張手牌並固定抽取新卡牌，承受敵人反擊`
         }
       >
         {isDiscardMode ? '棄牌階段中……' : `結束回合 · 第 ${turn} 回合`}

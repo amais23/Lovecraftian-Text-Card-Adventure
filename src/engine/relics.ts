@@ -16,11 +16,12 @@ export const ELDER_SIGN_AMULET: Relic = {
 export const POCKET_WATCH: Relic = {
   id: 'pocket_watch',
   name: '黃銅懷錶',
-  description: '指針倒轉的詭譎懷錶。手牌容量永久 +1（每回合抽牌量與保留上限同步提升 1 張）。',
+  description: '指針倒轉的詭譎懷錶。手牌保留數永久 +1（每回合抽牌量與保留上限同步提升 1 張）。',
   flavorText: '這枚懷錶的秒針每隔數秒便會逆時針震顫。在心智緊繃的生死邊緣，它賦予調查員多看透一瞬局勢的從容。',
   rarity: 'rare',
   icon: 'Watch',
   modifiers: {
+    handRetention: 1,
     handCapacity: 1,
   },
 };
@@ -95,6 +96,7 @@ export function getRelicById(id: string): Relic | undefined {
 export function calculateRelicModifiers(relics?: Relic[]): Required<Omit<RelicModifier, 'startingStatusEffects'>> {
   const result: Required<Omit<RelicModifier, 'startingStatusEffects'>> = {
     maxHealth: 0,
+    handRetention: 0,
     handCapacity: 0,
     startingArmor: 0,
     startingStamina: 0,
@@ -105,7 +107,11 @@ export function calculateRelicModifiers(relics?: Relic[]): Required<Omit<RelicMo
   for (const relic of relics) {
     if (relic.modifiers) {
       if (relic.modifiers.maxHealth) result.maxHealth += relic.modifiers.maxHealth;
-      if (relic.modifiers.handCapacity) result.handCapacity += relic.modifiers.handCapacity;
+      const handMod = relic.modifiers.handRetention ?? relic.modifiers.handCapacity;
+      if (handMod) {
+        result.handRetention += handMod;
+        result.handCapacity += handMod;
+      }
       if (relic.modifiers.startingArmor) result.startingArmor += relic.modifiers.startingArmor;
       if (relic.modifiers.startingStamina) result.startingStamina += relic.modifiers.startingStamina;
     }
@@ -115,7 +121,7 @@ export function calculateRelicModifiers(relics?: Relic[]): Required<Omit<RelicMo
 }
 
 /**
- * 當調查員獲得遺物時，立即將遺物加入行囊並生效其被動屬性（如 maxHealth, handCapacity）
+ * 當調查員獲得遺物時，立即將遺物加入行囊並生效其被動屬性（如 maxHealth, handRetention）
  */
 export function applyRelicToInvestigator(investigator: Investigator, relic: Relic): Investigator {
   const currentRelics = investigator.relics ? [...investigator.relics] : [];
@@ -123,21 +129,23 @@ export function applyRelicToInvestigator(investigator: Investigator, relic: Reli
 
   let maxHealth = investigator.maxHealth;
   let health = investigator.health;
-  let handCapacity = investigator.handCapacity ?? 2;
+  let handCapacity = investigator.handRetention ?? investigator.handCapacity ?? 2;
 
   if (relic.modifiers?.maxHealth) {
     maxHealth += relic.modifiers.maxHealth;
     health += relic.modifiers.maxHealth;
   }
 
-  if (relic.modifiers?.handCapacity) {
-    handCapacity += relic.modifiers.handCapacity;
+  const handMod = relic.modifiers?.handRetention ?? relic.modifiers?.handCapacity;
+  if (handMod) {
+    handCapacity += handMod;
   }
 
   return {
     ...investigator,
     maxHealth,
     health,
+    handRetention: handCapacity,
     handCapacity,
     relics: newRelics,
   };

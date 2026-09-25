@@ -262,14 +262,14 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
       fireEvent.click(screen.getByRole('button', { name: /自然流派拓撲生態/i }));
 
       // Toggle Diff mode checkbox
-      const diffCheckbox = screen.getByLabelText(/啟用 Diff 雙套牌組對比模式/i);
+      const diffCheckbox = screen.getByLabelText(/啟用 Diff 雙套牌庫對比模式/i);
       fireEvent.click(diffCheckbox);
 
       // Select Deck 1 as A
       fireEvent.click(screen.getByTestId('deck-node-deck_node_1'));
 
       // Prompt banner should prompt selecting 2nd deck
-      expect(screen.getByText(/請在左側星系散布圖點選第二套牌組/)).toBeDefined();
+      expect(screen.getByText(/請在左側星系散布圖點選第二套牌庫/)).toBeDefined();
 
       // Select Deck 2 as B
       fireEvent.click(screen.getByTestId('deck-node-deck_node_2'));
@@ -277,8 +277,8 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
       // Diff comparison view should now appear
       const diffView = screen.getByTestId('diff-comparison-view');
       expect(diffView).toBeDefined();
-      expect(screen.getAllByText('牌組 A').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('牌組 B').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('牌庫 A').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('牌庫 B').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('差值 (A - B)')).toBeDefined();
       expect(screen.getByText(/卡牌構成差異分析/)).toBeDefined();
     });

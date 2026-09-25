@@ -15,6 +15,8 @@ export type RelicRarity = 'common' | 'rare' | 'mythic';
 
 export interface RelicModifier {
   maxHealth?: number;
+  handRetention?: number;
+  /** @deprecated 領域術語已規範化為 handRetention，保留別名以相容舊版 */
   handCapacity?: number;
   startingArmor?: number;
   startingStamina?: number;
@@ -182,7 +184,9 @@ export interface Investigator {
   maxStamina: number;
   armor: number;
   obols: number;
-  handCapacity?: number; // 可變動手牌容量（開局基準值 2，抽牌數 = 手牌保留數）
+  handRetention?: number; // 手牌保留數（開局基準值 2，抽牌數 = 手牌保留數）
+  /** @deprecated 領域術語已規範化為 handRetention，保留別名以相容舊版 */
+  handCapacity?: number;
   relics?: Relic[];      // 持有之舊日遺物（跨戰鬥永久生效）
   statusEffects?: StatusEffect[]; // 戰鬥內暫態印記（戰後清空）
 }
@@ -315,9 +319,9 @@ export const DEFAULT_ALTAR_RITUALS: AltarRitual[] = [
     name: '時空之契 · 超維神經撕裂',
     subtitle: '神識拓印',
     description:
-      '直視幽藍冷火中扭曲的超維幾何裂隙，忍受精神重創。可自主選擇承受 10 點生命值代價或損耗 2 點理智（自牌庫永久除役 2 張卡牌），永久拓展心智容量，手牌容量永久 +1（抽牌與保留手牌數同步提升 1 張）。',
+      '直視幽藍冷火中扭曲的超維幾何裂隙，忍受精神重創。可自主選擇承受 10 點生命值代價或損耗 2 點理智（自牌庫永久除役 2 張卡牌），永久拓展心智容量，手牌保留數永久 +1（抽牌與保留手牌數同步提升 1 張）。',
     costDescription: '承受 10 點傷害（生命須大於 10）或損耗 2 點理智（除役 2 張牌）',
-    rewardDescription: '手牌容量永久 +1（抽牌與保留手牌數提升 1 張）',
+    rewardDescription: '手牌保留數永久 +1（抽牌與保留手牌數提升 1 張）',
     iconName: 'book',
   },
   {

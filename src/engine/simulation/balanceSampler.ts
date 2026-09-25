@@ -145,12 +145,12 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   const singleCardCombatStats = new Map<string, { runs: number; totalScore: number }>();
   const pairCombatStats = new Map<string, { runs: number; totalScore: number }>();
 
-  // 300~500 套高代表性完整牌組樣本庫 (ADR-0038)
+  // 300~500 套高代表性完整理智牌庫樣本庫 (ADR-0038)
   const candidateDecks = new Map<
     string,
     {
       deck: Card[];
-      handCapacity: number;
+      handRetention: number;
       runs: number;
       wins: number;
       totalHpLost: number;
@@ -158,9 +158,9 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     }
   >();
 
-  // 輔助函式：批次模擬指定牌組面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌容量採樣）
+  // 輔助函式：批次模擬指定牌庫面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌保留數採樣）
   function testMatchup(
-    deckSource: Card[] | ((runIndex: number) => { deck: Card[]; handCapacity?: number }),
+    deckSource: Card[] | ((runIndex: number) => { deck: Card[]; handRetention?: number; handCapacity?: number }),
     enemy: Enemy,
     runs: number,
     relicList: Relic[] = []
@@ -176,16 +176,17 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     for (let r = 0; r < runs; r++) {
       totalCombats += 2; // 雙軌：1 次 optimal + 1 次 fault_tolerant
 
-      // 取得本次戰鬥之隨機牌庫與 2~6 變動手牌容量 (ADR-0001, ADR-0009)
-      const defaultHandCap = (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6;
+      // 取得本次戰鬥之隨機牌庫與 2~6 變動手牌保留數 (ADR-0001, ADR-0009)
+      const defaultHandRet = (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6;
       let deck: Card[];
-      let handCapacity = defaultHandCap;
+      let handRetention = defaultHandRet;
 
       if (typeof deckSource === 'function') {
         const generated = deckSource(r);
         deck = generated.deck;
-        if (generated.handCapacity !== undefined) {
-          handCapacity = Math.max(2, Math.min(6, Math.round(generated.handCapacity))) as 2 | 3 | 4 | 5 | 6;
+        const genHand = generated.handRetention ?? generated.handCapacity;
+        if (genHand !== undefined) {
+          handRetention = Math.max(2, Math.min(6, Math.round(genHand))) as 2 | 3 | 4 | 5 | 6;
         }
       } else {
         deck = deckSource;
@@ -195,7 +196,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
         deck,
         relics: relicList,
         enemy: cloneEnemy(enemy),
-        handCapacity,
+        handRetention,
+        handCapacity: handRetention,
         policyMode: 'optimal',
         randomFn,
         uncappedHealth,
@@ -234,14 +236,14 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
         }
       }
 
-      // ADR-0038: 取樣完整代表性牌組 (目標收集 300~450 套典型牌組)
+      // ADR-0038: 取樣完整代表性理智牌庫 (目標收集 300~450 套典型牌庫)
       if (candidateDecks.size < 400 && r === 0 && deck.length >= 10) {
         const deckKey = deck.map((c) => c.id).sort().join(',');
         const existing = candidateDecks.get(deckKey);
         if (!existing) {
           candidateDecks.set(deckKey, {
             deck: [...deck],
-            handCapacity,
+            handRetention,
             runs: 1,
             wins: resOpt.victory ? 1 : 0,
             totalHpLost: resOpt.healthLost,
@@ -259,7 +261,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
         deck,
         relics: relicList,
         enemy: cloneEnemy(enemy),
-        handCapacity,
+        handRetention,
+        handCapacity: handRetention,
         policyMode: 'fault_tolerant',
         randomFn,
         uncappedHealth,
@@ -668,7 +671,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   });
 
   // ==========================================
-  // 階段五：代表牌組加權 Jaccard 距離矩陣與經典 MDS 降維 (ADR-0038)
+  // 階段五：代表牌庫加權 Jaccard 距離矩陣與經典 MDS 降維 (ADR-0038)
   // ==========================================
   const sampledList = Array.from(candidateDecks.values()).slice(0, 380);
   const numDecks = sampledList.length;
@@ -682,7 +685,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     }
   }
 
-  const mdsCoords = classicalMDS(distMatrix, 2);
+  const mdsCoords = classicalMDS(distMatrix);
 
   // 封裝 DeckTopologyNode 列表
   const deckTopologyNodes: DeckTopologyNode[] = [];
@@ -753,7 +756,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       name: `${bestArch ? bestArch.name : '未知流派'} 變體 #${i + 1}`,
       cards: cardDetails,
       totalCards: s.deck.length,
-      handCapacity: s.handCapacity,
+      handRetention: s.handRetention,
+      handCapacity: s.handRetention,
       winRate,
       avgHealthLost: avgHp,
       avgSanityExpended: avgSanity,

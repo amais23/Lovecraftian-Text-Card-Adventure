@@ -146,8 +146,8 @@ describe('CombatScreen Component (Cosmic Banishment VFX & True Ending)', () => {
       const cancelBtn = screen.getByRole('button', { name: /取消/ });
       expect(cancelBtn).toBeDefined();
 
-      // Investigator status displays handCapacity badge
-      expect(screen.getByText('手牌容量')).toBeDefined();
+      // Investigator status displays handRetention badge
+      expect(screen.getByText('手牌保留數')).toBeDefined();
     });
 
     it('dispatches TOGGLE_DISCARD_CARD when clicking a card in discard mode', () => {

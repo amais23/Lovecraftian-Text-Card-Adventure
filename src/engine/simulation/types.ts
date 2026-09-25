@@ -20,6 +20,7 @@ export interface SingleCombatOptions {
   recordLogs?: boolean;
   randomFn?: () => number;
   uncappedHealth?: boolean;
+  handRetention?: number;
   handCapacity?: number;
 }
 
@@ -51,6 +52,7 @@ export interface BatchCombatOptions {
   maxTurns?: number;
   randomFn?: () => number;
   uncappedHealth?: boolean;
+  handRetention?: number;
   handCapacity?: number;
 }
 

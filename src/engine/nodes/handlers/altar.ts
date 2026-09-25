@@ -95,7 +95,7 @@ export function resolveAltarAction(
       newSanityDeck = newSanityDeck.slice(2);
       newHandCapacity += 1;
       logs.push(
-        `在禁忌祭壇承受理智撕裂侵蝕，損耗 2 點理智（自牌庫永久除役【${consumedCards.map((c) => c.name).join('】與【')}】），手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
+        `在禁忌祭壇承受理智撕裂侵蝕，損耗 2 點理智（自牌庫永久除役【${consumedCards.map((c) => c.name).join('】與【')}】），手牌保留數永久提升 1 點（當前抽牌與保留手牌: ${newHandCapacity} 張）！`
       );
     } else {
       if (newHealth <= 10) {
@@ -104,7 +104,7 @@ export function resolveAltarAction(
       newHealth -= 10;
       newHandCapacity += 1;
       logs.push(
-        `在禁忌祭壇忍受神經撕裂劇痛，承受 10 點傷害，手牌容量永久提升 1 點（當前抽牌與保留上限: ${newHandCapacity} 張）！`
+        `在禁忌祭壇忍受神經撕裂劇痛，承受 10 點傷害，手牌保留數永久提升 1 點（當前抽牌與保留手牌: ${newHandCapacity} 張）！`
       );
     }
   } else if (optionId === 'boon' || optionId === 'void') {

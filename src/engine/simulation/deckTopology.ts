@@ -58,14 +58,71 @@ export function computeWeightedJaccardDistance(deckA: Card[], deckB: Card[]): nu
 }
 
 /**
+ * 冪迭代法 (Power Iteration) 求解矩陣主要特徵向量與特徵值
+ */
+function powerIteration(
+  M: Float64Array[],
+  n: number,
+  initialVec: Float64Array,
+  orthogonalTo?: Float64Array,
+  iterations = 45
+): { vector: Float64Array; lambda: number } {
+  const v = new Float64Array(initialVec);
+  const tmp = new Float64Array(n);
+
+  const matVecMult = (mat: Float64Array[], vec: Float64Array, out: Float64Array) => {
+    for (let i = 0; i < n; i++) {
+      let sum = 0;
+      const row = mat[i];
+      for (let j = 0; j < n; j++) sum += row[j] * vec[j];
+      out[i] = sum;
+    }
+  };
+
+  const normVec = (vec: Float64Array): number => {
+    let sum = 0;
+    for (let i = 0; i < n; i++) sum += vec[i] * vec[i];
+    const len = Math.sqrt(sum);
+    if (len > 1e-12) {
+      const invLen = 1 / len;
+      for (let i = 0; i < n; i++) vec[i] *= invLen;
+    }
+    return len;
+  };
+
+  const projectOrthogonal = (target: Float64Array, ref: Float64Array) => {
+    let dot = 0;
+    for (let i = 0; i < n; i++) dot += target[i] * ref[i];
+    for (let i = 0; i < n; i++) target[i] -= dot * ref[i];
+  };
+
+  if (orthogonalTo) {
+    projectOrthogonal(v, orthogonalTo);
+  }
+  normVec(v);
+
+  for (let iter = 0; iter < iterations; iter++) {
+    matVecMult(M, v, tmp);
+    if (orthogonalTo) {
+      projectOrthogonal(tmp, orthogonalTo);
+    }
+    v.set(tmp);
+    normVec(v);
+  }
+
+  matVecMult(M, v, tmp);
+  let lambda = 0;
+  for (let i = 0; i < n; i++) lambda += v[i] * tmp[i];
+
+  return { vector: v, lambda: Math.max(0, lambda) };
+}
+
+/**
  * 經典多維尺度變換 (Classical Multidimensional Scaling / Torgerson Scaling)
  * 將 N x N 的幾何距離矩陣投影至 2D 歐幾里得平面，保留相對距離結構
  * 回傳各點正規化至 [0.05, 0.95] 區間之 [x, y] 座標陣列
  */
-export function classicalMDS(
-  distanceMatrix: number[][],
-  _dimensions: number = 2
-): Array<[number, number]> {
+export function classicalMDS(distanceMatrix: number[][]): Array<[number, number]> {
   const n = distanceMatrix.length;
   if (n === 0) return [];
   if (n === 1) return [[0.5, 0.5]];
@@ -105,47 +162,10 @@ export function classicalMDS(
     }
   }
 
-  // 3. 冪迭代法 (Power Iteration) 求解前兩大正特徵值與特徵向量
-  // 輔助函數：向量矩陣乘法
-  const matVecMult = (M: Float64Array[], v: Float64Array, out: Float64Array) => {
-    for (let i = 0; i < n; i++) {
-      let sum = 0;
-      const row = M[i];
-      for (let j = 0; j < n; j++) {
-        sum += row[j] * v[j];
-      }
-      out[i] = sum;
-    }
-  };
-
-  // 輔助函數：向量正規化
-  const normVec = (v: Float64Array): number => {
-    let sum = 0;
-    for (let i = 0; i < n; i++) sum += v[i] * v[i];
-    const len = Math.sqrt(sum);
-    if (len > 1e-12) {
-      const invLen = 1 / len;
-      for (let i = 0; i < n; i++) v[i] *= invLen;
-    }
-    return len;
-  };
-
-  // 求第一特徵向量 v1 與特徵值 lambda1
-  let v1 = new Float64Array(n);
-  for (let i = 0; i < n; i++) v1[i] = Math.sin((i + 1) * 1.5);
-  normVec(v1);
-
-  const tmp = new Float64Array(n);
-  for (let iter = 0; iter < 45; iter++) {
-    matVecMult(B, v1, tmp);
-    v1.set(tmp);
-    normVec(v1);
-  }
-
-  matVecMult(B, v1, tmp);
-  let lambda1 = 0;
-  for (let i = 0; i < n; i++) lambda1 += v1[i] * tmp[i];
-  lambda1 = Math.max(0, lambda1);
+  // 3. 冪迭代法求解前兩大正特徵值與特徵向量
+  const initV1 = new Float64Array(n);
+  for (let i = 0; i < n; i++) initV1[i] = Math.sin((i + 1) * 1.5);
+  const { vector: v1, lambda: lambda1 } = powerIteration(B, n, initV1);
 
   // 矩陣消減 (Deflation): B' = B - lambda1 * (v1 * v1^T)
   const B2: Float64Array[] = Array.from({ length: n }, (_, i) => {
@@ -158,28 +178,9 @@ export function classicalMDS(
     return row;
   });
 
-  // 求第二特徵向量 v2 與特徵值 lambda2
-  let v2 = new Float64Array(n);
-  for (let i = 0; i < n; i++) v2[i] = Math.cos((i + 1) * 2.3);
-  // 正交化 v2 垂直於 v1
-  let dot1 = 0;
-  for (let i = 0; i < n; i++) dot1 += v2[i] * v1[i];
-  for (let i = 0; i < n; i++) v2[i] -= dot1 * v1[i];
-  normVec(v2);
-
-  for (let iter = 0; iter < 45; iter++) {
-    matVecMult(B2, v2, tmp);
-    // 再次正交化確保數值穩定性
-    dot1 = 0;
-    for (let i = 0; i < n; i++) dot1 += tmp[i] * v1[i];
-    for (let i = 0; i < n; i++) v2[i] = tmp[i] - dot1 * v1[i];
-    normVec(v2);
-  }
-
-  matVecMult(B2, v2, tmp);
-  let lambda2 = 0;
-  for (let i = 0; i < n; i++) lambda2 += v2[i] * tmp[i];
-  lambda2 = Math.max(0, lambda2);
+  const initV2 = new Float64Array(n);
+  for (let i = 0; i < n; i++) initV2[i] = Math.cos((i + 1) * 2.3);
+  const { vector: v2, lambda: lambda2 } = powerIteration(B2, n, initV2, v1);
 
   // 4. 計算 2D 坐標 X = [v1 * sqrt(lambda1), v2 * sqrt(lambda2)]
   const scale1 = Math.sqrt(lambda1);
