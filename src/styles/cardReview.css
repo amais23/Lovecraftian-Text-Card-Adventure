@@ -2086,3 +2086,310 @@
   filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
 }
 
+/* ==========================================================================
+   ADR-0038: 自然流派拓撲星系生態 (Deck Topology & MDS Scatter)
+   ========================================================================== */
+
+.topology-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  flex: 1;
+}
+
+.topology-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 8px;
+}
+
+.topology-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.topology-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.topology-select {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #f8fafc;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+.topology-diff-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #ffd700;
+  cursor: pointer;
+  padding: 5px 12px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 6px;
+  user-select: none;
+}
+
+.topology-diff-toggle input[type="checkbox"] {
+  accent-color: #ffd700;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.topology-main-view {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+  min-height: 480px;
+}
+
+@media (max-width: 1024px) {
+  .topology-main-view {
+    grid-template-columns: 1fr;
+  }
+}
+
+.topology-scatter-card {
+  background: rgba(11, 15, 25, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.topology-scatter-svg {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+}
+
+.topology-color-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 6px;
+}
+
+.color-bar-strip {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(to right, rgb(29, 78, 216), rgb(16, 185, 129), rgb(250, 204, 21));
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+}
+
+.color-bar-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.color-bar-hint {
+  font-size: 11px;
+  color: #cfa866;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.topology-node-point {
+  cursor: pointer;
+  transition: r 0.15s ease, stroke-width 0.15s ease;
+}
+
+.topology-node-point:hover {
+  r: 8px;
+  stroke: #ffffff;
+  stroke-width: 2px;
+}
+
+.topology-inspector-card {
+  background: rgba(11, 15, 25, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  max-height: 560px;
+}
+
+.deck-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.deck-metric-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deck-metric-lbl {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.deck-metric-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.deck-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.deck-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 4px;
+  border-left: 3px solid;
+  font-size: 12px;
+}
+
+.deck-card-name-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-comparison-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diff-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.diff-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.diff-badge-a {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid #38bdf8;
+}
+
+.diff-badge-b {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+
+.diff-stats-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+.diff-stats-table th,
+.diff-stats-table td {
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.diff-stats-table th {
+  color: #94a3b8;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.diff-stats-table tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.diff-card-pills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.diff-card-pill {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.diff-card-pill.shared {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.diff-card-pill.a-only {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.diff-card-pill.b-only {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.diff-prompt-banner {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+

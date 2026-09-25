@@ -7,14 +7,23 @@ import { buildRandomizedDeck, buildRelicSet } from './deckBuilder';
 import { simulateCombat } from './combatSimulator';
 import { ARCHETYPE_DEFINITIONS, buildRandomizedArchetypeDeck } from './archetypes';
 import {
+  calculateHealthScore,
+  calculateSanityScore,
+  calculateOverallScore,
   createCardBalanceReport,
   createEnemyThreatReport,
   createRelicBalanceReport,
 } from './balanceAnalyzer';
+import {
+  computeWeightedJaccardDistance,
+  classicalMDS,
+  detectEmergentArchetypes,
+} from './deckTopology';
 import type {
   ArchetypeId,
   BalanceSummaryData,
   CardBalanceReport,
+  DeckTopologyNode,
   EnemyThreatReport,
   RawCombatLogEntry,
   RelicBalanceReport,
@@ -132,6 +141,23 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     });
   }
 
+  // 全域單卡與雙卡戰鬥表現統計 (ADR-0038)
+  const singleCardCombatStats = new Map<string, { runs: number; totalScore: number }>();
+  const pairCombatStats = new Map<string, { runs: number; totalScore: number }>();
+
+  // 300~500 套高代表性完整牌組樣本庫 (ADR-0038)
+  const candidateDecks = new Map<
+    string,
+    {
+      deck: Card[];
+      handCapacity: number;
+      runs: number;
+      wins: number;
+      totalHpLost: number;
+      totalSanity: number;
+    }
+  >();
+
   // 輔助函式：批次模擬指定牌組面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌容量採樣）
   function testMatchup(
     deckSource: Card[] | ((runIndex: number) => { deck: Card[]; handCapacity?: number }),
@@ -178,6 +204,56 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       optHpLost += resOpt.healthLost;
       optSanity += resOpt.sanityCardsExpended;
       optTurns += resOpt.turns;
+
+      // ADR-0038: 統計全域單卡與雙卡共現表現
+      const cHealthScore = calculateHealthScore(resOpt.victory ? 1 : 0, resOpt.healthLost, 25, uncappedHealth);
+      const cSanityScore = calculateSanityScore(resOpt.victory ? 1 : 0, resOpt.sanityCardsExpended, 15, uncappedHealth);
+      const cScore = calculateOverallScore(cHealthScore, cSanityScore, 1.0, uncappedHealth);
+
+      const uniqueCardIds = Array.from(new Set(deck.map((c) => c.id)));
+      for (let i = 0; i < uniqueCardIds.length; i++) {
+        const id1 = uniqueCardIds[i];
+        let sStat = singleCardCombatStats.get(id1);
+        if (!sStat) {
+          sStat = { runs: 0, totalScore: 0 };
+          singleCardCombatStats.set(id1, sStat);
+        }
+        sStat.runs++;
+        sStat.totalScore += cScore;
+
+        for (let j = i + 1; j < uniqueCardIds.length; j++) {
+          const id2 = uniqueCardIds[j];
+          const pairKey = id1 < id2 ? `${id1}:${id2}` : `${id2}:${id1}`;
+          let pStat = pairCombatStats.get(pairKey);
+          if (!pStat) {
+            pStat = { runs: 0, totalScore: 0 };
+            pairCombatStats.set(pairKey, pStat);
+          }
+          pStat.runs++;
+          pStat.totalScore += cScore;
+        }
+      }
+
+      // ADR-0038: 取樣完整代表性牌組 (目標收集 300~450 套典型牌組)
+      if (candidateDecks.size < 400 && r === 0 && deck.length >= 10) {
+        const deckKey = deck.map((c) => c.id).sort().join(',');
+        const existing = candidateDecks.get(deckKey);
+        if (!existing) {
+          candidateDecks.set(deckKey, {
+            deck: [...deck],
+            handCapacity,
+            runs: 1,
+            wins: resOpt.victory ? 1 : 0,
+            totalHpLost: resOpt.healthLost,
+            totalSanity: resOpt.sanityCardsExpended,
+          });
+        } else {
+          existing.runs++;
+          if (resOpt.victory) existing.wins++;
+          existing.totalHpLost += resOpt.healthLost;
+          existing.totalSanity += resOpt.sanityCardsExpended;
+        }
+      }
 
       const resFt = simulateCombat({
         deck,
@@ -541,6 +617,180 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     enemyReports[rep.id] = rep;
   });
 
+  // ==========================================
+  // 階段四：計算 73x73 雙卡協同矩陣與圖論非監督式社群偵測 (ADR-0038)
+  // ==========================================
+  if (onProgress) {
+    onProgress({
+      stage: '計算非監督式自然流派與牌組拓撲星系圖 (ADR-0038)',
+      current: 1,
+      total: 1,
+      percent: 92,
+    });
+  }
+
+  const synergyMatrix = new Map<string, Map<string, number>>();
+  for (const c1 of cards) {
+    const row = new Map<string, number>();
+    const s1 = singleCardCombatStats.get(c1.id);
+    const avg1 = s1 && s1.runs > 0 ? s1.totalScore / s1.runs : 50;
+
+    for (const c2 of cards) {
+      if (c1.id === c2.id) {
+        row.set(c2.id, 0);
+        continue;
+      }
+      const pairKey = c1.id < c2.id ? `${c1.id}:${c2.id}` : `${c2.id}:${c1.id}`;
+      const pStat = pairCombatStats.get(pairKey);
+      if (pStat && pStat.runs >= 2) {
+        const avgPair = pStat.totalScore / pStat.runs;
+        const s2 = singleCardCombatStats.get(c2.id);
+        const avg2 = s2 && s2.runs > 0 ? s2.totalScore / s2.runs : 50;
+        const delta = Number((avgPair - Math.max(avg1, avg2)).toFixed(1));
+        row.set(c2.id, delta);
+      } else {
+        row.set(c2.id, 0);
+      }
+    }
+    synergyMatrix.set(c1.id, row);
+  }
+
+  const cardScoresMap = new Map<string, number>();
+  for (const [cId, rep] of Object.entries(cardReports)) {
+    cardScoresMap.set(cId, rep.overallScore);
+  }
+
+  const emergentArchetypes = detectEmergentArchetypes({
+    cards,
+    synergyMatrix,
+    cardScores: cardScoresMap,
+    maxCommunities: 6,
+  });
+
+  // ==========================================
+  // 階段五：代表牌組加權 Jaccard 距離矩陣與經典 MDS 降維 (ADR-0038)
+  // ==========================================
+  const sampledList = Array.from(candidateDecks.values()).slice(0, 380);
+  const numDecks = sampledList.length;
+  const distMatrix: number[][] = Array.from({ length: numDecks }, () => new Array(numDecks).fill(0));
+
+  for (let i = 0; i < numDecks; i++) {
+    for (let j = i + 1; j < numDecks; j++) {
+      const d = computeWeightedJaccardDistance(sampledList[i].deck, sampledList[j].deck);
+      distMatrix[i][j] = d;
+      distMatrix[j][i] = d;
+    }
+  }
+
+  const mdsCoords = classicalMDS(distMatrix, 2);
+
+  // 封裝 DeckTopologyNode 列表
+  const deckTopologyNodes: DeckTopologyNode[] = [];
+  const archStatsMap = new Map<string, { deckCount: number; scoreSum: number; hpSum: number; sanitySum: number }>();
+
+  for (let i = 0; i < numDecks; i++) {
+    const s = sampledList[i];
+    const coords = mdsCoords[i] || [0.5, 0.5];
+
+    // 依據卡牌重疊佔比判定歸屬之自然流派 (Jaccard 相似度，移除 _copy_ 後綴)
+    const baseIdList = s.deck.map((c) => c.id.replace(/_copy_\d+$/, ''));
+    const cardIdSet = new Set(baseIdList);
+    let bestArch = emergentArchetypes[0];
+    let maxAffinity = -1;
+
+    for (const arch of emergentArchetypes) {
+      let overlap = 0;
+      for (const mId of arch.memberCardIds) {
+        if (cardIdSet.has(mId)) overlap++;
+      }
+      const unionCount = cardIdSet.size + arch.memberCardIds.length - overlap;
+      const affinity = unionCount > 0 ? overlap / unionCount : 0;
+      if (affinity > maxAffinity) {
+        maxAffinity = affinity;
+        bestArch = arch;
+      }
+    }
+
+    // 統計卡牌種類與張數 (依據卡牌名稱或基礎 ID 聚合副本)
+    const countMap = new Map<string, { card: Card; copies: number }>();
+    for (const c of s.deck) {
+      const baseId = c.id.replace(/_copy_\d+$/, '');
+      const existing = countMap.get(baseId);
+      if (existing) {
+        existing.copies++;
+      } else {
+        countMap.set(baseId, { card: c, copies: 1 });
+      }
+    }
+
+    const cardDetails = Array.from(countMap.values()).map(({ card, copies }) => ({
+      id: card.id.replace(/_copy_\d+$/, ''),
+      name: card.name,
+      copies,
+      category: card.category,
+    }));
+
+    const winRate = Number((s.wins / s.runs).toFixed(3));
+    const avgHp = Number((s.totalHpLost / s.runs).toFixed(1));
+    const avgSanity = Number((s.totalSanity / s.runs).toFixed(1));
+
+    const hScore = calculateHealthScore(winRate, avgHp, 25, uncappedHealth);
+    const sScore = calculateSanityScore(winRate, avgSanity, 15, uncappedHealth);
+    const overallScore = calculateOverallScore(hScore, sScore, 1.0, uncappedHealth);
+
+    // 檢查是否包含該流派的核心 Combo
+    const drivingCombos: Array<{ cards: string[]; synergy: number }> = [];
+    if (bestArch) {
+      for (const combo of bestArch.coreCombos) {
+        if (combo.cardIds.every((id) => cardIdSet.has(id))) {
+          drivingCombos.push({ cards: combo.cardNames, synergy: combo.synergyScore });
+        }
+      }
+    }
+
+    const node: DeckTopologyNode = {
+      id: `deck_node_${i + 1}`,
+      name: `${bestArch ? bestArch.name : '未知流派'} 變體 #${i + 1}`,
+      cards: cardDetails,
+      totalCards: s.deck.length,
+      handCapacity: s.handCapacity,
+      winRate,
+      avgHealthLost: avgHp,
+      avgSanityExpended: avgSanity,
+      overallScore,
+      archetypeId: bestArch ? bestArch.id : 'unknown',
+      archetypeName: bestArch ? bestArch.name : '未知流派',
+      drivingCombos,
+      x: coords[0],
+      y: coords[1],
+    };
+
+    deckTopologyNodes.push(node);
+
+    if (bestArch) {
+      let aStat = archStatsMap.get(bestArch.id);
+      if (!aStat) {
+        aStat = { deckCount: 0, scoreSum: 0, hpSum: 0, sanitySum: 0 };
+        archStatsMap.set(bestArch.id, aStat);
+      }
+      aStat.deckCount++;
+      aStat.scoreSum += overallScore;
+      aStat.hpSum += avgHp;
+      aStat.sanitySum += avgSanity;
+    }
+  }
+
+  // 回填 emergentArchetypes 的彙總戰績
+  for (const arch of emergentArchetypes) {
+    const aStat = archStatsMap.get(arch.id);
+    if (aStat && aStat.deckCount > 0) {
+      arch.deckCount = aStat.deckCount;
+      arch.avgScore = Math.round(aStat.scoreSum / aStat.deckCount);
+      arch.avgHealthLost = Number((aStat.hpSum / aStat.deckCount).toFixed(1));
+      arch.avgSanityExpended = Number((aStat.sanitySum / aStat.deckCount).toFixed(1));
+    }
+  }
+
   const summary: BalanceSummaryData = {
     generatedAt: new Date().toISOString(),
     version: '1.0.0',
@@ -549,6 +799,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     relics: relicReports,
     enemies: enemyReports,
     archetypeDefinitions: ARCHETYPE_DEFINITIONS,
+    deckTopology: deckTopologyNodes,
+    emergentArchetypes,
   };
 
   return { summary, rawLogs };

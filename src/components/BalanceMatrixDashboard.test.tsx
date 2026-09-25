@@ -211,4 +211,106 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
     expect(enemyHtml).not.toContain('血量');
     expect(enemyHtml).not.toContain('掉血');
   });
+
+  describe('ADR-0038: Deck Topology MDS Scatter & Emergent Archetypes', () => {
+    it('switches to topology tab and renders MDS scatter plot with nodes and color bar', () => {
+      render(<BalanceMatrixDashboard />);
+
+      // Switch to topology tab
+      const topologyTabBtn = screen.getByRole('button', { name: /自然流派拓撲生態/i });
+      fireEvent.click(topologyTabBtn);
+
+      // Verify topology view and scatter SVG
+      expect(screen.getByTestId('balance-topology-view')).toBeDefined();
+      expect(screen.getByTestId('topology-scatter-card')).toBeDefined();
+      expect(screen.getByTestId('topology-inspector-card')).toBeDefined();
+
+      // Verify scientific heatmap color bar and ticks
+      const colorBar = screen.getByTestId('topology-color-bar');
+      expect(colorBar).toBeDefined();
+      expect(screen.getByText(/0 分 \(弱勢組合 \/ 冰藍\)/)).toBeDefined();
+      expect(screen.getByText(/50 分 \(中位平衡 \/ 青綠\)/)).toBeDefined();
+      expect(screen.getByText(/100 分 \(頂級強勢 \/ 明黃\)/)).toBeDefined();
+
+      // Verify presence of representative deck nodes
+      const sampleNode = screen.getByTestId('deck-node-deck_node_1');
+      expect(sampleNode).toBeDefined();
+    });
+
+    it('inspects a deck node displaying card breakdown, metrics, and driving combos', () => {
+      render(<BalanceMatrixDashboard />);
+
+      // Switch to topology tab
+      fireEvent.click(screen.getByRole('button', { name: /自然流派拓撲生態/i }));
+
+      // Click node 1
+      const node1 = screen.getByTestId('deck-node-deck_node_1');
+      fireEvent.click(node1);
+
+      const inspector = screen.getByTestId('topology-inspector-card');
+      expect(inspector.textContent).toContain('雙軸綜合評分');
+      expect(inspector.textContent).toContain('對弈勝率');
+      expect(inspector.textContent).toContain('平均生命損失');
+      expect(inspector.textContent).toContain('平均心智消耗');
+      expect(inspector.textContent).toContain('牌庫卡表明細');
+    });
+
+    it('supports Diff mode toggling and side-by-side comparison between two decks', () => {
+      render(<BalanceMatrixDashboard />);
+
+      // Switch to topology tab
+      fireEvent.click(screen.getByRole('button', { name: /自然流派拓撲生態/i }));
+
+      // Toggle Diff mode checkbox
+      const diffCheckbox = screen.getByLabelText(/啟用 Diff 雙套牌組對比模式/i);
+      fireEvent.click(diffCheckbox);
+
+      // Select Deck 1 as A
+      fireEvent.click(screen.getByTestId('deck-node-deck_node_1'));
+
+      // Prompt banner should prompt selecting 2nd deck
+      expect(screen.getByText(/請在左側星系散布圖點選第二套牌組/)).toBeDefined();
+
+      // Select Deck 2 as B
+      fireEvent.click(screen.getByTestId('deck-node-deck_node_2'));
+
+      // Diff comparison view should now appear
+      const diffView = screen.getByTestId('diff-comparison-view');
+      expect(diffView).toBeDefined();
+      expect(screen.getAllByText('牌組 A').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('牌組 B').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('差值 (A - B)')).toBeDefined();
+      expect(screen.getByText(/卡牌構成差異分析/)).toBeDefined();
+    });
+
+    it('filters deck nodes by emergent archetype', () => {
+      render(<BalanceMatrixDashboard />);
+
+      // Switch to topology tab
+      fireEvent.click(screen.getByRole('button', { name: /自然流派拓撲生態/i }));
+
+      const archSelect = screen.getByLabelText(/自然湧現流派過濾/i) as HTMLSelectElement;
+      expect(archSelect).toBeDefined();
+
+      // Select the first emergent archetype
+      const firstArchOption = archSelect.options[1];
+      if (firstArchOption) {
+        fireEvent.change(archSelect, { target: { value: firstArchOption.value } });
+        expect(archSelect.value).toBe(firstArchOption.value);
+      }
+    });
+
+    it('strictly adheres to domain health terminology in topology view without forbidden terms', () => {
+      const { container } = render(<BalanceMatrixDashboard />);
+
+      // Switch to topology tab
+      fireEvent.click(screen.getByRole('button', { name: /自然流派拓撲生態/i }));
+
+      const topologyHtml = container.innerHTML;
+      expect(topologyHtml).not.toMatch(/\bHP\b/i);
+      expect(topologyHtml).not.toContain('血量');
+      expect(topologyHtml).not.toContain('掉血');
+      expect(topologyHtml).toContain('點生命');
+    });
+  });
 });
