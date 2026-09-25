@@ -331,6 +331,9 @@ export function powerIteration(
  * 經典多維尺度變換 (Classical Multidimensional Scaling / Torgerson Scaling)
  * 將 N x N 的幾何距離矩陣投影至 2D 歐幾里得平面，保留相對距離結構
  * 回傳各點正規化至 [0.05, 0.95] 區間之 [x, y] 座標陣列
+ *
+ * @deprecated 在 Issue #71 中，平衡模擬主流程已升級為非線性力導向星系投影 (forceDirectedGalaxyProjection)，
+ * 本函式保留作為基準比對與線性降維對照演算法。
  */
 export function classicalMDS(distanceMatrix: number[][]): Array<[number, number]> {
   const n = distanceMatrix.length;

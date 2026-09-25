@@ -5,6 +5,13 @@ import { getHeatmapColor } from '../engine/simulation/deckTopology';
 import { DeckInspectorCard } from './DeckInspectorCard';
 import { DeckDiffView } from './DeckDiffView';
 
+const PLOT_ORIGIN_X = 40;
+const PLOT_ORIGIN_Y = 40;
+const PLOT_WIDTH = 620;
+const PLOT_HEIGHT = 400;
+const NORMALIZED_PADDING = 0.05;
+const NORMALIZED_SPAN = 0.90;
+
 export interface DeckTopologyViewProps {
   allDeckNodes: DeckTopologyNode[];
   emergentArchetypes: EmergentArchetype[];
@@ -117,7 +124,15 @@ export const DeckTopologyView: React.FC<DeckTopologyViewProps> = ({
             aria-label="理智牌庫拓撲星系散布圖"
           >
             {/* Background Grid */}
-            <rect x="40" y="40" width="620" height="400" fill="rgba(15, 23, 42, 0.4)" stroke="#334155" strokeWidth="1" />
+            <rect
+              x={PLOT_ORIGIN_X}
+              y={PLOT_ORIGIN_Y}
+              width={PLOT_WIDTH}
+              height={PLOT_HEIGHT}
+              fill="rgba(15, 23, 42, 0.4)"
+              stroke="#334155"
+              strokeWidth="1"
+            />
             <line x1="195" y1="40" x2="195" y2="440" stroke="#1e293b" strokeDasharray="4 4" />
             <line x1="350" y1="40" x2="350" y2="440" stroke="#334155" strokeDasharray="4 4" />
             <line x1="505" y1="40" x2="505" y2="440" stroke="#1e293b" strokeDasharray="4 4" />
@@ -144,8 +159,8 @@ export const DeckTopologyView: React.FC<DeckTopologyViewProps> = ({
 
             {/* Scatter Nodes */}
             {filteredDeckNodes.map((node) => {
-              const cx = 40 + ((node.x - 0.05) / 0.9) * 620;
-              const cy = 40 + ((node.y - 0.05) / 0.9) * 400;
+              const cx = PLOT_ORIGIN_X + ((node.x - NORMALIZED_PADDING) / NORMALIZED_SPAN) * PLOT_WIDTH;
+              const cy = PLOT_ORIGIN_Y + ((node.y - NORMALIZED_PADDING) / NORMALIZED_SPAN) * PLOT_HEIGHT;
               const isSelectedA = selectedDeckA?.id === node.id;
               const isSelectedB = isDiffMode && selectedDeckB?.id === node.id;
               const color = getHeatmapColor(node.overallScore);

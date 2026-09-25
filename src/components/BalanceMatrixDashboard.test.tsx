@@ -300,7 +300,7 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
       }
     });
 
-    it('strictly adheres to domain health terminology in topology view without forbidden terms', () => {
+    it('strictly adheres to domain terminology in topology view without forbidden terms', () => {
       const { container } = render(<BalanceMatrixDashboard />);
 
       // Switch to topology tab
@@ -310,6 +310,8 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
       expect(topologyHtml).not.toMatch(/\bHP\b/i);
       expect(topologyHtml).not.toContain('血量');
       expect(topologyHtml).not.toContain('掉血');
+      expect(topologyHtml).not.toContain('牌組');
+      expect(topologyHtml).not.toContain('手牌容量');
       expect(topologyHtml).toContain('點生命');
     });
   });

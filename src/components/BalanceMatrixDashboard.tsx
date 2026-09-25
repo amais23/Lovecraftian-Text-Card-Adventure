@@ -455,7 +455,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
             onClick={() => setSubTab('topology')}
           >
             <Compass size={16} />
-            <span>自然流派拓撲生態 (300~500套牌 MDS 星系散布圖與 Diff)</span>
+            <span>自然流派拓撲生態 (300~500 套理智牌庫星系散布圖與 Diff)</span>
           </button>
           <button
             type="button"
@@ -1057,7 +1057,7 @@ export const BalanceMatrixDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ADR-0038: 自然流派拓撲生態 (300~500套理智牌庫 MDS 星系散布圖與 Diff) */}
+      {/* ADR-0038 / Issue #71: 自然流派拓撲生態 (300~500 套理智牌庫星系散布圖與 Diff) */}
       {subTab === 'topology' && (
         <DeckTopologyView
           allDeckNodes={allDeckNodes}

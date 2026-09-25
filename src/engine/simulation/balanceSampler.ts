@@ -417,6 +417,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
               maxSize: 35,
               randomFn,
             }),
+            handRetention: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
             handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
           }),
           item.enemy,
