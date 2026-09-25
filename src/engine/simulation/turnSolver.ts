@@ -48,9 +48,11 @@ function evaluateBoardStateScore(
     score += finalInvestigator.armor * 4;
   }
 
-  // 4. 肉體生命反噬懲罰
+  // 4. 肉體生命反噬懲罰與恢復獎勵
   const healthLost = Math.max(0, initialInvestigator.health - finalInvestigator.health);
+  const healthHealed = Math.max(0, finalInvestigator.health - initialInvestigator.health);
   score -= healthLost * 30;
+  score += healthHealed * 25;
 
   // 5. 狀態印記價值（施加易傷/流血，自身獲得力量/堅韌）
   if (finalEnemy.statusEffects) {
@@ -74,9 +76,17 @@ function evaluateBoardStateScore(
     score += sanityDelta * 5;
   }
 
-  // 7. 精力合理利用（避免無謂浪費行動點數）
+  // 7. 精力合理利用（避免無謂浪費行動點數，僅在產生實質效益時加分）
   const staminaSpent = Math.max(0, initialInvestigator.stamina - finalInvestigator.stamina);
-  score += staminaSpent * 3;
+  const accomplishesSomething =
+    damageDealt > 0 ||
+    armorBroken > 0 ||
+    healthHealed > 0 ||
+    finalInvestigator.armor > initialInvestigator.armor ||
+    sanityDelta > 0;
+  if (accomplishesSomething) {
+    score += staminaSpent * 3;
+  }
 
   return score;
 }

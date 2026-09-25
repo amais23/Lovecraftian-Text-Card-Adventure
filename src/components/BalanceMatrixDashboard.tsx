@@ -1,29 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import {
   Activity,
-  Shield,
-  Swords,
-  Sparkles,
-  Flame,
   Skull,
   TrendingUp,
   AlertTriangle,
   Award,
   Layers,
-  ChevronRight,
-  Eye,
   Check,
   Target,
   BarChart3,
   Search,
-  Filter,
 } from 'lucide-react';
 import balanceSummaryDataRaw from '../data/balance/balance_summary_data.json';
 import type {
   BalanceSummaryData,
-  CardBalanceReport,
-  RelicBalanceReport,
-  EnemyThreatReport,
   ArchetypeId,
 } from '../engine/simulation/balanceTypes';
 import type { CardCategory, OccupationId } from '../types/game';

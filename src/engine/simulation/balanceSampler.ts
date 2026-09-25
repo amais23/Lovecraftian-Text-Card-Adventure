@@ -3,9 +3,9 @@ import { CardRegistry } from '../cards/registry';
 import { PRESET_RELICS } from '../relics';
 import { cloneEnemy } from '../enemyCatalog';
 import { MONSTERS_BY_DEPTH } from '../../data/monsterReviewData';
-import { buildDeckWithCopies, buildRelicSet, getStarterBaseline } from './deckBuilder';
+import { buildRandomizedDeck, buildRelicSet } from './deckBuilder';
 import { simulateCombat } from './combatSimulator';
-import { ARCHETYPE_DEFINITIONS, buildArchetypeDeck } from './archetypes';
+import { ARCHETYPE_DEFINITIONS, buildRandomizedArchetypeDeck } from './archetypes';
 import {
   createCardBalanceReport,
   createEnemyThreatReport,
@@ -25,6 +25,7 @@ export interface BalanceSamplerOptions {
   sampleEnemiesCount?: number;
   onProgress?: (progress: { stage: string; current: number; total: number; percent: number }) => void;
   randomFn?: () => number;
+  uncappedHealth?: boolean;
 }
 
 /**
@@ -89,6 +90,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     runsPerMatchup = 8,
     onProgress,
     randomFn = Math.random,
+    uncappedHealth = false,
   } = options;
 
   const cards = CardRegistry.getAllCompendiumCards();
@@ -110,8 +112,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       totalHpLost: number;
       totalSanityEroded: number;
       totalTurns: number;
-      cardWinRates: Map<string, { cardName: string; wins: number; runs: number }>;
-      archetypeWins: Map<ArchetypeId, { wins: number; runs: number }>;
+      cardWinRates: Map<string, { cardName: string; wins: number; runs: number; totalHpLost: number }>;
+      archetypeWins: Map<ArchetypeId, { wins: number; runs: number; totalHpLost: number }>;
     }
   >();
 
@@ -130,9 +132,9 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     });
   }
 
-  // 輔助函式：批次模擬指定牌組面對特定敵怪
+  // 輔助函式：批次模擬指定牌組面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌容量採樣）
   function testMatchup(
-    deck: Card[],
+    deckSource: Card[] | ((runIndex: number) => { deck: Card[]; handCapacity?: number }),
     enemy: Enemy,
     runs: number,
     relicList: Relic[] = []
@@ -148,12 +150,29 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     for (let r = 0; r < runs; r++) {
       totalCombats += 2; // 雙軌：1 次 optimal + 1 次 fault_tolerant
 
+      // 取得本次戰鬥之隨機牌庫與 2~6 變動手牌容量 (ADR-0001, ADR-0009)
+      const defaultHandCap = (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6;
+      let deck: Card[];
+      let handCapacity = defaultHandCap;
+
+      if (typeof deckSource === 'function') {
+        const generated = deckSource(r);
+        deck = generated.deck;
+        if (generated.handCapacity !== undefined) {
+          handCapacity = Math.max(2, Math.min(6, Math.round(generated.handCapacity))) as 2 | 3 | 4 | 5 | 6;
+        }
+      } else {
+        deck = deckSource;
+      }
+
       const resOpt = simulateCombat({
         deck,
         relics: relicList,
         enemy: cloneEnemy(enemy),
+        handCapacity,
         policyMode: 'optimal',
         randomFn,
+        uncappedHealth,
       });
       if (resOpt.victory) optWins++;
       optHpLost += resOpt.healthLost;
@@ -164,8 +183,10 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
         deck,
         relics: relicList,
         enemy: cloneEnemy(enemy),
+        handCapacity,
         policyMode: 'fault_tolerant',
         randomFn,
+        uncappedHealth,
       });
       if (resFt.victory) ftWins++;
       ftHpLost += resFt.healthLost;
@@ -194,7 +215,6 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   // 階段一：73 張卡牌評測 (1x, 2x, 3x 及六大流派)
   // ==========================================
   const cardReports: Record<string, CardBalanceReport> = {};
-  const baseStarter = getStarterBaseline('investigator');
   const archetypesList: ArchetypeId[] = [
     'armor_counter',
     'bleed_pierce',
@@ -215,10 +235,6 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       });
     }
 
-    const deck1x = buildDeckWithCopies(baseStarter, card, 1, 'add');
-    const deck2x = buildDeckWithCopies(baseStarter, card, 2, 'add');
-    const deck3x = buildDeckWithCopies(baseStarter, card, 3, 'add');
-
     // 對抗 26 隻敵怪統計
     let total1xWins = 0;
     let total1xHpLost = 0;
@@ -236,18 +252,30 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     let total3xSanity = 0;
     let total3xTurns = 0;
 
-    const enemyMatchups: Array<{ id: string; name: string; winRate: number }> = [];
+    const enemyMatchups: Array<{ id: string; name: string; winRate: number; avgHealthLost?: number }> = [];
 
     for (const item of representativeEnemies) {
-      // 1x 測試
-      const m1 = testMatchup(deck1x, item.enemy, runsPerMatchup);
+      // 1x 測試 (10~35 張隨機牌庫，含 1 張目標卡，手牌容量 2~6)
+      const m1 = testMatchup(
+        (r) => ({
+          deck: buildRandomizedDeck({ targetCard: card, copies: 1, minSize: 10, maxSize: 35, randomFn }),
+          handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
+        }),
+        item.enemy,
+        runsPerMatchup
+      );
       total1xWins += m1.winRate;
       total1xHpLost += m1.avgHpLost;
       total1xSanity += m1.avgSanity;
       total1xTurns += m1.avgTurns;
       totalFtRatio += m1.faultToleranceRatio;
 
-      enemyMatchups.push({ id: item.enemy.id, name: item.enemy.name, winRate: m1.winRate });
+      enemyMatchups.push({
+        id: item.enemy.id,
+        name: item.enemy.name,
+        winRate: m1.winRate,
+        avgHealthLost: m1.avgHpLost,
+      });
 
       // 累加至敵怪統計
       const eStat = enemyStats.get(item.enemy.id)!;
@@ -257,20 +285,35 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       eStat.totalSanityEroded += m1.avgSanity * runsPerMatchup;
       eStat.totalTurns += m1.avgTurns * runsPerMatchup;
 
-      const cMap = eStat.cardWinRates.get(card.id) ?? { cardName: card.name, wins: 0, runs: 0 };
+      const cMap = eStat.cardWinRates.get(card.id) ?? { cardName: card.name, wins: 0, runs: 0, totalHpLost: 0 };
       cMap.wins += m1.winRate * runsPerMatchup;
       cMap.runs += runsPerMatchup;
+      cMap.totalHpLost += m1.avgHpLost * runsPerMatchup;
       eStat.cardWinRates.set(card.id, cMap);
 
-      // 2x 測試
-      const m2 = testMatchup(deck2x, item.enemy, Math.max(2, Math.floor(runsPerMatchup / 2)));
+      // 2x 測試 (10~35 張隨機牌庫，含 2 張目標卡，手牌容量 2~6)
+      const m2 = testMatchup(
+        (r) => ({
+          deck: buildRandomizedDeck({ targetCard: card, copies: 2, minSize: 10, maxSize: 35, randomFn }),
+          handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
+        }),
+        item.enemy,
+        Math.max(2, Math.floor(runsPerMatchup / 2))
+      );
       total2xWins += m2.winRate;
       total2xHpLost += m2.avgHpLost;
       total2xSanity += m2.avgSanity;
       total2xTurns += m2.avgTurns;
 
-      // 3x 測試
-      const m3 = testMatchup(deck3x, item.enemy, Math.max(2, Math.floor(runsPerMatchup / 2)));
+      // 3x 測試 (10~35 張隨機牌庫，含 3 張目標卡，手牌容量 2~6)
+      const m3 = testMatchup(
+        (r) => ({
+          deck: buildRandomizedDeck({ targetCard: card, copies: 3, minSize: 10, maxSize: 35, randomFn }),
+          handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
+        }),
+        item.enemy,
+        Math.max(2, Math.floor(runsPerMatchup / 2))
+      );
       total3xWins += m3.winRate;
       total3xHpLost += m3.avgHpLost;
       total3xSanity += m3.avgSanity;
@@ -300,23 +343,41 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
 
     // 測試六大流派協同倍率（挑選各深度代表怪進行快速協同檢測）
     const archetypeWinRates = {} as Record<ArchetypeId, number>;
+    const archetypeHealthLosses = {} as Record<ArchetypeId, number>;
     const sampleArchetypeEnemies = [representativeEnemies[0], representativeEnemies[Math.floor(enemyCount / 2)]];
 
     for (const archId of archetypesList) {
-      const archDeck = buildDeckWithCopies(buildArchetypeDeck(archId), card, 1, 'add');
       let archWins = 0;
+      let archHpLost = 0;
       for (const item of sampleArchetypeEnemies) {
-        const m = testMatchup(archDeck, item.enemy, 3);
+        const m = testMatchup(
+          (r) => ({
+            deck: buildRandomizedArchetypeDeck({
+              archetypeId: archId,
+              targetCard: card,
+              copies: 1,
+              minSize: 10,
+              maxSize: 35,
+              randomFn,
+            }),
+            handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
+          }),
+          item.enemy,
+          3
+        );
         archWins += m.winRate;
+        archHpLost += m.avgHpLost;
 
         // 累計敵怪流派表現
         const eStat = enemyStats.get(item.enemy.id)!;
-        const aWin = eStat.archetypeWins.get(archId) ?? { wins: 0, runs: 0 };
+        const aWin = eStat.archetypeWins.get(archId) ?? { wins: 0, runs: 0, totalHpLost: 0 };
         aWin.wins += m.winRate * 3;
         aWin.runs += 3;
+        aWin.totalHpLost += m.avgHpLost * 3;
         eStat.archetypeWins.set(archId, aWin);
       }
       archetypeWinRates[archId] = archWins / sampleArchetypeEnemies.length;
+      archetypeHealthLosses[archId] = archHpLost / sampleArchetypeEnemies.length;
     }
 
     cardReports[card.id] = createCardBalanceReport({
@@ -326,7 +387,9 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       base3xMetrics: base3x,
       faultToleranceRatio,
       archetypeWinRates,
+      archetypeHealthLosses,
       enemyMatchups,
+      isUncappedHealth: uncappedHealth,
     });
 
     rawLogs.push({
@@ -370,7 +433,15 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
 
       // 抽樣對抗部分敵怪
       for (const item of representativeEnemies.slice(0, 10)) {
-        const m = testMatchup(baseStarter, item.enemy, 3, relicSet);
+        const m = testMatchup(
+          (r) => ({
+            deck: buildRandomizedDeck({ minSize: 10, maxSize: 35, randomFn }),
+            handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
+          }),
+          item.enemy,
+          3,
+          relicSet
+        );
         winsSum += m.winRate;
         hpLostSum += m.avgHpLost;
         sanitySum += m.avgSanity;
@@ -398,7 +469,11 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       });
     }
 
-    relicReports[relic.id] = createRelicBalanceReport({ relic, copiesMetrics });
+    relicReports[relic.id] = createRelicBalanceReport({
+      relic,
+      copiesMetrics,
+      isUncappedHealth: uncappedHealth,
+    });
   }
 
   // ==========================================
@@ -416,19 +491,30 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     const avgTurns = stat.totalTurns / runs;
 
     // 計算剋制卡牌 Top 3
-    const cardPerformances: Array<{ id: string; name: string; winRate: number }> = [];
+    const cardPerformances: Array<{ id: string; name: string; winRate: number; avgHealthLost: number }> = [];
     for (const [cardId, val] of stat.cardWinRates.entries()) {
       if (val.runs > 0) {
-        cardPerformances.push({ id: cardId, name: val.cardName, winRate: val.wins / val.runs });
+        cardPerformances.push({
+          id: cardId,
+          name: val.cardName,
+          winRate: val.wins / val.runs,
+          avgHealthLost: val.totalHpLost / val.runs,
+        });
       }
     }
-    cardPerformances.sort((a, b) => b.winRate - a.winRate);
+    if (uncappedHealth) {
+      cardPerformances.sort((a, b) => a.avgHealthLost - b.avgHealthLost);
+    } else {
+      cardPerformances.sort((a, b) => b.winRate - a.winRate);
+    }
 
     // 計算流派表現
     const archPerformances = {} as Record<ArchetypeId, number>;
+    const archHealthLosses = {} as Record<ArchetypeId, number>;
     for (const arch of archetypesList) {
       const aw = stat.archetypeWins.get(arch);
       archPerformances[arch] = aw && aw.runs > 0 ? aw.wins / aw.runs : winRate;
+      archHealthLosses[arch] = aw && aw.runs > 0 ? aw.totalHpLost / aw.runs : avgHpLost;
     }
 
     const report = createEnemyThreatReport({
@@ -441,6 +527,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       avgCombatDurationTurns: avgTurns,
       counteredByCards: cardPerformances,
       archetypePerformances: archPerformances,
+      archetypeHealthLosses: archHealthLosses,
+      isUncappedHealth: uncappedHealth,
     });
 
     unrankedEnemyReports.push(report);

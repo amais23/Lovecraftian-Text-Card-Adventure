@@ -20,15 +20,39 @@ export function getTierRating(overallScore: number): 'S' | 'A' | 'B' | 'C' | 'D'
 /**
  * 計算單卡之肉體生存分 (0 ~ 100)
  */
-export function calculateHealthScore(winRate: number, avgHealthLost: number, maxExpectedHp: number = 25): number {
+export function calculateHealthScore(
+  winRate: number,
+  avgHealthLost: number,
+  maxExpectedHp: number = 25,
+  isUncappedHealth: boolean = false
+): number {
+  if (isUncappedHealth) {
+    // 血量無上限模式：直接以肉體生命損失評定強弱（承傷越低、減傷/續航/速殺能力越高，得分越高）
+    // 基準承傷尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌容量環境）：
+    // <= 2.5 點損失 = 100 分，~7.2 點損失 = 60 分，~8.4 點損失 = 50 分，14.3+ 點損失 = 0 分
+    const score = 100 - (avgHealthLost - 2.5) * 8.5;
+    return Math.round(Math.max(0, Math.min(100, score)));
+  }
   const hpRetention = Math.max(0, 1 - avgHealthLost / maxExpectedHp);
   return Math.round(Math.max(0, Math.min(100, winRate * 60 + hpRetention * 40)));
 }
 
 /**
  * 計算單卡之心智效率分 (0 ~ 100)
+ * 理智牌庫消耗越低、回補洗回越高、維持常態清醒回合越長，心智效率分越高
  */
-export function calculateSanityScore(winRate: number, avgSanityExpended: number, maxExpectedSanity: number = 15): number {
+export function calculateSanityScore(
+  winRate: number,
+  avgSanityExpended: number,
+  maxExpectedSanity: number = 15,
+  isUncappedHealth: boolean = false
+): number {
+  if (isUncappedHealth) {
+    // 基準心智消耗尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌容量環境）：
+    // <= 1.0 張消耗 = 100 分，~5.0 張消耗 = 60 分，~6.0 張（中位數）= 50 分，>= 11.0 張消耗 = 0 分
+    const score = 100 - (avgSanityExpended - 1.0) * 10.0;
+    return Math.round(Math.max(0, Math.min(100, score)));
+  }
   const sanityRetention = Math.max(0, 1 - avgSanityExpended / maxExpectedSanity);
   return Math.round(Math.max(0, Math.min(100, winRate * 50 + sanityRetention * 50)));
 }
@@ -39,8 +63,14 @@ export function calculateSanityScore(winRate: number, avgSanityExpended: number,
 export function calculateOverallScore(
   healthScore: number,
   sanityScore: number,
-  faultToleranceRatio: number = 1.0
+  faultToleranceRatio: number = 1.0,
+  isUncappedHealth: boolean = false
 ): number {
+  if (isUncappedHealth) {
+    // 血量無上限模式：以「損失的生命值」為主軸核心權重 (75%)，結合心智消耗 (15%) 與容錯穩定度 (10%)
+    const score = healthScore * 0.75 + sanityScore * 0.15 + faultToleranceRatio * 10;
+    return Math.round(Math.max(0, Math.min(100, score)));
+  }
   const score = healthScore * 0.5 + sanityScore * 0.35 + faultToleranceRatio * 15;
   return Math.round(Math.max(0, Math.min(100, score)));
 }
@@ -55,45 +85,75 @@ export function createCardBalanceReport(params: {
   base3xMetrics: { winRate: number; avgHealthLost: number; avgSanityExpended: number; avgTurns: number };
   faultToleranceRatio: number;
   archetypeWinRates: Record<ArchetypeId, number>;
-  enemyMatchups: Array<{ id: string; name: string; winRate: number }>;
+  archetypeHealthLosses?: Record<ArchetypeId, number>;
+  enemyMatchups: Array<{ id: string; name: string; winRate: number; avgHealthLost?: number }>;
+  isUncappedHealth?: boolean;
 }): CardBalanceReport {
-  const { card, base1xMetrics, base2xMetrics, base3xMetrics, faultToleranceRatio, archetypeWinRates, enemyMatchups } = params;
+  const {
+    card,
+    base1xMetrics,
+    base2xMetrics,
+    base3xMetrics,
+    faultToleranceRatio,
+    archetypeWinRates,
+    archetypeHealthLosses,
+    enemyMatchups,
+    isUncappedHealth = false,
+  } = params;
 
   // 1. 各副本階層得分計算
   const calcScore = (m: { winRate: number; avgHealthLost: number; avgSanityExpended: number }) => {
-    const h = calculateHealthScore(m.winRate, m.avgHealthLost);
-    const s = calculateSanityScore(m.winRate, m.avgSanityExpended);
-    return calculateOverallScore(h, s, faultToleranceRatio);
+    const h = calculateHealthScore(m.winRate, m.avgHealthLost, 25, isUncappedHealth);
+    const s = calculateSanityScore(m.winRate, m.avgSanityExpended, 15, isUncappedHealth);
+    return calculateOverallScore(h, s, faultToleranceRatio, isUncappedHealth);
   };
 
   const score1x = calcScore(base1xMetrics);
   const score2x = calcScore(base2xMetrics);
   const score3x = calcScore(base3xMetrics);
 
-  const healthScore = calculateHealthScore(base1xMetrics.winRate, base1xMetrics.avgHealthLost);
-  const sanityScore = calculateSanityScore(base1xMetrics.winRate, base1xMetrics.avgSanityExpended);
+  const healthScore = calculateHealthScore(base1xMetrics.winRate, base1xMetrics.avgHealthLost, 25, isUncappedHealth);
+  const sanityScore = calculateSanityScore(base1xMetrics.winRate, base1xMetrics.avgSanityExpended, 15, isUncappedHealth);
   const overallScore = score1x;
   const tierRating = getTierRating(overallScore);
 
   // 2. 流派協同倍率計算（相對於 Baseline 裸強度的放大倍率）
-  const baselineWinRate = Math.max(0.05, base1xMetrics.winRate);
   const synergyMultipliers = {} as Record<ArchetypeId, number>;
   let bestArchetype: ArchetypeId = 'armor_counter';
   let maxMultiplier = -1;
 
-  for (const [archKey, archWinRate] of Object.entries(archetypeWinRates) as [ArchetypeId, number][]) {
-    const mult = Number((archWinRate / baselineWinRate).toFixed(2));
-    synergyMultipliers[archKey] = mult;
-    if (mult > maxMultiplier) {
-      maxMultiplier = mult;
-      bestArchetype = archKey;
+  if (isUncappedHealth && archetypeHealthLosses) {
+    const baselineLoss = Math.max(5, base1xMetrics.avgHealthLost);
+    for (const [archKey, archLoss] of Object.entries(archetypeHealthLosses) as [ArchetypeId, number][]) {
+      // 承傷越少，相對於 baseline 的防護/協同放大倍率越高
+      const mult = Number(((baselineLoss + 10) / (Math.max(1, archLoss) + 10)).toFixed(2));
+      synergyMultipliers[archKey] = mult;
+      if (mult > maxMultiplier) {
+        maxMultiplier = mult;
+        bestArchetype = archKey;
+      }
+    }
+  } else {
+    const baselineWinRate = Math.max(0.05, base1xMetrics.winRate);
+    for (const [archKey, archWinRate] of Object.entries(archetypeWinRates) as [ArchetypeId, number][]) {
+      const mult = Number((archWinRate / baselineWinRate).toFixed(2));
+      synergyMultipliers[archKey] = mult;
+      if (mult > maxMultiplier) {
+        maxMultiplier = mult;
+        bestArchetype = archKey;
+      }
     }
   }
 
   // 3. 敵怪優劣勢排序 (Top 3)
-  const sortedMatchups = [...enemyMatchups].sort((a, b) => b.winRate - a.winRate);
-  const favorableEnemies = sortedMatchups.slice(0, 3);
-  const unfavorableEnemies = sortedMatchups.slice(-3).reverse();
+  let sortedMatchups: Array<{ id: string; name: string; winRate: number; avgHealthLost?: number }>;
+  if (isUncappedHealth) {
+    sortedMatchups = [...enemyMatchups].sort((a, b) => (a.avgHealthLost ?? 0) - (b.avgHealthLost ?? 0));
+  } else {
+    sortedMatchups = [...enemyMatchups].sort((a, b) => b.winRate - a.winRate);
+  }
+  const favorableEnemies = sortedMatchups.slice(0, 3).map((e) => ({ id: e.id, name: e.name, winRate: e.winRate }));
+  const unfavorableEnemies = sortedMatchups.slice(-3).reverse().map((e) => ({ id: e.id, name: e.name, winRate: e.winRate }));
 
   return {
     id: card.id,
@@ -177,25 +237,34 @@ const RELIC_SYNERGIES: Record<string, { bestArchetype: ArchetypeId; synergies: R
 export function createRelicBalanceReport(params: {
   relic: Relic;
   copiesMetrics: Record<0 | 1 | 2 | 3, { winRate: number; avgHealthLost: number; avgSanityExpended: number }>;
+  isUncappedHealth?: boolean;
 }): RelicBalanceReport {
-  const { relic, copiesMetrics } = params;
+  const { relic, copiesMetrics, isUncappedHealth = false } = params;
 
   const scoreMap = {
     0: calculateOverallScore(
-      calculateHealthScore(copiesMetrics[0].winRate, copiesMetrics[0].avgHealthLost),
-      calculateSanityScore(copiesMetrics[0].winRate, copiesMetrics[0].avgSanityExpended)
+      calculateHealthScore(copiesMetrics[0].winRate, copiesMetrics[0].avgHealthLost, 25, isUncappedHealth),
+      calculateSanityScore(copiesMetrics[0].winRate, copiesMetrics[0].avgSanityExpended, 15, isUncappedHealth),
+      1.0,
+      isUncappedHealth
     ),
     1: calculateOverallScore(
-      calculateHealthScore(copiesMetrics[1].winRate, copiesMetrics[1].avgHealthLost),
-      calculateSanityScore(copiesMetrics[1].winRate, copiesMetrics[1].avgSanityExpended)
+      calculateHealthScore(copiesMetrics[1].winRate, copiesMetrics[1].avgHealthLost, 25, isUncappedHealth),
+      calculateSanityScore(copiesMetrics[1].winRate, copiesMetrics[1].avgSanityExpended, 15, isUncappedHealth),
+      1.0,
+      isUncappedHealth
     ),
     2: calculateOverallScore(
-      calculateHealthScore(copiesMetrics[2].winRate, copiesMetrics[2].avgHealthLost),
-      calculateSanityScore(copiesMetrics[2].winRate, copiesMetrics[2].avgSanityExpended)
+      calculateHealthScore(copiesMetrics[2].winRate, copiesMetrics[2].avgHealthLost, 25, isUncappedHealth),
+      calculateSanityScore(copiesMetrics[2].winRate, copiesMetrics[2].avgSanityExpended, 15, isUncappedHealth),
+      1.0,
+      isUncappedHealth
     ),
     3: calculateOverallScore(
-      calculateHealthScore(copiesMetrics[3].winRate, copiesMetrics[3].avgHealthLost),
-      calculateSanityScore(copiesMetrics[3].winRate, copiesMetrics[3].avgSanityExpended)
+      calculateHealthScore(copiesMetrics[3].winRate, copiesMetrics[3].avgHealthLost, 25, isUncappedHealth),
+      calculateSanityScore(copiesMetrics[3].winRate, copiesMetrics[3].avgSanityExpended, 15, isUncappedHealth),
+      1.0,
+      isUncappedHealth
     ),
   };
 
@@ -207,8 +276,8 @@ export function createRelicBalanceReport(params: {
 
   const overallScore = Math.max(0, Math.min(100, Math.round(scoreMap[1] + marginalBenefitPerStack)));
   const tierRating = getTierRating(overallScore);
-  const healthScore = calculateHealthScore(copiesMetrics[1].winRate, copiesMetrics[1].avgHealthLost);
-  const sanityScore = calculateSanityScore(copiesMetrics[1].winRate, copiesMetrics[1].avgSanityExpended);
+  const healthScore = calculateHealthScore(copiesMetrics[1].winRate, copiesMetrics[1].avgHealthLost, 25, isUncappedHealth);
+  const sanityScore = calculateSanityScore(copiesMetrics[1].winRate, copiesMetrics[1].avgSanityExpended, 15, isUncappedHealth);
 
   const synergyInfo = RELIC_SYNERGIES[relic.id] || {
     bestArchetype: 'armor_counter' as ArchetypeId,
@@ -270,6 +339,8 @@ export function createEnemyThreatReport(params: {
   avgCombatDurationTurns: number;
   counteredByCards: Array<{ id: string; name: string; winRate: number }>;
   archetypePerformances: Record<ArchetypeId, number>; // 各流派面對此怪之勝率
+  archetypeHealthLosses?: Record<ArchetypeId, number>; // 各流派面對此怪之平均生命損失
+  isUncappedHealth?: boolean;
 }): EnemyThreatReport {
   const {
     enemy,
@@ -281,30 +352,59 @@ export function createEnemyThreatReport(params: {
     avgCombatDurationTurns,
     counteredByCards,
     archetypePerformances,
+    archetypeHealthLosses,
+    isUncappedHealth = false,
   } = params;
 
   // 威脅度指數 (0 ~ 100): 越難打贏、打殘調查員越多生命、侵蝕越多理智，威脅度越高
-  const defeatRate = 1 - investigatorWinRate;
-  const hpDamageNorm = Math.min(1, avgInvestigatorHealthLost / 25);
-  const sanityErodeNorm = Math.min(1, avgSanityEroded / 15);
-  const threatScore = Math.round(
-    Math.max(0, Math.min(100, defeatRate * 60 + hpDamageNorm * 25 + sanityErodeNorm * 15))
-  );
+  let threatScore: number;
+  if (isUncappedHealth) {
+    // 血量無上限模式：威脅度由「敵怪對調查員造成的肉體生命損耗」主導判定！
+    // 基準刻度：最高危險標竿 ~120 點生命損失
+    const hpDamageNorm = Math.min(1, avgInvestigatorHealthLost / 120);
+    const sanityErodeNorm = Math.min(1, avgSanityEroded / 15);
+    threatScore = Math.round(
+      Math.max(0, Math.min(100, hpDamageNorm * 75 + sanityErodeNorm * 25))
+    );
+  } else {
+    const defeatRate = 1 - investigatorWinRate;
+    const hpDamageNorm = Math.min(1, avgInvestigatorHealthLost / 25);
+    const sanityErodeNorm = Math.min(1, avgSanityEroded / 15);
+    threatScore = Math.round(
+      Math.max(0, Math.min(100, defeatRate * 60 + hpDamageNorm * 25 + sanityErodeNorm * 15))
+    );
+  }
 
   // 找出剋制此怪的最優流派與最危險流派
-  let maxArchWin = -1;
-  let minArchWin = 2;
   let vulnerableArchetype: ArchetypeId = 'armor_counter';
   let dangerousArchetype: ArchetypeId = 'madness_sacrifice';
 
-  for (const [arch, win] of Object.entries(archetypePerformances) as [ArchetypeId, number][]) {
-    if (win > maxArchWin) {
-      maxArchWin = win;
-      vulnerableArchetype = arch;
+  if (isUncappedHealth && archetypeHealthLosses) {
+    // 損失生命最少代表最剋制此怪，損失生命最多代表最受威脅
+    let minLoss = Infinity;
+    let maxLoss = -1;
+    for (const [arch, loss] of Object.entries(archetypeHealthLosses) as [ArchetypeId, number][]) {
+      if (loss < minLoss) {
+        minLoss = loss;
+        vulnerableArchetype = arch;
+      }
+      if (loss > maxLoss) {
+        maxLoss = loss;
+        dangerousArchetype = arch;
+      }
     }
-    if (win < minArchWin) {
-      minArchWin = win;
-      dangerousArchetype = arch;
+  } else {
+    let maxArchWin = -1;
+    let minArchWin = 2;
+    for (const [arch, win] of Object.entries(archetypePerformances) as [ArchetypeId, number][]) {
+      if (win > maxArchWin) {
+        maxArchWin = win;
+        vulnerableArchetype = arch;
+      }
+      if (win < minArchWin) {
+        minArchWin = win;
+        dangerousArchetype = arch;
+      }
     }
   }
 

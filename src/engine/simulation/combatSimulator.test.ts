@@ -266,4 +266,107 @@ describe('Combat Simulator & 1-Ply Optimal Solver (Issue #63 / ADR-0036)', () =>
       expect(batch.faultToleranceRatio).toBeLessThanOrEqual(1);
     });
   });
+
+  describe('Uncapped Health Simulation Mode (血量無上限模式)', () => {
+    it('allows combat to continue past standard 25 health without dying and accurately records uncapped health loss', () => {
+      const bossEnemy: Enemy = {
+        id: 'heavy_boss',
+        name: '狂暴巨怪',
+        title: '毀滅之眼',
+        health: 40,
+        maxHealth: 40,
+        armor: 0,
+        currentIntent: { type: 'attack', value: 30, name: '毀滅拍擊', description: '' },
+      };
+
+      // Standard mode: with 25 health, hits for 30 immediately kills investigator (healthLost capped at 25)
+      const standardSim = simulateCombat({
+        deck: [basicAttackCard, basicAttackCard, basicAttackCard, basicAttackCard],
+        enemy: cloneEnemy(bossEnemy),
+        uncappedHealth: false,
+      });
+      expect(standardSim.victory).toBe(false);
+      expect(standardSim.outcome).toBe('defeat');
+      expect(standardSim.healthLost).toBe(25);
+
+      // Uncapped mode: investigator survives 30 damage turn after turn, kills enemy, and records full uncapped damage
+      const uncappedSim = simulateCombat({
+        deck: [basicAttackCard, basicAttackCard, basicAttackCard, basicAttackCard],
+        enemy: cloneEnemy(bossEnemy),
+        uncappedHealth: true,
+      });
+      expect(uncappedSim.victory).toBe(true);
+      expect(uncappedSim.outcome).toBe('victory');
+      expect(uncappedSim.healthLost).toBeGreaterThan(25);
+    });
+
+    it('triggers low_health conditional effects based on standard 25 damage baseline in uncapped mode', () => {
+      const healCard: Card = {
+        id: 'test_heal',
+        name: '急救包紮',
+        category: 'skill',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'heal', value: 4, condition: { type: 'low_health', threshold: 0.5 } }],
+        description: '瀕死時恢復 4 點生命。',
+        flavorText: '',
+      };
+
+      const attacker: Enemy = {
+        id: 'attacker',
+        name: '撕裂魔',
+        title: '嗜血者',
+        health: 50,
+        maxHealth: 50,
+        armor: 0,
+        currentIntent: { type: 'attack', value: 15, name: '深淵痛擊', description: '' },
+      };
+
+      const sim = simulateCombat({
+        investigator: { health: 99980, maxHealth: 100000 },
+        deck: [healCard, basicAttackCard, basicAttackCard],
+        enemy: cloneEnemy(attacker),
+        uncappedHealth: true,
+        recordLogs: true,
+      });
+
+      // Investigator has taken 20 damage (> 12.5), so low_health condition matches and heals
+      expect(sim.logs.some((l) => l.includes('殘血絕地求生') || l.includes('恢復 4 點生命'))).toBe(true);
+    });
+
+    it('accurately accounts for sanity restorations and madness strain in sanityCardsExpended', () => {
+      const restoreCard: Card = {
+        id: 'test_restore',
+        name: '安神冥想',
+        category: 'truth',
+        costType: 'stamina',
+        costValue: 1,
+        isTemporary: false,
+        effects: [{ type: 'restore_sanity', value: 2 }],
+        description: '將棄牌堆中 2 張卡牌洗回理智牌庫。',
+        flavorText: '',
+      };
+
+      const ratEnemy: Enemy = {
+        id: 'small_rat',
+        name: '弱小老鼠',
+        title: '異化鼠',
+        health: 5,
+        maxHealth: 5,
+        armor: 0,
+        currentIntent: { type: 'attack', value: 1, name: '啃咬', description: '' },
+      };
+
+      // 1 turn kill, no madness, deck has remaining cards
+      const fastSim = simulateCombat({
+        deck: [restoreCard, basicAttackCard, basicAttackCard, basicAttackCard],
+        enemy: cloneEnemy(ratEnemy),
+        uncappedHealth: true,
+      });
+
+      expect(fastSim.sanityCardsExpended).toBeLessThan(4);
+      expect(fastSim.sanityDeckRemaining).toBeGreaterThan(0);
+    });
+  });
 });

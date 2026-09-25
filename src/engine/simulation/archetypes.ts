@@ -89,3 +89,57 @@ export function buildNoiseDeck(randomFn: () => number = Math.random): Card[] {
 
   return ensureUniqueCardIds([...baseStarter, ...picked]);
 }
+
+/**
+ * 組裝隨機化流派牌庫 (10 ~ 35 張) (ADR-0001, ADR-0009, ADR-0033)
+ * - 植入該流派核心卡牌
+ * - 若有目標卡則植入 1~3 張
+ * - 隨機補充至 10 ~ 35 張規模
+ */
+export function buildRandomizedArchetypeDeck(options: {
+  archetypeId: ArchetypeId;
+  targetCard?: Card;
+  copies?: 1 | 2 | 3;
+  minSize?: number;
+  maxSize?: number;
+  randomFn?: () => number;
+}): Card[] {
+  const {
+    archetypeId,
+    targetCard,
+    copies = 1,
+    minSize = 10,
+    maxSize = 35,
+    randomFn = Math.random,
+  } = options;
+
+  const def = ARCHETYPE_DEFINITIONS[archetypeId];
+  const compendium = CardRegistry.getAllCompendiumCards();
+  const deckSize = minSize + Math.floor(randomFn() * (maxSize - minSize + 1));
+  const deck: Card[] = [];
+
+  // 1. 植入目標卡
+  if (targetCard) {
+    for (let i = 0; i < copies; i++) {
+      deck.push({ ...targetCard });
+    }
+  }
+
+  // 2. 植入流派核心卡
+  for (const cardName of def.coreCardNames) {
+    const found = compendium.find((c) => c.name === cardName);
+    if (found && deck.length < deckSize) {
+      deck.push({ ...found });
+    }
+  }
+
+  // 3. 補足其餘張數至 deckSize (隨機抽樣自卡池)
+  const remaining = Math.max(0, deckSize - deck.length);
+  for (let i = 0; i < remaining; i++) {
+    const pick = compendium[Math.floor(randomFn() * compendium.length)];
+    deck.push({ ...pick });
+  }
+
+  return ensureUniqueCardIds(deck);
+}
+

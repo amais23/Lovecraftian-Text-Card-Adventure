@@ -209,7 +209,13 @@ export function evaluateCardPlay(
         }
       } else if (cond.type === 'low_health') {
         const thresholdRatio = cond.threshold ?? 0.5;
-        conditionMatched = (investigatorHealth / investigator.maxHealth) <= thresholdRatio;
+        // 若在血量無上限模擬模式下（初始生命 >= 1000），以標準 25 點生命損失作為判定基準（損失超過 12.5 點視為低生命）
+        if (investigator.maxHealth >= 1000) {
+          const effectiveDamageTaken = investigator.maxHealth - investigatorHealth;
+          conditionMatched = effectiveDamageTaken >= 25 * (1 - thresholdRatio);
+        } else {
+          conditionMatched = (investigatorHealth / investigator.maxHealth) <= thresholdRatio;
+        }
         if (conditionMatched) {
           conditionDesc = `殘血絕地求生`;
         }

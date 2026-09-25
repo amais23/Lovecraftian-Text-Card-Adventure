@@ -58,6 +58,28 @@ describe('Balance Analyzer & Orthogonal Sampler (Issue #64)', () => {
       expect(calculateSanityScore(0.0, 30)).toBe(0);
     });
 
+    it('evaluates healthScore directly by health lost in uncapped health mode', () => {
+      // 0 ~ 2.5 health lost = 100
+      expect(calculateHealthScore(1.0, 0, 25, true)).toBe(100);
+      expect(calculateHealthScore(1.0, 2.5, 25, true)).toBe(100);
+      // 7.2 health lost = 60 (calibrated benchmark: 100 - 4.7 * 8.5 = 60)
+      expect(calculateHealthScore(1.0, 7.2, 25, true)).toBe(60);
+      // 14.3+ health lost = 0
+      expect(calculateHealthScore(1.0, 15, 25, true)).toBe(0);
+      expect(calculateHealthScore(1.0, 50, 25, true)).toBe(0);
+    });
+
+    it('evaluates sanityScore directly by mental strain in uncapped health mode', () => {
+      // 0 ~ 1.0 sanity expended = 100
+      expect(calculateSanityScore(1.0, 0, 15, true)).toBe(100);
+      expect(calculateSanityScore(1.0, 1.0, 15, true)).toBe(100);
+      // 5.0 sanity expended = 60 (calibrated benchmark: 100 - 4.0 * 10 = 60)
+      expect(calculateSanityScore(1.0, 5.0, 15, true)).toBe(60);
+      // 11.0+ sanity expended = 0
+      expect(calculateSanityScore(1.0, 11.0, 15, true)).toBe(0);
+      expect(calculateSanityScore(1.0, 25, 15, true)).toBe(0);
+    });
+
     it('calculates overall score combining health, sanity, and fault tolerance ratio', () => {
       const overall = calculateOverallScore(80, 70, 0.9);
       expect(overall).toBeGreaterThanOrEqual(0);
@@ -158,6 +180,43 @@ describe('Balance Analyzer & Orthogonal Sampler (Issue #64)', () => {
       expect(report.counteredByCards[0].id).toBe('shotgun');
       expect(report.vulnerableArchetype).toBe('armor_counter');
       expect(report.dangerousArchetype).toBe('madness_sacrifice');
+    });
+
+    it('assembles an enemy threat report in uncapped health mode driven by investigator health loss', () => {
+      const deadlyBossReport = createEnemyThreatReport({
+        enemy: dummyEnemy,
+        depth: 4,
+        role: 'boss',
+        investigatorWinRate: 1.0,
+        avgInvestigatorHealthLost: 120.0,
+        avgSanityEroded: 15.0,
+        avgCombatDurationTurns: 12.0,
+        counteredByCards: [
+          { id: 'shield', name: '大盾', winRate: 1.0 },
+        ],
+        archetypePerformances: {
+          armor_counter: 1.0,
+          bleed_pierce: 1.0,
+          truth_restore: 1.0,
+          madness_sacrifice: 1.0,
+          high_cost_magic: 1.0,
+          status_attrition: 1.0,
+        },
+        archetypeHealthLosses: {
+          armor_counter: 60.0, // lowest damage taken -> vulnerable
+          bleed_pierce: 100.0,
+          truth_restore: 110.0,
+          madness_sacrifice: 150.0, // highest damage taken -> dangerous
+          high_cost_magic: 120.0,
+          status_attrition: 90.0,
+        },
+        isUncappedHealth: true,
+      });
+
+      // 120 damage / 120 * 75 (75) + 15 sanity / 15 * 25 (25) = 100
+      expect(deadlyBossReport.threatScore).toBe(100);
+      expect(deadlyBossReport.vulnerableArchetype).toBe('armor_counter');
+      expect(deadlyBossReport.dangerousArchetype).toBe('madness_sacrifice');
     });
   });
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BalanceMatrixDashboard } from './BalanceMatrixDashboard';
+import balanceData from '../data/balance/balance_summary_data.json';
 
 describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
   beforeEach(() => {
@@ -59,7 +60,11 @@ describe('BalanceMatrixDashboard (ADR-0036 / #65)', () => {
 
     // Check matchup lists
     expect(screen.getByText(/優勢剋制敵怪/)).toBeDefined();
-    expect(screen.getByText(/阿卡姆異教徒/)).toBeDefined();
+    expect(screen.getByText(/劣勢威脅敵怪/)).toBeDefined();
+    const revolverData = balanceData.cards['card_revolver_1'];
+    if (revolverData && revolverData.favorableEnemies.length > 0) {
+      expect(screen.getByText(new RegExp(revolverData.favorableEnemies[0].name))).toBeDefined();
+    }
   });
 
   it('toggles target type to relics and inspects relic balance report', () => {

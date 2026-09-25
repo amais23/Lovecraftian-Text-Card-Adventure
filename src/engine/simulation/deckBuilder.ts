@@ -50,3 +50,44 @@ export function buildRelicSet(
 export function getStarterBaseline(occupation: 'investigator' | 'occultist' = 'investigator'): Card[] {
   return CardRegistry.getStarterDeck(occupation);
 }
+
+/**
+ * 隨機牌庫抽樣建構器：在指定範圍（預設 10 ~ 35 張）內隨機組成牌庫 (ADR-0001, ADR-0009, ADR-0033)
+ * - 不再硬性綁定預設起始手牌或固定 12 張初始牌庫
+ * - 從全 73 張典藏卡牌池中進行蒙地卡羅隨機抽樣
+ * - 若指定 targetCard 與 copies (1~3)，則確保植入該指定張數的目標卡牌
+ */
+export function buildRandomizedDeck(options: {
+  targetCard?: Card;
+  copies?: 1 | 2 | 3;
+  minSize?: number;
+  maxSize?: number;
+  candidatePool?: Card[];
+  randomFn?: () => number;
+} = {}): Card[] {
+  const {
+    targetCard,
+    copies = 1,
+    minSize = 10,
+    maxSize = 35,
+    candidatePool = CardRegistry.getAllCompendiumCards(),
+    randomFn = Math.random,
+  } = options;
+
+  const deckSize = minSize + Math.floor(randomFn() * (maxSize - minSize + 1));
+  const deck: Card[] = [];
+
+  if (targetCard) {
+    for (let i = 0; i < copies; i++) {
+      deck.push({ ...targetCard });
+    }
+  }
+
+  const remaining = Math.max(0, deckSize - deck.length);
+  for (let i = 0; i < remaining; i++) {
+    const pickIdx = Math.floor(randomFn() * candidatePool.length);
+    deck.push({ ...candidatePool[pickIdx] });
+  }
+
+  return ensureUniqueCardIds(deck);
+}

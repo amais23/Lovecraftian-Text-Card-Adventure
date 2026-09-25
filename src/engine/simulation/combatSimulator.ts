@@ -23,11 +23,16 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
     maxTurns = 40,
     recordLogs = false,
     randomFn = Math.random,
+    uncappedHealth = false,
+    handCapacity: optionsHandCapacity,
   } = options;
 
   // 1. 組裝調查員初始實體
-  const initialHealth = customInvestigator?.health ?? customInvestigator?.maxHealth ?? INITIAL_INVESTIGATOR.health;
-  const initialMaxHealth = customInvestigator?.maxHealth ?? INITIAL_INVESTIGATOR.maxHealth;
+  const defaultInitialHealth = uncappedHealth ? 100000 : INITIAL_INVESTIGATOR.health;
+  const defaultMaxHealth = uncappedHealth ? 100000 : INITIAL_INVESTIGATOR.maxHealth;
+  const initialHealth = customInvestigator?.health ?? (uncappedHealth ? defaultInitialHealth : (customInvestigator?.maxHealth ?? INITIAL_INVESTIGATOR.health));
+  const initialMaxHealth = customInvestigator?.maxHealth ?? defaultMaxHealth;
+  const resolvedHandCapacity = optionsHandCapacity ?? customInvestigator?.handCapacity ?? INITIAL_INVESTIGATOR.handCapacity ?? 2;
   const baseInvestigator: Investigator = {
     ...INITIAL_INVESTIGATOR,
     ...customInvestigator,
@@ -39,7 +44,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
     statusEffects: customInvestigator?.statusEffects ? [...customInvestigator.statusEffects] : [],
     occupationId: customInvestigator?.occupationId ?? INITIAL_INVESTIGATOR.occupationId ?? 'investigator',
     relics: [...relics],
-    handCapacity: customInvestigator?.handCapacity ?? INITIAL_INVESTIGATOR.handCapacity ?? 2,
+    handCapacity: resolvedHandCapacity,
   };
 
   // 2. 初始化戰鬥會話
@@ -47,6 +52,7 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
     enemy,
     deck,
     investigator: baseInvestigator,
+    handCapacity: resolvedHandCapacity,
   });
 
   let currentInvestigator: Investigator = session.investigator;
@@ -61,10 +67,16 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
   const totalLogs: string[] = recordLogs ? [...session.logs] : [];
   let cardsPlayedTotal = 0;
   const initialSanityCount = deck.length;
+  let totalSanityRestored = 0;
+  let madnessTurns = 0;
 
   let outcome: 'victory' | 'defeat' | 'timeout' = 'timeout';
 
   while (currentTurn <= maxTurns) {
+    if (isMadness) {
+      madnessTurns++;
+    }
+
     // 檢查開局即時勝負
     if (currentInvestigator.health <= 0) {
       outcome = 'defeat';
@@ -113,9 +125,14 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
         randomFn,
       };
 
+      const deckLenBefore = currentSanityDeck.length;
       const playResult = evaluateCardPlay(card, playContext);
       if (!playResult.success) {
         continue;
+      }
+
+      if (playResult.sanityDeck.length > deckLenBefore) {
+        totalSanityRestored += playResult.sanityDeck.length - deckLenBefore;
       }
 
       cardsPlayedThisTurn++;
@@ -195,7 +212,12 @@ export function simulateCombat(options: SingleCombatOptions): SingleCombatResult
   }
 
   const healthLost = Math.max(0, initialHealth - currentInvestigator.health);
-  const sanityCardsExpended = Math.max(0, initialSanityCount - currentSanityDeck.length);
+  const baseSanityExpended = Math.max(0, initialSanityCount - currentSanityDeck.length);
+  // 心智磨損綜合評估：基礎牌庫淨流失 + 陷入瘋狂深淵的回合損耗 (每回合折算 1.5 張黑卡心智負擔) - 打出卡牌洗回理智牌庫的回補量
+  const mentalStrain = uncappedHealth
+    ? Math.max(0, baseSanityExpended - totalSanityRestored + madnessTurns * 1.5)
+    : Math.max(0, baseSanityExpended - totalSanityRestored);
+  const sanityCardsExpended = Number(mentalStrain.toFixed(1));
 
   return {
     victory: outcome === 'victory',
