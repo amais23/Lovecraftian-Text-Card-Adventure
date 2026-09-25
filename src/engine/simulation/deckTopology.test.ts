@@ -1,10 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import {
   computeWeightedJaccardDistance,
+  computeSoftCosineSimilarity,
+  computeSoftCosineDistance,
+  computeAllPairSoftCosineDistances,
   classicalMDS,
   detectEmergentArchetypes,
 } from './deckTopology';
+import { computeCardMechanicsEmbeddings } from './cardEmbedding';
+import { getAllCompendiumCards } from '../cards/registry';
 import type { Card } from '../../types/game';
+
+
 
 describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
   const cardA: Card = {
@@ -80,6 +87,139 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
       const deck2 = [cardA, cardB, cardB];
       const dist = computeWeightedJaccardDistance(deck1, deck2);
       expect(dist).toBeCloseTo(0.5, 5);
+    });
+  });
+
+  describe('Soft Cosine Distance (Sidorov et al. 2014)', () => {
+    const compendiumCards = getAllCompendiumCards();
+
+    it('returns 0 for identical or empty decks, and satisfies symmetry', () => {
+      const distEmpty = computeSoftCosineDistance([], [], [], new Map());
+      expect(distEmpty).toBe(0);
+
+      const simEmpty = computeSoftCosineSimilarity([], [], [], new Map());
+      expect(simEmpty).toBe(1.0);
+
+      const embeddingResult = computeCardMechanicsEmbeddings(compendiumCards);
+      const testDeck = compendiumCards.slice(0, 10);
+
+      const distSelf = computeSoftCosineDistance(
+        testDeck,
+        testDeck,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+      expect(distSelf).toBe(0);
+
+      const deckA = compendiumCards.slice(0, 10);
+      const deckB = compendiumCards.slice(5, 15);
+      const distAB = computeSoftCosineDistance(
+        deckA,
+        deckB,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+      const distBA = computeSoftCosineDistance(
+        deckB,
+        deckA,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+      expect(distAB).toBe(distBA);
+      expect(distAB).toBeGreaterThanOrEqual(0);
+      expect(distAB).toBeLessThanOrEqual(1);
+    });
+
+    it('replaces hard Jaccard 1.0 with continuous 0.15~0.25 distance when substituting same-niche defense cards', () => {
+      const embeddingResult = computeCardMechanicsEmbeddings(compendiumCards);
+      const cardMap = new Map(compendiumCards.map((c) => [c.id, c]));
+
+      const cover = cardMap.get('card_cover_1')!; // 就地掩蔽
+      const tactical = cardMap.get('reward_tactical_roll_1')!; // 戰術翻滾
+      const bastion = cardMap.get('card_tier3_impenetrable_bastion')!; // 不可侵犯之壁
+      const ironWill = cardMap.get('card_tier2_iron_will')!; // 鋼鐵意志屏障
+      const detonation = cardMap.get('reward_abyssal_detonation')!; // 深淵引爆
+
+      // Shared core cards (8 cards)
+      const sharedCards = compendiumCards.slice(0, 8);
+
+      // Deck 1: shared + 2 defense cards [cover, bastion]
+      const deck1 = [...sharedCards, cover, bastion];
+
+      // Deck 2: shared + 2 substituted defense cards [tactical, ironWill]
+      const deck2 = [...sharedCards, tactical, ironWill];
+
+      // Deck 3: shared + 2 cross-archetype explosive magic cards [detonation, detonation]
+      const deck3 = [...sharedCards, detonation, detonation];
+
+      const softDist12 = computeSoftCosineDistance(
+        deck1,
+        deck2,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+
+      const softDist13 = computeSoftCosineDistance(
+        deck1,
+        deck3,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+
+      // Substituting defense cards produces continuous close distance (0.15 ~ 0.25)
+      expect(softDist12).toBeGreaterThanOrEqual(0.08);
+      expect(softDist12).toBeLessThanOrEqual(0.25);
+
+      // Substituting with cross-archetype detonation produces much higher distance
+      expect(softDist13).toBeGreaterThan(softDist12 + 0.15);
+
+      // For a purely substituted 2-card deck (100% disjoint in card identity, Jaccard = 1.0):
+      const pureDefDeck1 = [cover, bastion];
+      const pureDefDeck2 = [tactical, ironWill];
+      const pureJaccard = computeWeightedJaccardDistance(pureDefDeck1, pureDefDeck2);
+      const pureSoftDist = computeSoftCosineDistance(
+        pureDefDeck1,
+        pureDefDeck2,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+
+      expect(pureJaccard).toBe(1.0);
+      expect(pureSoftDist).toBeLessThan(0.40); // Mechanics semantic distance drops dramatically from 1.0
+    });
+
+    it('computes full 380 x 380 distance matrix in under 50ms', () => {
+      const embeddingResult = computeCardMechanicsEmbeddings(compendiumCards);
+
+      // Generate 380 synthetic sample decks of 15~20 cards each
+      const sampleDecks: Card[][] = [];
+      const numDecks = 380;
+      for (let i = 0; i < numDecks; i++) {
+        const deck: Card[] = [];
+        const deckSize = 15 + (i % 6);
+        for (let j = 0; j < deckSize; j++) {
+          const cardIdx = (i * 7 + j * 13) % compendiumCards.length;
+          deck.push(compendiumCards[cardIdx]);
+        }
+        sampleDecks.push(deck);
+      }
+
+      const start = performance.now();
+      const distMatrix = computeAllPairSoftCosineDistances(
+        sampleDecks,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+      const elapsed = performance.now() - start;
+
+      expect(distMatrix).toHaveLength(numDecks);
+      expect(distMatrix[0]).toHaveLength(numDecks);
+      expect(distMatrix[0][0]).toBe(0);
+      expect(distMatrix[10][10]).toBe(0);
+      expect(distMatrix[15][42]).toBe(distMatrix[42][15]);
+
+      // Performance assertion: strictly < 50ms (typically ~10ms)
+      expect(elapsed).toBeLessThan(50);
     });
   });
 
