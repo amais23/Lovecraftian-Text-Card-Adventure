@@ -6,10 +6,13 @@ import {
   computeAllPairSoftCosineDistances,
   classicalMDS,
   detectEmergentArchetypes,
+  generateArchetypeFamilyDecks,
 } from './deckTopology';
 import { computeCardMechanicsEmbeddings } from './cardEmbedding';
 import { getAllCompendiumCards } from '../cards/registry';
 import type { Card } from '../../types/game';
+import type { EmergentArchetype } from './balanceTypes';
+
 
 
 
@@ -322,4 +325,166 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
       expect(archA?.signatureCards).toHaveLength(2);
     });
   });
+
+  describe('Archetype Family Sampling (Issue #70)', () => {
+    const compendiumCards = getAllCompendiumCards();
+    const embeddingResult = computeCardMechanicsEmbeddings(compendiumCards);
+
+    const arch1Cards = compendiumCards
+      .filter((c) => c.effects.some((e) => e.type === 'armor' || e.type === 'heal'))
+      .slice(0, 8);
+
+    const arch2Cards = compendiumCards
+      .filter((c) => c.effects.some((e) => e.type === 'damage'))
+      .slice(0, 8);
+
+    const arch3Cards = compendiumCards
+      .filter((c) => c.effects.some((e) => e.type === 'draw' || e.type === 'restore_sanity'))
+      .slice(0, 8);
+
+    const arch4Cards = compendiumCards
+      .filter((c) => c.effects.some((e) => e.type === 'apply_status'))
+      .slice(0, 8);
+
+    const mockArchetypes: EmergentArchetype[] = [
+      {
+        id: 'emergent_arch_1',
+        name: `【${arch1Cards[0].name}＋${arch1Cards[1].name}】體系`,
+        signatureCards: [
+          { id: arch1Cards[0].id, name: arch1Cards[0].name },
+          { id: arch1Cards[1].id, name: arch1Cards[1].name },
+        ],
+        memberCardIds: arch1Cards.map((c) => c.id),
+        coreCombos: [],
+        deckCount: 0,
+        avgScore: 0,
+        avgHealthLost: 0,
+        avgSanityExpended: 0,
+      },
+      {
+        id: 'emergent_arch_2',
+        name: `【${arch2Cards[0].name}＋${arch2Cards[1].name}】體系`,
+        signatureCards: [
+          { id: arch2Cards[0].id, name: arch2Cards[0].name },
+          { id: arch2Cards[1].id, name: arch2Cards[1].name },
+        ],
+        memberCardIds: arch2Cards.map((c) => c.id),
+        coreCombos: [],
+        deckCount: 0,
+        avgScore: 0,
+        avgHealthLost: 0,
+        avgSanityExpended: 0,
+      },
+      {
+        id: 'emergent_arch_3',
+        name: `【${arch3Cards[0].name}＋${arch3Cards[1].name}】體系`,
+        signatureCards: [
+          { id: arch3Cards[0].id, name: arch3Cards[0].name },
+          { id: arch3Cards[1].id, name: arch3Cards[1].name },
+        ],
+        memberCardIds: arch3Cards.map((c) => c.id),
+        coreCombos: [],
+        deckCount: 0,
+        avgScore: 0,
+        avgHealthLost: 0,
+        avgSanityExpended: 0,
+      },
+      {
+        id: 'emergent_arch_4',
+        name: `【${arch4Cards[0].name}＋${arch4Cards[1].name}】體系`,
+        signatureCards: [
+          { id: arch4Cards[0].id, name: arch4Cards[0].name },
+          { id: arch4Cards[1].id, name: arch4Cards[1].name },
+        ],
+        memberCardIds: arch4Cards.map((c) => c.id),
+        coreCombos: [],
+        deckCount: 0,
+        avgScore: 0,
+        avgHealthLost: 0,
+        avgSanityExpended: 0,
+      },
+    ];
+
+    it('generates 380 representative decks matching archetype quotas and constraints', () => {
+      const familyDecks = generateArchetypeFamilyDecks({
+        emergentArchetypes: mockArchetypes,
+        allCards: compendiumCards,
+        totalTarget: 380,
+      });
+
+      expect(familyDecks).toHaveLength(380);
+
+      // Verify hand retention spans 2~6
+      const handRetentions = new Set(familyDecks.map((d) => d.handRetention));
+      expect(handRetentions.has(2)).toBe(true);
+      expect(handRetentions.has(4)).toBe(true);
+      expect(handRetentions.has(6)).toBe(true);
+
+      // Verify deck size spans 10~35
+      const minSize = Math.min(...familyDecks.map((d) => d.deck.length));
+      const maxSize = Math.max(...familyDecks.map((d) => d.deck.length));
+      expect(minSize).toBeGreaterThanOrEqual(10);
+      expect(maxSize).toBeLessThanOrEqual(35);
+
+      // Verify ~75 variants per pure archetype (4 * 75 = 300)
+      const arch1Decks = familyDecks.filter((d) => d.archetypeId === 'emergent_arch_1');
+      const arch2Decks = familyDecks.filter((d) => d.archetypeId === 'emergent_arch_2');
+      expect(arch1Decks.length).toBe(75);
+      expect(arch2Decks.length).toBe(75);
+
+      // Verify ~80 hybrid & rogue decks
+      const hybridRogueDecks = familyDecks.filter((d) => d.isHybridOrRogue);
+      expect(hybridRogueDecks.length).toBe(80);
+    });
+
+    it('verifies natural 70%~90% card overlap and low high-dimensional distance within the same family', () => {
+      const familyDecks = generateArchetypeFamilyDecks({
+        emergentArchetypes: mockArchetypes,
+        allCards: compendiumCards,
+        totalTarget: 380,
+      });
+
+      const arch1Decks = familyDecks.filter((d) => d.archetypeId === 'emergent_arch_1');
+      const arch2Decks = familyDecks.filter((d) => d.archetypeId === 'emergent_arch_2');
+
+      // Sample two decks from Family 1
+      const deckA = arch1Decks[0].deck;
+      const deckB = arch1Decks[1].deck;
+
+      // Extract base IDs
+      const idsA = new Set(deckA.map((c) => c.id.replace(/_copy_\d+$/, '')));
+      const idsB = new Set(deckB.map((c) => c.id.replace(/_copy_\d+$/, '')));
+
+      let overlap = 0;
+      for (const id of idsA) {
+        if (idsB.has(id)) overlap++;
+      }
+      const overlapRate = overlap / Math.min(idsA.size, idsB.size);
+
+      // Natural overlap rate is between 70% and 90%
+      expect(overlapRate).toBeGreaterThanOrEqual(0.65);
+
+      // Compare intra-family Soft Cosine Distance vs cross-family
+      const intraDist = computeSoftCosineDistance(
+        deckA,
+        deckB,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+
+      const crossDeck = arch2Decks[0].deck;
+      const crossDist = computeSoftCosineDistance(
+        deckA,
+        crossDeck,
+        embeddingResult.similarityMatrix,
+        embeddingResult.cardIndexMap
+      );
+
+      // Intra-family distance is significantly lower than cross-family distance
+      expect(intraDist).toBeLessThan(0.35);
+      expect(crossDist).toBeGreaterThan(0.50);
+      expect(crossDist).toBeGreaterThan(intraDist + 0.20);
+    });
+  });
 });
+

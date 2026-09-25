@@ -15,10 +15,13 @@ import {
   createRelicBalanceReport,
 } from './balanceAnalyzer';
 import {
-  computeWeightedJaccardDistance,
+  computeAllPairSoftCosineDistances,
   classicalMDS,
   detectEmergentArchetypes,
+  generateArchetypeFamilyDecks,
 } from './deckTopology';
+
+
 import { computeCardMechanicsEmbeddings } from './cardEmbedding';
 import type {
   ArchetypeId,
@@ -146,19 +149,6 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   const singleCardCombatStats = new Map<string, { runs: number; totalScore: number }>();
   const pairCombatStats = new Map<string, { runs: number; totalScore: number }>();
 
-  // 300~500 套高代表性完整理智牌庫樣本庫 (ADR-0038)
-  const candidateDecks = new Map<
-    string,
-    {
-      deck: Card[];
-      handRetention: number;
-      runs: number;
-      wins: number;
-      totalHpLost: number;
-      totalSanity: number;
-    }
-  >();
-
   // 輔助函式：批次模擬指定牌庫面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌保留數採樣）
   function testMatchup(
     deckSource: Card[] | ((runIndex: number) => { deck: Card[]; handRetention?: number; handCapacity?: number }),
@@ -234,27 +224,6 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
           }
           pStat.runs++;
           pStat.totalScore += cScore;
-        }
-      }
-
-      // ADR-0038: 取樣完整代表性理智牌庫 (目標收集 300~450 套典型牌庫)
-      if (candidateDecks.size < 400 && r === 0 && deck.length >= 10) {
-        const deckKey = deck.map((c) => c.id).sort().join(',');
-        const existing = candidateDecks.get(deckKey);
-        if (!existing) {
-          candidateDecks.set(deckKey, {
-            deck: [...deck],
-            handRetention,
-            runs: 1,
-            wins: resOpt.victory ? 1 : 0,
-            totalHpLost: resOpt.healthLost,
-            totalSanity: resOpt.sanityCardsExpended,
-          });
-        } else {
-          existing.runs++;
-          if (resOpt.victory) existing.wins++;
-          existing.totalHpLost += resOpt.healthLost;
-          existing.totalSanity += resOpt.sanityCardsExpended;
         }
       }
 
@@ -668,57 +637,100 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     cards,
     synergyMatrix,
     cardScores: cardScoresMap,
-    maxCommunities: 6,
+    maxCommunities: 4,
   });
 
   // ADR-0038 / Issue #68: 計算 73x73 卡牌力學 SVD 餘弦相似度矩陣
   const cardSimilarityResult = computeCardMechanicsEmbeddings(cards, { synergyMatrix });
 
   // ==========================================
-  // 階段五：代表牌庫加權 Jaccard 距離矩陣與經典 MDS 降維 (ADR-0038)
+  // 階段五：自然湧現流派家族變體牌庫生成、對弈評測與軟加權距離投影 (ADR-0038 / Issues #69, #70)
   // ==========================================
-  const sampledList = Array.from(candidateDecks.values()).slice(0, 380);
-  const numDecks = sampledList.length;
-  const distMatrix: number[][] = Array.from({ length: numDecks }, () => new Array(numDecks).fill(0));
+  const familyDecks = generateArchetypeFamilyDecks({
+    emergentArchetypes,
+    allCards: cards,
+    totalTarget: 380,
+    randomFn,
+  });
 
-  for (let i = 0; i < numDecks; i++) {
-    for (let j = i + 1; j < numDecks; j++) {
-      const d = computeWeightedJaccardDistance(sampledList[i].deck, sampledList[j].deck);
-      distMatrix[i][j] = d;
-      distMatrix[j][i] = d;
-    }
-  }
+  const numDecks = familyDecks.length;
+
+  // 1. 批次計算 380 x 380 軟加權餘弦距離矩陣 (Soft Cosine Distance)
+  const distMatrix = computeAllPairSoftCosineDistances(
+    familyDecks.map((d) => d.deck),
+    cardSimilarityResult.similarityMatrix,
+    cardSimilarityResult.cardIndexMap
+  );
 
   const mdsCoords = classicalMDS(distMatrix);
 
-  // 封裝 DeckTopologyNode 列表
+  // 2. 封裝 DeckTopologyNode 列表並聚合實戰戰績
   const deckTopologyNodes: DeckTopologyNode[] = [];
   const archStatsMap = new Map<string, { deckCount: number; scoreSum: number; hpSum: number; sanitySum: number }>();
 
+  // 選取 3 隻具代表性不同深度的敵怪進行實測評估 (1 普通, 1 精英, 1 首領)
+  const enemySample = [
+    representativeEnemies[0]?.enemy,
+    representativeEnemies[1]?.enemy,
+    representativeEnemies[2]?.enemy,
+  ].filter((e): e is Enemy => e !== undefined);
+
   for (let i = 0; i < numDecks; i++) {
-    const s = sampledList[i];
+    const s = familyDecks[i];
     const coords = mdsCoords[i] || [0.5, 0.5];
 
-    // 依據卡牌重疊佔比判定歸屬之自然流派 (Jaccard 相似度，移除 _copy_ 後綴)
+    // 進行實戰模擬以獲取勝率與耗損數據
+    let wins = 0;
+    let totalHpLost = 0;
+    let totalSanity = 0;
+
+    for (const enemy of enemySample) {
+      const res = simulateCombat({
+        deck: s.deck,
+        relics: PRESET_RELICS,
+        enemy: cloneEnemy(enemy),
+        handRetention: s.handRetention,
+        handCapacity: s.handRetention,
+        policyMode: 'optimal',
+        randomFn,
+        uncappedHealth,
+      });
+      if (res.victory) wins++;
+      totalHpLost += res.healthLost;
+      totalSanity += res.sanityCardsExpended;
+    }
+
+    const runs = enemySample.length || 1;
+    const winRate = Number((wins / runs).toFixed(3));
+    const avgHp = Number((totalHpLost / runs).toFixed(1));
+    const avgSanity = Number((totalSanity / runs).toFixed(1));
+
+    const hScore = calculateHealthScore(winRate, avgHp, 25, uncappedHealth);
+    const sScore = calculateSanityScore(winRate, avgSanity, 15, uncappedHealth);
+    const overallScore = calculateOverallScore(hScore, sScore, 1.0, uncappedHealth);
+
+    // 判定歸屬之自然流派
     const baseIdList = s.deck.map((c) => c.id.replace(/_copy_\d+$/, ''));
     const cardIdSet = new Set(baseIdList);
-    let bestArch = emergentArchetypes[0];
-    let maxAffinity = -1;
 
-    for (const arch of emergentArchetypes) {
-      let overlap = 0;
-      for (const mId of arch.memberCardIds) {
-        if (cardIdSet.has(mId)) overlap++;
-      }
-      const unionCount = cardIdSet.size + arch.memberCardIds.length - overlap;
-      const affinity = unionCount > 0 ? overlap / unionCount : 0;
-      if (affinity > maxAffinity) {
-        maxAffinity = affinity;
-        bestArch = arch;
+    let matchedArch = emergentArchetypes.find((a) => a.id === s.archetypeId);
+    if (!matchedArch) {
+      let maxAffinity = -1;
+      for (const arch of emergentArchetypes) {
+        let overlap = 0;
+        for (const mId of arch.memberCardIds) {
+          if (cardIdSet.has(mId)) overlap++;
+        }
+        const unionCount = cardIdSet.size + arch.memberCardIds.length - overlap;
+        const affinity = unionCount > 0 ? overlap / unionCount : 0;
+        if (affinity > maxAffinity) {
+          maxAffinity = affinity;
+          matchedArch = arch;
+        }
       }
     }
 
-    // 統計卡牌種類與張數 (依據卡牌名稱或基礎 ID 聚合副本)
+    // 統計卡牌種類與張數
     const countMap = new Map<string, { card: Card; copies: number }>();
     for (const c of s.deck) {
       const baseId = c.id.replace(/_copy_\d+$/, '');
@@ -737,27 +749,23 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       category: card.category,
     }));
 
-    const winRate = Number((s.wins / s.runs).toFixed(3));
-    const avgHp = Number((s.totalHpLost / s.runs).toFixed(1));
-    const avgSanity = Number((s.totalSanity / s.runs).toFixed(1));
-
-    const hScore = calculateHealthScore(winRate, avgHp, 25, uncappedHealth);
-    const sScore = calculateSanityScore(winRate, avgSanity, 15, uncappedHealth);
-    const overallScore = calculateOverallScore(hScore, sScore, 1.0, uncappedHealth);
-
     // 檢查是否包含該流派的核心 Combo
     const drivingCombos: Array<{ cards: string[]; synergy: number }> = [];
-    if (bestArch) {
-      for (const combo of bestArch.coreCombos) {
+    if (matchedArch) {
+      for (const combo of matchedArch.coreCombos) {
         if (combo.cardIds.every((id) => cardIdSet.has(id))) {
           drivingCombos.push({ cards: combo.cardNames, synergy: combo.synergyScore });
         }
       }
     }
 
+    const nodeName = s.isHybridOrRogue
+      ? `${s.archetypeName} #${i + 1}`
+      : `${matchedArch ? matchedArch.name : s.archetypeName} 變體 #${i + 1}`;
+
     const node: DeckTopologyNode = {
       id: `deck_node_${i + 1}`,
-      name: `${bestArch ? bestArch.name : '未知流派'} 變體 #${i + 1}`,
+      name: nodeName,
       cards: cardDetails,
       totalCards: s.deck.length,
       handRetention: s.handRetention,
@@ -766,8 +774,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       avgHealthLost: avgHp,
       avgSanityExpended: avgSanity,
       overallScore,
-      archetypeId: bestArch ? bestArch.id : 'unknown',
-      archetypeName: bestArch ? bestArch.name : '未知流派',
+      archetypeId: matchedArch ? matchedArch.id : s.archetypeId,
+      archetypeName: matchedArch ? matchedArch.name : s.archetypeName,
       drivingCombos,
       x: coords[0],
       y: coords[1],
@@ -775,11 +783,11 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
 
     deckTopologyNodes.push(node);
 
-    if (bestArch) {
-      let aStat = archStatsMap.get(bestArch.id);
+    if (matchedArch) {
+      let aStat = archStatsMap.get(matchedArch.id);
       if (!aStat) {
         aStat = { deckCount: 0, scoreSum: 0, hpSum: 0, sanitySum: 0 };
-        archStatsMap.set(bestArch.id, aStat);
+        archStatsMap.set(matchedArch.id, aStat);
       }
       aStat.deckCount++;
       aStat.scoreSum += overallScore;

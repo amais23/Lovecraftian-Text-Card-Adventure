@@ -1,5 +1,6 @@
 import type { Card } from '../../types/game';
 import type { EmergentArchetype } from './balanceTypes';
+import { ensureUniqueCardIds } from '../cardFactory';
 
 /**
  * ADR-0038: 科學熱力漸變光譜 (Cold Blue -> Emerald Green -> Bright Yellow)
@@ -617,3 +618,199 @@ export function detectEmergentArchetypes(params: {
 
   return results;
 }
+
+export interface ArchetypeFamilyDeck {
+  deck: Card[];
+  handRetention: 2 | 3 | 4 | 5 | 6;
+  archetypeId: string;
+  archetypeName: string;
+  isHybridOrRogue: boolean;
+}
+
+export interface ArchetypeFamilySamplingParams {
+  emergentArchetypes: EmergentArchetype[];
+  allCards: Card[];
+  totalTarget?: number; // 預設 380 套代表性牌庫
+  randomFn?: () => number;
+}
+
+/**
+ * 依據自然湧現流派生成 380 套高代表性家族變體牌庫 (Issue #70)
+ * - 4 大流派各自生成約 75 套變體（70% 核心卡 + 30% 全典籍對策卡，涵蓋 10~35 張與 2~6 手牌保留數）
+ * - 生成約 80 套跨流派雙修混搭與 Rogue 牌庫
+ * - 同家族內部牌庫自然保持 70%~90% 卡牌重疊率，高維距離為 0.15~0.30
+ */
+export function generateArchetypeFamilyDecks(
+  params: ArchetypeFamilySamplingParams
+): ArchetypeFamilyDeck[] {
+  const {
+    emergentArchetypes,
+    allCards,
+    totalTarget = 380,
+    randomFn = Math.random,
+  } = params;
+
+  if (allCards.length === 0) return [];
+
+  // 若尚未探勘出湧現流派，以全卡牌隨機白噪音牌庫作為備用方案
+  if (emergentArchetypes.length === 0) {
+    const fallbackDecks: ArchetypeFamilyDeck[] = [];
+    for (let i = 0; i < totalTarget; i++) {
+      const size = 12 + Math.floor(randomFn() * 15);
+      const picked: Card[] = [];
+      for (let s = 0; s < size; s++) {
+        picked.push(allCards[Math.floor(randomFn() * allCards.length)]);
+      }
+      fallbackDecks.push({
+        deck: ensureUniqueCardIds(picked),
+        handRetention: (3 + (i % 3)) as 3 | 4 | 5,
+        archetypeId: 'fallback',
+        archetypeName: '通用探索牌庫',
+        isHybridOrRogue: true,
+      });
+    }
+    return fallbackDecks;
+  }
+
+  // 1. 鎖定前 4 大主要自然湧現流派 (若不足 4 群則全部納入)
+  const targetArchetypes = emergentArchetypes.slice(0, 4);
+  const numArch = targetArchetypes.length;
+
+  const cardMap = new Map<string, Card>(allCards.map((c) => [c.id, c]));
+  const results: ArchetypeFamilyDeck[] = [];
+
+  // 規模與手牌保留數階梯序列 (涵蓋 10~35 張規模與 2~6 手牌保留數)
+  const sizeProgression = [10, 12, 14, 16, 18, 20, 22, 25, 28, 30, 32, 35];
+  const retentionProgression: Array<2 | 3 | 4 | 5 | 6> = [2, 3, 4, 4, 4, 5, 6];
+
+  // 計算各流派變體牌庫配額 (例如 4 群各 75 套 = 300 套)
+  const pureTargetTotal = Math.min(300, Math.floor(totalTarget * 0.79));
+  const decksPerArch = Math.floor(pureTargetTotal / numArch);
+  const hybridRogueTotal = totalTarget - decksPerArch * numArch; // 約 80 套
+
+  // 2. 生成各自然湧現流派家族變體 (各約 75 套)
+  for (let aIdx = 0; aIdx < numArch; aIdx++) {
+    const arch = targetArchetypes[aIdx];
+    const memberPool: Card[] = arch.memberCardIds
+      .map((id) => cardMap.get(id))
+      .filter((c): c is Card => c !== undefined);
+
+    const pool = memberPool.length > 0 ? memberPool : allCards;
+    const sigPool: Card[] = arch.signatureCards
+      .map((sig) => cardMap.get(sig.id))
+      .filter((c): c is Card => c !== undefined);
+
+    for (let v = 0; v < decksPerArch; v++) {
+      const deckSize = sizeProgression[v % sizeProgression.length];
+      const handRetention = retentionProgression[v % retentionProgression.length];
+
+      // 70% 該流派核心卡 (65%~80%)，其餘為全典籍對策外掛卡
+      const coreCount = Math.max(2, Math.round(deckSize * 0.70));
+      const utilityCount = Math.max(1, deckSize - coreCount);
+
+      const deckCards: Card[] = [];
+
+      // 1. 先將流派成員卡置入核心牌庫（確保同家族變體共享完整的核心骨架）
+      for (const memberCard of pool) {
+        if (deckCards.length < coreCount) {
+          deckCards.push(memberCard);
+        }
+      }
+
+      // 2. 若仍有核心配額，追加代表性卡牌（Signature Cards）之複本
+      let sigIdx = 0;
+      while (deckCards.length < coreCount && sigPool.length > 0) {
+        deckCards.push(sigPool[sigIdx % sigPool.length]);
+        sigIdx++;
+      }
+
+      // 3. 若仍有配額，追加成員卡複本
+      let extraIdx = 0;
+      while (deckCards.length < coreCount) {
+        deckCards.push(pool[extraIdx % pool.length]);
+        extraIdx++;
+      }
+
+      // 4. 置入 30% 全典籍對策/功能外掛卡 (提供 2~3 張對策微調)
+      for (let u = 0; u < utilityCount; u++) {
+        const utilIdx = (v * 3 + u) % allCards.length;
+        deckCards.push(allCards[utilIdx]);
+      }
+
+      results.push({
+        deck: ensureUniqueCardIds(deckCards),
+        handRetention,
+        archetypeId: arch.id,
+        archetypeName: arch.name,
+        isHybridOrRogue: false,
+      });
+    }
+  }
+
+  // 3. 生成跨流派雙修混搭 (約 60 套) 與 Rogue 牌庫 (約 20 套)
+  const rogueCount = Math.min(20, Math.floor(hybridRogueTotal * 0.25));
+  const hybridCount = hybridRogueTotal - rogueCount;
+
+  // 雙修混搭 (Dual-Archetype Hybrids)
+  for (let h = 0; h < hybridCount; h++) {
+    const archA = targetArchetypes[h % numArch];
+    const archB = targetArchetypes[(h + 1 + Math.floor(h / numArch)) % numArch];
+
+    const poolA = archA.memberCardIds.map((id) => cardMap.get(id)).filter((c): c is Card => c !== undefined);
+    const poolB = archB.memberCardIds.map((id) => cardMap.get(id)).filter((c): c is Card => c !== undefined);
+
+    const deckSize = 15 + (h % 16); // 15~30 張
+    const handRetention = retentionProgression[(h + 1) % retentionProgression.length];
+
+    const countA = Math.max(2, Math.round(deckSize * 0.40));
+    const countB = Math.max(2, Math.round(deckSize * 0.40));
+    const countUtil = Math.max(1, deckSize - countA - countB);
+
+    const deckCards: Card[] = [];
+    const actualPoolA = poolA.length > 0 ? poolA : allCards;
+    const actualPoolB = poolB.length > 0 ? poolB : allCards;
+
+    for (let i = 0; i < countA; i++) {
+      deckCards.push(actualPoolA[Math.floor(randomFn() * actualPoolA.length)]);
+    }
+    for (let i = 0; i < countB; i++) {
+      deckCards.push(actualPoolB[Math.floor(randomFn() * actualPoolB.length)]);
+    }
+    for (let i = 0; i < countUtil; i++) {
+      deckCards.push(allCards[Math.floor(randomFn() * allCards.length)]);
+    }
+
+    const shortNameA = archA.name.replace(/【|】|體系/g, '');
+    const shortNameB = archB.name.replace(/【|】|體系/g, '');
+
+    results.push({
+      deck: ensureUniqueCardIds(deckCards),
+      handRetention,
+      archetypeId: `${archA.id}_${archB.id}_hybrid`,
+      archetypeName: `【${shortNameA}＋${shortNameB}】雙修`,
+      isHybridOrRogue: true,
+    });
+  }
+
+  // Rogue / 創意雜牌 (Rogue Variants)
+  for (let r = 0; r < rogueCount; r++) {
+    const deckSize = 12 + (r % 14); // 12~25 張
+    const handRetention = retentionProgression[r % retentionProgression.length];
+    const deckCards: Card[] = [];
+
+    for (let i = 0; i < deckSize; i++) {
+      deckCards.push(allCards[Math.floor(randomFn() * allCards.length)]);
+    }
+
+    results.push({
+      deck: ensureUniqueCardIds(deckCards),
+      handRetention,
+      archetypeId: 'rogue_variant',
+      archetypeName: '【混沌漫遊】非主流變體',
+      isHybridOrRogue: true,
+    });
+  }
+
+  return results;
+}
+
