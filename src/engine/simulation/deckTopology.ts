@@ -33,7 +33,7 @@ export function getHeatmapColor(score: number): string {
 
 
 /**
- * 計算兩套牌組之間的加權 Jaccard 距離 (0.0 ~ 1.0)
+ * 計算兩套理智牌庫之間的加權 Jaccard 距離 (0.0 ~ 1.0)
  * d(D1, D2) = 1 - (sum(min(c1, c2)) / sum(max(c1, c2)))
  * 0.0 代表完全相同；1.0 代表完全無共通卡牌
  */
@@ -263,15 +263,20 @@ export function computeAllPairSoftCosineDistances(
 /**
  * 冪迭代法 (Power Iteration) 求解矩陣主要特徵向量與特徵值
  */
-function powerIteration(
+export function powerIteration(
   M: Float64Array[],
   n: number,
   initialVec: Float64Array,
-  orthogonalTo?: Float64Array,
+  orthogonalTo?: Float64Array | Float64Array[],
   iterations = 45
 ): { vector: Float64Array; lambda: number } {
   const v = new Float64Array(initialVec);
   const tmp = new Float64Array(n);
+  const orthoList: Float64Array[] = orthogonalTo
+    ? Array.isArray(orthogonalTo)
+      ? orthogonalTo
+      : [orthogonalTo]
+    : [];
 
   const matVecMult = (mat: Float64Array[], vec: Float64Array, out: Float64Array) => {
     for (let i = 0; i < n; i++) {
@@ -299,16 +304,18 @@ function powerIteration(
     for (let i = 0; i < n; i++) target[i] -= dot * ref[i];
   };
 
-  if (orthogonalTo) {
-    projectOrthogonal(v, orthogonalTo);
-  }
+  const projectOrthogonalAll = (target: Float64Array) => {
+    for (const ref of orthoList) {
+      projectOrthogonal(target, ref);
+    }
+  };
+
+  projectOrthogonalAll(v);
   normVec(v);
 
   for (let iter = 0; iter < iterations; iter++) {
     matVecMult(M, v, tmp);
-    if (orthogonalTo) {
-      projectOrthogonal(tmp, orthogonalTo);
-    }
+    projectOrthogonalAll(tmp);
     v.set(tmp);
     normVec(v);
   }

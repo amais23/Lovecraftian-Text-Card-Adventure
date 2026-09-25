@@ -108,4 +108,26 @@ describe('Card Mechanics SVD Embedding & Cosine Similarity Matrix (Issue #68)', 
     expect(singleResult.similarityMatrix[0][0]).toBe(1.0);
     expect(singleResult.getSimilarity(singleCard[0].id, singleCard[0].id)).toBe(1.0);
   });
+
+  it('incorporates 26 enemy counter fingerprints into feature vectors and SVD embeddings (Issue #68)', () => {
+    const card = compendiumCards[0];
+    const baseFeatures = extractCardMechanicsFeatures(card);
+
+    // Mock 26 enemy counter fingerprints (win rates against 26 enemies)
+    const mockFingerprints = new Map<string, number[]>();
+    for (const c of compendiumCards) {
+      mockFingerprints.set(c.id, Array.from({ length: 26 }, (_, idx) => 0.4 + (idx % 5) * 0.1));
+    }
+
+    const extendedFeatures = extractCardMechanicsFeatures(card, undefined, mockFingerprints);
+    expect(extendedFeatures).toHaveLength(baseFeatures.length + 26);
+
+    const resultWithEnemies = computeCardMechanicsEmbeddings(compendiumCards, {
+      dimensions: 16,
+      enemyFingerprints: mockFingerprints,
+    });
+
+    expect(resultWithEnemies.similarityMatrix).toHaveLength(73);
+    expect(resultWithEnemies.similarityMatrix[0][0]).toBeCloseTo(1.0, 5);
+  });
 });

@@ -1,7 +1,7 @@
 import type { Card, Enemy, Relic } from '../../types/game';
 import { CardRegistry } from '../cards/registry';
 import { PRESET_RELICS } from '../relics';
-import { cloneEnemy } from '../enemyCatalog';
+import { cloneEnemy, getBossByDepth } from '../enemyCatalog';
 import { MONSTERS_BY_DEPTH } from '../../data/monsterReviewData';
 import { buildRandomizedDeck, buildRelicSet } from './deckBuilder';
 import { simulateCombat } from './combatSimulator';
@@ -149,6 +149,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   // 全域單卡與雙卡戰鬥表現統計 (ADR-0038)
   const singleCardCombatStats = new Map<string, { runs: number; totalScore: number }>();
   const pairCombatStats = new Map<string, { runs: number; totalScore: number }>();
+  // 記錄全典籍卡牌面對 26 敵怪之實戰剋制勝率指紋 (Issue #68)
+  const cardEnemyFingerprints = new Map<string, number[]>();
 
   // 輔助函式：批次模擬指定牌庫面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌保留數採樣）
   function testMatchup(
@@ -305,10 +307,11 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     const enemyMatchups: Array<{ id: string; name: string; winRate: number; avgHealthLost?: number }> = [];
 
     for (const item of representativeEnemies) {
-      // 1x 測試 (10~35 張隨機牌庫，含 1 張目標卡，手牌容量 2~6)
+      // 1x 測試 (10~35 張隨機牌庫，含 1 張目標卡，手牌保留數 2~6)
       const m1 = testMatchup(
         (r) => ({
           deck: buildRandomizedDeck({ targetCard: card, copies: 1, minSize: 10, maxSize: 35, randomFn }),
+          handRetention: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
           handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
         }),
         item.enemy,
@@ -341,10 +344,11 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       cMap.totalHpLost += m1.avgHpLost * runsPerMatchup;
       eStat.cardWinRates.set(card.id, cMap);
 
-      // 2x 測試 (10~35 張隨機牌庫，含 2 張目標卡，手牌容量 2~6)
+      // 2x 測試 (10~35 張隨機牌庫，含 2 張目標卡，手牌保留數 2~6)
       const m2 = testMatchup(
         (r) => ({
           deck: buildRandomizedDeck({ targetCard: card, copies: 2, minSize: 10, maxSize: 35, randomFn }),
+          handRetention: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
           handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
         }),
         item.enemy,
@@ -355,10 +359,11 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       total2xSanity += m2.avgSanity;
       total2xTurns += m2.avgTurns;
 
-      // 3x 測試 (10~35 張隨機牌庫，含 3 張目標卡，手牌容量 2~6)
+      // 3x 測試 (10~35 張隨機牌庫，含 3 張目標卡，手牌保留數 2~6)
       const m3 = testMatchup(
         (r) => ({
           deck: buildRandomizedDeck({ targetCard: card, copies: 3, minSize: 10, maxSize: 35, randomFn }),
+          handRetention: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
           handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
         }),
         item.enemy,
@@ -369,6 +374,8 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       total3xSanity += m3.avgSanity;
       total3xTurns += m3.avgTurns;
     }
+
+    cardEnemyFingerprints.set(card.id, enemyMatchups.map((m) => m.winRate));
 
     const enemyCount = representativeEnemies.length;
     const base1x = {
@@ -486,6 +493,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
         const m = testMatchup(
           (r) => ({
             deck: buildRandomizedDeck({ minSize: 10, maxSize: 35, randomFn }),
+            handRetention: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
             handCapacity: (2 + (r % 5)) as 2 | 3 | 4 | 5 | 6,
           }),
           item.enemy,
@@ -596,7 +604,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   // ==========================================
   if (onProgress) {
     onProgress({
-      stage: '計算非監督式自然流派與牌組拓撲星系圖 (ADR-0038)',
+      stage: '計算非監督式自然流派與理智牌庫拓撲星系圖 (ADR-0038)',
       current: 1,
       total: 1,
       percent: 92,
@@ -641,8 +649,11 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     maxCommunities: 4,
   });
 
-  // ADR-0038 / Issue #68: 計算 73x73 卡牌力學 SVD 餘弦相似度矩陣
-  const cardSimilarityResult = computeCardMechanicsEmbeddings(cards, { synergyMatrix });
+  // ADR-0038 / Issue #68: 計算 73x73 卡牌力學 SVD 餘弦相似度矩陣 (結合雙卡協同矩陣與 26 敵怪剋制指紋)
+  const cardSimilarityResult = computeCardMechanicsEmbeddings(cards, {
+    synergyMatrix,
+    enemyFingerprints: cardEnemyFingerprints,
+  });
 
   // ==========================================
   // 階段五：自然湧現流派家族變體牌庫生成、對弈評測與軟加權距離投影 (ADR-0038 / Issues #69, #70)
@@ -670,11 +681,14 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   const archStatsMap = new Map<string, { deckCount: number; scoreSum: number; hpSum: number; sanitySum: number }>();
 
   // 選取 3 隻具代表性不同深度的敵怪進行實測評估 (1 普通, 1 精英, 1 首領)
-  const enemySample = [
-    representativeEnemies[0]?.enemy,
-    representativeEnemies[1]?.enemy,
-    representativeEnemies[2]?.enemy,
-  ].filter((e): e is Enemy => e !== undefined);
+  const normalEnemy =
+    representativeEnemies.find((e) => e.role === 'normal' && e.depth === 1)?.enemy ??
+    representativeEnemies[0]?.enemy;
+  const eliteEnemy =
+    representativeEnemies.find((e) => e.role === 'elite' && (e.depth === 1 || e.depth === 2))?.enemy ??
+    representativeEnemies[6]?.enemy;
+  const bossEnemy = cloneEnemy(getBossByDepth(1));
+  const enemySample = [normalEnemy, eliteEnemy, bossEnemy].filter((e): e is Enemy => e !== undefined);
 
   for (let i = 0; i < numDecks; i++) {
     const s = familyDecks[i];

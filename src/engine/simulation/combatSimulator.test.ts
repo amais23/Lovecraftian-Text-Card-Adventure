@@ -267,7 +267,7 @@ describe('Combat Simulator & 1-Ply Optimal Solver (Issue #63 / ADR-0036)', () =>
     });
   });
 
-  describe('Uncapped Health Simulation Mode (血量無上限模式)', () => {
+  describe('Uncapped Health Simulation Mode (生命值無上限模式)', () => {
     it('allows combat to continue past standard 25 health without dying and accurately records uncapped health loss', () => {
       const bossEnemy: Enemy = {
         id: 'heavy_boss',

@@ -23,8 +23,8 @@ export const DeckDiffView: React.FC<DeckDiffViewProps> = ({ deckA, deckB }) => {
   }, [deckA, deckB, handRetentionA, handRetentionB]);
 
   const diffCardBreakdown = useMemo(() => {
-    const bMap = new Map(deckB.cards.map((c) => [c.name, c]));
-    const aMap = new Map(deckA.cards.map((c) => [c.name, c]));
+    const bMap = new Map(deckB.cards.map((c) => [c.id, c]));
+    const aMap = new Map(deckA.cards.map((c) => [c.id, c]));
 
     const sharedCards: Array<{
       id: string;
@@ -37,7 +37,7 @@ export const DeckDiffView: React.FC<DeckDiffViewProps> = ({ deckA, deckB }) => {
     const bOnlyCards: Array<{ id: string; name: string; copies: number; category: CardCategory }> = [];
 
     for (const aCard of deckA.cards) {
-      const bCard = bMap.get(aCard.name);
+      const bCard = bMap.get(aCard.id);
       if (bCard) {
         sharedCards.push({
           id: aCard.id,
@@ -52,7 +52,7 @@ export const DeckDiffView: React.FC<DeckDiffViewProps> = ({ deckA, deckB }) => {
     }
 
     for (const bCard of deckB.cards) {
-      if (!aMap.has(bCard.name)) {
+      if (!aMap.has(bCard.id)) {
         bOnlyCards.push(bCard);
       }
     }

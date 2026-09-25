@@ -25,7 +25,7 @@ export interface CardBalanceReport {
   description: string;
 
   // 雙維度評分 (0 ~ 100)
-  healthScore: number;       // 肉體生存分 (越能保護血量或速殺減傷，分數越高)
+  healthScore: number;       // 肉體生存分 (越能保護生命值或速殺減傷，分數越高)
   sanityScore: number;       // 心智效率分 (理智牌庫消耗越低、回補越高，分數越高)
   overallScore: number;      // 綜合天梯得分 (0 ~ 100)
   tierRating: 'S' | 'A' | 'B' | 'C' | 'D'; // 天梯段位

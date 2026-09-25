@@ -1,8 +1,10 @@
 import type { Card } from '../../types/game';
+import { powerIteration } from './deckTopology';
 
 export interface CardEmbeddingOptions {
   dimensions?: number; // 預設 16 維潛在力學因子
   synergyMatrix?: Map<string, Map<string, number>>; // 雙卡對弈協同矩陣 (可選)
+  enemyFingerprints?: Map<string, number[]>; // 26 敵怪剋制指紋 (可選，Issue #68)
   iterations?: number; // 冪迭代次數，預設 40
 }
 
@@ -20,7 +22,8 @@ export interface CardSimilarityResult {
  */
 export function extractCardMechanicsFeatures(
   card: Card,
-  synergyMatrix?: Map<string, Map<string, number>>
+  synergyMatrix?: Map<string, Map<string, number>>,
+  enemyFingerprints?: Map<string, number[]>
 ): number[] {
   // 1. 卡牌類別 One-hot (權重加強至 3.0，確保宏觀流派邊界)
   const isCombat = card.category === 'combat' ? 3.0 : 0;
@@ -107,6 +110,15 @@ export function extractCardMechanicsFeatures(
     maxSynergy = maxSynergy / 30.0;
   }
 
+  // 6. 實戰 26 敵怪剋制指紋 (若提供 enemyFingerprints，Issue #68)
+  const enemyFeatures: number[] = [];
+  if (enemyFingerprints && enemyFingerprints.has(card.id)) {
+    const fps = enemyFingerprints.get(card.id)!;
+    for (let k = 0; k < fps.length; k++) {
+      enemyFeatures.push(fps[k]);
+    }
+  }
+
   return [
     isCombat,
     isSkill,
@@ -137,6 +149,7 @@ export function extractCardMechanicsFeatures(
     scalesFromArmor,
     avgSynergy,
     maxSynergy,
+    ...enemyFeatures,
   ];
 }
 
@@ -152,6 +165,7 @@ export function computeCardMechanicsEmbeddings(
   const dims = options?.dimensions ?? 16;
   const iterations = options?.iterations ?? 40;
   const synergyMatrix = options?.synergyMatrix;
+  const enemyFingerprints = options?.enemyFingerprints;
 
   const cardIds = cards.map((c) => c.id);
   const cardIndexMap = new Map<string, number>();
@@ -171,7 +185,9 @@ export function computeCardMechanicsEmbeddings(
   }
 
   // 1. 特徵矩陣提取 (N x M)
-  const rawX: number[][] = cards.map((c) => extractCardMechanicsFeatures(c, synergyMatrix));
+  const rawX: number[][] = cards.map((c) =>
+    extractCardMechanicsFeatures(c, synergyMatrix, enemyFingerprints)
+  );
   const m = rawX[0].length;
 
   // 2. 特徵標準化 (Z-score normalization: 均值歸零，方差歸一)
@@ -212,66 +228,19 @@ export function computeCardMechanicsEmbeddings(
     }
   }
 
-  // 4. 冪迭代法 (Power Iteration) 提取前 dims 個主特徵向量與特徵值
+  // 4. 冪迭代法 (Power Iteration) 提取前 dims 個主特徵向量與特徵值 (複用 deckTopology.powerIteration)
   const targetDims = Math.min(dims, n, m);
   const eigenvectors: Float64Array[] = [];
   const eigenvalues: number[] = [];
   const currentG: Float64Array[] = G.map((row) => new Float64Array(row));
 
   for (let d = 0; d < targetDims; d++) {
-    const v = new Float64Array(n);
+    const initV = new Float64Array(n);
     for (let i = 0; i < n; i++) {
-      v[i] = Math.sin((i + 1) * (d + 1) * 1.341);
+      initV[i] = Math.sin((i + 1) * (d + 1) * 1.341);
     }
 
-    // 正交投影至已求出的特徵向量空間之外 (Gram-Schmidt)
-    for (const prevU of eigenvectors) {
-      let pDot = 0;
-      for (let i = 0; i < n; i++) pDot += v[i] * prevU[i];
-      for (let i = 0; i < n; i++) v[i] -= pDot * prevU[i];
-    }
-
-    let len = 0;
-    for (let i = 0; i < n; i++) len += v[i] * v[i];
-    len = Math.sqrt(len);
-    if (len > 1e-12) {
-      for (let i = 0; i < n; i++) v[i] /= len;
-    }
-
-    // 冪迭代求解
-    const nextV = new Float64Array(n);
-    for (let iter = 0; iter < iterations; iter++) {
-      for (let i = 0; i < n; i++) {
-        let sum = 0;
-        const row = currentG[i];
-        for (let j = 0; j < n; j++) sum += row[j] * v[j];
-        nextV[i] = sum;
-      }
-
-      // Gram-Schmidt 正交化保持數值穩定
-      for (const prevU of eigenvectors) {
-        let pDot = 0;
-        for (let i = 0; i < n; i++) pDot += nextV[i] * prevU[i];
-        for (let i = 0; i < n; i++) nextV[i] -= pDot * prevU[i];
-      }
-
-      len = 0;
-      for (let i = 0; i < n; i++) len += nextV[i] * nextV[i];
-      len = Math.sqrt(len);
-      if (len > 1e-12) {
-        for (let i = 0; i < n; i++) v[i] = nextV[i] / len;
-      }
-    }
-
-    // 計算對應特徵值 lambda
-    let lambda = 0;
-    for (let i = 0; i < n; i++) {
-      let sum = 0;
-      const row = currentG[i];
-      for (let j = 0; j < n; j++) sum += row[j] * v[j];
-      lambda += v[i] * sum;
-    }
-    lambda = Math.max(0, lambda);
+    const { vector: v, lambda } = powerIteration(currentG, n, initV, eigenvectors, iterations);
 
     eigenvectors.push(v);
     eigenvalues.push(lambda);

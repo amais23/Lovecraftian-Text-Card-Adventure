@@ -9,6 +9,7 @@ import {
   forceDirectedGalaxyProjection,
   detectEmergentArchetypes,
   generateArchetypeFamilyDecks,
+  powerIteration,
 } from './deckTopology';
 import { computeCardMechanicsEmbeddings } from './cardEmbedding';
 import { getAllCompendiumCards } from '../cards/registry';
@@ -609,6 +610,44 @@ describe('Deck Topology & Emergent Archetypes (ADR-0038)', () => {
         const actualHighDimDist = matrix[i][nearestIdx];
         expect(actualHighDimDist).toBeLessThan(0.35);
       }
+    });
+  });
+
+  describe('Power Iteration & Orthogonalization Engine', () => {
+    it('accurately extracts dominant eigenvectors and maintains orthogonality to multiple vectors', () => {
+      // 3x3 diagonal symmetric matrix with eigenvalues 5, 3, 1
+      const M: Float64Array[] = [
+        new Float64Array([5, 0, 0]),
+        new Float64Array([0, 3, 0]),
+        new Float64Array([0, 0, 1]),
+      ];
+
+      const init1 = new Float64Array([0.5, 0.5, 0.5]);
+      const res1 = powerIteration(M, 3, init1, undefined, 30);
+      expect(res1.lambda).toBeCloseTo(5.0, 3);
+      expect(Math.abs(res1.vector[0])).toBeCloseTo(1.0, 3);
+
+      // Second eigenvector orthogonal to res1
+      const init2 = new Float64Array([0.2, 0.8, 0.5]);
+      const res2 = powerIteration(M, 3, init2, res1.vector, 30);
+      expect(res2.lambda).toBeCloseTo(3.0, 3);
+      expect(Math.abs(res2.vector[1])).toBeCloseTo(1.0, 3);
+
+      // Third eigenvector orthogonal to both res1 and res2
+      const init3 = new Float64Array([0.3, 0.3, 0.9]);
+      const res3 = powerIteration(M, 3, init3, [res1.vector, res2.vector], 30);
+      expect(res3.lambda).toBeCloseTo(1.0, 3);
+      expect(Math.abs(res3.vector[2])).toBeCloseTo(1.0, 3);
+
+      // Dot product between res3 and res1/res2 must be 0
+      let dot31 = 0;
+      let dot32 = 0;
+      for (let i = 0; i < 3; i++) {
+        dot31 += res3.vector[i] * res1.vector[i];
+        dot32 += res3.vector[i] * res2.vector[i];
+      }
+      expect(dot31).toBeCloseTo(0, 5);
+      expect(dot32).toBeCloseTo(0, 5);
     });
   });
 });

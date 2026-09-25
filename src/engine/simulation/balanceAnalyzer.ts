@@ -27,8 +27,8 @@ export function calculateHealthScore(
   isUncappedHealth: boolean = false
 ): number {
   if (isUncappedHealth) {
-    // 血量無上限模式：直接以肉體生命損失評定強弱（承傷越低、減傷/續航/速殺能力越高，得分越高）
-    // 基準承傷尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌容量環境）：
+    // 生命值無上限模式：直接以肉體生命損失評定強弱（承傷越低、減傷/續航/速殺能力越高，得分越高）
+    // 基準承傷尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌保留數環境）：
     // <= 2.5 點損失 = 100 分，~7.2 點損失 = 60 分，~8.4 點損失 = 50 分，14.3+ 點損失 = 0 分
     const score = 100 - (avgHealthLost - 2.5) * 8.5;
     return Math.round(Math.max(0, Math.min(100, score)));
@@ -48,7 +48,7 @@ export function calculateSanityScore(
   isUncappedHealth: boolean = false
 ): number {
   if (isUncappedHealth) {
-    // 基準心智消耗尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌容量環境）：
+    // 基準心智消耗尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌保留數環境）：
     // <= 1.0 張消耗 = 100 分，~5.0 張消耗 = 60 分，~6.0 張（中位數）= 50 分，>= 11.0 張消耗 = 0 分
     const score = 100 - (avgSanityExpended - 1.0) * 10.0;
     return Math.round(Math.max(0, Math.min(100, score)));
@@ -67,7 +67,7 @@ export function calculateOverallScore(
   isUncappedHealth: boolean = false
 ): number {
   if (isUncappedHealth) {
-    // 血量無上限模式：以「損失的生命值」為主軸核心權重 (75%)，結合心智消耗 (15%) 與容錯穩定度 (10%)
+    // 生命值無上限模式：以「損失的生命值」為主軸核心權重 (75%)，結合心智消耗 (15%) 與容錯穩定度 (10%)
     const score = healthScore * 0.75 + sanityScore * 0.15 + faultToleranceRatio * 10;
     return Math.round(Math.max(0, Math.min(100, score)));
   }
@@ -359,7 +359,7 @@ export function createEnemyThreatReport(params: {
   // 威脅度指數 (0 ~ 100): 越難打贏、打殘調查員越多生命、侵蝕越多理智，威脅度越高
   let threatScore: number;
   if (isUncappedHealth) {
-    // 血量無上限模式：威脅度由「敵怪對調查員造成的肉體生命損耗」主導判定！
+    // 生命值無上限模式：威脅度由「敵怪對調查員造成的肉體生命損耗」主導判定！
     // 基準刻度：最高危險標竿 ~120 點生命損失
     const hpDamageNorm = Math.min(1, avgInvestigatorHealthLost / 120);
     const sanityErodeNorm = Math.min(1, avgSanityEroded / 15);
