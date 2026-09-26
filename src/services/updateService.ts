@@ -18,7 +18,7 @@ export interface UpdateSource {
   isPortableMode?(): Promise<boolean>;
 }
 
-export const CURRENT_APP_VERSION = '0.4.0';
+export const CURRENT_APP_VERSION = '0.4.1';
 export const IGNORED_UPDATE_VERSION_KEY = 'arkham_ignored_update_version';
 
 export class BrowserFallbackUpdateSource implements UpdateSource {

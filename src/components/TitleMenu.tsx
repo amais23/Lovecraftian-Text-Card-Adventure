@@ -12,6 +12,7 @@ import {
 import { AudioToggle } from './AudioToggle';
 import { soundEngine } from '../engine/audioManager';
 import { useDevMode } from '../hooks/useDevMode';
+import { CURRENT_APP_VERSION } from '../services/updateService';
 
 export interface TitleMenuProps {
   onStartNewGame: () => void;
@@ -169,7 +170,7 @@ export const TitleMenu: React.FC<TitleMenuProps> = ({
 
         {/* Footer info */}
         <footer className="title-menu-footer">
-          <span>v0.4.0 · ARKHAM INVESTIGATION DIVISION</span>
+          <span>v{CURRENT_APP_VERSION} · ARKHAM INVESTIGATION DIVISION</span>
         </footer>
       </main>
     </div>

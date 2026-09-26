@@ -75,7 +75,7 @@ describe('SettingsModal - Version & Manual Update Check (ADR-0040 / #74)', () =>
 
     expect(screen.getByRole('heading', { level: 3, name: /版本與更新/i })).toBeDefined();
     expect(screen.getByText('目前本機版本')).toBeDefined();
-    expect(screen.getAllByText(/v0\.4\.0/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/v0\.4\.1/).length).toBeGreaterThanOrEqual(1);
 
     const checkBtn = screen.getByRole('button', { name: /檢查更新/i });
     expect(checkBtn).toBeDefined();

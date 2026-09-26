@@ -58,16 +58,24 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || secrets.TAURI_SIGNING_KEY_PASSWORD }}
         with:
           tagName: v__VERSION__
           releaseName: '克蘇魯文字卡牌冒險 v__VERSION__ (Desktop Demo Release)'
           releaseBody: |
             ### 克蘇魯文字卡牌冒險 v__VERSION__ (Demo)
 
+            > ⚠️ **重要更新提示（首次啟用自動更新體系）**：  
+            > 本版本（**v0.4.1**）為首次接入遊戲內自動更新外掛（Tauri Updater）與 Windows 免安裝原地置換機制（`self_replace`）之版本。  
+            > 使用舊版本（**v0.4.0 及更早**）的調查員，因舊版尚無遊戲內更新機制，請務必手動至下方 Assets 下載並覆蓋安裝一次 **v0.4.1**。  
+            > 自 **v0.4.1** 開始，後續所有版本更新均可於主選單與設定中享受**遊戲內一鍵背景下載與平滑重啟升級**！
+
             跨平台獨立桌面版發布，請依作業系統下載對應檔案：
 
             - 🪟 **Windows**：
-              - 💾 **免安裝綠色版**：`LovecraftianCardAdventure___VERSION___x64_portable.zip`（解壓縮直接開玩，無需安裝）
+              - 💾 **免安裝綠色版 (ZIP)**：`LovecraftianCardAdventure___VERSION___x64_portable.zip`（解壓縮直接開玩，無需安裝）
+              - ⚡ **免安裝獨立執行檔 (EXE)**：`LovecraftianCardAdventure.exe`（可攜版原地更新通道檔）
               - 💿 **標準安裝版**：`LovecraftianCardAdventure___VERSION___x64-setup.exe`（自動建立桌面與開始功能表捷徑）
             - 🎮 **SteamOS / Linux (Steam Deck)**：`LovecraftianCardAdventure___VERSION___amd64.AppImage`（免安裝單檔）
             - 🐧 **Debian / Ubuntu**：`LovecraftianCardAdventure___VERSION___amd64.deb`
@@ -100,6 +108,7 @@ jobs:
           $PORTABLE_DIR = "LovecraftianCardAdventure_${VERSION}_x64_portable"
           New-Item -ItemType Directory -Force -Path $PORTABLE_DIR
           Copy-Item "src-tauri/target/release/app.exe" -Destination "$PORTABLE_DIR/LovecraftianCardAdventure.exe"
+          Copy-Item "src-tauri/target/release/app.exe" -Destination "LovecraftianCardAdventure.exe"
           @'
           《克蘇魯文字卡牌冒險》免安裝綠色版 (Windows x64)
 
@@ -112,5 +121,5 @@ jobs:
           $ZIP_NAME = "LovecraftianCardAdventure_${VERSION}_x64_portable.zip"
           Compress-Archive -Path $PORTABLE_DIR -DestinationPath $ZIP_NAME -Force
           $TAG_NAME = if ($env:GITHUB_REF_NAME -like "v*") { $env:GITHUB_REF_NAME } else { "v$VERSION" }
-          gh release upload $TAG_NAME $ZIP_NAME --clobber
+          gh release upload $TAG_NAME $ZIP_NAME LovecraftianCardAdventure.exe --clobber
 
