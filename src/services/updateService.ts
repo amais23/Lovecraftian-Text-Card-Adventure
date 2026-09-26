@@ -3,6 +3,7 @@ export interface UpdateInfo {
   currentVersion: string;
   body?: string;
   date?: string;
+  isPortable?: boolean;
 }
 
 export interface CheckUpdateOptions {
@@ -14,6 +15,7 @@ export interface UpdateSource {
   check(options?: CheckUpdateOptions): Promise<UpdateInfo | null>;
   downloadAndInstall?(onProgress?: (progress: number) => void): Promise<void>;
   relaunch?(): Promise<void>;
+  isPortableMode?(): Promise<boolean>;
 }
 
 export const CURRENT_APP_VERSION = '0.4.0';
@@ -34,10 +36,26 @@ export class BrowserFallbackUpdateSource implements UpdateSource {
       window.location.reload();
     }
   }
+
+  async isPortableMode(): Promise<boolean> {
+    return false;
+  }
 }
 
 export class TauriUpdateSource implements UpdateSource {
   private activeUpdate: any = null;
+  private isPortable: boolean = false;
+  private downloadedTempBinaryPath: string | null = null;
+  private portableDownloadUrl: string | null = null;
+
+  async isPortableMode(): Promise<boolean> {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return await invoke<boolean>('is_portable_mode');
+    } catch {
+      return false;
+    }
+  }
 
   async check(options?: CheckUpdateOptions): Promise<UpdateInfo | null> {
     try {
@@ -47,11 +65,20 @@ export class TauriUpdateSource implements UpdateSource {
       });
       if (!update) return null;
       this.activeUpdate = update;
+      this.isPortable = await this.isPortableMode();
+
+      const version = update.version.startsWith('v') ? update.version : `v${update.version}`;
+      this.portableDownloadUrl =
+        (update.rawJson?.platforms as any)?.['windows-x86_64']?.portable_url ||
+        (update.rawJson?.portable_url as string) ||
+        `https://github.com/amais23/Lovecraftian-Text-Card-Adventure/releases/download/${version}/LovecraftianCardAdventure.exe`;
+
       return {
         version: update.version,
         currentVersion: update.currentVersion,
         body: update.body,
         date: update.date,
+        isPortable: this.isPortable,
       };
     } catch (err) {
       if (options?.silent) {
@@ -65,6 +92,36 @@ export class TauriUpdateSource implements UpdateSource {
     if (!this.activeUpdate) {
       throw new Error('未發現可用的更新物件');
     }
+
+    if (this.isPortable) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const { listen } = await import('@tauri-apps/api/event');
+
+      let unlisten: (() => void) | null = null;
+      try {
+        unlisten = await listen<{ downloaded: number; total: number | null; percent: number | null }>(
+          'portable-download-progress',
+          (event) => {
+            if (event.payload.percent !== null && event.payload.percent !== undefined) {
+              onProgress?.(Math.min(100, Math.round(event.payload.percent)));
+            }
+          }
+        );
+
+        const downloadUrl = this.portableDownloadUrl || '';
+        const tempPath = await invoke<string>('download_portable_binary', {
+          downloadUrl,
+        });
+        this.downloadedTempBinaryPath = tempPath;
+        onProgress?.(100);
+      } finally {
+        if (unlisten) {
+          unlisten();
+        }
+      }
+      return;
+    }
+
     let totalBytes = 0;
     let downloadedBytes = 0;
     await this.activeUpdate.downloadAndInstall((event: any) => {
@@ -85,6 +142,14 @@ export class TauriUpdateSource implements UpdateSource {
   }
 
   async relaunch(): Promise<void> {
+    if (this.isPortable && this.downloadedTempBinaryPath) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('replace_and_relaunch_portable', {
+        newBinaryPath: this.downloadedTempBinaryPath,
+      });
+      return;
+    }
+
     const { relaunch } = await import('@tauri-apps/plugin-process');
     await relaunch();
   }
@@ -173,6 +238,13 @@ export class UpdateService {
     if (typeof window !== 'undefined' && window.location) {
       window.location.reload();
     }
+  }
+
+  async isPortableMode(): Promise<boolean> {
+    if (this.source.isPortableMode) {
+      return this.source.isPortableMode();
+    }
+    return false;
   }
 }
 

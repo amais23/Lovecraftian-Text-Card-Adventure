@@ -151,6 +151,19 @@ describe('UpdateModal', () => {
       fireEvent.click(retryBtn);
       expect(handleRetry).toHaveBeenCalled();
     });
+
+    it('renders portable update badge when updateInfo.isPortable is true (Issue #76)', () => {
+      render(
+        <UpdateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          updateInfo={{ ...sampleUpdateInfo, isPortable: true }}
+          onDismissVersion={vi.fn()}
+        />
+      );
+
+      expect(screen.getByText('免安裝原位更新')).toBeDefined();
+    });
   });
 });
 

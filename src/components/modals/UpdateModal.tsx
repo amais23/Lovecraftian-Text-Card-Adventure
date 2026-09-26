@@ -117,7 +117,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Sparkles size={16} color="#cfa866" />
-              <span style={{ fontSize: '13px', color: '#cfa866' }}>發現最新</span>
+              <span style={{ fontSize: '13px', color: '#cfa866' }}>
+                {updateInfo.isPortable ? '免安裝原位更新' : '發現最新'}
+              </span>
             </div>
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '12px', color: '#9d9685', display: 'block' }}>可更新至</span>
