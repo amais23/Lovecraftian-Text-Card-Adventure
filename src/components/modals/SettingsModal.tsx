@@ -325,6 +325,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         onClose={updater.closeModal}
         updateInfo={updater.updateInfo}
         onDismissVersion={updater.dismissCurrentVersion}
+        onStartUpdate={updater.startDownload}
+        onRelaunch={updater.relaunch}
+        downloadProgress={updater.downloadProgress}
+        isDownloading={updater.status === 'downloading'}
+        isReady={updater.status === 'ready'}
+        downloadError={updater.status === 'error' ? updater.error : null}
       />
     </>
   );

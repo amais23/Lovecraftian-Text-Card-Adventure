@@ -137,4 +137,89 @@ describe('useAutoUpdater', () => {
     expect(result.current.error).toBeNull();
     expect(result.current.isModalOpen).toBe(false);
   });
+
+  describe('Download and relaunch lifecycle (ADR-0040 / #75)', () => {
+    it('executes startDownload with progress tracking and transitions to ready', async () => {
+      let progressCb: ((pct: number) => void) | undefined;
+      const mockSource: UpdateSource = {
+        check: vi.fn().mockResolvedValue({
+          version: '0.4.1',
+          currentVersion: '0.4.0',
+          body: '更新說明',
+        }),
+        downloadAndInstall: vi.fn().mockImplementation(async (cb) => {
+          progressCb = cb;
+        }),
+      };
+      const service = new UpdateService(mockSource);
+      const { result } = renderHook(() => useAutoUpdater({ service }));
+
+      await act(async () => {
+        await result.current.checkUpdate(false);
+      });
+
+      expect(result.current.status).toBe('available');
+
+      let downloadPromise: Promise<void>;
+      act(() => {
+        downloadPromise = result.current.startDownload();
+      });
+
+      expect(result.current.status).toBe('downloading');
+      expect(result.current.downloadProgress).toBe(0);
+
+      act(() => {
+        progressCb?.(45);
+      });
+      expect(result.current.downloadProgress).toBe(45);
+
+      await act(async () => {
+        progressCb?.(100);
+        await downloadPromise!;
+      });
+
+      expect(result.current.status).toBe('ready');
+      expect(result.current.downloadProgress).toBe(100);
+    });
+
+    it('handles download error and sets error status', async () => {
+      const mockSource: UpdateSource = {
+        check: vi.fn().mockResolvedValue({
+          version: '0.4.1',
+          currentVersion: '0.4.0',
+          body: '更新說明',
+        }),
+        downloadAndInstall: vi.fn().mockRejectedValue(new Error('下載驗證簽名無效')),
+      };
+      const service = new UpdateService(mockSource);
+      const { result } = renderHook(() => useAutoUpdater({ service }));
+
+      await act(async () => {
+        await result.current.checkUpdate(false);
+      });
+
+      await act(async () => {
+        await result.current.startDownload();
+      });
+
+      expect(result.current.status).toBe('error');
+      expect(result.current.error).toBe('下載驗證簽名無效');
+    });
+
+    it('calls service.relaunch when relaunch is invoked', async () => {
+      const mockSource: UpdateSource = {
+        check: vi.fn().mockResolvedValue(null),
+        relaunch: vi.fn().mockResolvedValue(undefined),
+      };
+      const service = new UpdateService(mockSource);
+      const { result } = renderHook(() => useAutoUpdater({ service }));
+
+      await act(async () => {
+        await result.current.relaunch();
+      });
+
+      expect(mockSource.relaunch).toHaveBeenCalled();
+    });
+  });
 });
+

@@ -11,11 +11,14 @@ export interface UseAutoUpdaterReturn {
   status: UpdaterStatus;
   updateInfo: UpdateInfo | null;
   error: string | null;
+  downloadProgress: number | null;
   isModalOpen: boolean;
   isDismissed: boolean;
   openModal: () => void;
   closeModal: () => void;
   checkUpdate: (silent?: boolean) => Promise<void>;
+  startDownload: () => Promise<void>;
+  relaunch: () => Promise<void>;
   dismissCurrentVersion: () => void;
 }
 
@@ -24,6 +27,7 @@ export const useAutoUpdater = (options: UseAutoUpdaterOptions = {}): UseAutoUpda
   const [status, setStatus] = useState<UpdaterStatus>('idle');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
   const isMountedRef = useRef<boolean>(true);
@@ -90,15 +94,55 @@ export const useAutoUpdater = (options: UseAutoUpdaterOptions = {}): UseAutoUpda
     [service]
   );
 
+  const startDownload = useCallback(async () => {
+    if (!isMountedRef.current) return;
+    setStatus('downloading');
+    setError(null);
+    setDownloadProgress(0);
+
+    try {
+      await service.downloadAndInstall((pct: number) => {
+        if (isMountedRef.current) {
+          setDownloadProgress(pct);
+        }
+      });
+      if (isMountedRef.current) {
+        setDownloadProgress(100);
+        setStatus('ready');
+      }
+    } catch (err: unknown) {
+      if (isMountedRef.current) {
+        setStatus('error');
+        const errorMessage = err instanceof Error ? err.message : '下載或安裝更新失敗';
+        setError(errorMessage);
+      }
+    }
+  }, [service]);
+
+  const relaunch = useCallback(async () => {
+    try {
+      await service.relaunch();
+    } catch (err: unknown) {
+      if (isMountedRef.current) {
+        setStatus('error');
+        const errorMessage = err instanceof Error ? err.message : '重啟失敗';
+        setError(errorMessage);
+      }
+    }
+  }, [service]);
+
   return {
     status,
     updateInfo,
     error,
+    downloadProgress,
     isModalOpen,
     isDismissed,
     openModal,
     closeModal,
     checkUpdate,
+    startDownload,
+    relaunch,
     dismissCurrentVersion,
   };
 };

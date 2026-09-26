@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpCircle, X, ExternalLink, Sparkles, ScrollText } from 'lucide-react';
+import { ArrowUpCircle, X, ExternalLink, Sparkles, ScrollText, AlertTriangle } from 'lucide-react';
 import { useModalDismiss } from '../../hooks/useModalDismiss';
 import { soundEngine } from '../../engine/audioManager';
 import type { UpdateInfo } from '../../services/updateService';
@@ -10,8 +10,11 @@ export interface UpdateModalProps {
   updateInfo: UpdateInfo | null;
   onDismissVersion: (version: string) => void;
   onStartUpdate?: () => void;
+  onRelaunch?: () => void;
   downloadProgress?: number | null;
   isDownloading?: boolean;
+  isReady?: boolean;
+  downloadError?: string | null;
 }
 
 export const UpdateModal: React.FC<UpdateModalProps> = ({
@@ -20,8 +23,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   updateInfo,
   onDismissVersion,
   onStartUpdate,
+  onRelaunch,
   downloadProgress = null,
   isDownloading = false,
+  isReady = false,
+  downloadError = null,
 }) => {
   const [dontRemind, setDontRemind] = useState<boolean>(false);
 
@@ -39,9 +45,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
 
   if (!isOpen || !updateInfo) return null;
 
-  const handleStartUpdateClick = () => {
+  const handleActionClick = () => {
     soundEngine.playClick();
-    onStartUpdate?.();
+    if (isReady) {
+      onRelaunch?.();
+    } else {
+      onStartUpdate?.();
+    }
   };
 
   const handleOpenReleasePage = () => {
@@ -149,6 +159,33 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             </div>
           </div>
 
+          {/* Error Notice if download/verification failed */}
+          {downloadError && (
+            <div
+              className="update-error-banner"
+              role="alert"
+              style={{
+                padding: '10px 14px',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '6px',
+                color: '#ff8a8a',
+                fontSize: '13px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}>
+                <AlertTriangle size={16} color="#ef4444" />
+                <span>下載或校驗失敗：{downloadError}</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#c4baa6' }}>
+                請檢查網路連線後重試，或造訪下方連結手動下載。
+              </span>
+            </div>
+          )}
+
           {/* Download Progress if active */}
           {isDownloading && downloadProgress !== null && (
             <div style={{ marginTop: '4px' }}>
@@ -156,12 +193,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                 <span>正在下載更新檔案...</span>
                 <span>{Math.round(downloadProgress)}%</span>
               </div>
-              <div style={{ width: '100%', height: '6px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(20, 24, 32, 0.9)', border: '1px solid rgba(207, 168, 102, 0.3)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div
                   style={{
                     width: `${Math.min(100, Math.max(0, downloadProgress))}%`,
                     height: '100%',
                     backgroundColor: '#ffd700',
+                    boxShadow: '0 0 8px rgba(255, 215, 0, 0.5)',
                     transition: 'width 0.2s ease',
                   }}
                 />
@@ -222,20 +260,26 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <button
               type="button"
               className="eldritch-btn-primary"
-              onClick={handleStartUpdateClick}
+              onClick={handleActionClick}
               disabled={isDownloading}
               style={{
                 padding: '8px 22px',
                 borderRadius: '6px',
-                backgroundColor: '#9a2424',
-                border: '1px solid #ffd700',
+                backgroundColor: isReady ? '#166534' : '#9a2424',
+                border: isReady ? '1px solid #4ade80' : '1px solid #ffd700',
                 color: '#fff',
                 fontWeight: 'bold',
                 cursor: isDownloading ? 'not-allowed' : 'pointer',
                 opacity: isDownloading ? 0.7 : 1,
               }}
             >
-              {isDownloading ? '正在下載更新...' : '立即更新'}
+              {isReady
+                ? '立即重啟'
+                : isDownloading
+                ? '正在下載更新...'
+                : downloadError
+                ? '重試更新'
+                : '立即更新'}
             </button>
           </div>
 

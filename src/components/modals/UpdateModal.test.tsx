@@ -90,4 +90,67 @@ describe('UpdateModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /立即更新/ }));
     expect(handleStartUpdate).toHaveBeenCalled();
   });
+
+  describe('Download progress bar and relaunch controls (ADR-0040 / #75)', () => {
+    it('renders real-time percentage progress bar when downloading', () => {
+      render(
+        <UpdateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          updateInfo={sampleUpdateInfo}
+          onDismissVersion={vi.fn()}
+          isDownloading={true}
+          downloadProgress={65}
+        />
+      );
+
+      expect(screen.getByText(/正在下載更新檔案\.\.\./i)).toBeDefined();
+      expect(screen.getByText('65%')).toBeDefined();
+      expect(screen.getByRole('button', { name: /正在下載更新\.\.\./i })).toBeDefined();
+    });
+
+    it('switches button to "立即重啟" when download is complete and calls onRelaunch on click', () => {
+      const handleRelaunch = vi.fn();
+      render(
+        <UpdateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          updateInfo={sampleUpdateInfo}
+          onDismissVersion={vi.fn()}
+          isReady={true}
+          onRelaunch={handleRelaunch}
+        />
+      );
+
+      const relaunchBtn = screen.getByRole('button', { name: /立即重啟/i });
+      expect(relaunchBtn).toBeDefined();
+
+      fireEvent.click(relaunchBtn);
+      expect(handleRelaunch).toHaveBeenCalled();
+    });
+
+    it('renders error notice and provides retry button when downloadError is present', () => {
+      const handleRetry = vi.fn();
+      render(
+        <UpdateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          updateInfo={sampleUpdateInfo}
+          onDismissVersion={vi.fn()}
+          downloadError="Minisign 數位簽名驗證失敗"
+          onStartUpdate={handleRetry}
+        />
+      );
+
+      expect(screen.getByText(/下載或校驗失敗/i)).toBeDefined();
+      expect(screen.getByText(/Minisign 數位簽名驗證失敗/i)).toBeDefined();
+
+      const retryBtn = screen.getByRole('button', { name: /重試更新/i });
+      expect(retryBtn).toBeDefined();
+
+      fireEvent.click(retryBtn);
+      expect(handleRetry).toHaveBeenCalled();
+    });
+  });
 });
+

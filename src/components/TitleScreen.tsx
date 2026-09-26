@@ -28,6 +28,11 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch, onAbyssDeath
     closeModal: closeUpdateModal,
     checkUpdate,
     dismissCurrentVersion,
+    startDownload,
+    relaunch,
+    downloadProgress,
+    status: updateStatus,
+    error: updateError,
   } = useAutoUpdater({ service: updateService });
 
   useEffect(() => {
@@ -178,6 +183,12 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch, onAbyssDeath
         onClose={closeUpdateModal}
         updateInfo={updateInfo}
         onDismissVersion={dismissCurrentVersion}
+        onStartUpdate={startDownload}
+        onRelaunch={relaunch}
+        downloadProgress={downloadProgress}
+        isDownloading={updateStatus === 'downloading'}
+        isReady={updateStatus === 'ready'}
+        downloadError={updateStatus === 'error' ? updateError : null}
       />
     </div>
   );

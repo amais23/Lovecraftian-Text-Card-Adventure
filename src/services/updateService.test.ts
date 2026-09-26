@@ -92,4 +92,45 @@ describe('UpdateService', () => {
       await expect(service.checkForUpdate({ silent: false })).rejects.toThrow('Network timeout');
     });
   });
+
+  describe('Download and relaunch operations (ADR-0040 / #75)', () => {
+    it('delegates downloadAndInstall to source and reports progress', async () => {
+      const progressUpdates: number[] = [];
+      const mockSource: UpdateSource = {
+        check: vi.fn().mockResolvedValue(null),
+        downloadAndInstall: vi.fn().mockImplementation(async (onProgress) => {
+          onProgress?.(25);
+          onProgress?.(75);
+          onProgress?.(100);
+        }),
+      };
+
+      const service = new UpdateService(mockSource);
+      await service.downloadAndInstall((pct) => progressUpdates.push(pct));
+
+      expect(mockSource.downloadAndInstall).toHaveBeenCalled();
+      expect(progressUpdates).toEqual([25, 75, 100]);
+    });
+
+    it('delegates relaunch to source', async () => {
+      const mockSource: UpdateSource = {
+        check: vi.fn().mockResolvedValue(null),
+        relaunch: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const service = new UpdateService(mockSource);
+      await service.relaunch();
+
+      expect(mockSource.relaunch).toHaveBeenCalled();
+    });
+
+    it('provides safe fallback for browser mode without throwing', async () => {
+      const service = new UpdateService();
+      const progressUpdates: number[] = [];
+      await expect(
+        service.downloadAndInstall((pct) => progressUpdates.push(pct))
+      ).resolves.not.toThrow();
+      expect(progressUpdates).toContain(100);
+    });
+  });
 });

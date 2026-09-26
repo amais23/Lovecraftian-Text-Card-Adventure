@@ -323,6 +323,50 @@ describe('TitleScreen & TitleMenu Integration', () => {
       expect(updateHeader).toBeDefined();
       expect(screen.getByText('0.4.1')).toBeDefined();
     });
+
+    it('handles download progress and relaunch flow directly from TitleScreen UpdateModal (Issue #75)', async () => {
+      const mockDownload = vi.fn().mockImplementation(async (onProgress) => {
+        onProgress?.(50, 100);
+      });
+      const mockRelaunch = vi.fn().mockResolvedValue(undefined);
+
+      const mockSource = {
+        check: vi.fn().mockResolvedValue({
+          version: '0.4.1',
+          currentVersion: '0.4.0',
+          body: '重大功能發布',
+        }),
+        downloadAndInstall: mockDownload,
+        relaunch: mockRelaunch,
+      };
+      const testService = new UpdateService(mockSource);
+
+      await act(async () => {
+        render(<TitleScreen dispatch={mockDispatch} updateService={testService} />);
+      });
+
+      // Modal appears
+      const updateHeader = await screen.findByRole('heading', { name: /發現新版本/ });
+      expect(updateHeader).toBeDefined();
+
+      // Click "立即更新"
+      const updateBtn = screen.getByRole('button', { name: /立即更新/i });
+      await act(async () => {
+        fireEvent.click(updateBtn);
+      });
+
+      expect(mockDownload).toHaveBeenCalled();
+      // Should switch to "立即重啟" once finished
+      const relaunchBtn = await screen.findByRole('button', { name: /立即重啟/i });
+      expect(relaunchBtn).toBeDefined();
+
+      // Click "立即重啟"
+      await act(async () => {
+        fireEvent.click(relaunchBtn);
+      });
+
+      expect(mockRelaunch).toHaveBeenCalled();
+    });
   });
 });
 
