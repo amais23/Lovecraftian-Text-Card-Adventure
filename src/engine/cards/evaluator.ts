@@ -238,6 +238,11 @@ export function evaluateCardPlay(
         if (conditionMatched) {
           conditionDesc = `先手拔槍把握先機`;
         }
+      } else if (cond.type === 'investigator_has_armor') {
+        conditionMatched = investigatorArmor > 0;
+        if (conditionMatched) {
+          conditionDesc = `固守陣地連鎖`;
+        }
       }
 
       // 非傷害類效果若未滿足條件，直接跳過執行

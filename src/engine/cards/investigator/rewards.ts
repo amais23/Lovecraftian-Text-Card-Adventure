@@ -187,11 +187,11 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/combat/card_demolition_pack.png',
     effects: [
-      { type: 'damage', value: 40 },
+      { type: 'damage', value: 30 },
       { type: 'apply_status', target: 'enemy', statusType: 'bleed', value: 3 },
-      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 2 },
+      { type: 'apply_status', target: 'enemy', statusType: 'weak', value: 2 },
     ],
-    description: '造成 40 點物理傷害，並對目標施加 3 層【流血】與 2 層【易傷】。【消耗】打出後移出戰鬥。',
+    description: '造成 30 點物理傷害，施加 3 層【流血】與 2 層【破勢】。【消耗】打出後移出戰鬥。',
     flavorText: '「工兵守則第一條：只要裝藥足夠，世上沒有炸不開的門——也沒有炸不死的怪物。」',
   },
   {
@@ -204,8 +204,8 @@ export const INVESTIGATOR_REWARD_CARDS: Card[] = [
     tier: 3,
     occupations: ['investigator'],
     artworkUrl: '/cards/skill/card_impenetrable_bastion.png',
-    effects: [{ type: 'armor', value: 22 }],
-    description: '獲得 22 點護甲。',
+    effects: [{ type: 'armor', value: 18 }],
+    description: '獲得 18 點護甲。',
     flavorText: '「無懼非人泰克利利哀鳴，調查員築起凡人血肉所能構築的最堅固壁壘。」',
   },
 

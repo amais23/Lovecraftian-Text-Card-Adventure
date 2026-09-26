@@ -57,7 +57,13 @@ export interface CardEffect {
   scaleMultiplier?: number;
   scaleStatusType?: StatusEffectType;
   condition?: {
-    type: 'low_sanity' | 'low_health' | 'target_has_status' | 'enemy_intent_is_attack' | 'first_card_played';
+    type:
+      | 'low_sanity'
+      | 'low_health'
+      | 'target_has_status'
+      | 'enemy_intent_is_attack'
+      | 'first_card_played'
+      | 'investigator_has_armor';
     threshold?: number;
     statusType?: StatusEffectType;
     bonusValue?: number;

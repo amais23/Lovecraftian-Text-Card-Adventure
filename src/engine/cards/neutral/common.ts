@@ -81,10 +81,11 @@ export const NEUTRAL_CARDS: Card[] = [
     occupations: ['investigator', 'occultist'],
     artworkUrl: '/cards/skill/card_calm_observation.png',
     effects: [
-      { type: 'armor', value: 5 },
-      { type: 'draw', value: 2 },
+      { type: 'armor', value: 4 },
+      { type: 'draw', value: 1 },
+      { type: 'draw', value: 1, condition: { type: 'investigator_has_armor' } },
     ],
-    description: '獲得 5 點護甲，並敏銳抽取 2 張卡牌。',
+    description: '獲得 4 點護甲，抽取 1 張卡牌；若當前護甲大於 0，額外抽取 1 張卡牌。',
     flavorText: '「在震耳欲聾的嘶吼聲中強自鎮定，洞悉敵怪攻擊軌跡中的破綻。」',
   },
 

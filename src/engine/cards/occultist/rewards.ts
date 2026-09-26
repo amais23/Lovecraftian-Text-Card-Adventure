@@ -15,8 +15,11 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     tier: 1,
     occupations: ['occultist'],
     artworkUrl: '/cards/magic/card_void_fire.png',
-    effects: [{ type: 'damage', value: 18 }],
-    description: '造成 18 點秘術傷害。',
+    effects: [
+      { type: 'damage', value: 14 },
+      { type: 'apply_status', target: 'enemy', statusType: 'bleed', value: 2 },
+    ],
+    description: '造成 14 點秘術傷害，並施加 2 層【流血】。',
     flavorText: '「燃燒靈魂碎片釋放的星辰冷火。」',
   },
   {
@@ -44,10 +47,10 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     occupations: ['occultist'],
     artworkUrl: '/cards/truth/card_astral_insight.png',
     effects: [
-      { type: 'self_damage', value: 2 },
+      { type: 'draw', value: 1 },
       { type: 'add_to_deck', value: 3 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
+    description: '抽取 1 張卡牌，向理智牌庫注入 3 張真相卡牌。',
     flavorText: '「意識升入無垠星穹，心智雖千瘡百孔，卻獲得浩瀚的安寧。」',
   },
   {
@@ -214,8 +217,11 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     tier: 3,
     occupations: ['occultist'],
     artworkUrl: '/cards/magic/card_void_collapse.png',
-    effects: [{ type: 'damage', value: 34 }],
-    description: '造成 34 點秘術傷害。',
+    effects: [
+      { type: 'damage', value: 24 },
+      { type: 'apply_status', target: 'enemy', statusType: 'vulnerable', value: 2 },
+    ],
+    description: '造成 24 點秘術傷害，並使目標陷入 2 層【易傷】狀態。',
     flavorText: '「空間維度在此處發生不可逆轉的扭曲，一切物質皆向著虛無的奇點崩陷。」',
   },
   {
@@ -275,8 +281,14 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     tier: 4,
     occupations: ['occultist'],
     artworkUrl: '/cards/magic/card_void_annihilation.png',
-    effects: [{ type: 'damage', value: 42 }],
-    description: '造成 42 點秘術傷害。',
+    effects: [
+      {
+        type: 'damage',
+        value: 30,
+        condition: { type: 'target_has_status', statusType: 'vulnerable', bonusValue: 10 },
+      },
+    ],
+    description: '造成 30 點秘術傷害；若目標處於【易傷】狀態，額外追加 10 點傷害。',
     flavorText: '「宇宙黑洞深處的奇異點在眼前剎那綻放，將目光所及的一切狂暴異質徹底撕裂。」',
   },
   {
@@ -290,10 +302,11 @@ export const OCCULTIST_REWARD_CARDS: Card[] = [
     occupations: ['occultist'],
     artworkUrl: '/cards/truth/card_astral_revelation.png',
     effects: [
-      { type: 'add_to_deck', value: 8 },
-      { type: 'armor', value: 12 },
+      { type: 'damage', value: 16 },
+      { type: 'armor', value: 16 },
+      { type: 'add_to_deck', value: 6 },
     ],
-    description: '獲得 12 點護甲，向理智牌庫注入 8 張真相卡牌。',
+    description: '造成 16 點秘術傷害，獲得 16 點護甲，向理智牌庫注入 6 張真相卡牌。',
     flavorText: '「當意識凌駕於群星之上，深淵的詛咒與瘋狂皆化為無垠宇宙中的一粒微塵。」',
   },
 ];

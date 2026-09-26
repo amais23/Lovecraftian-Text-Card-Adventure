@@ -81,6 +81,9 @@ export function formatEffectCondition(
     case 'first_card_played':
       return { prefix: '若為本回合打出的首張卡牌，' };
 
+    case 'investigator_has_armor':
+      return { prefix: '若當前護甲大於 0，' };
+
     default:
       return {};
   }

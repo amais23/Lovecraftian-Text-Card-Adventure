@@ -338,23 +338,6 @@
   color: #e2e8f0;
 }
 
-.stat-pill.proposal-pill {
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
-  transition: all 0.2s ease;
-}
-
-.stat-pill.proposal-pill:hover {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: #f59e0b;
-}
-
-.stat-pill.proposal-pill.active {
-  background: rgba(245, 158, 11, 0.25);
-  border-color: #f59e0b;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
-}
-
 .search-box-wrapper {
   display: flex;
   align-items: center;

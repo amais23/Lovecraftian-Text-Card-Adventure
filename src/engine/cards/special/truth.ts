@@ -9,9 +9,13 @@ export const TRUTH_INJECTED_TEMPLATE: Omit<Card, 'id'> = {
   costType: 'stamina',
   costValue: 0,
   isTemporary: true,
+  keywords: ['exhaust'],
   artworkUrl: '/cards/truth/card_truth_glimmer.png',
-  effects: [{ type: 'armor', value: 2 }],
-  description: '獲得 2 點護甲。',
+  effects: [
+    { type: 'armor', value: 3 },
+    { type: 'draw', value: 1 },
+  ],
+  description: '【消耗】獲得 3 點護甲，抽取 1 張卡牌。打出後移出戰鬥。',
   flavorText: '「瘋狂漸漸褪去，但未知的印記已深深烙印在靈魂之中。」',
 };
 

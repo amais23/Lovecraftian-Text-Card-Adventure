@@ -175,10 +175,10 @@ export const INVESTIGATOR_STARTER_CARDS: Card[] = [
     occupations: ['investigator'],
     artworkUrl: '/cards/truth/card_truth_fragment.webp',
     effects: [
-      { type: 'self_damage', value: 2 },
+      { type: 'damage', value: 6 },
       { type: 'add_to_deck', value: 2 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。',
+    description: '造成 6 點物理傷害，向理智牌庫注入 2 張真相卡牌。',
     flavorText: '「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」',
   },
 ];

@@ -22,9 +22,9 @@ export const MADNESS_CARD_TEMPLATES: Omit<Card, 'id'>[] = [
     isTemporary: true,
     effects: [
       { type: 'damage', value: 14 },
-      { type: 'self_damage', value: 3 },
+      { type: 'lose_armor', value: 5 },
     ],
-    description: '造成 14 點秘術傷害，自身承受 3 點反噬傷害。',
+    description: '造成 14 點秘術傷害，自身失去 5 點護甲。',
     flavorText: '「非人的狂吼撕裂了喉管，震碎了眼前怪物的血肉。」',
   },
   {
@@ -34,10 +34,11 @@ export const MADNESS_CARD_TEMPLATES: Omit<Card, 'id'>[] = [
     costValue: 2,
     isTemporary: true,
     effects: [
-      { type: 'damage', value: 20 },
-      { type: 'self_damage', value: 5 },
+      { type: 'damage', value: 22 },
+      { type: 'apply_status', target: 'self', statusType: 'vulnerable', value: 2 },
+      { type: 'erode_sanity', value: 2 },
     ],
-    description: '造成 20 點物理傷害，自身承受 5 點反噬傷害。',
+    description: '造成 22 點物理傷害，使自身陷入 2 層【易傷】並侵蝕 2 張理智牌庫。',
     flavorText: '「燃燒最後的肉魄，化為毀滅深淵的漆黑利刃。」',
   },
 ];
@@ -48,8 +49,12 @@ export const TRUTH_INJECTED_TEMPLATE: Omit<Card, 'id'> = {
   costType: 'stamina',
   costValue: 0,
   isTemporary: true,
-  effects: [{ type: 'armor', value: 2 }],
-  description: '獲得 2 點護甲。',
+  keywords: ['exhaust'],
+  effects: [
+    { type: 'armor', value: 3 },
+    { type: 'draw', value: 1 },
+  ],
+  description: '【消耗】獲得 3 點護甲，抽取 1 張卡牌。打出後移出戰鬥。',
   flavorText: '「瘋狂漸漸褪去，但未知的印記已深深烙印在靈魂之中。」',
 };
 

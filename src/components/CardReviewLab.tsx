@@ -476,19 +476,6 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                 <span>待審核</span>
                 <strong>{counts.pending}</strong>
               </div>
-              <div
-                className={`stat-pill proposal-pill ${proposalFilter === 'has_proposal' ? 'active' : ''}`}
-                onClick={() => {
-                  soundEngine.playClick();
-                  setProposalFilter((prev) => (prev === 'has_proposal' ? 'all' : 'has_proposal'));
-                }}
-                style={{ cursor: 'pointer' }}
-                title="點擊切換篩選待審提案"
-              >
-                <Flame size={16} />
-                <span>待審提案</span>
-                <strong>{counts.hasProposal}</strong>
-              </div>
 
               <div className="actions-cluster">
                 <button className="action-btn accept-all" onClick={handleAcceptAll} title="全部標記為接受">

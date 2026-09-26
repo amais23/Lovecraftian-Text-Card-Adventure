@@ -49,8 +49,11 @@ const BASE_MEDITATE: Omit<Card, 'id' | 'flavorText'> = {
   tier: 1,
   occupations: ['occultist'],
   artworkUrl: '/cards/skill/card_meditate.png',
-  effects: [{ type: 'restore_sanity', value: 2 }],
-  description: '洗回 2 張卡牌至理智牌庫。',
+  effects: [
+    { type: 'armor', value: 4 },
+    { type: 'restore_sanity', value: 2 },
+  ],
+  description: '獲得 4 點護甲，洗回 2 張卡牌至理智牌庫。',
 };
 
 const BASE_RITUAL_DAGGER: Omit<Card, 'id' | 'flavorText'> = {
@@ -124,10 +127,10 @@ export const OCCULTIST_STARTER_CARDS: Card[] = [
     occupations: ['occultist'],
     artworkUrl: '/cards/truth/card_silver_key.png',
     effects: [
-      { type: 'self_damage', value: 1 },
+      { type: 'armor', value: 4 },
       { type: 'add_to_deck', value: 2 },
     ],
-    description: '自身承受 1 點反噬傷害，向理智牌庫注入 2 張真相卡牌。',
+    description: '獲得 4 點護甲，向理智牌庫注入 2 張真相卡牌。',
     flavorText: '「旋轉銀色鑰匙，推開通向終極真相的一絲門縫。」',
   },
   {
@@ -141,10 +144,10 @@ export const OCCULTIST_STARTER_CARDS: Card[] = [
     occupations: ['occultist'],
     artworkUrl: '/cards/truth/card_truth_fragment.webp',
     effects: [
-      { type: 'self_damage', value: 2 },
+      { type: 'damage', value: 6 },
       { type: 'add_to_deck', value: 2 },
     ],
-    description: '自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。',
+    description: '造成 6 點秘術傷害，向理智牌庫注入 2 張真相卡牌。',
     flavorText: '「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」',
   },
   createStarterVariant(

@@ -15,10 +15,10 @@ export const CARD_EVENT_BREAKWATER: Card = {
   occupations: ['investigator', 'occultist'],
   artworkUrl: '/cards/truth/card_breakwater.png',
   effects: [
-    { type: 'self_damage', value: 1 },
-    { type: 'add_to_deck', value: 3 },
+    { type: 'armor', value: 8 },
+    { type: 'add_to_deck', value: 2 },
   ],
-  description: '自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
+  description: '獲得 8 點護甲，向理智牌庫注入 2 張真相卡牌。',
   flavorText: '「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」',
 };
 
@@ -84,10 +84,10 @@ export const CARD_EVENT_ELDER_GEOMETRY: Card = {
   occupations: ['investigator', 'occultist'],
   artworkUrl: '/cards/truth/card_elder_geometry.png',
   effects: [
-    { type: 'self_damage', value: 1 },
+    { type: 'armor', value: 6 },
     { type: 'add_to_deck', value: 4 },
   ],
-  description: '自身承受 1 點反噬傷害，向理智牌庫注入 4 張真相卡牌。',
+  description: '獲得 6 點護甲，向理智牌庫注入 4 張真相卡牌。',
   flavorText: '「超越三維空間的古老真理。」',
 };
 
@@ -154,10 +154,10 @@ export const CARD_EVENT_DEEP_TRUTH: Card = {
   occupations: ['investigator', 'occultist'],
   artworkUrl: '/cards/truth/card_deep_truth.png',
   effects: [
-    { type: 'self_damage', value: 2 },
+    { type: 'armor', value: 5 },
     { type: 'add_to_deck', value: 3 },
   ],
-  description: '自身承受 2 點反噬傷害，向理智牌庫注入 3 張真相卡牌。',
+  description: '獲得 5 點護甲，向理智牌庫注入 3 張真相卡牌。',
   flavorText: '「在海底兩萬哩的泥濘中，真實正在靜默呼吸。」',
 };
 
