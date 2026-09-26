@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowUpCircle, X, ExternalLink, Sparkles, ScrollText, AlertTriangle } from 'lucide-react';
 import { useModalDismiss } from '../../hooks/useModalDismiss';
 import { soundEngine } from '../../engine/audioManager';
-import type { UpdateInfo } from '../../services/updateService';
+import { openExternalUrl, type UpdateInfo } from '../../services/updateService';
 
 export interface UpdateModalProps {
   isOpen: boolean;
@@ -56,12 +56,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
 
   const handleOpenReleasePage = () => {
     soundEngine.playClick();
-    if (typeof window !== 'undefined') {
-      window.open(
-        'https://github.com/amais23/Lovecraftian-Text-Card-Adventure/releases/latest',
-        '_blank'
-      );
-    }
+    void openExternalUrl(
+      'https://github.com/amais23/Lovecraftian-Text-Card-Adventure/releases/latest'
+    );
   };
 
   return (
@@ -131,7 +128,8 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                   fontFamily: 'monospace',
                 }}
               >
-                {updateInfo.version}
+                {!updateInfo.version.startsWith('v') && <span>v</span>}
+                <span>{updateInfo.version.replace(/^v/, '')}</span>
               </span>
             </div>
           </div>
@@ -276,7 +274,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
               }}
             >
               {isReady
-                ? '立即重啟'
+                ? '更新完畢，立即重啟'
                 : isDownloading
                 ? '正在下載更新...'
                 : downloadError

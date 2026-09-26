@@ -9,6 +9,7 @@ pub fn run() {
       portable::is_portable_mode,
       portable::download_portable_binary,
       portable::replace_and_relaunch_portable,
+      portable::open_external_url,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

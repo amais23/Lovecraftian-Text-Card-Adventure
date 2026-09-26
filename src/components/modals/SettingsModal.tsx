@@ -281,7 +281,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {!isGameActive && updater.status === 'available' && (
                   <div className="settings-update-available-info">
                     <span className="settings-update-status available" role="status">
-                      ★ 發現新版本 v{updater.updateInfo?.version}
+                      ★ 發現新版本 {updater.updateInfo?.version ? (updater.updateInfo.version.startsWith('v') ? updater.updateInfo.version : `v${updater.updateInfo.version}`) : ''}
                     </span>
                     <button
                       className="settings-view-update-btn"

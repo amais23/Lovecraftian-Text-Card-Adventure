@@ -42,8 +42,21 @@ export class BrowserFallbackUpdateSource implements UpdateSource {
   }
 }
 
+import type { Update, DownloadEvent } from '@tauri-apps/plugin-updater';
+
+interface PortablePlatformConfig {
+  portable_url?: string;
+  [key: string]: unknown;
+}
+
+interface RawUpdateJson {
+  platforms?: Record<string, PortablePlatformConfig>;
+  portable_url?: string;
+  [key: string]: unknown;
+}
+
 export class TauriUpdateSource implements UpdateSource {
-  private activeUpdate: any = null;
+  private activeUpdate: Update | null = null;
   private isPortable: boolean = false;
   private downloadedTempBinaryPath: string | null = null;
   private portableDownloadUrl: string | null = null;
@@ -68,9 +81,12 @@ export class TauriUpdateSource implements UpdateSource {
       this.isPortable = await this.isPortableMode();
 
       const version = update.version.startsWith('v') ? update.version : `v${update.version}`;
+      const rawJson = (update.rawJson ?? {}) as RawUpdateJson;
+      const platformConfig = rawJson.platforms?.['windows-x86_64'];
+      const configuredPortableUrl = platformConfig?.portable_url || rawJson.portable_url;
+
       this.portableDownloadUrl =
-        (update.rawJson?.platforms as any)?.['windows-x86_64']?.portable_url ||
-        (update.rawJson?.portable_url as string) ||
+        configuredPortableUrl ||
         `https://github.com/amais23/Lovecraftian-Text-Card-Adventure/releases/download/${version}/LovecraftianCardAdventure.exe`;
 
       return {
@@ -124,7 +140,7 @@ export class TauriUpdateSource implements UpdateSource {
 
     let totalBytes = 0;
     let downloadedBytes = 0;
-    await this.activeUpdate.downloadAndInstall((event: any) => {
+    await this.activeUpdate.downloadAndInstall((event: DownloadEvent) => {
       if (event.event === 'Started') {
         totalBytes = event.data.contentLength ?? 0;
         downloadedBytes = 0;
@@ -245,6 +261,26 @@ export class UpdateService {
       return this.source.isPortableMode();
     }
     return false;
+  }
+
+  async openExternalUrl(url: string): Promise<void> {
+    return openExternalUrl(url);
+  }
+}
+
+export async function openExternalUrl(url: string): Promise<void> {
+  if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('open_external_url', { url });
+      return;
+    } catch {
+      // Fallback to window.open if Tauri command fails
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.open(url, '_blank');
   }
 }
 

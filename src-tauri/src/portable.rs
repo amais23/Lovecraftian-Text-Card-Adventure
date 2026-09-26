@@ -200,6 +200,41 @@ pub fn replace_and_relaunch_portable(
     }
 }
 
+/// Opens an external URL in the user's default system browser.
+#[tauri::command]
+pub fn open_external_url(url: String) -> Result<(), String> {
+    // Only allow http and https schemas for security
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Invalid URL protocol: must start with http:// or https://".to_string());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", &url])
+            .spawn()
+            .map_err(|e| format!("Failed to launch browser: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| format!("Failed to launch browser: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| format!("Failed to launch browser: {}", e))?;
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,5 +285,14 @@ mod tests {
         let non_existent = std::env::temp_dir().join("non_existent_update_file_xyz.exe");
         let result = Path::new(&non_existent).exists();
         assert!(!result);
+    }
+
+    #[test]
+    fn test_open_external_url_security() {
+        let invalid = open_external_url("file:///etc/passwd".to_string());
+        assert!(invalid.is_err());
+
+        let invalid_protocol = open_external_url("javascript:alert(1)".to_string());
+        assert!(invalid_protocol.is_err());
     }
 }

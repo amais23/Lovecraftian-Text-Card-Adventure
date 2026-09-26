@@ -3,6 +3,7 @@ import {
   UpdateService,
   CURRENT_APP_VERSION,
   IGNORED_UPDATE_VERSION_KEY,
+  openExternalUrl,
   type UpdateSource,
 } from './updateService';
 
@@ -227,6 +228,34 @@ describe('UpdateService', () => {
       expect(mockInvoke).toHaveBeenCalledWith('replace_and_relaunch_portable', {
         newBinaryPath: 'C:\\temp\\update.tmp',
       });
+    });
+  });
+
+  describe('openExternalUrl helper', () => {
+    it('uses window.open in browser environment when __TAURI_INTERNALS__ is absent', async () => {
+      const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+      await openExternalUrl('https://example.com');
+      expect(windowOpenSpy).toHaveBeenCalledWith('https://example.com', '_blank');
+      windowOpenSpy.mockRestore();
+    });
+
+    it('delegates to Tauri invoke open_external_url when __TAURI_INTERNALS__ is present', async () => {
+      const mockInvoke = vi.fn().mockResolvedValue(undefined);
+      vi.doMock('@tauri-apps/api/core', () => ({
+        invoke: mockInvoke,
+      }));
+
+      // Simulate Tauri environment
+      (window as any).__TAURI_INTERNALS__ = {};
+
+      try {
+        await openExternalUrl('https://github.com/amais23');
+        expect(mockInvoke).toHaveBeenCalledWith('open_external_url', {
+          url: 'https://github.com/amais23',
+        });
+      } finally {
+        delete (window as any).__TAURI_INTERNALS__;
+      }
     });
   });
 });
