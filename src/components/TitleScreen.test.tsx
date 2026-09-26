@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { TitleScreen } from './TitleScreen';
 import { soundEngine } from '../engine/audioManager';
 import { devModeManager } from '../engine/devModeManager';
+import { UpdateService } from '../services/updateService';
 
 describe('TitleScreen & TitleMenu Integration', () => {
   const mockDispatch = vi.fn();
@@ -248,4 +249,44 @@ describe('TitleScreen & TitleMenu Integration', () => {
     fireEvent.click(screen.getByTitle('返回主選單'));
     expect(screen.queryByRole('heading', { name: /卡牌改動審查與數值實驗室/i })).toBeNull();
   });
+
+  describe('Auto-Updater notification in TitleScreen (ADR-0040 / #73)', () => {
+    it('automatically checks and displays UpdateModal when an update is available', async () => {
+      const mockSource = {
+        check: vi.fn().mockResolvedValue({
+          version: '0.4.1',
+          currentVersion: '0.4.0',
+          body: '重要錯誤修正',
+        }),
+      };
+      const testService = new UpdateService(mockSource);
+
+      await act(async () => {
+        render(<TitleScreen dispatch={mockDispatch} updateService={testService} />);
+      });
+
+      const updateHeader = await screen.findByRole('heading', { name: /發現新版本/ });
+      expect(updateHeader).toBeDefined();
+      expect(screen.getByText('0.4.1')).toBeDefined();
+    });
+
+    it('does not display UpdateModal when available version is dismissed', async () => {
+      const mockSource = {
+        check: vi.fn().mockResolvedValue({
+          version: '0.4.1',
+          currentVersion: '0.4.0',
+          body: '重要錯誤修正',
+        }),
+      };
+      const testService = new UpdateService(mockSource);
+      testService.dismissVersion('0.4.1');
+
+      await act(async () => {
+        render(<TitleScreen dispatch={mockDispatch} updateService={testService} />);
+      });
+
+      expect(screen.queryByRole('heading', { name: /發現新版本/ })).toBeNull();
+    });
+  });
 });
+
