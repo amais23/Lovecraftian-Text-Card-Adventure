@@ -1049,6 +1049,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                             {intent.type === 'defend' && '護甲'}
                             {intent.type === 'erode' && '心智侵蝕'}
                             {intent.type === 'apply_status' && '施加印記'}
+                            {intent.type === 'heal' && '細胞回血'}
                           </span>
                           <span className="intent-name">{intent.name}</span>
                           <span className="intent-desc">{intent.description}</span>

@@ -21,7 +21,7 @@ async function main() {
 
   console.log(`[設定] 每項變因對抗敵怪模擬場次: ${runsPerMatchup} 場 (雙軌並發)`);
   console.log(`[模式] ${uncappedHealth ? '🔥 生命值無上限模式 (以肉體生命損失評定強弱)' : '標準 25 點生命模式 (含殞命截斷)'}`);
-  console.log(`[目標] 覆蓋 73 張卡牌 (1x/2x/3x)、6 種遺物 (0~3x) 與 26 隻敵怪\n`);
+  console.log(`[目標] 覆蓋 73 張卡牌 (1x/2x/3x)、6 種遺物 (0~3x) 與 35 隻敵怪\n`);
 
   const startTime = performance.now();
 

@@ -10,10 +10,10 @@ import type { Card, Enemy, Relic } from '../../types/game';
  * 依據綜合得分評定天梯段位
  */
 export function getTierRating(overallScore: number): 'S' | 'A' | 'B' | 'C' | 'D' {
-  if (overallScore >= 85) return 'S';
-  if (overallScore >= 72) return 'A';
-  if (overallScore >= 58) return 'B';
-  if (overallScore >= 42) return 'C';
+  if (overallScore >= 80) return 'S';
+  if (overallScore >= 68) return 'A';
+  if (overallScore >= 52) return 'B';
+  if (overallScore >= 38) return 'C';
   return 'D';
 }
 
@@ -27,10 +27,15 @@ export function calculateHealthScore(
   isUncappedHealth: boolean = false
 ): number {
   if (isUncappedHealth) {
-    // 生命值無上限模式：直接以肉體生命損失評定強弱（承傷越低、減傷/續航/速殺能力越高，得分越高）
-    // 基準承傷尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌保留數環境）：
-    // <= 2.5 點損失 = 100 分，~7.2 點損失 = 60 分，~8.4 點損失 = 50 分，14.3+ 點損失 = 0 分
-    const score = 100 - (avgHealthLost - 2.5) * 8.5;
+    // 生命值無上限模式：採用漸近平滑衰減模型（ADR-0036, ADR-0039 修訂，適配 35 隻全敵怪與四大階層首領）
+    // 錨定基準（全 35 隻敵怪與首領高壓實戰環境）：
+    // - 0 點損失 = 100 分 (極限無傷)
+    // - 2.8~3.5 點微損 = 81~75 分 (頂級 S/A 級防護)
+    // - 7.0 點損失 = 50 分 (全怪獸中位合格基準線，涵蓋高難 Boss 承傷)
+    // - 9.5~12 點高損 = 38~30 分 (高承傷與自殘卡牌，落入 C/D 低分群)
+    // - 25 點極限損失 = 12 分，隨承傷增加漸近趨向 0，不突兀歸零
+    const safeHpLost = Math.max(0, avgHealthLost);
+    const score = 100 / (1 + Math.pow(safeHpLost / 7.0, 1.6));
     return Math.round(Math.max(0, Math.min(100, score)));
   }
   const hpRetention = Math.max(0, 1 - avgHealthLost / maxExpectedHp);
@@ -48,9 +53,14 @@ export function calculateSanityScore(
   isUncappedHealth: boolean = false
 ): number {
   if (isUncappedHealth) {
-    // 基準心智消耗尺度（全牌庫 10~35 張隨機抽樣與動態 2~6 手牌保留數環境）：
-    // <= 1.0 張消耗 = 100 分，~5.0 張消耗 = 60 分，~6.0 張（中位數）= 50 分，>= 11.0 張消耗 = 0 分
-    const score = 100 - (avgSanityExpended - 1.0) * 10.0;
+    // 生命值無上限模式：採用漸近平滑心智衰減模型（ADR-0036, ADR-0039 修訂）
+    // 錨定基準：
+    // - <= 1.0 張淨損耗/回補 = 98~100 分 (真相流洗牌神技)
+    // - 2.5~3.5 張損耗 = 83~72 分 (低心智負荷)
+    // - 5.5 張損耗 = 50 分 (3 回合戰鬥基礎抽牌線中位數)
+    // - 6.3+ 張以上或陷入瘋狂 = < 40 分 (高磨損特化)
+    const safeSanity = Math.max(0, avgSanityExpended);
+    const score = 100 / (1 + Math.pow(safeSanity / 5.5, 2.2));
     return Math.round(Math.max(0, Math.min(100, score)));
   }
   const sanityRetention = Math.max(0, 1 - avgSanityExpended / maxExpectedSanity);
@@ -67,8 +77,10 @@ export function calculateOverallScore(
   isUncappedHealth: boolean = false
 ): number {
   if (isUncappedHealth) {
-    // 生命值無上限模式：以「損失的生命值」為主軸核心權重 (75%)，結合心智消耗 (15%) 與容錯穩定度 (10%)
-    const score = healthScore * 0.75 + sanityScore * 0.15 + faultToleranceRatio * 10;
+    // 生命值無上限模式：以「肉體生存評分」為主軸 (75%)，結合心智效率 (25%)，
+    // 並由容錯穩定度 (0.85 + 0.15 * ratio) 進行調製，消除人工固定加分地板
+    const base = healthScore * 0.75 + sanityScore * 0.25;
+    const score = base * (0.85 + 0.15 * faultToleranceRatio);
     return Math.round(Math.max(0, Math.min(100, score)));
   }
   const score = healthScore * 0.5 + sanityScore * 0.35 + faultToleranceRatio * 15;

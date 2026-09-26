@@ -450,6 +450,8 @@ export function resolveEnemyAction(
     }
   } else if (intent.type === 'defend') {
     armorGainToEnemy = intent.value;
+  } else if (intent.type === 'heal') {
+    healToEnemy = intent.value;
   } else if (intent.type === 'erode') {
     erodeToInvestigator = intent.value;
     // 無貌深淵 (faceless_terror)：侵蝕成功後觸發陰影滑翔獲得 6 護甲
@@ -595,6 +597,58 @@ export function advanceCanonicalIntent(
 
   // 2. 修格斯：器官增生與 Tekeli-li 碾壓
   if (hasTrait(enemy, 'organ_proliferation')) {
+    // 第一深度首領：修格斯幼體 (Shoggoth Progeny) 專屬 4 回合再生與動態碾壓循環
+    if (enemy.id === 'enemy_shoggoth_progeny') {
+      const cycle = nextTurn % 4;
+      if (cycle === 1) {
+        return {
+          nextIntent: {
+            type: 'attack',
+            value: 10,
+            name: '原生質癲狂鞭笞',
+            description: '巨大黑泥肉塊抽打出數十條黏液觸手，預告造成 10 點傷害。',
+          },
+          nextIntentIndex: 0,
+          newShoggothStance: 'normal',
+        };
+      } else if (cycle === 2) {
+        return {
+          nextIntent: {
+            type: 'heal',
+            value: 7,
+            name: '原生質細胞再生',
+            description: '黑泥肉塊翻滾劇烈聚合，預告恢復 7 點生命值！',
+          },
+          nextIntentIndex: 1,
+          newShoggothStance: 'hide',
+        };
+      } else if (cycle === 3) {
+        return {
+          nextIntent: {
+            type: 'erode',
+            value: 3,
+            name: '不可名狀之眼',
+            description: '身上浮現無數閃爍綠光的眼球，預告侵蝕 3 點理智牌庫！',
+          },
+          nextIntentIndex: 2,
+          newShoggothStance: 'eyes',
+        };
+      } else {
+        // cycle === 0 (Turn 4, Turn 8...): 造成 1/4 BOSS 剩餘生命值的傷害
+        const quarterDmg = Math.max(1, Math.round(enemy.health / 4));
+        return {
+          nextIntent: {
+            type: 'attack',
+            value: quarterDmg,
+            name: '泰克利利碾壓',
+            description: `伴隨尖銳的笛音鳴叫泰克利利！龐大黑泥泰山壓頂，造成 1/4 剩餘生命值 (${quarterDmg}點) 傷害！`,
+          },
+          nextIntentIndex: 3,
+          newShoggothStance: 'normal',
+        };
+      }
+    }
+
     // 每 4 回合第 3 回合蓄力，第 4 回合碾壓
     const cycle = nextTurn % 4;
     if (cycle === 3) {

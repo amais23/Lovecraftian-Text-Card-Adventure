@@ -92,7 +92,7 @@ export interface Card {
   retainedTurns?: number;
 }
 
-export type EnemyIntentType = 'attack' | 'erode' | 'defend' | 'apply_status' | 'charge';
+export type EnemyIntentType = 'attack' | 'erode' | 'defend' | 'apply_status' | 'charge' | 'heal';
 
 export interface EnemyIntent {
   type: EnemyIntentType;

@@ -54,16 +54,16 @@ export const MONSTER_TACTICAL_TIPS: Record<string, MonsterTacticalTips> = {
     traitTrigger: '揮舞權杖造成複合重擊，並伴隨刺耳的地底尖嘯重度侵蝕心智。',
   },
   enemy_shoggoth_progeny: {
-    threatSummary: '第一深度關底首領！重擊威脅極大，且帶有黏液反震。',
-    recommendedCards: ['就地掩蔽 (蓄力蓄甲)', '重拳壓制 (破勢 -30%)', '雙發速射 (分段打擊規避反噬)'],
-    strategy: '在 Tekeli-li 碾壓前夕打出【重拳壓制】降低其 30% 傷害，並打出蓄滿層數的【就地掩蔽】安全化解。',
-    traitTrigger: '每 3 回合發動【Tekeli-li 泰山壓頂】，造成 14 點巨大碾壓傷害。',
+    threatSummary: '第一深度關底首領！第 2 回合發動細胞再生恢復生命，第 4 回合造成 1/4 剩餘生命值的毀滅碾壓。',
+    recommendedCards: ['重拳壓制 (破勢)', '就地掩蔽 (蓄甲)', '雙發速射 (快攻壓血)'],
+    strategy: '在第 4 回合前全力傾瀉傷害壓低其血量，可大幅削弱其泰克利利碾壓的傷害！',
+    traitTrigger: '第 2 回合細胞再生恢復 7 點生命，第 4 回合發動 1/4 剩餘生命值的泰克利利碾壓。',
   },
   initial_shoggoth: {
-    threatSummary: '原初修格斯幼體原型，龐大身軀具備極高碾壓破壞力與黏液反震。',
-    recommendedCards: ['就地掩蔽 (構築高額護甲)', '重拳壓制 (破勢 -30%)', '雙發速射 (分段打擊規避反噬)'],
-    strategy: '在 Tekeli-li 碾壓前夕打出【重拳壓制】降低其 30% 傷害，並打出高額護甲穩固防線。',
-    traitTrigger: '每 3 回合發動【Tekeli-li 泰山壓頂】，造成 14 點巨大碾壓傷害。',
+    threatSummary: '第一深度關底首領！第 2 回合發動細胞再生恢復生命，第 4 回合造成 1/4 剩餘生命值的毀滅碾壓。',
+    recommendedCards: ['重拳壓制 (破勢)', '就地掩蔽 (蓄甲)', '雙發速射 (快攻壓血)'],
+    strategy: '在第 4 回合前全力傾瀉傷害壓低其血量，可大幅削弱其泰克利利碾壓的傷害！',
+    traitTrigger: '第 2 回合細胞再生恢復 7 點生命，第 4 回合發動 1/4 剩餘生命值的泰克利利碾壓。',
   },
 
   // --- 第二深度 ---

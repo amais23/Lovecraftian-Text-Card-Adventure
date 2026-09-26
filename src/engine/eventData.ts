@@ -48,9 +48,15 @@ export const INITIAL_DEEP_ONE: Enemy = {
 export const SHOGGOTH_INTENTS: EnemyIntent[] = [
   {
     type: 'attack',
-    value: 12,
+    value: 10,
     name: '原生質癲狂鞭笞',
-    description: '巨大黑泥肉塊抽打出數十條黏液觸手，預告造成 12 點傷害。',
+    description: '巨大黑泥肉塊抽打出數十條黏液觸手，預告造成 10 點傷害。',
+  },
+  {
+    type: 'heal',
+    value: 7,
+    name: '原生質細胞再生',
+    description: '黑泥肉塊翻滾劇烈聚合，預告恢復 7 點生命值！',
   },
   {
     type: 'erode',
@@ -60,9 +66,9 @@ export const SHOGGOTH_INTENTS: EnemyIntent[] = [
   },
   {
     type: 'attack',
-    value: 16,
+    value: 18,
     name: '泰克利利碾壓',
-    description: '伴隨尖銳的笛音鳴叫泰克利利！龐大軀體泰山壓頂，預告造成 16 點傷害。',
+    description: '伴隨尖銳笛音泰山壓頂，造成 1/4 BOSS 剩餘生命值的動態傷害！',
   },
 ];
 
@@ -70,9 +76,9 @@ export const INITIAL_SHOGGOTH: Enemy = {
   id: 'enemy_shoggoth_progeny',
   name: '修格斯幼體 (Shoggoth Progeny)',
   title: '原形黑泥異構體',
-  health: 80,
-  maxHealth: 80,
-  armor: 6,
+  health: 70,
+  maxHealth: 70,
+  armor: 4,
   currentIntent: SHOGGOTH_INTENTS[0],
   intentSequence: SHOGGOTH_INTENTS,
   currentIntentIndex: 0,

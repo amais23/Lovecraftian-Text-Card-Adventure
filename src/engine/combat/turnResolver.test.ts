@@ -305,6 +305,77 @@ describe('CombatTurnResolver (Pure Functional Combat Lifecycle)', () => {
     expect(result.enemy.health).toBe(1); // Clamped to 1!
   });
 
+  it('resolves enemy heal intent, healing up to maxHealth and logging regeneration', () => {
+    const investigator = createMockInvestigator({ health: 25 });
+    const healingEnemy = createMockEnemy({
+      health: 60,
+      maxHealth: 70,
+      currentIntent: {
+        type: 'heal',
+        value: 7,
+        name: '原生質細胞再生',
+        description: '恢復 7 點生命值',
+      },
+    });
+
+    const context: CombatTurnContext = {
+      investigator,
+      enemy: healingEnemy,
+      turn: 2,
+      retainedHand: [],
+      sanityDeck: [createMockCard()],
+      discardPile: [],
+      isMadness: false,
+    };
+
+    const result = resolveCombatTurnEnd(context);
+    expect(result.enemy.health).toBe(67);
+    expect(result.logs.some((l) => l.includes('原生質細胞再生') && l.includes('67/70'))).toBe(true);
+
+    // Test clamped to maxHealth
+    const cappedEnemy = createMockEnemy({
+      health: 68,
+      maxHealth: 70,
+      currentIntent: {
+        type: 'heal',
+        value: 7,
+        name: '原生質細胞再生',
+        description: '恢復 7 點生命值',
+      },
+    });
+    const cappedResult = resolveCombatTurnEnd({ ...context, enemy: cappedEnemy });
+    expect(cappedResult.enemy.health).toBe(70);
+  });
+
+  it('dynamically recalculates Shoggoth Progeny 泰克利利碾壓 based on 1/4 current HP at turn end', () => {
+    const investigator = createMockInvestigator({ health: 25, armor: 0 });
+    const progeny = createMockEnemy({
+      id: 'enemy_shoggoth_progeny',
+      health: 44, // 1/4 of 44 = 11 damage
+      maxHealth: 70,
+      currentIntent: {
+        type: 'attack',
+        value: 18, // Stale intent value
+        name: '泰克利利碾壓',
+        description: '造成 1/4 剩餘生命值傷害',
+      },
+    });
+
+    const context: CombatTurnContext = {
+      investigator,
+      enemy: progeny,
+      turn: 4,
+      retainedHand: [],
+      sanityDeck: [createMockCard()],
+      discardPile: [],
+      isMadness: false,
+    };
+
+    const result = resolveCombatTurnEnd(context);
+    // Investigator should take 11 damage (25 - 11 = 14)
+    expect(result.investigator.health).toBe(14);
+  });
+
   it('initializes combat session cleanly with innate cards prioritized and relic bonuses applied', () => {
     const initResult = initializeCombatSession({
       investigator: createMockInvestigator({ handCapacity: 2 }),

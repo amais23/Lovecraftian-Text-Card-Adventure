@@ -59,25 +59,36 @@ describe('Balance Analyzer & Orthogonal Sampler (Issue #64)', () => {
     });
 
     it('evaluates healthScore directly by health lost in uncapped health mode', () => {
-      // 0 ~ 2.5 health lost = 100
+      // 0 health lost = 100
       expect(calculateHealthScore(1.0, 0, 25, true)).toBe(100);
-      expect(calculateHealthScore(1.0, 2.5, 25, true)).toBe(100);
-      // 7.2 health lost = 60 (calibrated benchmark: 100 - 4.7 * 8.5 = 60)
-      expect(calculateHealthScore(1.0, 7.2, 25, true)).toBe(60);
-      // 14.3+ health lost = 0
-      expect(calculateHealthScore(1.0, 15, 25, true)).toBe(0);
-      expect(calculateHealthScore(1.0, 50, 25, true)).toBe(0);
+      // 0.6 health lost differentiates from 0 (98)
+      expect(calculateHealthScore(1.0, 0.6, 25, true)).toBe(98);
+      // 2.5 health lost does not plateau at 100 (84)
+      expect(calculateHealthScore(1.0, 2.5, 25, true)).toBe(84);
+      // 7.0 health lost = 50 (midpoint benchmark for 35 enemies with bosses)
+      expect(calculateHealthScore(1.0, 7.0, 25, true)).toBe(50);
+      // 10.0 health lost = 36
+      expect(calculateHealthScore(1.0, 10, 25, true)).toBe(36);
+      // 25 health lost does not immediately hit 0 due to max hp scaling in roguelike (~12)
+      expect(calculateHealthScore(1.0, 25, 25, true)).toBe(12);
+      // 50 health lost retains a small survival rating (~4)
+      expect(calculateHealthScore(1.0, 50, 25, true)).toBe(4);
+      // 100+ health lost smoothly approaches 0
+      expect(calculateHealthScore(1.0, 120, 25, true)).toBeLessThanOrEqual(2);
     });
 
     it('evaluates sanityScore directly by mental strain in uncapped health mode', () => {
-      // 0 ~ 1.0 sanity expended = 100
+      // 0 ~ 1.0 sanity expended = 100 ~ 98
       expect(calculateSanityScore(1.0, 0, 15, true)).toBe(100);
-      expect(calculateSanityScore(1.0, 1.0, 15, true)).toBe(100);
-      // 5.0 sanity expended = 60 (calibrated benchmark: 100 - 4.0 * 10 = 60)
-      expect(calculateSanityScore(1.0, 5.0, 15, true)).toBe(60);
-      // 11.0+ sanity expended = 0
-      expect(calculateSanityScore(1.0, 11.0, 15, true)).toBe(0);
-      expect(calculateSanityScore(1.0, 25, 15, true)).toBe(0);
+      expect(calculateSanityScore(1.0, 1.0, 15, true)).toBe(98);
+      // 3.0 sanity expended = 79
+      expect(calculateSanityScore(1.0, 3.0, 15, true)).toBe(79);
+      // 5.5 sanity expended = 50 (midpoint benchmark for 3-turn battle baseline)
+      expect(calculateSanityScore(1.0, 5.5, 15, true)).toBe(50);
+      // 10.0 sanity expended = 21
+      expect(calculateSanityScore(1.0, 10.0, 15, true)).toBe(21);
+      // 25.0+ sanity expended smoothly approaches 0
+      expect(calculateSanityScore(1.0, 25, 15, true)).toBeLessThanOrEqual(5);
     });
 
     it('calculates overall score combining health, sanity, and fault tolerance ratio', () => {
@@ -86,6 +97,10 @@ describe('Balance Analyzer & Orthogonal Sampler (Issue #64)', () => {
       expect(overall).toBeLessThanOrEqual(100);
       // 80*0.5 (40) + 70*0.35 (24.5) + 0.9*15 (13.5) = 78
       expect(overall).toBe(78);
+
+      // Uncapped mode: (80*0.75 + 70*0.25) * (0.85 + 0.15*0.9) = 77.5 * 0.985 = 76
+      const overallUncapped = calculateOverallScore(80, 70, 0.9, true);
+      expect(overallUncapped).toBe(76);
     });
   });
 
@@ -221,9 +236,9 @@ describe('Balance Analyzer & Orthogonal Sampler (Issue #64)', () => {
   });
 
   describe('Representative Enemies & Archetypes Deck Generation', () => {
-    it('provides exactly 26 representative enemies spanning depths 1~4', () => {
+    it('provides exactly 35 representative enemies spanning depths 1~4', () => {
       const list = getRepresentativeEnemies();
-      expect(list.length).toBe(26);
+      expect(list.length).toBe(35);
       const depths = new Set(list.map((item) => item.depth));
       expect(depths.has(1)).toBe(true);
       expect(depths.has(2)).toBe(true);

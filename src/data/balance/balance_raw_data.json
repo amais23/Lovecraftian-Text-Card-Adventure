@@ -5,12 +5,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.4692307692307693,
-    "avgSanityExpended": 5.7738461538461525,
-    "avgTurns": 3.0553846153846154,
-    "faultToleranceRatio": 0.9924307692307691
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.897142857142857,
+    "avgSanityExpended": 6.342448979591836,
+    "avgTurns": 3.5469387755102044,
+    "faultToleranceRatio": 0.9913469387755102
   },
   {
     "targetId": "card_punch_1",
@@ -18,12 +18,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.264615384615385,
-    "avgSanityExpended": 5.660769230769231,
-    "avgTurns": 3.1046153846153848,
-    "faultToleranceRatio": 0.9937076923076922
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.457959183673469,
+    "avgSanityExpended": 6.255102040816326,
+    "avgTurns": 3.6106122448979585,
+    "faultToleranceRatio": 0.9902530612244896
   },
   {
     "targetId": "card_bayonet_1",
@@ -31,12 +31,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.4723076923076928,
-    "avgSanityExpended": 5.630769230769231,
-    "avgTurns": 3.009230769230769,
-    "faultToleranceRatio": 0.9932923076923076
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.523265306122449,
+    "avgSanityExpended": 6.257142857142858,
+    "avgTurns": 3.4938775510204083,
+    "faultToleranceRatio": 0.9939102040816329
   },
   {
     "targetId": "card_cane_1",
@@ -44,12 +44,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.6046153846153848,
-    "avgSanityExpended": 5.548076923076922,
-    "avgTurns": 3.006923076923077,
-    "faultToleranceRatio": 0.9957384615384615
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.6840816326530605,
+    "avgSanityExpended": 5.938775510204081,
+    "avgTurns": 3.4995918367346937,
+    "faultToleranceRatio": 0.9896816326530612
   },
   {
     "targetId": "card_cover_1",
@@ -57,12 +57,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 2.587692307692308,
-    "avgSanityExpended": 5.800769230769232,
-    "avgTurns": 3.3815384615384616,
-    "faultToleranceRatio": 0.9967999999999998
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 6.960816326530613,
+    "avgSanityExpended": 6.328979591836735,
+    "avgTurns": 3.8269387755102042,
+    "faultToleranceRatio": 0.992734693877551
   },
   {
     "targetId": "card_breathe_1",
@@ -70,12 +70,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.839230769230769,
-    "avgSanityExpended": 4.821923076923077,
-    "avgTurns": 3.366153846153846,
-    "faultToleranceRatio": 0.9947846153846154
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 8.016326530612245,
+    "avgSanityExpended": 5.240408163265305,
+    "avgTurns": 3.827755102040816,
+    "faultToleranceRatio": 0.9880816326530613
   },
   {
     "targetId": "card_sedative_1",
@@ -83,12 +83,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.773076923076923,
-    "avgSanityExpended": 4.785,
-    "avgTurns": 3.281538461538461,
-    "faultToleranceRatio": 0.9947230769230769
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 7.835918367346939,
+    "avgSanityExpended": 5.112244897959184,
+    "avgTurns": 3.928979591836735,
+    "faultToleranceRatio": 0.9883265306122452
   },
   {
     "targetId": "card_truth_fragment_1",
@@ -96,12 +96,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 3.1869230769230765,
-    "avgSanityExpended": 3.4342307692307696,
-    "avgTurns": 3.080769230769232,
-    "faultToleranceRatio": 0.9962156985871272
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.887346938775511,
+    "avgSanityExpended": 4.1473469387755095,
+    "avgTurns": 3.460408163265306,
+    "faultToleranceRatio": 0.9873632653061224
   },
   {
     "targetId": "card_magic_blast_1",
@@ -109,12 +109,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.5353846153846153,
-    "avgSanityExpended": 5.62153846153846,
-    "avgTurns": 2.8692307692307684,
-    "faultToleranceRatio": 0.9941538461538462
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.895510204081635,
+    "avgSanityExpended": 6.269387755102041,
+    "avgTurns": 3.2563265306122444,
+    "faultToleranceRatio": 0.9897795918367345
   },
   {
     "targetId": "card_magic_gaze_1",
@@ -122,12 +122,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.1715384615384616,
-    "avgSanityExpended": 6.06346153846154,
-    "avgTurns": 2.5846153846153843,
-    "faultToleranceRatio": 0.9943230769230772
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.844897959183673,
+    "avgSanityExpended": 6.631428571428571,
+    "avgTurns": 3.028571428571428,
+    "faultToleranceRatio": 0.9935673469387756
   },
   {
     "targetId": "card_astral_ward_1",
@@ -135,12 +135,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.227692307692308,
-    "avgSanityExpended": 5.750000000000001,
-    "avgTurns": 3.399999999999999,
-    "faultToleranceRatio": 0.9937846153846153
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.3322448979591845,
+    "avgSanityExpended": 6.388571428571429,
+    "avgTurns": 3.8089795918367355,
+    "faultToleranceRatio": 0.984130612244898
   },
   {
     "targetId": "card_meditate_1",
@@ -148,12 +148,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.73,
-    "avgSanityExpended": 4.810384615384616,
-    "avgTurns": 3.2984615384615386,
-    "faultToleranceRatio": 0.9913076923076923
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 6.71591836734694,
+    "avgSanityExpended": 5.006530612244899,
+    "avgTurns": 3.7804081632653053,
+    "faultToleranceRatio": 0.9887510204081632
   },
   {
     "targetId": "card_silver_key_1",
@@ -161,12 +161,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.557692307692307,
-    "avgSanityExpended": 3.8411538461538464,
-    "avgTurns": 3.29,
-    "faultToleranceRatio": 0.9939846153846154
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 6.459591836734693,
+    "avgSanityExpended": 4.3742857142857146,
+    "avgTurns": 3.7395918367346934,
+    "faultToleranceRatio": 0.9877387755102038
   },
   {
     "targetId": "card_ritual_dagger_1",
@@ -174,12 +174,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 2.9284615384615384,
-    "avgSanityExpended": 5.574999999999999,
-    "avgTurns": 3.193076923076924,
-    "faultToleranceRatio": 0.9959384615384613
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.955102040816327,
+    "avgSanityExpended": 6.1118367346938784,
+    "avgTurns": 3.650612244897959,
+    "faultToleranceRatio": 0.9860734693877552
   },
   {
     "targetId": "reward_shotgun_1",
@@ -187,12 +187,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.4884615384615385,
-    "avgSanityExpended": 5.669615384615384,
-    "avgTurns": 2.779230769230769,
-    "faultToleranceRatio": 0.9917538461538461
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.390204081632654,
+    "avgSanityExpended": 6.099183673469387,
+    "avgTurns": 3.2008163265306115,
+    "faultToleranceRatio": 0.9875428571428572
   },
   {
     "targetId": "reward_quick_draw_1",
@@ -200,12 +200,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.076153846153846,
-    "avgSanityExpended": 5.632307692307691,
-    "avgTurns": 2.7761538461538464,
-    "faultToleranceRatio": 0.9961846153846152
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.546122448979592,
+    "avgSanityExpended": 5.8710204081632655,
+    "avgTurns": 3.201632653061225,
+    "faultToleranceRatio": 0.9926857142857143
   },
   {
     "targetId": "reward_tactical_roll_1",
@@ -213,12 +213,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.1507692307692308,
-    "avgSanityExpended": 6.103076923076923,
-    "avgTurns": 2.954615384615385,
-    "faultToleranceRatio": 0.9957846153846155
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.831836734693879,
+    "avgSanityExpended": 6.581224489795917,
+    "avgTurns": 3.336326530612245,
+    "faultToleranceRatio": 0.9924244897959182
   },
   {
     "targetId": "reward_double_tap",
@@ -226,12 +226,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.6584615384615384,
-    "avgSanityExpended": 5.685384615384614,
-    "avgTurns": 2.9484615384615385,
-    "faultToleranceRatio": 0.9935846153846153
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.907755102040816,
+    "avgSanityExpended": 5.915510204081631,
+    "avgTurns": 3.3853061224489784,
+    "faultToleranceRatio": 0.9918367346938776
   },
   {
     "targetId": "reward_veteran_instinct",
@@ -239,12 +239,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.168461538461538,
-    "avgSanityExpended": 5.565384615384616,
-    "avgTurns": 3.038461538461538,
-    "faultToleranceRatio": 0.9966153846153847
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.8742857142857146,
+    "avgSanityExpended": 6.116734693877551,
+    "avgTurns": 3.4922448979591825,
+    "faultToleranceRatio": 0.9874285714285713
   },
   {
     "targetId": "reward_void_fire_1",
@@ -252,12 +252,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.2492307692307687,
-    "avgSanityExpended": 5.8792307692307695,
-    "avgTurns": 2.5553846153846154,
-    "faultToleranceRatio": 0.9944000000000002
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.82204081632653,
+    "avgSanityExpended": 6.544897959183674,
+    "avgTurns": 2.9134693877551023,
+    "faultToleranceRatio": 0.9947102040816327
   },
   {
     "targetId": "reward_dread_whisper_1",
@@ -265,12 +265,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.3476923076923075,
-    "avgSanityExpended": 5.696923076923076,
-    "avgTurns": 2.8307692307692305,
-    "faultToleranceRatio": 0.9932
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.183673469387755,
+    "avgSanityExpended": 5.993877551020408,
+    "avgTurns": 3.216326530612245,
+    "faultToleranceRatio": 0.9927836734693878
   },
   {
     "targetId": "reward_astral_insight_1",
@@ -278,12 +278,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.7530769230769225,
-    "avgSanityExpended": 3.7142307692307694,
-    "avgTurns": 2.9907692307692306,
-    "faultToleranceRatio": 0.9921999999999999
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 6.490612244897959,
+    "avgSanityExpended": 4.079591836734694,
+    "avgTurns": 3.4644897959183676,
+    "faultToleranceRatio": 0.9874285714285713
   },
   {
     "targetId": "reward_whispers_of_madness",
@@ -291,12 +291,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.3492307692307692,
-    "avgSanityExpended": 5.900769230769229,
-    "avgTurns": 2.8453846153846154,
-    "faultToleranceRatio": 0.9958307692307694
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.031020408163266,
+    "avgSanityExpended": 5.764489795918367,
+    "avgTurns": 3.2416326530612243,
+    "faultToleranceRatio": 0.9893714285714283
   },
   {
     "targetId": "reward_astral_refraction",
@@ -304,12 +304,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 1.8530769230769233,
-    "avgSanityExpended": 5.92,
-    "avgTurns": 3.3100000000000005,
-    "faultToleranceRatio": 0.9944003139717424
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.12326530612245,
+    "avgSanityExpended": 6.246122448979592,
+    "avgTurns": 3.7853061224489797,
+    "faultToleranceRatio": 0.9874122448979591
   },
   {
     "targetId": "reward_ancient_amulet_1",
@@ -317,12 +317,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.1353846153846154,
-    "avgSanityExpended": 5.883846153846155,
-    "avgTurns": 3.3476923076923084,
-    "faultToleranceRatio": 0.9950769230769231
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 6.127346938775509,
+    "avgSanityExpended": 6.299183673469386,
+    "avgTurns": 3.764081632653061,
+    "faultToleranceRatio": 0.9907265306122448
   },
   {
     "targetId": "reward_first_aid_1",
@@ -330,12 +330,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.0900000000000003,
-    "avgSanityExpended": 5.17076923076923,
-    "avgTurns": 3.373846153846155,
-    "faultToleranceRatio": 0.9962307692307694
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.934693877551021,
+    "avgSanityExpended": 4.738367346938776,
+    "avgTurns": 3.7942857142857136,
+    "faultToleranceRatio": 0.9888979591836732
   },
   {
     "targetId": "reward_field_bandage",
@@ -343,12 +343,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.4246153846153846,
-    "avgSanityExpended": 5.700769230769231,
-    "avgTurns": 3.3161538461538465,
-    "faultToleranceRatio": 0.9944153846153847
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.835102040816325,
+    "avgSanityExpended": 6.604897959183674,
+    "avgTurns": 3.7395918367346943,
+    "faultToleranceRatio": 0.9914938775510203
   },
   {
     "targetId": "reward_tactical_feint",
@@ -356,12 +356,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.9384615384615387,
-    "avgSanityExpended": 6.065769230769233,
-    "avgTurns": 2.9961538461538457,
-    "faultToleranceRatio": 0.9944000000000002
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 8.552653061224488,
+    "avgSanityExpended": 6.37795918367347,
+    "avgTurns": 3.580408163265306,
+    "faultToleranceRatio": 0.9911183673469387
   },
   {
     "targetId": "reward_calm_observation",
@@ -369,12 +369,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 1.6500000000000001,
-    "avgSanityExpended": 6.486538461538463,
-    "avgTurns": 2.772307692307692,
-    "faultToleranceRatio": 0.9906153846153848
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.182857142857143,
+    "avgSanityExpended": 6.860816326530611,
+    "avgTurns": 3.2,
+    "faultToleranceRatio": 0.9912653061224489
   },
   {
     "targetId": "compendium_madness_claw",
@@ -382,12 +382,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 5.1692307692307695,
-    "avgSanityExpended": 5.613076923076923,
-    "avgTurns": 2.971538461538462,
-    "faultToleranceRatio": 0.9944923076923078
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 8.99265306122449,
+    "avgSanityExpended": 6.227346938775511,
+    "avgTurns": 3.446530612244898,
+    "faultToleranceRatio": 0.9912653061224491
   },
   {
     "targetId": "compendium_madness_howl",
@@ -395,12 +395,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.4292307692307693,
-    "avgSanityExpended": 5.468461538461538,
-    "avgTurns": 2.788461538461539,
-    "faultToleranceRatio": 0.9915076923076922
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 9.744489795918366,
+    "avgSanityExpended": 6.135918367346939,
+    "avgTurns": 3.2228571428571424,
+    "faultToleranceRatio": 0.9875755102040817
   },
   {
     "targetId": "compendium_madness_blade",
@@ -408,12 +408,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.980769230769231,
-    "avgSanityExpended": 6.516923076923078,
-    "avgTurns": 2.633846153846154,
-    "faultToleranceRatio": 0.9915846153846155
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 11.200000000000001,
+    "avgSanityExpended": 6.183673469387756,
+    "avgTurns": 3.126530612244898,
+    "faultToleranceRatio": 0.9887750300120051
   },
   {
     "targetId": "compendium_truth_glimmer",
@@ -421,12 +421,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.46,
-    "avgSanityExpended": 5.958846153846154,
-    "avgTurns": 2.852307692307692,
-    "faultToleranceRatio": 0.9949076923076923
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.14122448979592,
+    "avgSanityExpended": 6.5134693877551015,
+    "avgTurns": 3.2840816326530606,
+    "faultToleranceRatio": 0.9869551020408163
   },
   {
     "targetId": "reward_shield_slam",
@@ -434,12 +434,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.4669230769230768,
-    "avgSanityExpended": 5.218846153846154,
-    "avgTurns": 2.694615384615385,
-    "faultToleranceRatio": 0.9963384615384616
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.22938775510204,
+    "avgSanityExpended": 5.866938775510206,
+    "avgTurns": 3.0873469387755104,
+    "faultToleranceRatio": 0.9842775510204084
   },
   {
     "targetId": "reward_weakpoint_snipe",
@@ -447,12 +447,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.636153846153846,
-    "avgSanityExpended": 5.609230769230769,
-    "avgTurns": 2.822307692307692,
-    "faultToleranceRatio": 0.9925230769230768
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.9983673469387755,
+    "avgSanityExpended": 6.163673469387755,
+    "avgTurns": 3.299591836734694,
+    "faultToleranceRatio": 0.9807183673469387
   },
   {
     "targetId": "card_tier2_pump_shotgun",
@@ -460,12 +460,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.4153846153846152,
-    "avgSanityExpended": 5.63,
-    "avgTurns": 2.886153846153846,
-    "faultToleranceRatio": 0.9930000000000001
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.519183673469388,
+    "avgSanityExpended": 6.463265306122451,
+    "avgTurns": 3.4057142857142857,
+    "faultToleranceRatio": 0.9900734693877549
   },
   {
     "targetId": "card_tier2_iron_will",
@@ -473,12 +473,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.279230769230769,
-    "avgSanityExpended": 5.805769230769231,
-    "avgTurns": 3.2969230769230764,
-    "faultToleranceRatio": 0.9942
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.467755102040817,
+    "avgSanityExpended": 6.439591836734692,
+    "avgTurns": 3.765714285714285,
+    "faultToleranceRatio": 0.9886204081632656
   },
   {
     "targetId": "reward_abyssal_detonation",
@@ -486,12 +486,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 3.3176923076923073,
-    "avgSanityExpended": 6.220000000000002,
-    "avgTurns": 2.8115384615384618,
-    "faultToleranceRatio": 0.9945692307692308
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.182857142857142,
+    "avgSanityExpended": 6.788571428571431,
+    "avgTurns": 3.211428571428571,
+    "faultToleranceRatio": 0.9865959183673467
   },
   {
     "targetId": "reward_tide_of_truth",
@@ -499,12 +499,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.1769230769230767,
-    "avgSanityExpended": 5.765384615384615,
-    "avgTurns": 2.5615384615384618,
-    "faultToleranceRatio": 0.9938307692307693
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 5.732244897959186,
+    "avgSanityExpended": 5.889795918367347,
+    "avgTurns": 3.210612244897959,
+    "faultToleranceRatio": 0.9901551020408164
   },
   {
     "targetId": "card_tier2_silver_blade",
@@ -512,12 +512,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.5676923076923077,
-    "avgSanityExpended": 5.4207692307692295,
-    "avgTurns": 2.9123076923076923,
-    "faultToleranceRatio": 0.9964923076923077
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.1085714285714285,
+    "avgSanityExpended": 5.851020408163267,
+    "avgTurns": 3.257142857142857,
+    "faultToleranceRatio": 0.9863183673469389
   },
   {
     "targetId": "card_tier2_frost_grasp",
@@ -525,12 +525,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.6223076923076922,
-    "avgSanityExpended": 5.826923076923077,
-    "avgTurns": 2.2361538461538464,
-    "faultToleranceRatio": 0.9954153846153845
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.885714285714286,
+    "avgSanityExpended": 6.06408163265306,
+    "avgTurns": 2.655510204081634,
+    "faultToleranceRatio": 0.9912489795918368
   },
   {
     "targetId": "card_tier2_mind_shock",
@@ -538,12 +538,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 2.1930769230769225,
-    "avgSanityExpended": 5.926153846153846,
-    "avgTurns": 2.316923076923077,
-    "faultToleranceRatio": 0.9949538461538462
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.421224489795917,
+    "avgSanityExpended": 6.115102040816326,
+    "avgTurns": 2.72,
+    "faultToleranceRatio": 0.9929632653061226
   },
   {
     "targetId": "card_tier2_forbidden_tablet",
@@ -551,12 +551,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 4.654615384615384,
-    "avgSanityExpended": 3.7357692307692307,
-    "avgTurns": 3.376153846153846,
-    "faultToleranceRatio": 0.9905230769230768
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 9.201632653061223,
+    "avgSanityExpended": 4.262448979591837,
+    "avgTurns": 3.7518367346938777,
+    "faultToleranceRatio": 0.9896326530612244
   },
   {
     "targetId": "card_tier2_silver_key_glow",
@@ -564,12 +564,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.7876923076923075,
-    "avgSanityExpended": 4.446538461538462,
-    "avgTurns": 2.8407692307692307,
-    "faultToleranceRatio": 0.995123076923077
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 6.395918367346939,
+    "avgSanityExpended": 4.989387755102039,
+    "avgTurns": 3.3689795918367347,
+    "faultToleranceRatio": 0.9907342136854741
   },
   {
     "targetId": "reward_remnant_seal",
@@ -577,12 +577,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.284615384615385,
-    "avgSanityExpended": 4.463461538461538,
-    "avgTurns": 3.2176923076923076,
-    "faultToleranceRatio": 0.9955076923076924
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.151020408163265,
+    "avgSanityExpended": 5.3742857142857146,
+    "avgTurns": 3.6538775510204076,
+    "faultToleranceRatio": 0.9894367346938775
   },
   {
     "targetId": "card_tier2_rapid_suture",
@@ -590,12 +590,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.0561538461538467,
-    "avgSanityExpended": 4.373461538461537,
-    "avgTurns": 3.3438461538461532,
-    "faultToleranceRatio": 0.9928923076923079
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 6.256326530612245,
+    "avgSanityExpended": 4.777551020408165,
+    "avgTurns": 3.867755102040816,
+    "faultToleranceRatio": 0.9899591836734695
   },
   {
     "targetId": "card_tier3_dum_dum",
@@ -603,12 +603,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.1707692307692312,
-    "avgSanityExpended": 5.2749999999999995,
-    "avgTurns": 2.3115384615384618,
-    "faultToleranceRatio": 0.9953384615384613
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.58530612244898,
+    "avgSanityExpended": 5.6991836734693875,
+    "avgTurns": 2.608163265306123,
+    "faultToleranceRatio": 0.9877877551020409
   },
   {
     "targetId": "card_tier3_demolition_pack",
@@ -616,12 +616,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.004615384615385,
-    "avgSanityExpended": 5.7288461538461535,
-    "avgTurns": 2.2946153846153847,
-    "faultToleranceRatio": 0.9934769230769231
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 4.316734693877551,
+    "avgSanityExpended": 6.184081632653062,
+    "avgTurns": 2.630204081632653,
+    "faultToleranceRatio": 0.9890448979591836
   },
   {
     "targetId": "card_tier3_impenetrable_bastion",
@@ -629,12 +629,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.1223076923076922,
-    "avgSanityExpended": 6.143461538461538,
-    "avgTurns": 3.3123076923076917,
-    "faultToleranceRatio": 0.9941384615384614
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 4.979591836734694,
+    "avgSanityExpended": 6.808571428571429,
+    "avgTurns": 3.6930612244897953,
+    "faultToleranceRatio": 0.9888816326530612
   },
   {
     "targetId": "card_tier3_void_collapse",
@@ -642,12 +642,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.571538461538462,
-    "avgSanityExpended": 5.767307692307693,
-    "avgTurns": 2.109999999999999,
-    "faultToleranceRatio": 0.996476923076923
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.05795918367347,
+    "avgSanityExpended": 5.949795918367348,
+    "avgTurns": 2.4628571428571426,
+    "faultToleranceRatio": 0.9891428571428569
   },
   {
     "targetId": "card_tier3_psionic_cleave",
@@ -655,12 +655,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.020769230769231,
-    "avgSanityExpended": 5.419615384615384,
-    "avgTurns": 2.4123076923076923,
-    "faultToleranceRatio": 0.9944769230769229
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 6.4995918367346945,
+    "avgSanityExpended": 5.881632653061224,
+    "avgTurns": 2.842448979591837,
+    "faultToleranceRatio": 0.9930938775510205
   },
   {
     "targetId": "card_tier3_rlyeh_codex",
@@ -668,12 +668,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 3.464615384615385,
-    "avgSanityExpended": 1.771923076923077,
-    "avgTurns": 3.4792307692307696,
-    "faultToleranceRatio": 0.9953999999999998
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 7.797551020408164,
+    "avgSanityExpended": 2.2097959183673463,
+    "avgTurns": 3.9200000000000004,
+    "faultToleranceRatio": 0.9898938775510203
   },
   {
     "targetId": "card_tier3_star_resonance",
@@ -681,12 +681,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.3061538461538462,
-    "avgSanityExpended": 2.9046153846153837,
-    "avgTurns": 3.254615384615384,
-    "faultToleranceRatio": 0.9955384615384614
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 4.865306122448979,
+    "avgSanityExpended": 3.395918367346939,
+    "avgTurns": 3.6277551020408163,
+    "faultToleranceRatio": 0.9890448979591834
   },
   {
     "targetId": "card_tier3_sanity_anchor",
@@ -694,12 +694,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 1.862307692307692,
-    "avgSanityExpended": 4.355384615384616,
-    "avgTurns": 3.4046153846153837,
-    "faultToleranceRatio": 0.9933076923076922
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 5.942857142857141,
+    "avgSanityExpended": 4.804489795918369,
+    "avgTurns": 3.8644897959183666,
+    "faultToleranceRatio": 0.9946775510204083
   },
   {
     "targetId": "card_tier4_god_slayer",
@@ -707,12 +707,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.711538461538462,
-    "avgSanityExpended": 5.1173076923076914,
-    "avgTurns": 2.1323076923076916,
-    "faultToleranceRatio": 0.9946923076923078
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.3363265306122445,
+    "avgSanityExpended": 5.4906122448979575,
+    "avgTurns": 2.4759183673469387,
+    "faultToleranceRatio": 0.9866448979591835
   },
   {
     "targetId": "card_tier4_void_annihilation",
@@ -720,12 +720,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.325384615384615,
-    "avgSanityExpended": 5.828076923076923,
-    "avgTurns": 2.006923076923077,
-    "faultToleranceRatio": 0.9965538461538461
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.3126530612244895,
+    "avgSanityExpended": 6.000000000000001,
+    "avgTurns": 2.43265306122449,
+    "faultToleranceRatio": 0.993812244897959
   },
   {
     "targetId": "card_tier4_astral_revelation",
@@ -733,12 +733,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 0.5592307692307693,
-    "avgSanityExpended": 0.683076923076923,
-    "avgTurns": 2.671538461538461,
-    "faultToleranceRatio": 0.9964307692307692
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 3.0457142857142863,
+    "avgSanityExpended": 0.9269387755102041,
+    "avgTurns": 3.0677551020408167,
+    "faultToleranceRatio": 0.9959183673469388
   },
   {
     "targetId": "card_tier4_elder_aegis",
@@ -746,12 +746,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 0.6084615384615385,
-    "avgSanityExpended": 6.451923076923077,
-    "avgTurns": 2.6592307692307693,
-    "faultToleranceRatio": 0.9961846153846156
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 3.4416326530612245,
+    "avgSanityExpended": 6.952244897959184,
+    "avgTurns": 3.041632653061225,
+    "faultToleranceRatio": 0.9931265306122447
   },
   {
     "targetId": "card_abyssal_fragment_1",
@@ -759,12 +759,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.747692307692307,
-    "avgSanityExpended": 5.614615384615385,
-    "avgTurns": 3.2992307692307694,
-    "faultToleranceRatio": 0.9908
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 8.103673469387756,
+    "avgSanityExpended": 6.177142857142856,
+    "avgTurns": 3.6424489795918373,
+    "faultToleranceRatio": 0.9851265306122451
   },
   {
     "targetId": "card_abyssal_fragment_2",
@@ -772,12 +772,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.823076923076923,
-    "avgSanityExpended": 5.734615384615385,
-    "avgTurns": 3.167692307692308,
-    "faultToleranceRatio": 0.9912769230769232
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 8.295510204081632,
+    "avgSanityExpended": 6.3828571428571435,
+    "avgTurns": 3.663673469387756,
+    "faultToleranceRatio": 0.9836408163265306
   },
   {
     "targetId": "card_abyssal_fragment_3",
@@ -785,12 +785,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.9138461538461544,
-    "avgSanityExpended": 5.8173076923076925,
-    "avgTurns": 3.2523076923076926,
-    "faultToleranceRatio": 0.990923076923077
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.701224489795918,
+    "avgSanityExpended": 5.8289795918367355,
+    "avgTurns": 3.6644897959183678,
+    "faultToleranceRatio": 0.9848163265306122
   },
   {
     "targetId": "card_complete_ancient_seal",
@@ -798,12 +798,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1298,
-    "avgHpLost": 0.7415384615384616,
-    "avgSanityExpended": 1.145769230769231,
-    "avgTurns": 3.3776923076923073,
-    "faultToleranceRatio": 0.9950769230769231
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 3.3624489795918358,
+    "avgSanityExpended": 1.4514285714285715,
+    "avgTurns": 3.91265306122449,
+    "faultToleranceRatio": 0.9930938775510205
   },
   {
     "targetId": "card_abyss_curse",
@@ -811,12 +811,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.718461538461539,
-    "avgSanityExpended": 5.697307692307692,
-    "avgTurns": 3.2376923076923085,
-    "faultToleranceRatio": 0.9884461538461538
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 8.188571428571429,
+    "avgSanityExpended": 5.977142857142858,
+    "avgTurns": 3.706122448979592,
+    "faultToleranceRatio": 0.9819102040816327
   },
   {
     "targetId": "card_whispers_of_shattered_stars",
@@ -824,12 +824,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 4.12,
-    "avgSanityExpended": 6.440384615384616,
-    "avgTurns": 3.306923076923077,
-    "faultToleranceRatio": 0.995769230769231
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 8.699591836734694,
+    "avgSanityExpended": 7.13673469387755,
+    "avgTurns": 3.7387755102040807,
+    "faultToleranceRatio": 0.9860897959183672
   },
   {
     "targetId": "card_event_underwater_demolition",
@@ -837,12 +837,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 3.5476923076923077,
-    "avgSanityExpended": 5.940384615384616,
-    "avgTurns": 2.768461538461538,
-    "faultToleranceRatio": 0.9933384615384615
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.097959183673468,
+    "avgSanityExpended": 6.319591836734696,
+    "avgTurns": 3.16734693877551,
+    "faultToleranceRatio": 0.9905959183673472
   },
   {
     "targetId": "card_event_tide_whisper",
@@ -850,12 +850,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 3.6184615384615384,
-    "avgSanityExpended": 3.2642307692307684,
-    "avgTurns": 3.328461538461539,
-    "faultToleranceRatio": 0.990830769230769
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 8.019591836734694,
+    "avgSanityExpended": 3.935918367346939,
+    "avgTurns": 3.735510204081633,
+    "faultToleranceRatio": 0.9921469387755104
   },
   {
     "targetId": "card_event_proto_tentacle",
@@ -863,12 +863,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 5.392307692307693,
-    "avgSanityExpended": 5.2288461538461535,
-    "avgTurns": 2.764615384615385,
-    "faultToleranceRatio": 0.993769230769231
+    "runs": 1225,
+    "wins": 1223,
+    "avgHpLost": 8.623673469387757,
+    "avgSanityExpended": 5.87795918367347,
+    "avgTurns": 3.227755102040816,
+    "faultToleranceRatio": 0.992326530612245
   },
   {
     "targetId": "card_event_elder_geometry",
@@ -876,12 +876,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 2.0430769230769235,
-    "avgSanityExpended": 2.527692307692308,
-    "avgTurns": 3.4307692307692315,
-    "faultToleranceRatio": 0.9938923076923076
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 5.608163265306123,
+    "avgSanityExpended": 2.856734693877551,
+    "avgTurns": 3.8065306122448987,
+    "faultToleranceRatio": 0.9900244897959183
   },
   {
     "targetId": "card_event_star_spawn_sigil",
@@ -889,12 +889,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.4438461538461538,
-    "avgSanityExpended": 4.331153846153847,
-    "avgTurns": 3.358461538461538,
-    "faultToleranceRatio": 0.9945846153846154
+    "runs": 1225,
+    "wins": 1224,
+    "avgHpLost": 5.480816326530612,
+    "avgSanityExpended": 4.845714285714286,
+    "avgTurns": 3.8457142857142848,
+    "faultToleranceRatio": 0.9919510204081632
   },
   {
     "targetId": "card_event_dimension_stride",
@@ -902,12 +902,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.570769230769231,
-    "avgSanityExpended": 5.696153846153846,
-    "avgTurns": 2.863076923076923,
-    "faultToleranceRatio": 0.9949846153846154
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 4.793469387755102,
+    "avgSanityExpended": 6.108979591836734,
+    "avgTurns": 3.3412244897959185,
+    "faultToleranceRatio": 0.990138775510204
   },
   {
     "targetId": "card_event_final_awakening",
@@ -915,12 +915,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1299,
-    "avgHpLost": 3.474615384615385,
-    "avgSanityExpended": 1.8084615384615386,
-    "avgTurns": 3.3684615384615384,
-    "faultToleranceRatio": 0.9925233908948196
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 7.435102040816326,
+    "avgSanityExpended": 2.086530612244898,
+    "avgTurns": 3.764081632653061,
+    "faultToleranceRatio": 0.9887020408163263
   },
   {
     "targetId": "event_card_deep_truth",
@@ -928,12 +928,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 2.2992307692307694,
-    "avgSanityExpended": 3.1996153846153845,
-    "avgTurns": 3.3976923076923082,
-    "faultToleranceRatio": 0.9950923076923078
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.8310204081632655,
+    "avgSanityExpended": 3.7987755102040817,
+    "avgTurns": 3.776326530612245,
+    "faultToleranceRatio": 0.9846530612244897
   },
   {
     "targetId": "card_event_breakwater",
@@ -941,12 +941,12 @@
     "copies": 1,
     "context": "baseline",
     "enemyId": "all_avg",
-    "runs": 1300,
-    "wins": 1300,
-    "avgHpLost": 1.8546153846153846,
-    "avgSanityExpended": 3.8457692307692306,
-    "avgTurns": 3.3569230769230773,
-    "faultToleranceRatio": 0.995769230769231
+    "runs": 1225,
+    "wins": 1225,
+    "avgHpLost": 5.694693877551021,
+    "avgSanityExpended": 4.524897959183672,
+    "avgTurns": 3.7208163265306116,
+    "faultToleranceRatio": 0.9855836734693877
   },
   {
     "targetId": "elder_sign_amulet",
@@ -956,8 +956,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.9333333333333333,
-    "avgSanityExpended": 4.166666666666666,
+    "avgHpLost": 1.6333333333333333,
+    "avgSanityExpended": 2.55,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -969,8 +969,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.1333333333333333,
-    "avgSanityExpended": 2.8833333333333337,
+    "avgHpLost": 0.8666666666666668,
+    "avgSanityExpended": 4,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -982,8 +982,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.5,
-    "avgSanityExpended": 3.733333333333333,
+    "avgHpLost": 0.6333333333333333,
+    "avgSanityExpended": 3.9666666666666672,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -995,8 +995,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.2,
-    "avgSanityExpended": 3.2833333333333328,
+    "avgHpLost": 0.8,
+    "avgSanityExpended": 2.8,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1008,8 +1008,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.2666666666666666,
-    "avgSanityExpended": 2.1000000000000005,
+    "avgHpLost": 1.3,
+    "avgSanityExpended": 3.266666666666667,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1021,8 +1021,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.0333333333333334,
-    "avgSanityExpended": 3.85,
+    "avgHpLost": 2.8,
+    "avgSanityExpended": 4.333333333333334,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1034,8 +1034,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.5666666666666669,
-    "avgSanityExpended": 3.85,
+    "avgHpLost": 1.4666666666666666,
+    "avgSanityExpended": 4.65,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1047,8 +1047,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.6,
-    "avgSanityExpended": 3.9333333333333336,
+    "avgHpLost": 3.5333333333333337,
+    "avgSanityExpended": 3,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1056,25 +1056,25 @@
     "targetId": "vitality_elixir",
     "targetType": "relic",
     "copies": 0,
-    "context": "baseline",
-    "enemyId": "sample_avg",
-    "runs": 30,
-    "wins": 30,
-    "avgHpLost": 0.6,
-    "avgSanityExpended": 4.566666666666666,
-    "avgTurns": 5,
-    "faultToleranceRatio": 1
-  },
-  {
-    "targetId": "vitality_elixir",
-    "targetType": "relic",
-    "copies": 1,
     "context": "baseline",
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
     "avgHpLost": 1.8,
-    "avgSanityExpended": 4.133333333333334,
+    "avgSanityExpended": 4.716666666666667,
+    "avgTurns": 5,
+    "faultToleranceRatio": 1
+  },
+  {
+    "targetId": "vitality_elixir",
+    "targetType": "relic",
+    "copies": 1,
+    "context": "baseline",
+    "enemyId": "sample_avg",
+    "runs": 30,
+    "wins": 30,
+    "avgHpLost": 2.3666666666666663,
+    "avgSanityExpended": 3.95,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1086,7 +1086,7 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.5666666666666669,
+    "avgHpLost": 1,
     "avgSanityExpended": 3.066666666666667,
     "avgTurns": 5,
     "faultToleranceRatio": 1
@@ -1099,8 +1099,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.6333333333333333,
-    "avgSanityExpended": 3.9666666666666672,
+    "avgHpLost": 2.3,
+    "avgSanityExpended": 3.6833333333333336,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1112,8 +1112,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1.5,
-    "avgSanityExpended": 3.05,
+    "avgHpLost": 2.1,
+    "avgSanityExpended": 1.9833333333333336,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1121,81 +1121,81 @@
     "targetId": "obsidian_mirror",
     "targetType": "relic",
     "copies": 1,
+    "context": "baseline",
+    "enemyId": "sample_avg",
+    "runs": 30,
+    "wins": 30,
+    "avgHpLost": 1.9,
+    "avgSanityExpended": 3.233333333333333,
+    "avgTurns": 5,
+    "faultToleranceRatio": 1
+  },
+  {
+    "targetId": "obsidian_mirror",
+    "targetType": "relic",
+    "copies": 2,
     "context": "baseline",
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
     "avgHpLost": 0.9,
-    "avgSanityExpended": 3.166666666666667,
-    "avgTurns": 5,
-    "faultToleranceRatio": 1
-  },
-  {
-    "targetId": "obsidian_mirror",
-    "targetType": "relic",
-    "copies": 2,
-    "context": "baseline",
-    "enemyId": "sample_avg",
-    "runs": 30,
-    "wins": 30,
-    "avgHpLost": 1.4,
-    "avgSanityExpended": 2.9,
-    "avgTurns": 5,
-    "faultToleranceRatio": 1
-  },
-  {
-    "targetId": "obsidian_mirror",
-    "targetType": "relic",
-    "copies": 3,
-    "context": "baseline",
-    "enemyId": "sample_avg",
-    "runs": 30,
-    "wins": 30,
-    "avgHpLost": 0.7333333333333333,
-    "avgSanityExpended": 2.5333333333333337,
-    "avgTurns": 5,
-    "faultToleranceRatio": 1
-  },
-  {
-    "targetId": "dread_talisman",
-    "targetType": "relic",
-    "copies": 0,
-    "context": "baseline",
-    "enemyId": "sample_avg",
-    "runs": 30,
-    "wins": 30,
-    "avgHpLost": 1.9666666666666668,
-    "avgSanityExpended": 3.5,
-    "avgTurns": 5,
-    "faultToleranceRatio": 1
-  },
-  {
-    "targetId": "dread_talisman",
-    "targetType": "relic",
-    "copies": 1,
-    "context": "baseline",
-    "enemyId": "sample_avg",
-    "runs": 30,
-    "wins": 30,
-    "avgHpLost": 0.6333333333333333,
-    "avgSanityExpended": 3.6,
-    "avgTurns": 5,
-    "faultToleranceRatio": 1
-  },
-  {
-    "targetId": "dread_talisman",
-    "targetType": "relic",
-    "copies": 2,
-    "context": "baseline",
-    "enemyId": "sample_avg",
-    "runs": 30,
-    "wins": 30,
-    "avgHpLost": 1.7333333333333332,
     "avgSanityExpended": 3.35,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
   {
+    "targetId": "obsidian_mirror",
+    "targetType": "relic",
+    "copies": 3,
+    "context": "baseline",
+    "enemyId": "sample_avg",
+    "runs": 30,
+    "wins": 30,
+    "avgHpLost": 1.1666666666666665,
+    "avgSanityExpended": 2.65,
+    "avgTurns": 5,
+    "faultToleranceRatio": 1
+  },
+  {
+    "targetId": "dread_talisman",
+    "targetType": "relic",
+    "copies": 0,
+    "context": "baseline",
+    "enemyId": "sample_avg",
+    "runs": 30,
+    "wins": 30,
+    "avgHpLost": 2.2,
+    "avgSanityExpended": 3.4666666666666672,
+    "avgTurns": 5,
+    "faultToleranceRatio": 1
+  },
+  {
+    "targetId": "dread_talisman",
+    "targetType": "relic",
+    "copies": 1,
+    "context": "baseline",
+    "enemyId": "sample_avg",
+    "runs": 30,
+    "wins": 30,
+    "avgHpLost": 3.066666666666667,
+    "avgSanityExpended": 4.95,
+    "avgTurns": 5,
+    "faultToleranceRatio": 1
+  },
+  {
+    "targetId": "dread_talisman",
+    "targetType": "relic",
+    "copies": 2,
+    "context": "baseline",
+    "enemyId": "sample_avg",
+    "runs": 30,
+    "wins": 30,
+    "avgHpLost": 2.2,
+    "avgSanityExpended": 3.983333333333333,
+    "avgTurns": 5,
+    "faultToleranceRatio": 1
+  },
+  {
     "targetId": "dread_talisman",
     "targetType": "relic",
     "copies": 3,
@@ -1203,8 +1203,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.8,
-    "avgSanityExpended": 3.033333333333333,
+    "avgHpLost": 1.3,
+    "avgSanityExpended": 3.9,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1216,8 +1216,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 1,
-    "avgSanityExpended": 3.5166666666666666,
+    "avgHpLost": 2.7333333333333334,
+    "avgSanityExpended": 2.983333333333333,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1229,8 +1229,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.7,
-    "avgSanityExpended": 3.4333333333333327,
+    "avgHpLost": 1.5,
+    "avgSanityExpended": 3.5,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1242,8 +1242,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 2.0666666666666673,
-    "avgSanityExpended": 3.9666666666666672,
+    "avgHpLost": 2.8000000000000003,
+    "avgSanityExpended": 3.8166666666666664,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   },
@@ -1255,8 +1255,8 @@
     "enemyId": "sample_avg",
     "runs": 30,
     "wins": 30,
-    "avgHpLost": 0.5333333333333333,
-    "avgSanityExpended": 2.933333333333333,
+    "avgHpLost": 1.4999999999999998,
+    "avgSanityExpended": 2.9999999999999996,
     "avgTurns": 5,
     "faultToleranceRatio": 1
   }

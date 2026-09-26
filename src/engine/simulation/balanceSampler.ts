@@ -43,54 +43,41 @@ export interface BalanceSamplerOptions {
 }
 
 /**
- * 取得具代表性的 26 隻敵怪清單（跨 Depth 1~4，涵蓋普通、精英與首領）
+ * 取得全部 35 隻敵怪清單（跨 Depth 1~4，涵蓋完整普通怪、高難精英與各大首領）
  */
 export function getRepresentativeEnemies(): Array<{ enemy: Enemy; depth: 1 | 2 | 3 | 4; role: 'normal' | 'elite' | 'boss' }> {
   const result: Array<{ enemy: Enemy; depth: 1 | 2 | 3 | 4; role: 'normal' | 'elite' | 'boss' }> = [];
-  const seenIds = new Set<string>();
-
-  const depthQuotas: Record<1 | 2 | 3 | 4, number> = {
-    1: 7,
-    2: 7,
-    3: 6,
-    4: 6,
-  };
 
   for (const d of [1, 2, 3, 4] as const) {
     const list = MONSTERS_BY_DEPTH[d] || [];
-    let count = 0;
-    const quota = depthQuotas[d];
     for (const m of list) {
-      if (!seenIds.has(m.id)) {
-        seenIds.add(m.id);
-        count++;
-        const enemyObj = cloneEnemy({
-          id: m.id,
-          name: m.name,
-          title: m.title,
-          health: m.health,
-          maxHealth: m.health,
-          armor: m.armor,
-          currentIntent: {
-            name: m.intents[0]?.name ?? '爪擊',
-            type: m.intents[0]?.type ?? 'attack',
-            value: m.intents[0]?.value ?? 6,
-            description: m.intents[0]?.description ?? '',
-          },
-          intentSequence: m.intents.map((i) => ({
-            name: i.name,
-            type: i.type,
-            value: i.value,
-            description: i.description,
-          })),
-        });
-        result.push({ enemy: enemyObj, depth: d, role: m.role });
-      }
-      if (count >= quota) break;
+      // 若同名怪物跨深度出現 (如深潛者長老在一階為精英，二階為普通)，賦予深度唯一後綴以確保獨立天梯追蹤
+      const uniqueId = d === 1 && m.id === 'enemy_deep_one_elder' ? 'enemy_deep_one_elder_d1' : m.id;
+      const enemyObj = cloneEnemy({
+        id: uniqueId,
+        name: d === 1 && m.id === 'enemy_deep_one_elder' ? '深潛者長老 (阿卡姆侵入者)' : m.name,
+        title: m.title,
+        health: m.health,
+        maxHealth: m.health,
+        armor: m.armor,
+        currentIntent: {
+          name: m.intents[0]?.name ?? '爪擊',
+          type: m.intents[0]?.type ?? 'attack',
+          value: m.intents[0]?.value ?? 6,
+          description: m.intents[0]?.description ?? '',
+        },
+        intentSequence: m.intents.map((i) => ({
+          name: i.name,
+          type: i.type,
+          value: i.value,
+          description: i.description,
+        })),
+      });
+      result.push({ enemy: enemyObj, depth: d, role: m.role });
     }
   }
 
-  return result.slice(0, 26);
+  return result;
 }
 
 /**
@@ -149,7 +136,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
   // 全域單卡與雙卡戰鬥表現統計 (ADR-0038)
   const singleCardCombatStats = new Map<string, { runs: number; totalScore: number }>();
   const pairCombatStats = new Map<string, { runs: number; totalScore: number }>();
-  // 記錄全典籍卡牌面對 26 敵怪之實戰剋制勝率指紋 (Issue #68)
+  // 記錄全典籍卡牌面對 35 敵怪之實戰剋制勝率指紋 (Issue #68)
   const cardEnemyFingerprints = new Map<string, number[]>();
 
   // 輔助函式：批次模擬指定牌庫面對特定敵怪（支援動態隨機牌庫工廠與 2~6 手牌保留數採樣）
@@ -287,7 +274,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
       });
     }
 
-    // 對抗 26 隻敵怪統計
+    // 對抗 35 隻敵怪統計
     let total1xWins = 0;
     let total1xHpLost = 0;
     let total1xSanity = 0;
@@ -650,7 +637,7 @@ export function runStratifiedBalanceSampling(options: BalanceSamplerOptions = {}
     maxCommunities: 4,
   });
 
-  // ADR-0038 / Issue #68: 計算 73x73 卡牌力學 SVD 餘弦相似度矩陣 (結合雙卡協同矩陣與 26 敵怪剋制指紋)
+  // ADR-0038 / Issue #68: 計算 73x73 卡牌力學 SVD 餘弦相似度矩陣 (結合雙卡協同矩陣與 35 敵怪剋制指紋)
   const cardSimilarityResult = computeCardMechanicsEmbeddings(cards, {
     synergyMatrix,
     enemyFingerprints: cardEnemyFingerprints,

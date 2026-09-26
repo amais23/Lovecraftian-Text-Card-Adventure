@@ -193,6 +193,16 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
   let enemyStatusEffects = enemy.statusEffects ? [...enemy.statusEffects] : [];
 
   // 1. 敵怪執行意圖與原著特質行動結算
+  let effectiveIntent = intent;
+  if (enemy.id === 'enemy_shoggoth_progeny' && intent.name.includes('泰克利利碾壓')) {
+    const quarterDmg = Math.max(1, Math.round(enemyHealth / 4));
+    effectiveIntent = {
+      ...intent,
+      value: quarterDmg,
+      description: `伴隨尖銳笛音泰山壓頂，造成 1/4 剩餘生命值 (${quarterDmg}點) 傷害！`,
+    };
+  }
+
   const currentEnemyForAction: Enemy = {
     ...enemy,
     health: enemyHealth,
@@ -207,7 +217,7 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
   };
   const enemyActionResult = resolveEnemyAction(
     currentEnemyForAction,
-    intent,
+    effectiveIntent,
     currentInvestigatorForAction,
     turn
   );
@@ -263,7 +273,15 @@ export function resolveCombatTurnEnd(context: CombatTurnContext): CombatTurnResu
   }
 
   if (enemyActionResult.healToEnemy > 0) {
-    enemyHealth = Math.min(enemy.maxHealth, enemyHealth + enemyActionResult.healToEnemy);
+    const healAmount = Math.min(enemy.maxHealth - enemyHealth, enemyActionResult.healToEnemy);
+    if (healAmount > 0) {
+      enemyHealth += healAmount;
+      if (intent.type === 'heal') {
+        newLogs.push(`${enemy.name} 施展【${intent.name}】，體表黑泥劇烈聚合再生，恢復了 ${healAmount} 點生命值（${enemyHealth}/${enemy.maxHealth}）！`);
+      }
+    } else if (intent.type === 'heal') {
+      newLogs.push(`${enemy.name} 施展【${intent.name}】，但體表原生質已處於飽和狀態，未能恢復更多生命！`);
+    }
   }
 
   if (enemyActionResult.armorGainToEnemy > 0) {

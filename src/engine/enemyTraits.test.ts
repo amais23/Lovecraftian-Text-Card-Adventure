@@ -317,6 +317,45 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
       expect(t6.nextIntent.value).toBe(14);
     });
 
+    it('cycles Shoggoth Progeny 4-turn loop with cell regeneration and dynamic 1/4 HP crushing damage', () => {
+      const progeny = createTestEnemy({
+        id: 'enemy_shoggoth_progeny',
+        health: 68,
+        maxHealth: 70,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.organ_proliferation],
+      });
+
+      // Turn 1 (cycle 1): Attack 10
+      const t1 = advanceCanonicalIntent(progeny, 1);
+      expect(t1.nextIntent.type).toBe('attack');
+      expect(t1.nextIntent.value).toBe(10);
+      expect(t1.nextIntent.name).toBe('原生質癲狂鞭笞');
+
+      // Turn 2 (cycle 2): Heal 7 (細胞再生)
+      const t2 = advanceCanonicalIntent(progeny, 2);
+      expect(t2.nextIntent.type).toBe('heal');
+      expect(t2.nextIntent.value).toBe(7);
+      expect(t2.nextIntent.name).toBe('原生質細胞再生');
+
+      // Turn 3 (cycle 3): Erode 3
+      const t3 = advanceCanonicalIntent(progeny, 3);
+      expect(t3.nextIntent.type).toBe('erode');
+      expect(t3.nextIntent.value).toBe(3);
+      expect(t3.nextIntent.name).toBe('不可名狀之眼');
+
+      // Turn 4 (cycle 0): Dynamic attack = round(68 / 4) = 17
+      const t4 = advanceCanonicalIntent(progeny, 4);
+      expect(t4.nextIntent.type).toBe('attack');
+      expect(t4.nextIntent.value).toBe(17);
+      expect(t4.nextIntent.name).toBe('泰克利利碾壓');
+
+      // Verify resolveEnemyAction handles heal intent correctly
+      const inv = createTestInvestigator();
+      const healAction = resolveEnemyAction(progeny, t2.nextIntent, inv, 2);
+      expect(healAction.healToEnemy).toBe(7);
+      expect(healAction.damageToInvestigator).toBe(0);
+    });
+
     it('correctly checks enemy traits with hasTrait', () => {
       const deepOne = createTestEnemy({
         traits: [ELDRITCH_TRAIT_DEFINITIONS.slippery_mucus],

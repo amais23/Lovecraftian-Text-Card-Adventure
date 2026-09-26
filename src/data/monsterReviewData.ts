@@ -31,7 +31,7 @@ export interface MonsterReviewData {
   };
   intents: Array<{
     name: string;
-    type: 'attack' | 'erode' | 'defend' | 'apply_status';
+    type: 'attack' | 'erode' | 'defend' | 'apply_status' | 'charge' | 'heal';
     value: number;
     statusType?: string;
     description: string;

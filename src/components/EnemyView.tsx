@@ -18,6 +18,7 @@ import {
   Moon,
   ShieldAlert,
   Crown,
+  Heart,
 } from 'lucide-react';
 import { useTraumaShake } from '../hooks/useTraumaShake';
 import { useSanityFlicker } from '../hooks/useSanityFlicker';
@@ -25,6 +26,9 @@ import { getActiveEnemyIllustration } from '../engine/enemyArtworks';
 import { StatusEffectBadge } from './StatusEffectBadge';
 
 function formatIntentValue(intent: EnemyIntent): string {
+  if (intent.type === 'heal') {
+    return `再生 +${intent.value}`;
+  }
   if (intent.type === 'erode') {
     return `侵蝕 ${intent.value}`;
   }
@@ -40,6 +44,7 @@ function formatIntentValue(intent: EnemyIntent): string {
 function renderIntentIcon(intent: EnemyIntent) {
   if (intent.type === 'attack') return <Swords size={18} />;
   if (intent.type === 'defend') return <Shield size={18} />;
+  if (intent.type === 'heal') return <Heart size={18} className="intent-status-icon text-emerald-400" />;
   if (intent.type === 'erode') return <Brain size={18} />;
   if (intent.type === 'apply_status') {
     if (intent.statusType === 'bleed') return <Droplets size={18} className="intent-status-icon bleed" />;
