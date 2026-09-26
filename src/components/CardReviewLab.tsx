@@ -102,6 +102,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
   const [occupationFilter, setOccupationFilter] = useState<OccupationId | 'all' | 'neutral'>('all');
   const [tierFilter, setTierFilter] = useState<ReviewTier | 'all'>('all');
   const [decisionFilter, setDecisionFilter] = useState<ReviewDecision | 'all'>('all');
+  const [proposalFilter, setProposalFilter] = useState<'all' | 'has_proposal' | 'no_proposal'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Depth Filter for Monsters
@@ -330,18 +331,37 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
     let accepted = 0;
     let rejected = 0;
     let pending = 0;
+    let hasProposal = 0;
+    let noProposal = 0;
     for (const card of ALL_CARD_REVIEW_ITEMS) {
       const d = decisions[card.id]?.decision || 'pending';
       if (d === 'accepted') accepted++;
       else if (d === 'rejected') rejected++;
       else pending++;
+
+      if (card.hasActiveProposal) hasProposal++;
+      else noProposal++;
     }
-    return { accepted, rejected, pending, total: ALL_CARD_REVIEW_ITEMS.length };
+    return {
+      accepted,
+      rejected,
+      pending,
+      total: ALL_CARD_REVIEW_ITEMS.length,
+      hasProposal,
+      noProposal,
+    };
   }, [decisions]);
 
   // Filtered cards
   const filteredCards = useMemo(() => {
     return ALL_CARD_REVIEW_ITEMS.filter((card) => {
+      // Proposal filter
+      if (proposalFilter === 'has_proposal' && !card.hasActiveProposal) {
+        return false;
+      }
+      if (proposalFilter === 'no_proposal' && card.hasActiveProposal) {
+        return false;
+      }
       // Category filter
       if (categoryFilter !== 'all' && card.category !== categoryFilter) {
         return false;
@@ -377,7 +397,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
       }
       return true;
     });
-  }, [categoryFilter, occupationFilter, tierFilter, decisionFilter, searchQuery, decisions]);
+  }, [proposalFilter, categoryFilter, occupationFilter, tierFilter, decisionFilter, searchQuery, decisions]);
 
   return (
     <div className="card-review-lab-overlay">
@@ -455,6 +475,19 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                 <HelpCircle size={16} />
                 <span>待審核</span>
                 <strong>{counts.pending}</strong>
+              </div>
+              <div
+                className={`stat-pill proposal-pill ${proposalFilter === 'has_proposal' ? 'active' : ''}`}
+                onClick={() => {
+                  soundEngine.playClick();
+                  setProposalFilter((prev) => (prev === 'has_proposal' ? 'all' : 'has_proposal'));
+                }}
+                style={{ cursor: 'pointer' }}
+                title="點擊切換篩選待審提案"
+              >
+                <Flame size={16} />
+                <span>待審提案</span>
+                <strong>{counts.hasProposal}</strong>
               </div>
 
               <div className="actions-cluster">
@@ -605,6 +638,43 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
                   onClick={() => setTierFilter('special')}
                 >
                   特殊/衍生 (8)
+                </button>
+              </div>
+
+              {/* Proposal Filter */}
+              <div className="filter-group">
+                <span className="filter-label">提案狀態:</span>
+                <button
+                  type="button"
+                  className={`filter-chip ${proposalFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setProposalFilter('all');
+                  }}
+                >
+                  全部
+                </button>
+                <button
+                  type="button"
+                  className={`filter-chip proposal-active ${proposalFilter === 'has_proposal' ? 'active' : ''}`}
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setProposalFilter('has_proposal');
+                  }}
+                  title="僅顯示當前活躍的待審查改動提案"
+                >
+                  🔥 待審改動提案 ({counts.hasProposal})
+                </button>
+                <button
+                  type="button"
+                  className={`filter-chip proposal-none ${proposalFilter === 'no_proposal' ? 'active' : ''}`}
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setProposalFilter('no_proposal');
+                  }}
+                  title="僅顯示無待審提案之現行實裝基準卡牌"
+                >
+                  📦 現行實裝基準 ({counts.noProposal})
                 </button>
               </div>
 

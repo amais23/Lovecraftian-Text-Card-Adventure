@@ -106,4 +106,34 @@ describe('CardReviewLab - Monster Ecology and Image Artworks', () => {
     expect(screen.getByTestId('balance-matrix-dashboard')).toBeDefined();
     expect(screen.getByText(/全量平衡性評測/i)).toBeDefined();
   });
+
+  it('filters cards by active proposal status (has_proposal vs no_proposal)', () => {
+    render(<CardReviewLab onClose={vi.fn()} />);
+
+    // Verify filter buttons exist
+    const hasProposalBtn = screen.getByRole('button', { name: /待審改動提案/i });
+    const noProposalBtn = screen.getByRole('button', { name: /現行實裝基準/i });
+    expect(hasProposalBtn).toBeDefined();
+    expect(noProposalBtn).toBeDefined();
+
+    // Filter by active proposals
+    fireEvent.click(hasProposalBtn);
+
+    // Should display proposal cards
+    expect(screen.getByText('超維虛空湮滅')).toBeDefined();
+    expect(screen.getByText('冷靜觀察')).toBeDefined();
+    expect(screen.getAllByText('【待審改動提案】').length).toBeGreaterThan(0);
+
+    // Should NOT display non-proposal baseline cards
+    expect(screen.queryByText('左輪射擊')).toBeNull();
+
+    // Filter by baseline cards (no active proposal)
+    fireEvent.click(noProposalBtn);
+
+    // Baseline cards should now appear
+    expect(screen.getByText('左輪射擊')).toBeDefined();
+    // Proposal card should disappear
+    expect(screen.queryByText('超維虛空湮滅')).toBeNull();
+  });
 });
+
