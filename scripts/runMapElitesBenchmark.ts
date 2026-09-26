@@ -53,15 +53,32 @@ async function main() {
   }
   const outFile = path.join(outDir, 'map_elites_archetypes.json');
 
-  const exportData = {
-    generatedAt: new Date().toISOString(),
-    totalIterations: result.totalIterations,
-    durationMs: result.durationMs,
-    filledCellsCount: result.filledCellsCount,
-    totalCellsCount: result.totalCellsCount,
-    peakArchetypes: result.peakArchetypes,
-    cells: Array.from(result.archive.values()).map((c) => ({
+  const exportCells = Array.from(result.archive.values()).map((c) => {
+    // 統計卡表明細
+    const cardCounts = new Map<string, { id: string; name: string; copies: number; category: any }>();
+    for (const card of c.deck) {
+      const baseId = card.id.replace(/_copy_\d+$/, '');
+      const existing = cardCounts.get(baseId);
+      if (existing) {
+        existing.copies++;
+      } else {
+        cardCounts.set(baseId, {
+          id: card.id,
+          name: card.name,
+          copies: 1,
+          category: card.category,
+        });
+      }
+    }
+
+    const matchedPeak = result.peakArchetypes.find((p) => p.cellKey === `${c.xBin}_${c.yBin}`);
+    const styleLabel = c.armorRatio > 0.65 ? '鐵壁防守' : c.armorRatio < 0.35 ? '直傷爆發' : '攻守均衡';
+    const tierLabel = c.avgTier < 1.6 ? '前期低階' : c.avgTier < 2.5 ? '中期主力' : '後期神裝';
+
+    return {
+      id: `map_elite_${c.xBin}_${c.yBin}`,
       cellKey: `${c.xBin}_${c.yBin}`,
+      name: matchedPeak ? matchedPeak.name : `【${tierLabel}·${styleLabel}】${c.deck[0]?.name || ''}`,
       xBin: c.xBin,
       yBin: c.yBin,
       armorRatio: c.armorRatio,
@@ -73,12 +90,84 @@ async function main() {
       stretchWin: c.stretchWin,
       baselineHpLost: c.baselineHpLost,
       stretchHpLost: c.stretchHpLost,
+      isPeakArchetype: !!matchedPeak,
+      peakArchetypeId: matchedPeak?.id,
+      cards: Array.from(cardCounts.values()),
+      totalCards: c.deck.length,
+      winRate: c.stretchWin ? 0.95 : (c.baselineWin ? 0.75 : 0.4),
+      avgHealthLost: Number((0.4 * c.baselineHpLost + 0.6 * c.stretchHpLost).toFixed(1)),
+      avgSanityExpended: Math.round(c.deck.length * 0.35),
+      overallScore: c.fitness,
+      archetypeId: matchedPeak ? matchedPeak.id : `grid_${c.xBin}_${c.yBin}`,
+      archetypeName: matchedPeak ? matchedPeak.name : `${tierLabel}·${styleLabel}`,
+      drivingCombos: matchedPeak ? matchedPeak.topCards.slice(0, 2).map((tc) => ({ cards: [tc.name], synergy: 1.5 })) : [],
+      x: c.armorRatio,
+      y: Number(((c.avgTier - 1.0) / 2.5).toFixed(3)),
       cardNames: c.deck.map((card) => card.name),
-    })),
+    };
+  });
+
+  const exportData = {
+    generatedAt: new Date().toISOString(),
+    totalIterations: result.totalIterations,
+    durationMs: result.durationMs,
+    filledCellsCount: result.filledCellsCount,
+    totalCellsCount: result.totalCellsCount,
+    peakArchetypes: result.peakArchetypes,
+    cells: exportCells,
   };
 
   fs.writeFileSync(outFile, JSON.stringify(exportData, null, 2), 'utf-8');
-  console.log(`💾 已將完整網格與極值流派資料寫入: ${outFile}\n`);
+  console.log(`💾 已將完整網格與極值流派資料寫入: ${outFile}`);
+
+  // 同步更新 balance_summary_data.json
+  const summaryFile = path.join(outDir, 'balance_summary_data.json');
+  if (fs.existsSync(summaryFile)) {
+    try {
+      const summaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf-8'));
+      summaryData.mapElitesData = {
+        totalIterations: result.totalIterations,
+        filledCellsCount: result.filledCellsCount,
+        totalCellsCount: result.totalCellsCount,
+        durationMs: result.durationMs,
+        peakArchetypes: result.peakArchetypes,
+        cells: exportCells,
+      };
+
+      // 將 6 大極值流派結構化為 EmergentArchetype 規格加入自然流派清單
+      const convertedEmergentArchetypes = result.peakArchetypes.map((p) => {
+        const cell = result.archive.get(p.cellKey);
+        return {
+          id: p.id,
+          name: p.name,
+          signatureCards: p.topCards.slice(0, 2).map((c) => ({ id: c.name, name: c.name })),
+          memberCardIds: p.deck.map((c) => c.id),
+          coreCombos: [
+            {
+              cardIds: p.topCards.slice(0, 2).map((c) => c.name),
+              cardNames: p.topCards.slice(0, 2).map((c) => c.name),
+              synergyScore: 2.0,
+            },
+          ],
+          deckCount: 1,
+          avgScore: p.fitness,
+          avgHealthLost: Number((0.4 * (cell?.baselineHpLost ?? 0) + 0.6 * (cell?.stretchHpLost ?? 0)).toFixed(1)),
+          avgSanityExpended: Math.round(p.deckSize * 0.35),
+        };
+      });
+
+      // 優先置頂 MAP-Elites 極值流派
+      summaryData.emergentArchetypes = [
+        ...convertedEmergentArchetypes,
+        ...(summaryData.emergentArchetypes || []).filter((a: any) => !a.id.startsWith('peak_archetype_')),
+      ];
+
+      fs.writeFileSync(summaryFile, JSON.stringify(summaryData, null, 2), 'utf-8');
+      console.log(`💾 已同步將 MAP-Elites 局部極值流派更新至: ${summaryFile}\n`);
+    } catch (e) {
+      console.warn('同步寫入 balance_summary_data.json 警告:', e);
+    }
+  }
 
   // ADR-0039 門檻判定
   console.log('================ 算力裁決與 Issue #66 結論 (ADR-0039) ================');

@@ -49,6 +49,31 @@ export const DeckInspectorCard: React.FC<DeckInspectorCardProps> = ({
         </div>
       </div>
 
+      {/* MAP-Elites 特殊標籤 (ADR-0039) */}
+      {((deck as any).isPeakArchetype || (deck as any).stretchWin !== undefined) && (
+        <div
+          style={{
+            background: (deck as any).isPeakArchetype ? 'rgba(255, 215, 0, 0.12)' : 'rgba(56, 189, 248, 0.1)',
+            border: `1px solid ${(deck as any).isPeakArchetype ? 'rgba(255, 215, 0, 0.4)' : 'rgba(56, 189, 248, 0.25)'}`,
+            borderRadius: 6,
+            padding: '6px 10px',
+            fontSize: 12,
+            color: (deck as any).isPeakArchetype ? '#ffd700' : '#e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 6,
+          }}
+        >
+          <span>{(deck as any).isPeakArchetype ? '👑 ADR-0039 局部極值代表流派' : '🧬 MAP-Elites 菁英生態牌庫'}</span>
+          {(deck as any).stretchWin !== undefined && (
+            <span style={{ fontSize: 11, color: (deck as any).stretchWin ? '#10b981' : '#f59e0b' }}>
+              {(deck as any).stretchWin ? '越級挑戰成功 ✅' : '基準對標達標 ✅'}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Metrics Grid */}
       <div className="deck-metrics-grid">
         <div className="deck-metric-box">

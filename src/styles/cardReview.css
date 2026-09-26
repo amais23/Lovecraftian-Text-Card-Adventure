@@ -2237,6 +2237,122 @@
   stroke-width: 2px;
 }
 
+/* MAP-Elites View Mode Selector & Peak Archetype Shelf (ADR-0039) */
+.topology-mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.topology-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.topology-mode-btn.active {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.topology-mode-btn.highlight.active {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.map-elites-peaks-shelf {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.map-elites-peaks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #cfa866;
+  font-weight: 600;
+}
+
+.map-elites-peaks-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.map-elites-peak-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.map-elites-peak-chip:hover {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.map-elites-peak-chip.selected {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.map-elites-peak-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.map-elites-peak-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.map-elites-grid-cell {
+  cursor: pointer;
+  transition: opacity 0.15s ease, stroke-width 0.15s ease;
+}
+
+.map-elites-grid-cell:hover {
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+}
+
 .topology-inspector-card {
   background: rgba(11, 15, 25, 0.85);
   border: 1px solid rgba(148, 163, 184, 0.15);
