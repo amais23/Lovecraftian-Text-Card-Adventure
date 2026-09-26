@@ -1,0 +1,4183 @@
+{
+  "generatedAt": "2026-09-26T03:40:38.441Z",
+  "totalIterations": 3000,
+  "durationMs": 2605,
+  "filledCellsCount": 55,
+  "totalCellsCount": 64,
+  "peakArchetypes": [
+    {
+      "id": "peak_archetype_1",
+      "name": "【越級穿刺直傷】虛空黑洞坍縮＋深海冰霜之握",
+      "description": "平均階級 Tier 1.3，攻防比 9%，適應度評分 99.5 分 (越級勝率: 勝)",
+      "cellKey": "0_0",
+      "armorRatio": 0.0896,
+      "avgTier": 1.308,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 13,
+      "topCards": [
+        {
+          "name": "虛空黑洞坍縮",
+          "count": 1,
+          "category": "magic",
+          "tier": 3
+        },
+        {
+          "name": "深海冰霜之握",
+          "count": 1,
+          "category": "magic",
+          "tier": 2
+        },
+        {
+          "name": "水下爆破",
+          "count": 1,
+          "category": "combat",
+          "tier": 2
+        },
+        {
+          "name": "靈能衝擊",
+          "count": 1,
+          "category": "magic",
+          "tier": 1
+        },
+        {
+          "name": "厄運凝視",
+          "count": 1,
+          "category": "magic",
+          "tier": 1
+        }
+      ],
+      "deck": [
+        {
+          "name": "靈能衝擊",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_magic_blast.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 9
+            }
+          ],
+          "description": "造成 9 點秘術傷害。",
+          "id": "card_magic_blast_1",
+          "flavorText": "「思維被撕裂的瞬間，無形的衝擊波在空中炸裂出紫色火花。」"
+        },
+        {
+          "id": "card_tier2_frost_grasp",
+          "name": "深海冰霜之握",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_frost_grasp.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 25
+            }
+          ],
+          "description": "造成 25 點秘術傷害。",
+          "flavorText": "「冰冷徹骨的洋流自異次元裂隙倒灌，連空氣中的水氣都凝結成尖銳冰刺。」"
+        },
+        {
+          "name": "厄運凝視",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_magic_gaze.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            }
+          ],
+          "description": "造成 16 點秘術傷害。",
+          "id": "card_magic_gaze_1",
+          "flavorText": "「直視來自異次元的虛空陰影，受創的怪物皮肉開始崩解腐化。」"
+        },
+        {
+          "name": "厄運凝視",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_magic_gaze.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            }
+          ],
+          "description": "造成 16 點秘術傷害。",
+          "id": "card_magic_gaze_2",
+          "flavorText": "「深淵的回響將眼前的邪物撕得支離破碎。」"
+        },
+        {
+          "id": "card_tier3_void_collapse",
+          "name": "虛空黑洞坍縮",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_collapse.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 34
+            }
+          ],
+          "description": "造成 34 點秘術傷害。",
+          "flavorText": "「空間維度在此處發生不可逆轉的扭曲，一切物質皆向著虛無的奇點崩陷。」"
+        },
+        {
+          "name": "星界庇護",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_astral_ward.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 6
+            }
+          ],
+          "description": "獲得 6 點護甲。",
+          "id": "card_astral_ward_2",
+          "flavorText": "「古老的幾何符號偏轉了怪物的致命撲殺。」"
+        },
+        {
+          "name": "心靈冥想",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_meditate.png",
+          "effects": [
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "洗回 2 張卡牌至理智牌庫。",
+          "id": "card_meditate_1",
+          "flavorText": "「在狂亂的幻覺浪潮中，強行構築一道理性的防波堤。」"
+        },
+        {
+          "name": "心靈冥想",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_meditate.png",
+          "effects": [
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "洗回 2 張卡牌至理智牌庫。",
+          "id": "card_meditate_2",
+          "flavorText": "「重新默誦《玄密七章》的安定真言。」"
+        },
+        {
+          "id": "card_silver_key_1",
+          "name": "銀鑰儀式",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_silver_key.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 2
+            }
+          ],
+          "description": "自身承受 1 點反噬傷害，向理智牌庫注入 2 張真相卡牌。",
+          "flavorText": "「旋轉銀色鑰匙，推開通向終極真相的一絲門縫。」"
+        },
+        {
+          "id": "card_truth_fragment_2",
+          "name": "舊日殘頁",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_truth_fragment.webp",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 2
+            },
+            {
+              "type": "add_to_deck",
+              "value": 2
+            }
+          ],
+          "description": "自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。",
+          "flavorText": "「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」"
+        },
+        {
+          "name": "防身短刀",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/combat/card_ritual_dagger.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 3
+            },
+            {
+              "type": "armor",
+              "value": 3
+            }
+          ],
+          "description": "造成 3 點物理傷害，獲得 3 點護甲。",
+          "id": "card_ritual_dagger_1",
+          "flavorText": "「刀柄刻滿如尼守護文的銀質短刀，防身亦可用於刻印儀式。」"
+        },
+        {
+          "name": "防身短刀",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/combat/card_ritual_dagger.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 3
+            },
+            {
+              "type": "armor",
+              "value": 3
+            }
+          ],
+          "description": "造成 3 點物理傷害，獲得 3 點護甲。",
+          "id": "card_ritual_dagger_2",
+          "flavorText": "「在近身肉搏中精準刺向敵人的致命關節。」"
+        },
+        {
+          "id": "card_event_underwater_demolition",
+          "name": "水下爆破",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/combat/card_underwater_demolition.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            }
+          ],
+          "description": "造成 16 點物理傷害。【消耗】引爆強力水下炸藥，打出後移出戰鬥。",
+          "flavorText": "「在深海狹道中，火藥是凡人唯一的依靠。」"
+        }
+      ]
+    },
+    {
+      "id": "peak_archetype_2",
+      "name": "【虛空終極湮滅】深海冰霜之握＋舊神庇護之陣",
+      "description": "平均階級 Tier 1.7，攻防比 24%，適應度評分 99.5 分 (越級勝率: 勝)",
+      "cellKey": "1_2",
+      "armorRatio": 0.2394,
+      "avgTier": 1.714,
+      "fitness": 99.5,
+      "handRetention": 6,
+      "deckSize": 14,
+      "topCards": [
+        {
+          "name": "深海冰霜之握",
+          "count": 2,
+          "category": "magic",
+          "tier": 2
+        },
+        {
+          "name": "舊神庇護之陣",
+          "count": 1,
+          "category": "skill",
+          "tier": 4
+        },
+        {
+          "name": "達姆高爆彈連射",
+          "count": 1,
+          "category": "combat",
+          "tier": 3
+        },
+        {
+          "name": "虛空黑洞坍縮",
+          "count": 1,
+          "category": "magic",
+          "tier": 3
+        },
+        {
+          "name": "舊印殘印",
+          "count": 1,
+          "category": "truth",
+          "tier": 2
+        }
+      ],
+      "deck": [
+        {
+          "id": "card_tier3_dum_dum",
+          "name": "達姆高爆彈連射",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_dum_dum.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 6,
+              "hitCount": 4
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "statusType": "vulnerable",
+              "value": 2
+            }
+          ],
+          "description": "造成 6 點物理傷害 × 4 段（共計 24 點物理傷害），並使目標陷入 2 層【易傷】狀態。",
+          "flavorText": "「開花彈在接觸肉體的瞬間引爆，即便是舊日支配者的僕從亦難以承受此等破壞力。」"
+        },
+        {
+          "id": "card_tier2_frost_grasp",
+          "name": "深海冰霜之握",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_frost_grasp.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 25
+            }
+          ],
+          "description": "造成 25 點秘術傷害。",
+          "flavorText": "「冰冷徹骨的洋流自異次元裂隙倒灌，連空氣中的水氣都凝結成尖銳冰刺。」"
+        },
+        {
+          "name": "厄運凝視",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_magic_gaze.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            }
+          ],
+          "description": "造成 16 點秘術傷害。",
+          "id": "card_magic_gaze_1",
+          "flavorText": "「直視來自異次元的虛空陰影，受創的怪物皮肉開始崩解腐化。」"
+        },
+        {
+          "name": "厄運凝視",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_magic_gaze.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            }
+          ],
+          "description": "造成 16 點秘術傷害。",
+          "id": "card_magic_gaze_2",
+          "flavorText": "「深淵的回響將眼前的邪物撕得支離破碎。」"
+        },
+        {
+          "id": "card_tier3_void_collapse",
+          "name": "虛空黑洞坍縮",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_collapse.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 34
+            }
+          ],
+          "description": "造成 34 點秘術傷害。",
+          "flavorText": "「空間維度在此處發生不可逆轉的扭曲，一切物質皆向著虛無的奇點崩陷。」"
+        },
+        {
+          "name": "星界庇護",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_astral_ward.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 6
+            }
+          ],
+          "description": "獲得 6 點護甲。",
+          "id": "card_astral_ward_2",
+          "flavorText": "「古老的幾何符號偏轉了怪物的致命撲殺。」"
+        },
+        {
+          "name": "心靈冥想",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_meditate.png",
+          "effects": [
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "洗回 2 張卡牌至理智牌庫。",
+          "id": "card_meditate_1",
+          "flavorText": "「在狂亂的幻覺浪潮中，強行構築一道理性的防波堤。」"
+        },
+        {
+          "name": "心靈冥想",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_meditate.png",
+          "effects": [
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "洗回 2 張卡牌至理智牌庫。",
+          "id": "card_meditate_2",
+          "flavorText": "「重新默誦《玄密七章》的安定真言。」"
+        },
+        {
+          "id": "card_silver_key_1",
+          "name": "銀鑰儀式",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_silver_key.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 2
+            }
+          ],
+          "description": "自身承受 1 點反噬傷害，向理智牌庫注入 2 張真相卡牌。",
+          "flavorText": "「旋轉銀色鑰匙，推開通向終極真相的一絲門縫。」"
+        },
+        {
+          "id": "card_truth_fragment_2",
+          "name": "舊日殘頁",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_truth_fragment.webp",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 2
+            },
+            {
+              "type": "add_to_deck",
+              "value": 2
+            }
+          ],
+          "description": "自身承受 2 點反噬傷害，向理智牌庫注入 2 張真相卡牌。",
+          "flavorText": "「窺見了世界真實的一角，肉身在戰慄，但混亂的心智為之驟然清醒。」"
+        },
+        {
+          "name": "防身短刀",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/combat/card_ritual_dagger.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 3
+            },
+            {
+              "type": "armor",
+              "value": 3
+            }
+          ],
+          "description": "造成 3 點物理傷害，獲得 3 點護甲。",
+          "id": "card_ritual_dagger_1",
+          "flavorText": "「刀柄刻滿如尼守護文的銀質短刀，防身亦可用於刻印儀式。」"
+        },
+        {
+          "id": "card_tier2_frost_grasp_copy_1",
+          "name": "深海冰霜之握",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_frost_grasp.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 25
+            }
+          ],
+          "description": "造成 25 點秘術傷害。",
+          "flavorText": "「冰冷徹骨的洋流自異次元裂隙倒灌，連空氣中的水氣都凝結成尖銳冰刺。」"
+        },
+        {
+          "id": "reward_remnant_seal",
+          "name": "舊印殘印",
+          "category": "truth",
+          "costType": "free",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 2,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_remnant_seal.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 12
+            },
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "【消耗】獲得 12 點護甲，洗回 2 張卡牌至理智牌庫。打出後移出戰鬥。",
+          "flavorText": "「殘缺的古印石片在掌心化為微光碎屑，為凡人擋下太古污染的致命侵蝕。」"
+        },
+        {
+          "id": "card_tier4_elder_aegis",
+          "name": "舊神庇護之陣",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_elder_aegis.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 24
+            },
+            {
+              "type": "draw",
+              "value": 2
+            }
+          ],
+          "description": "獲得 24 點護甲，抽取 2 張卡牌。",
+          "flavorText": "「五芒星光在周身環繞，不可名狀的混沌污穢在光芒前如同初雪般消融。」"
+        }
+      ]
+    },
+    {
+      "id": "peak_archetype_3",
+      "name": "【深淵全能構裝】舊神庇護之陣＋舊印殘印",
+      "description": "平均階級 Tier 2.4，攻防比 47%，適應度評分 99.2 分 (越級勝率: 勝)",
+      "cellKey": "3_4",
+      "armorRatio": 0.4722,
+      "avgTier": 2.438,
+      "fitness": 99.2,
+      "handRetention": 5,
+      "deckSize": 16,
+      "topCards": [
+        {
+          "name": "舊神庇護之陣",
+          "count": 2,
+          "category": "skill",
+          "tier": 4
+        },
+        {
+          "name": "舊印殘印",
+          "count": 2,
+          "category": "truth",
+          "tier": 2
+        },
+        {
+          "name": "終焉覺悟",
+          "count": 1,
+          "category": "truth",
+          "tier": 4
+        },
+        {
+          "name": "超維虛空湮滅",
+          "count": 1,
+          "category": "magic",
+          "tier": 4
+        },
+        {
+          "name": "軍用特種炸藥包",
+          "count": 1,
+          "category": "combat",
+          "tier": 3
+        }
+      ],
+      "deck": [
+        {
+          "id": "card_event_final_awakening",
+          "name": "終焉覺悟",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 4,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_final_awakening.png",
+          "effects": [
+            {
+              "type": "add_to_deck",
+              "value": 5
+            }
+          ],
+          "description": "【消耗】。向理智牌庫注入 5 張真相卡牌，堅定最後的理智意志。打出後移出戰鬥。",
+          "flavorText": "「縱使星辰正位，人性永不磨滅。」"
+        },
+        {
+          "id": "card_tier2_mind_shock",
+          "name": "心靈震波",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_mind_blast.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 14
+            },
+            {
+              "type": "draw",
+              "value": 1
+            }
+          ],
+          "description": "造成 14 點秘術傷害，抽取 1 張卡牌。",
+          "flavorText": "「神經元在尖嘯中過載，將腦海中的混亂與回音直接烙印在敵人意識深處。」"
+        },
+        {
+          "id": "card_tier3_demolition_pack",
+          "name": "軍用特種炸藥包",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 3,
+          "isTemporary": false,
+          "tier": 3,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_demolition_pack.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 40
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "statusType": "bleed",
+              "value": 3
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "statusType": "vulnerable",
+              "value": 2
+            }
+          ],
+          "description": "造成 40 點物理傷害，並對目標施加 3 層【流血】與 2 層【易傷】。【消耗】打出後移出戰鬥。",
+          "flavorText": "「工兵守則第一條：只要裝藥足夠，世上沒有炸不開的門——也沒有炸不死的怪物。」"
+        },
+        {
+          "name": "重拳壓制",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_punch.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "statusType": "weak",
+              "value": 1,
+              "condition": {
+                "type": "enemy_intent_is_attack"
+              }
+            }
+          ],
+          "description": "造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。",
+          "id": "card_punch_1",
+          "flavorText": "「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」"
+        },
+        {
+          "id": "reward_remnant_seal",
+          "name": "舊印殘印",
+          "category": "truth",
+          "costType": "free",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 2,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_remnant_seal.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 12
+            },
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "【消耗】獲得 12 點護甲，洗回 2 張卡牌至理智牌庫。打出後移出戰鬥。",
+          "flavorText": "「殘缺的古印石片在掌心化為微光碎屑，為凡人擋下太古污染的致命侵蝕。」"
+        },
+        {
+          "id": "card_tier4_elder_aegis",
+          "name": "舊神庇護之陣",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_elder_aegis.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 24
+            },
+            {
+              "type": "draw",
+              "value": 2
+            }
+          ],
+          "description": "獲得 24 點護甲，抽取 2 張卡牌。",
+          "flavorText": "「五芒星光在周身環繞，不可名狀的混沌污穢在光芒前如同初雪般消融。」"
+        },
+        {
+          "id": "reward_shield_slam",
+          "name": "護甲猛擊",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_shield_slam.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4,
+              "scaleFrom": "armor",
+              "scaleMultiplier": 1
+            }
+          ],
+          "description": "造成 4 點物理傷害，並附加等同於當前護甲 100% 的額外物理傷害。",
+          "flavorText": "「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」"
+        },
+        {
+          "id": "card_tier2_forbidden_tablet",
+          "name": "禁忌海蝕石板殘卷",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_sea_tablet.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 2
+            },
+            {
+              "type": "add_to_deck",
+              "value": 4
+            }
+          ],
+          "description": "自身承受 2 點反噬傷害，向理智牌庫注入 4 張真相卡牌。",
+          "flavorText": "「石板上的非歐幾何符文正向外滲出幽綠磷光，閱讀它需要承受難以言喻的痛楚。」"
+        },
+        {
+          "id": "card_event_breakwater",
+          "name": "心智防波堤",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_breakwater.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 3
+            }
+          ],
+          "description": "自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+          "flavorText": "「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」"
+        },
+        {
+          "id": "card_tier4_void_annihilation",
+          "name": "超維虛空湮滅",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_annihilation.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 42
+            }
+          ],
+          "description": "造成 42 點秘術傷害。",
+          "flavorText": "「宇宙黑洞深處的奇異點在眼前剎那綻放，將目光所及的一切狂暴異質徹底撕裂。」"
+        },
+        {
+          "id": "card_tier4_elder_aegis_copy_1",
+          "name": "舊神庇護之陣",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_elder_aegis.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 24
+            },
+            {
+              "type": "draw",
+              "value": 2
+            }
+          ],
+          "description": "獲得 24 點護甲，抽取 2 張卡牌。",
+          "flavorText": "「五芒星光在周身環繞，不可名狀的混沌污穢在光芒前如同初雪般消融。」"
+        },
+        {
+          "id": "reward_tactical_feint",
+          "name": "戰術佯攻",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/combat/card_tactical_feint.png",
+          "effects": [
+            {
+              "type": "apply_status",
+              "statusType": "vulnerable",
+              "value": 2,
+              "target": "enemy"
+            }
+          ],
+          "description": "使目標陷入 2 層【易傷】破綻狀態。",
+          "flavorText": "「虛晃一招誘敵深入，撕開怪物厚重防禦下的致命死角。」"
+        },
+        {
+          "id": "card_tier3_sanity_anchor",
+          "name": "極限精神錨定",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_sanity_anchor.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 8
+            },
+            {
+              "type": "restore_sanity",
+              "value": 5
+            }
+          ],
+          "description": "獲得 8 點護甲，洗回 5 張卡牌至理智牌庫。",
+          "flavorText": "「以古代舊印銘文將狂暴渙散的心靈死死固定在理性之錨上。」"
+        },
+        {
+          "id": "reward_remnant_seal_copy_1",
+          "name": "舊印殘印",
+          "category": "truth",
+          "costType": "free",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 2,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_remnant_seal.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 12
+            },
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "【消耗】獲得 12 點護甲，洗回 2 張卡牌至理智牌庫。打出後移出戰鬥。",
+          "flavorText": "「殘缺的古印石片在掌心化為微光碎屑，為凡人擋下太古污染的致命侵蝕。」"
+        },
+        {
+          "id": "card_tier3_impenetrable_bastion",
+          "name": "不可侵犯之壁",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/skill/card_impenetrable_bastion.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 22
+            }
+          ],
+          "description": "獲得 22 點護甲。",
+          "flavorText": "「無懼非人泰克利利哀鳴，調查員築起凡人血肉所能構築的最堅固壁壘。」"
+        },
+        {
+          "id": "reward_dread_whisper_1",
+          "name": "恐懼低語",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_dread_whisper.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 10
+            }
+          ],
+          "description": "造成 10 點秘術傷害。",
+          "flavorText": "「在敵人腦海中回放拉萊耶的潮汐聲。」"
+        }
+      ]
+    },
+    {
+      "id": "peak_archetype_4",
+      "name": "【虛空終極湮滅】深淵靈能撕裂＋舊神庇護之陣",
+      "description": "平均階級 Tier 2.1，攻防比 17%，適應度評分 99.2 分 (越級勝率: 勝)",
+      "cellKey": "1_3",
+      "armorRatio": 0.1667,
+      "avgTier": 2.143,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "topCards": [
+        {
+          "name": "深淵靈能撕裂",
+          "count": 2,
+          "category": "magic",
+          "tier": 3
+        },
+        {
+          "name": "舊神庇護之陣",
+          "count": 1,
+          "category": "skill",
+          "tier": 4
+        },
+        {
+          "name": "超維虛空湮滅",
+          "count": 1,
+          "category": "magic",
+          "tier": 4
+        },
+        {
+          "name": "極限精神錨定",
+          "count": 1,
+          "category": "skill",
+          "tier": 3
+        },
+        {
+          "name": "弱點狙擊",
+          "count": 1,
+          "category": "combat",
+          "tier": 2
+        }
+      ],
+      "deck": [
+        {
+          "id": "card_tier3_psionic_cleave",
+          "name": "深淵靈能撕裂",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_psionic_cleave.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 20
+            }
+          ],
+          "description": "造成 20 點秘術傷害。",
+          "flavorText": "「靈能風暴猶如實質利刃，自神經深處劈開敵人的保護甲殼。」"
+        },
+        {
+          "id": "reward_weakpoint_snipe",
+          "name": "弱點狙擊",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_weakpoint_snipe.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 12,
+              "condition": {
+                "type": "target_has_status",
+                "statusType": "vulnerable",
+                "multiplier": 2
+              }
+            }
+          ],
+          "description": "造成 12 點物理傷害；若目標處於【易傷】狀態，傷害翻倍為 24 點！",
+          "flavorText": "「屏住呼吸，透過準星直擊不可名狀軀體中最脆弱的肉瘤裂縫。」"
+        },
+        {
+          "id": "reward_dread_whisper_1",
+          "name": "恐懼低語",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_dread_whisper.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 10
+            }
+          ],
+          "description": "造成 10 點秘術傷害。",
+          "flavorText": "「在敵人腦海中回放拉萊耶的潮汐聲。」"
+        },
+        {
+          "id": "reward_void_fire_1",
+          "name": "虛空烈焰",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_fire.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 18
+            }
+          ],
+          "description": "造成 18 點秘術傷害。",
+          "flavorText": "「燃燒靈魂碎片釋放的星辰冷火。」"
+        },
+        {
+          "id": "card_tier4_elder_aegis",
+          "name": "舊神庇護之陣",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_elder_aegis.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 24
+            },
+            {
+              "type": "draw",
+              "value": 2
+            }
+          ],
+          "description": "獲得 24 點護甲，抽取 2 張卡牌。",
+          "flavorText": "「五芒星光在周身環繞，不可名狀的混沌污穢在光芒前如同初雪般消融。」"
+        },
+        {
+          "id": "reward_shield_slam",
+          "name": "護甲猛擊",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_shield_slam.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4,
+              "scaleFrom": "armor",
+              "scaleMultiplier": 1
+            }
+          ],
+          "description": "造成 4 點物理傷害，並附加等同於當前護甲 100% 的額外物理傷害。",
+          "flavorText": "「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」"
+        },
+        {
+          "id": "reward_shotgun_1",
+          "name": "雙管獵槍",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_shotgun.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            },
+            {
+              "type": "lose_armor",
+              "value": 5
+            }
+          ],
+          "description": "造成 16 點物理傷害；【強烈後座力】打出後自身失去 5 點護甲。",
+          "flavorText": "「近距離的轟鳴撕裂了陰暗中的任何可怖實體。」"
+        },
+        {
+          "id": "card_event_breakwater",
+          "name": "心智防波堤",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_breakwater.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 3
+            }
+          ],
+          "description": "自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+          "flavorText": "「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」"
+        },
+        {
+          "name": "重拳壓制",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_punch.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "statusType": "weak",
+              "value": 1,
+              "condition": {
+                "type": "enemy_intent_is_attack"
+              }
+            }
+          ],
+          "description": "造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。",
+          "id": "card_punch_1",
+          "flavorText": "「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」"
+        },
+        {
+          "id": "card_tier2_mind_shock_copy_1",
+          "name": "心靈震波",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_mind_blast.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 14
+            },
+            {
+              "type": "draw",
+              "value": 1
+            }
+          ],
+          "description": "造成 14 點秘術傷害，抽取 1 張卡牌。",
+          "flavorText": "「神經元在尖嘯中過載，將腦海中的混亂與回音直接烙印在敵人意識深處。」"
+        },
+        {
+          "id": "card_tier3_psionic_cleave_copy_1",
+          "name": "深淵靈能撕裂",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_psionic_cleave.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 20
+            }
+          ],
+          "description": "造成 20 點秘術傷害。",
+          "flavorText": "「靈能風暴猶如實質利刃，自神經深處劈開敵人的保護甲殼。」"
+        },
+        {
+          "id": "card_tier3_sanity_anchor",
+          "name": "極限精神錨定",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_sanity_anchor.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 8
+            },
+            {
+              "type": "restore_sanity",
+              "value": 5
+            }
+          ],
+          "description": "獲得 8 點護甲，洗回 5 張卡牌至理智牌庫。",
+          "flavorText": "「以古代舊印銘文將狂暴渙散的心靈死死固定在理性之錨上。」"
+        },
+        {
+          "id": "card_event_tide_whisper",
+          "name": "潮汐之音",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_tide_whisper.png",
+          "effects": [
+            {
+              "type": "add_to_deck",
+              "value": 3
+            }
+          ],
+          "description": "傾聽深海潮音，向理智牌庫注入 3 張真相卡牌。",
+          "flavorText": "「在無休止的潮汐拍擊中重獲清明。」"
+        },
+        {
+          "id": "card_tier4_void_annihilation",
+          "name": "超維虛空湮滅",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_annihilation.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 42
+            }
+          ],
+          "description": "造成 42 點秘術傷害。",
+          "flavorText": "「宇宙黑洞深處的奇異點在眼前剎那綻放，將目光所及的一切狂暴異質徹底撕裂。」"
+        }
+      ]
+    },
+    {
+      "id": "peak_archetype_5",
+      "name": "【虛空終極湮滅】深淵靈能撕裂＋護甲猛擊",
+      "description": "平均階級 Tier 2.2，攻防比 12%，適應度評分 99.2 分 (越級勝率: 勝)",
+      "cellKey": "0_3",
+      "armorRatio": 0.1218,
+      "avgTier": 2.214,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "topCards": [
+        {
+          "name": "深淵靈能撕裂",
+          "count": 2,
+          "category": "magic",
+          "tier": 3
+        },
+        {
+          "name": "護甲猛擊",
+          "count": 2,
+          "category": "combat",
+          "tier": 2
+        },
+        {
+          "name": "舊神庇護之陣",
+          "count": 1,
+          "category": "skill",
+          "tier": 4
+        },
+        {
+          "name": "屠神裁決爆轟",
+          "count": 1,
+          "category": "combat",
+          "tier": 4
+        },
+        {
+          "name": "超維虛空湮滅",
+          "count": 1,
+          "category": "magic",
+          "tier": 4
+        }
+      ],
+      "deck": [
+        {
+          "id": "card_tier3_psionic_cleave",
+          "name": "深淵靈能撕裂",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_psionic_cleave.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 20
+            }
+          ],
+          "description": "造成 20 點秘術傷害。",
+          "flavorText": "「靈能風暴猶如實質利刃，自神經深處劈開敵人的保護甲殼。」"
+        },
+        {
+          "id": "reward_weakpoint_snipe",
+          "name": "弱點狙擊",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_weakpoint_snipe.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 12,
+              "condition": {
+                "type": "target_has_status",
+                "statusType": "vulnerable",
+                "multiplier": 2
+              }
+            }
+          ],
+          "description": "造成 12 點物理傷害；若目標處於【易傷】狀態，傷害翻倍為 24 點！",
+          "flavorText": "「屏住呼吸，透過準星直擊不可名狀軀體中最脆弱的肉瘤裂縫。」"
+        },
+        {
+          "id": "reward_dread_whisper_1",
+          "name": "恐懼低語",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_dread_whisper.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 10
+            }
+          ],
+          "description": "造成 10 點秘術傷害。",
+          "flavorText": "「在敵人腦海中回放拉萊耶的潮汐聲。」"
+        },
+        {
+          "id": "reward_void_fire_1",
+          "name": "虛空烈焰",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_fire.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 18
+            }
+          ],
+          "description": "造成 18 點秘術傷害。",
+          "flavorText": "「燃燒靈魂碎片釋放的星辰冷火。」"
+        },
+        {
+          "id": "card_tier4_elder_aegis",
+          "name": "舊神庇護之陣",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_elder_aegis.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 24
+            },
+            {
+              "type": "draw",
+              "value": 2
+            }
+          ],
+          "description": "獲得 24 點護甲，抽取 2 張卡牌。",
+          "flavorText": "「五芒星光在周身環繞，不可名狀的混沌污穢在光芒前如同初雪般消融。」"
+        },
+        {
+          "id": "reward_shield_slam",
+          "name": "護甲猛擊",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_shield_slam.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4,
+              "scaleFrom": "armor",
+              "scaleMultiplier": 1
+            }
+          ],
+          "description": "造成 4 點物理傷害，並附加等同於當前護甲 100% 的額外物理傷害。",
+          "flavorText": "「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」"
+        },
+        {
+          "id": "card_tier4_god_slayer",
+          "name": "屠神裁決爆轟",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_god_slayer.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 5,
+              "hitCount": 6,
+              "piercing": true
+            }
+          ],
+          "description": "造成 5 點物理傷害 × 6 段（真實穿刺，無視護甲直扣生命值）。",
+          "flavorText": "「凡人的工藝與禁忌秘銀在此刻昇華，這一擊的威力足以讓舊日支配者的血脈為之顫慄。」"
+        },
+        {
+          "id": "card_event_breakwater",
+          "name": "心智防波堤",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_breakwater.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 3
+            }
+          ],
+          "description": "自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+          "flavorText": "「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」"
+        },
+        {
+          "name": "重拳壓制",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_punch.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "statusType": "weak",
+              "value": 1,
+              "condition": {
+                "type": "enemy_intent_is_attack"
+              }
+            }
+          ],
+          "description": "造成 4 點物理傷害；若敵方當前意圖為攻擊，使敵方陷入 1 層【破勢】（下回合造成的攻擊傷害降低 50%）。",
+          "id": "card_punch_1",
+          "flavorText": "「在波士頓碼頭學會的街頭格鬥術，對怪物依然管用。」"
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_bayonet.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 9,
+              "piercing": true,
+              "condition": {
+                "type": "target_has_status",
+                "statusType": "vulnerable",
+                "bonusValue": 4
+              }
+            }
+          ],
+          "description": "造成 9 點物理傷害（真實穿刺，無視護甲直扣生命值）；若目標處於【易傷】狀態，傷害提升至 13 點。",
+          "flavorText": "「帶著軍旅生涯的殘留記憶，你將鋒利的刺刀狠命扎入敵人的腐肉。」"
+        },
+        {
+          "id": "card_tier3_psionic_cleave_copy_1",
+          "name": "深淵靈能撕裂",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_psionic_cleave.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 20
+            }
+          ],
+          "description": "造成 20 點秘術傷害。",
+          "flavorText": "「靈能風暴猶如實質利刃，自神經深處劈開敵人的保護甲殼。」"
+        },
+        {
+          "id": "reward_shield_slam_copy_1",
+          "name": "護甲猛擊",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_shield_slam.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 4,
+              "scaleFrom": "armor",
+              "scaleMultiplier": 1
+            }
+          ],
+          "description": "造成 4 點物理傷害，並附加等同於當前護甲 100% 的額外物理傷害。",
+          "flavorText": "「將沉重鐵盾或堅硬掩體狠命向前撞擊，將積蓄的防守之勢化為暴烈反擊。」"
+        },
+        {
+          "id": "card_event_tide_whisper",
+          "name": "潮汐之音",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_tide_whisper.png",
+          "effects": [
+            {
+              "type": "add_to_deck",
+              "value": 3
+            }
+          ],
+          "description": "傾聽深海潮音，向理智牌庫注入 3 張真相卡牌。",
+          "flavorText": "「在無休止的潮汐拍擊中重獲清明。」"
+        },
+        {
+          "id": "card_tier4_void_annihilation",
+          "name": "超維虛空湮滅",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_annihilation.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 42
+            }
+          ],
+          "description": "造成 42 點秘術傷害。",
+          "flavorText": "「宇宙黑洞深處的奇異點在眼前剎那綻放，將目光所及的一切狂暴異質徹底撕裂。」"
+        }
+      ]
+    },
+    {
+      "id": "peak_archetype_6",
+      "name": "【虛空終極湮滅】戰地快速縫合＋深海冰霜之握",
+      "description": "平均階級 Tier 2.0，攻防比 31%，適應度評分 99.0 分 (越級勝率: 勝)",
+      "cellKey": "2_3",
+      "armorRatio": 0.314,
+      "avgTier": 2.043,
+      "fitness": 99,
+      "handRetention": 5,
+      "deckSize": 23,
+      "topCards": [
+        {
+          "name": "戰地快速縫合",
+          "count": 2,
+          "category": "skill",
+          "tier": 2
+        },
+        {
+          "name": "深海冰霜之握",
+          "count": 2,
+          "category": "magic",
+          "tier": 2
+        },
+        {
+          "name": "終焉覺悟",
+          "count": 1,
+          "category": "truth",
+          "tier": 4
+        },
+        {
+          "name": "源初星辰啟示",
+          "count": 1,
+          "category": "truth",
+          "tier": 4
+        },
+        {
+          "name": "不可侵犯之壁",
+          "count": 1,
+          "category": "skill",
+          "tier": 3
+        }
+      ],
+      "deck": [
+        {
+          "id": "card_tier2_rapid_suture",
+          "name": "戰地快速縫合",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_rapid_suture.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 6
+            },
+            {
+              "type": "restore_sanity",
+              "value": 3
+            }
+          ],
+          "description": "獲得 6 點護甲，洗回 3 張卡牌至理智牌庫。",
+          "flavorText": "「即便手指被寒風凍得發僵，依然熟練地穿針引線，穩住潰散的精神防線。」"
+        },
+        {
+          "id": "card_bayonet_1",
+          "name": "軍刀突刺",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_bayonet.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 9,
+              "piercing": true,
+              "condition": {
+                "type": "target_has_status",
+                "statusType": "vulnerable",
+                "bonusValue": 4
+              }
+            }
+          ],
+          "description": "造成 9 點物理傷害（真實穿刺，無視護甲直扣生命值）；若目標處於【易傷】狀態，傷害提升至 13 點。",
+          "flavorText": "「帶著軍旅生涯的殘留記憶，你將鋒利的刺刀狠命扎入敵人的腐肉。」"
+        },
+        {
+          "id": "reward_remnant_seal",
+          "name": "舊印殘印",
+          "category": "truth",
+          "costType": "free",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 2,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_remnant_seal.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 12
+            },
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "【消耗】獲得 12 點護甲，洗回 2 張卡牌至理智牌庫。打出後移出戰鬥。",
+          "flavorText": "「殘缺的古印石片在掌心化為微光碎屑，為凡人擋下太古污染的致命侵蝕。」"
+        },
+        {
+          "id": "reward_tactical_roll_1",
+          "name": "戰術翻滾",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/skill/card_tactical_roll.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 4
+            },
+            {
+              "type": "draw",
+              "value": 1
+            }
+          ],
+          "description": "獲得 4 點護甲，抽取 1 張卡牌。",
+          "flavorText": "「在碎石堆中翻滾尋找下一個反擊角度。」"
+        },
+        {
+          "id": "card_tier2_frost_grasp",
+          "name": "深海冰霜之握",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_frost_grasp.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 25
+            }
+          ],
+          "description": "造成 25 點秘術傷害。",
+          "flavorText": "「冰冷徹骨的洋流自異次元裂隙倒灌，連空氣中的水氣都凝結成尖銳冰刺。」"
+        },
+        {
+          "id": "card_tier2_frost_grasp_copy_1",
+          "name": "深海冰霜之握",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_frost_grasp.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 25
+            }
+          ],
+          "description": "造成 25 點秘術傷害。",
+          "flavorText": "「冰冷徹骨的洋流自異次元裂隙倒灌，連空氣中的水氣都凝結成尖銳冰刺。」"
+        },
+        {
+          "name": "厄運凝視",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_magic_gaze.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            }
+          ],
+          "description": "造成 16 點秘術傷害。",
+          "id": "card_magic_gaze_1",
+          "flavorText": "「直視來自異次元的虛空陰影，受創的怪物皮肉開始崩解腐化。」"
+        },
+        {
+          "name": "心靈冥想",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_meditate.png",
+          "effects": [
+            {
+              "type": "restore_sanity",
+              "value": 2
+            }
+          ],
+          "description": "洗回 2 張卡牌至理智牌庫。",
+          "id": "card_meditate_1",
+          "flavorText": "「在狂亂的幻覺浪潮中，強行構築一道理性的防波堤。」"
+        },
+        {
+          "id": "reward_astral_refraction",
+          "name": "星界折射",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "keywords": [
+            "retain"
+          ],
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_astral_refraction.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 7
+            },
+            {
+              "type": "apply_status",
+              "statusType": "resilience",
+              "value": 1,
+              "target": "self"
+            }
+          ],
+          "description": "【保留】獲得 7 點護甲與 1 層【堅韌】印記。回合結束時不會被棄置。",
+          "flavorText": "「在指尖折射來自超維度的星光稜鏡，將守護結界長久留存以待危難時刻。」"
+        },
+        {
+          "id": "card_tier2_rapid_suture_copy_1",
+          "name": "戰地快速縫合",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_rapid_suture.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 6
+            },
+            {
+              "type": "restore_sanity",
+              "value": 3
+            }
+          ],
+          "description": "獲得 6 點護甲，洗回 3 張卡牌至理智牌庫。",
+          "flavorText": "「即便手指被寒風凍得發僵，依然熟練地穿針引線，穩住潰散的精神防線。」"
+        },
+        {
+          "id": "reward_whispers_of_madness",
+          "name": "狂亂低語",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_whispers_of_madness.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 8,
+              "scaleFrom": "sanity_inverse",
+              "scaleMultiplier": 1,
+              "condition": {
+                "type": "low_sanity",
+                "threshold": 4,
+                "bonusValue": 6
+              }
+            }
+          ],
+          "description": "造成 8 點秘術傷害；理智牌庫每減少 1 張卡牌，傷害提升 1 點；若剩餘理智不高於 4 張，額外追加 6 點秘術傷害。",
+          "flavorText": "「當神智步入崩解的邊緣，自異界倒灌的尖嘯將化為摧毀物質的狂亂利刃。」"
+        },
+        {
+          "id": "reward_shotgun_1",
+          "name": "雙管獵槍",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/combat/card_shotgun.webp",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 16
+            },
+            {
+              "type": "lose_armor",
+              "value": 5
+            }
+          ],
+          "description": "造成 16 點物理傷害；【強烈後座力】打出後自身失去 5 點護甲。",
+          "flavorText": "「近距離的轟鳴撕裂了陰暗中的任何可怖實體。」"
+        },
+        {
+          "id": "card_event_breakwater",
+          "name": "心智防波堤",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 1,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_breakwater.png",
+          "effects": [
+            {
+              "type": "self_damage",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 3
+            }
+          ],
+          "description": "自身承受 1 點反噬傷害，向理智牌庫注入 3 張真相卡牌。",
+          "flavorText": "「在不可名狀的瘋狂浪潮面前，構築起頑強的理性防波堤。」"
+        },
+        {
+          "id": "card_event_final_awakening",
+          "name": "終焉覺悟",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 4,
+          "keywords": [
+            "exhaust"
+          ],
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_final_awakening.png",
+          "effects": [
+            {
+              "type": "add_to_deck",
+              "value": 5
+            }
+          ],
+          "description": "【消耗】。向理智牌庫注入 5 張真相卡牌，堅定最後的理智意志。打出後移出戰鬥。",
+          "flavorText": "「縱使星辰正位，人性永不磨滅。」"
+        },
+        {
+          "id": "card_tier2_mind_shock",
+          "name": "心靈震波",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_mind_blast.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 14
+            },
+            {
+              "type": "draw",
+              "value": 1
+            }
+          ],
+          "description": "造成 14 點秘術傷害，抽取 1 張卡牌。",
+          "flavorText": "「神經元在尖嘯中過載，將腦海中的混亂與回音直接烙印在敵人意識深處。」"
+        },
+        {
+          "id": "card_tier2_silver_blade",
+          "name": "破魔銀質短刃",
+          "category": "combat",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/combat/card_silver_dagger.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 10
+            }
+          ],
+          "description": "造成 10 點物理傷害。",
+          "flavorText": "「刀刃浸過聖水與秘銀，對深潛者的黏滑厚皮有著致命的破甲奇效。」"
+        },
+        {
+          "id": "card_tier2_silver_key_glow",
+          "name": "銀鑰指引微光",
+          "category": "truth",
+          "costType": "free",
+          "costValue": 0,
+          "isTemporary": false,
+          "tier": 2,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_silver_key_guiding.png",
+          "effects": [
+            {
+              "type": "draw",
+              "value": 1
+            },
+            {
+              "type": "add_to_deck",
+              "value": 2
+            }
+          ],
+          "description": "抽取 1 張卡牌，向理智牌庫注入 2 張真相卡牌。",
+          "flavorText": "「銀色鑰匙在虛空中劃過優雅弧線，照亮通往宇宙秩序的隱密回廊。」"
+        },
+        {
+          "id": "card_tier3_impenetrable_bastion",
+          "name": "不可侵犯之壁",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "investigator"
+          ],
+          "artworkUrl": "/cards/skill/card_impenetrable_bastion.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 22
+            }
+          ],
+          "description": "獲得 22 點護甲。",
+          "flavorText": "「無懼非人泰克利利哀鳴，調查員築起凡人血肉所能構築的最堅固壁壘。」"
+        },
+        {
+          "id": "card_tier3_psionic_cleave",
+          "name": "深淵靈能撕裂",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_psionic_cleave.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 20
+            }
+          ],
+          "description": "造成 20 點秘術傷害。",
+          "flavorText": "「靈能風暴猶如實質利刃，自神經深處劈開敵人的保護甲殼。」"
+        },
+        {
+          "id": "card_tier3_rlyeh_codex",
+          "name": "拉萊耶原典啟示",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_rlyeh_codex.png",
+          "effects": [
+            {
+              "type": "add_to_deck",
+              "value": 6
+            }
+          ],
+          "description": "向理智牌庫注入 6 張真相卡牌。",
+          "flavorText": "「沉睡千億年的深海真言在眼前展開，浩瀚的星辰秩序驅散了深淵狂亂。」"
+        },
+        {
+          "id": "card_tier3_void_collapse",
+          "name": "虛空黑洞坍縮",
+          "category": "magic",
+          "costType": "sanity",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/magic/card_void_collapse.png",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 34
+            }
+          ],
+          "description": "造成 34 點秘術傷害。",
+          "flavorText": "「空間維度在此處發生不可逆轉的扭曲，一切物質皆向著虛無的奇點崩陷。」"
+        },
+        {
+          "id": "card_tier4_astral_revelation",
+          "name": "源初星辰啟示",
+          "category": "truth",
+          "costType": "stamina",
+          "costValue": 1,
+          "isTemporary": false,
+          "tier": 4,
+          "occupations": [
+            "occultist"
+          ],
+          "artworkUrl": "/cards/truth/card_astral_revelation.png",
+          "effects": [
+            {
+              "type": "add_to_deck",
+              "value": 8
+            },
+            {
+              "type": "armor",
+              "value": 12
+            }
+          ],
+          "description": "獲得 12 點護甲，向理智牌庫注入 8 張真相卡牌。",
+          "flavorText": "「當意識凌駕於群星之上，深淵的詛咒與瘋狂皆化為無垠宇宙中的一粒微塵。」"
+        },
+        {
+          "id": "card_event_star_spawn_sigil",
+          "name": "星之眷族印記",
+          "category": "skill",
+          "costType": "stamina",
+          "costValue": 2,
+          "isTemporary": false,
+          "tier": 3,
+          "occupations": [
+            "investigator",
+            "occultist"
+          ],
+          "artworkUrl": "/cards/skill/card_star_spawn_sigil.png",
+          "effects": [
+            {
+              "type": "armor",
+              "value": 12
+            },
+            {
+              "type": "add_to_deck",
+              "value": 2
+            }
+          ],
+          "description": "凝聚星辰護壁，獲得 12 點護甲並向理智牌庫注入 2 張真相卡牌。",
+          "flavorText": "「神祇巨影投射在現實裂隙上的堅固屏障。」"
+        }
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "cellKey": "0_0",
+      "xBin": 0,
+      "yBin": 0,
+      "armorRatio": 0.0896,
+      "avgTier": 1.308,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "防身短刀",
+        "水下爆破"
+      ]
+    },
+    {
+      "cellKey": "1_0",
+      "xBin": 1,
+      "yBin": 0,
+      "armorRatio": 0.1846,
+      "avgTier": 1.308,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "防身短刀",
+        "舊印殘印"
+      ]
+    },
+    {
+      "cellKey": "1_2",
+      "xBin": 1,
+      "yBin": 2,
+      "armorRatio": 0.2394,
+      "avgTier": 1.714,
+      "fitness": 99.5,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "達姆高爆彈連射",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "深海冰霜之握",
+        "舊印殘印",
+        "舊神庇護之陣"
+      ]
+    },
+    {
+      "cellKey": "2_3",
+      "xBin": 2,
+      "yBin": 3,
+      "armorRatio": 0.314,
+      "avgTier": 2.043,
+      "fitness": 99,
+      "handRetention": 5,
+      "deckSize": 23,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "戰地快速縫合",
+        "軍刀突刺",
+        "舊印殘印",
+        "戰術翻滾",
+        "深海冰霜之握",
+        "深海冰霜之握",
+        "厄運凝視",
+        "心靈冥想",
+        "星界折射",
+        "戰地快速縫合",
+        "狂亂低語",
+        "雙管獵槍",
+        "心智防波堤",
+        "終焉覺悟",
+        "心靈震波",
+        "破魔銀質短刃",
+        "銀鑰指引微光",
+        "不可侵犯之壁",
+        "深淵靈能撕裂",
+        "拉萊耶原典啟示",
+        "虛空黑洞坍縮",
+        "源初星辰啟示",
+        "星之眷族印記"
+      ]
+    },
+    {
+      "cellKey": "0_2",
+      "xBin": 0,
+      "yBin": 2,
+      "armorRatio": 0.1117,
+      "avgTier": 1.643,
+      "fitness": 99.5,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "達姆高爆彈連射",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "深海冰霜之握",
+        "舊印殘印",
+        "達姆高爆彈連射"
+      ]
+    },
+    {
+      "cellKey": "3_2",
+      "xBin": 3,
+      "yBin": 2,
+      "armorRatio": 0.4015,
+      "avgTier": 1.647,
+      "fitness": 98,
+      "handRetention": 4,
+      "deckSize": 17,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "冷靜觀察",
+        "就地掩蔽",
+        "靈能衝擊",
+        "重拳壓制",
+        "深淵靈能撕裂",
+        "重拳壓制",
+        "星界折射",
+        "心靈冥想",
+        "弱點狙擊",
+        "星界折射",
+        "真相潮汐",
+        "舊印殘印",
+        "就地掩蔽",
+        "銀鑰指引微光",
+        "鋼鐵意志屏障",
+        "禁忌海蝕石板殘卷",
+        "屠神裁決爆轟"
+      ]
+    },
+    {
+      "cellKey": "2_2",
+      "xBin": 2,
+      "yBin": 2,
+      "armorRatio": 0.284,
+      "avgTier": 1.643,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "達姆高爆彈連射",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "防身短刀",
+        "舊印殘印",
+        "舊神庇護之陣"
+      ]
+    },
+    {
+      "cellKey": "3_3",
+      "xBin": 3,
+      "yBin": 3,
+      "armorRatio": 0.4625,
+      "avgTier": 2.143,
+      "fitness": 99,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "真相潮汐",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "心智防波堤",
+        "心靈震波",
+        "厄運凝視",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "4_2",
+      "xBin": 4,
+      "yBin": 2,
+      "armorRatio": 0.5,
+      "avgTier": 1.813,
+      "fitness": 96.1,
+      "handRetention": 4,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 2,
+      "cardNames": [
+        "冷靜觀察",
+        "就地掩蔽",
+        "靈能衝擊",
+        "不可侵犯之壁",
+        "深淵靈能撕裂",
+        "重拳壓制",
+        "星界折射",
+        "弱點狙擊",
+        "星界折射",
+        "真相潮汐",
+        "舊印殘印",
+        "就地掩蔽",
+        "銀鑰指引微光",
+        "鋼鐵意志屏障",
+        "禁忌海蝕石板殘卷",
+        "屠神裁決爆轟"
+      ]
+    },
+    {
+      "cellKey": "5_2",
+      "xBin": 5,
+      "yBin": 2,
+      "armorRatio": 0.6667,
+      "avgTier": 1.75,
+      "fitness": 98.7,
+      "handRetention": 5,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "真相潮汐",
+        "老兵本能",
+        "狂亂低語",
+        "舊印殘印",
+        "就地掩蔽",
+        "護甲猛擊",
+        "戰術翻滾",
+        "心智防波堤",
+        "深呼吸",
+        "醫療鎮定劑",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "防身短刀",
+        "不可侵犯之壁",
+        "左輪射擊"
+      ]
+    },
+    {
+      "cellKey": "5_1",
+      "xBin": 5,
+      "yBin": 1,
+      "armorRatio": 0.6273,
+      "avgTier": 1.563,
+      "fitness": 98.7,
+      "handRetention": 5,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "冷靜觀察",
+        "就地掩蔽",
+        "不可侵犯之壁",
+        "重拳壓制",
+        "深淵靈能撕裂",
+        "星界庇護",
+        "星界折射",
+        "心靈冥想",
+        "弱點狙擊",
+        "星界折射",
+        "真相潮汐",
+        "左輪射擊",
+        "就地掩蔽",
+        "銀鑰指引微光",
+        "鋼鐵意志屏障",
+        "潮汐之音"
+      ]
+    },
+    {
+      "cellKey": "2_0",
+      "xBin": 2,
+      "yBin": 0,
+      "armorRatio": 0.2807,
+      "avgTier": 1.308,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "維度漫步",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "防身短刀",
+        "舊印殘印"
+      ]
+    },
+    {
+      "cellKey": "4_0",
+      "xBin": 4,
+      "yBin": 0,
+      "armorRatio": 0.5614,
+      "avgTier": 1.25,
+      "fitness": 95.7,
+      "handRetention": 4,
+      "deckSize": 12,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 3,
+      "cardNames": [
+        "就地掩蔽",
+        "快速拔槍",
+        "厄運凝視",
+        "太古幾何密卷",
+        "星界庇護",
+        "真相潮汐",
+        "心靈冥想",
+        "老兵本能",
+        "防身短刀",
+        "戰術佯攻",
+        "舊印殘印",
+        "醫療鎮定劑"
+      ]
+    },
+    {
+      "cellKey": "4_4",
+      "xBin": 4,
+      "yBin": 4,
+      "armorRatio": 0.5062,
+      "avgTier": 2.333,
+      "fitness": 98.7,
+      "handRetention": 4,
+      "deckSize": 15,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "超維星辰共鳴",
+        "心靈震波",
+        "厄運凝視",
+        "屠神裁決爆轟",
+        "極限精神錨定",
+        "深潛者手札",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "4_3",
+      "xBin": 4,
+      "yBin": 3,
+      "armorRatio": 0.5139,
+      "avgTier": 2.231,
+      "fitness": 99,
+      "handRetention": 6,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "真相潮汐",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "心智防波堤",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "2_1",
+      "xBin": 2,
+      "yBin": 1,
+      "armorRatio": 0.3117,
+      "avgTier": 1.5,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "防身短刀",
+        "舊印殘印",
+        "舊神庇護之陣"
+      ]
+    },
+    {
+      "cellKey": "3_4",
+      "xBin": 3,
+      "yBin": 4,
+      "armorRatio": 0.4722,
+      "avgTier": 2.438,
+      "fitness": 99.2,
+      "handRetention": 5,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "心靈震波",
+        "軍用特種炸藥包",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "禁忌海蝕石板殘卷",
+        "心智防波堤",
+        "超維虛空湮滅",
+        "舊神庇護之陣",
+        "戰術佯攻",
+        "極限精神錨定",
+        "舊印殘印",
+        "不可侵犯之壁",
+        "恐懼低語"
+      ]
+    },
+    {
+      "cellKey": "1_1",
+      "xBin": 1,
+      "yBin": 1,
+      "armorRatio": 0.128,
+      "avgTier": 1.462,
+      "fitness": 99.5,
+      "handRetention": 5,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "厄運凝視",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "軍用特種炸藥包",
+        "防身短刀",
+        "舊印殘印"
+      ]
+    },
+    {
+      "cellKey": "4_1",
+      "xBin": 4,
+      "yBin": 1,
+      "armorRatio": 0.5196,
+      "avgTier": 1.5,
+      "fitness": 98.9,
+      "handRetention": 4,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "冷靜觀察",
+        "就地掩蔽",
+        "靈能衝擊",
+        "重拳壓制",
+        "深淵靈能撕裂",
+        "重拳壓制",
+        "星界折射",
+        "心靈冥想",
+        "弱點狙擊",
+        "星界折射",
+        "真相潮汐",
+        "舊印殘印",
+        "就地掩蔽",
+        "銀鑰指引微光",
+        "鋼鐵意志屏障",
+        "禁忌海蝕石板殘卷"
+      ]
+    },
+    {
+      "cellKey": "5_3",
+      "xBin": 5,
+      "yBin": 3,
+      "armorRatio": 0.7027,
+      "avgTier": 2.214,
+      "fitness": 99,
+      "handRetention": 4,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "護甲猛擊",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "快速拔槍",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "鋼鐵意志屏障",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "舊神庇護之陣",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "0_1",
+      "xBin": 0,
+      "yBin": 1,
+      "armorRatio": 0.0833,
+      "avgTier": 1.545,
+      "fitness": 99.5,
+      "handRetention": 4,
+      "deckSize": 11,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "厄運凝視",
+        "超維虛空湮滅",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "防身短刀",
+        "防身短刀"
+      ]
+    },
+    {
+      "cellKey": "3_1",
+      "xBin": 3,
+      "yBin": 1,
+      "armorRatio": 0.375,
+      "avgTier": 1.5,
+      "fitness": 99.5,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "靈能衝擊",
+        "深海冰霜之握",
+        "星界庇護",
+        "厄運凝視",
+        "虛空黑洞坍縮",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "銀鑰儀式",
+        "舊日殘頁",
+        "防身短刀",
+        "防身短刀",
+        "舊印殘印",
+        "舊神庇護之陣"
+      ]
+    },
+    {
+      "cellKey": "1_3",
+      "xBin": 1,
+      "yBin": 3,
+      "armorRatio": 0.1667,
+      "avgTier": 2.143,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "雙管獵槍",
+        "心智防波堤",
+        "重拳壓制",
+        "心靈震波",
+        "深淵靈能撕裂",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "0_3",
+      "xBin": 0,
+      "yBin": 3,
+      "armorRatio": 0.1218,
+      "avgTier": 2.214,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "心智防波堤",
+        "重拳壓制",
+        "軍刀突刺",
+        "深淵靈能撕裂",
+        "護甲猛擊",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "6_2",
+      "xBin": 6,
+      "yBin": 2,
+      "armorRatio": 0.7727,
+      "avgTier": 1.688,
+      "fitness": 98.7,
+      "handRetention": 5,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "心靈震波",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "就地掩蔽",
+        "護甲猛擊",
+        "戰術翻滾",
+        "心智防波堤",
+        "深呼吸",
+        "醫療鎮定劑",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "防身短刀",
+        "不可侵犯之壁",
+        "冷靜觀察"
+      ]
+    },
+    {
+      "cellKey": "6_3",
+      "xBin": 6,
+      "yBin": 3,
+      "armorRatio": 0.7826,
+      "avgTier": 2.143,
+      "fitness": 98.8,
+      "handRetention": 5,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "鋼鐵意志屏障",
+        "真相潮汐",
+        "老兵本能",
+        "戰地急救繃帶",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "戰術佯攻",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "深潛者手札",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "2_4",
+      "xBin": 2,
+      "yBin": 4,
+      "armorRatio": 0.2524,
+      "avgTier": 2.429,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "心智防波堤",
+        "重拳壓制",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "5_0",
+      "xBin": 5,
+      "yBin": 0,
+      "armorRatio": 0.7455,
+      "avgTier": 1.3,
+      "fitness": 96.9,
+      "handRetention": 4,
+      "deckSize": 10,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 2,
+      "cardNames": [
+        "狂亂低語",
+        "冷靜觀察",
+        "星界庇護",
+        "鋼鐵意志屏障",
+        "心靈冥想",
+        "心靈冥想",
+        "星界庇護",
+        "銀鑰指引微光",
+        "快速拔槍",
+        "鋼鐵意志屏障"
+      ]
+    },
+    {
+      "cellKey": "7_0",
+      "xBin": 7,
+      "yBin": 0,
+      "armorRatio": 0.9231,
+      "avgTier": 1,
+      "fitness": 78.8,
+      "handRetention": 3,
+      "deckSize": 10,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 6,
+      "stretchHpLost": 16,
+      "cardNames": [
+        "星界庇護",
+        "冷靜觀察",
+        "老兵本能",
+        "星界庇護",
+        "心靈冥想",
+        "心靈冥想",
+        "星界庇護",
+        "醫療鎮定劑",
+        "戰地急救繃帶",
+        "防身短刀"
+      ]
+    },
+    {
+      "cellKey": "6_0",
+      "xBin": 6,
+      "yBin": 0,
+      "armorRatio": 0.814,
+      "avgTier": 1.2,
+      "fitness": 95.1,
+      "handRetention": 4,
+      "deckSize": 10,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 4,
+      "cardNames": [
+        "狂亂低語",
+        "冷靜觀察",
+        "星界庇護",
+        "鋼鐵意志屏障",
+        "心靈冥想",
+        "心靈冥想",
+        "星界庇護",
+        "銀鑰指引微光",
+        "星界庇護",
+        "舊日殘頁"
+      ]
+    },
+    {
+      "cellKey": "7_1",
+      "xBin": 7,
+      "yBin": 1,
+      "armorRatio": 0.8857,
+      "avgTier": 1.5,
+      "fitness": 91.5,
+      "handRetention": 4,
+      "deckSize": 10,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 8,
+      "cardNames": [
+        "狂亂低語",
+        "冷靜觀察",
+        "星界庇護",
+        "鋼鐵意志屏障",
+        "戰地急救繃帶",
+        "心靈冥想",
+        "星界庇護",
+        "銀鑰指引微光",
+        "舊神庇護之陣",
+        "就地掩蔽"
+      ]
+    },
+    {
+      "cellKey": "3_0",
+      "xBin": 3,
+      "yBin": 0,
+      "armorRatio": 0.4478,
+      "avgTier": 1.3,
+      "fitness": 98.9,
+      "handRetention": 3,
+      "deckSize": 10,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "星界庇護",
+        "冷靜觀察",
+        "虛空黑洞坍縮",
+        "戰地快速縫合",
+        "心靈冥想",
+        "心靈冥想",
+        "星界庇護",
+        "醫療鎮定劑",
+        "戰地急救繃帶",
+        "防身短刀"
+      ]
+    },
+    {
+      "cellKey": "6_1",
+      "xBin": 6,
+      "yBin": 1,
+      "armorRatio": 0.8689,
+      "avgTier": 1.5,
+      "fitness": 95.1,
+      "handRetention": 4,
+      "deckSize": 10,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 4,
+      "cardNames": [
+        "狂亂低語",
+        "冷靜觀察",
+        "星界庇護",
+        "鋼鐵意志屏障",
+        "心靈冥想",
+        "心靈冥想",
+        "星界庇護",
+        "銀鑰指引微光",
+        "舊神庇護之陣",
+        "舊日殘頁"
+      ]
+    },
+    {
+      "cellKey": "7_2",
+      "xBin": 7,
+      "yBin": 2,
+      "armorRatio": 0.8854,
+      "avgTier": 1.813,
+      "fitness": 98.1,
+      "handRetention": 5,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "就地掩蔽",
+        "護甲猛擊",
+        "戰術翻滾",
+        "心智防波堤",
+        "深呼吸",
+        "醫療鎮定劑",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "防身短刀",
+        "不可侵犯之壁",
+        "冷靜觀察"
+      ]
+    },
+    {
+      "cellKey": "3_5",
+      "xBin": 3,
+      "yBin": 5,
+      "armorRatio": 0.3761,
+      "avgTier": 2.571,
+      "fitness": 98.5,
+      "handRetention": 5,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "達姆高爆彈連射",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "維度漫步",
+        "心靈震波",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "6_4",
+      "xBin": 6,
+      "yBin": 4,
+      "armorRatio": 0.7711,
+      "avgTier": 2.429,
+      "fitness": 99,
+      "handRetention": 5,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "護甲猛擊",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "鋼鐵意志屏障",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "舊神庇護之陣",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "1_4",
+      "xBin": 1,
+      "yBin": 4,
+      "armorRatio": 0.1553,
+      "avgTier": 2.357,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "心智防波堤",
+        "重拳壓制",
+        "心靈震波",
+        "深淵靈能撕裂",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "5_4",
+      "xBin": 5,
+      "yBin": 4,
+      "armorRatio": 0.6951,
+      "avgTier": 2.467,
+      "fitness": 99,
+      "handRetention": 6,
+      "deckSize": 15,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "泵動式散彈槍",
+        "超維星辰共鳴",
+        "心靈震波",
+        "厄運凝視",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "深潛者手札",
+        "不可侵犯之壁",
+        "舊神庇護之陣"
+      ]
+    },
+    {
+      "cellKey": "7_3",
+      "xBin": 7,
+      "yBin": 3,
+      "armorRatio": 0.9,
+      "avgTier": 2.133,
+      "fitness": 98.7,
+      "handRetention": 4,
+      "deckSize": 15,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "戰術翻滾",
+        "心智防波堤",
+        "太古幾何密卷",
+        "醫療鎮定劑",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "防身短刀",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "2_5",
+      "xBin": 2,
+      "yBin": 5,
+      "armorRatio": 0.2602,
+      "avgTier": 2.714,
+      "fitness": 99,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "舊印殘印",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "屠神裁決爆轟",
+        "心靈震波",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "1_5",
+      "xBin": 1,
+      "yBin": 5,
+      "armorRatio": 0.2114,
+      "avgTier": 2.714,
+      "fitness": 99,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "屠神裁決爆轟",
+        "心靈震波",
+        "心靈震波",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "7_4",
+      "xBin": 7,
+      "yBin": 4,
+      "armorRatio": 0.8767,
+      "avgTier": 2.462,
+      "fitness": 99,
+      "handRetention": 4,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵引爆",
+        "真相潮汐",
+        "老兵本能",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "真相潮汐",
+        "鋼鐵意志屏障",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "舊神庇護之陣",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "7_5",
+      "xBin": 7,
+      "yBin": 5,
+      "armorRatio": 0.8784,
+      "avgTier": 2.867,
+      "fitness": 98.5,
+      "handRetention": 6,
+      "deckSize": 15,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "終焉覺悟",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "禁忌海蝕石板殘卷",
+        "深淵引爆",
+        "太古幾何密卷",
+        "舊神庇護之陣",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "完整的深淵古印",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "0_4",
+      "xBin": 0,
+      "yBin": 4,
+      "armorRatio": 0.1188,
+      "avgTier": 2.286,
+      "fitness": 99.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "虛空烈焰",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "心智防波堤",
+        "重拳壓制",
+        "心靈震波",
+        "深淵靈能撕裂",
+        "護甲猛擊",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "7_6",
+      "xBin": 7,
+      "yBin": 6,
+      "armorRatio": 0.9467,
+      "avgTier": 3.071,
+      "fitness": 98.2,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "終焉覺悟",
+        "重拳壓制",
+        "舊神庇護之陣",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "心智防波堤",
+        "拉萊耶原典啟示",
+        "舊神庇護之陣",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "完整的深淵古印",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "5_5",
+      "xBin": 5,
+      "yBin": 5,
+      "armorRatio": 0.6842,
+      "avgTier": 2.857,
+      "fitness": 98.8,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "終焉覺悟",
+        "舊神庇護之陣",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "心智防波堤",
+        "心靈震波",
+        "舊神庇護之陣",
+        "屠神裁決爆轟",
+        "舊印殘印",
+        "完整的深淵古印",
+        "真相潮汐",
+        "深潛者手札"
+      ]
+    },
+    {
+      "cellKey": "6_5",
+      "xBin": 6,
+      "yBin": 5,
+      "armorRatio": 0.8553,
+      "avgTier": 2.733,
+      "fitness": 98.8,
+      "handRetention": 6,
+      "deckSize": 15,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "護甲猛擊",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "禁忌海蝕石板殘卷",
+        "深淵引爆",
+        "太古幾何密卷",
+        "舊神庇護之陣",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "完整的深淵古印",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "2_6",
+      "xBin": 2,
+      "yBin": 6,
+      "armorRatio": 0.2615,
+      "avgTier": 3.071,
+      "fitness": 98.8,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "完整的深淵古印",
+        "屠神裁決爆轟",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "屠神裁決爆轟",
+        "心靈震波",
+        "完整的深淵古印",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "1_6",
+      "xBin": 1,
+      "yBin": 6,
+      "armorRatio": 0.1702,
+      "avgTier": 3.071,
+      "fitness": 99,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "超維虛空湮滅",
+        "屠神裁決爆轟",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "屠神裁決爆轟",
+        "心靈震波",
+        "完整的深淵古印",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "潮汐之音",
+        "超維虛空湮滅"
+      ]
+    },
+    {
+      "cellKey": "4_5",
+      "xBin": 4,
+      "yBin": 5,
+      "armorRatio": 0.5169,
+      "avgTier": 2.625,
+      "fitness": 98.3,
+      "handRetention": 5,
+      "deckSize": 16,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "心靈震波",
+        "軍用特種炸藥包",
+        "重拳壓制",
+        "舊印殘印",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "禁忌海蝕石板殘卷",
+        "心智防波堤",
+        "超維虛空湮滅",
+        "舊神庇護之陣",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "舊印殘印",
+        "不可侵犯之壁",
+        "恐懼低語"
+      ]
+    },
+    {
+      "cellKey": "6_6",
+      "xBin": 6,
+      "yBin": 6,
+      "armorRatio": 0.7703,
+      "avgTier": 3,
+      "fitness": 98.3,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "終焉覺悟",
+        "舊神庇護之陣",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "心智防波堤",
+        "太古幾何密卷",
+        "舊神庇護之陣",
+        "屠神裁決爆轟",
+        "舊印殘印",
+        "完整的深淵古印",
+        "真相潮汐",
+        "超維星辰共鳴"
+      ]
+    },
+    {
+      "cellKey": "1_7",
+      "xBin": 1,
+      "yBin": 7,
+      "armorRatio": 0.1988,
+      "avgTier": 3.2,
+      "fitness": 98.8,
+      "handRetention": 6,
+      "deckSize": 15,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "深淵靈能撕裂",
+        "弱點狙擊",
+        "恐懼低語",
+        "完整的深淵古印",
+        "屠神裁決爆轟",
+        "護甲猛擊",
+        "屠神裁決爆轟",
+        "屠神裁決爆轟",
+        "心靈震波",
+        "完整的深淵古印",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "超維虛空湮滅",
+        "超維虛空湮滅",
+        "軍用特種炸藥包"
+      ]
+    },
+    {
+      "cellKey": "5_6",
+      "xBin": 5,
+      "yBin": 6,
+      "armorRatio": 0.7037,
+      "avgTier": 3,
+      "fitness": 98.7,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "終焉覺悟",
+        "舊神庇護之陣",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "心智防波堤",
+        "心靈震波",
+        "舊神庇護之陣",
+        "屠神裁決爆轟",
+        "舊印殘印",
+        "完整的深淵古印",
+        "真相潮汐",
+        "超維星辰共鳴"
+      ]
+    },
+    {
+      "cellKey": "7_7",
+      "xBin": 7,
+      "yBin": 7,
+      "armorRatio": 0.9726,
+      "avgTier": 3.231,
+      "fitness": 96.9,
+      "handRetention": 6,
+      "deckSize": 13,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 1,
+      "stretchHpLost": 0,
+      "cardNames": [
+        "終焉覺悟",
+        "真相潮汐",
+        "終焉覺悟",
+        "舊神庇護之陣",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "心智防波堤",
+        "拉萊耶原典啟示",
+        "舊神庇護之陣",
+        "完整的深淵古印",
+        "極限精神錨定",
+        "完整的深淵古印",
+        "不可侵犯之壁"
+      ]
+    },
+    {
+      "cellKey": "4_6",
+      "xBin": 4,
+      "yBin": 6,
+      "armorRatio": 0.5588,
+      "avgTier": 3.143,
+      "fitness": 97.5,
+      "handRetention": 6,
+      "deckSize": 14,
+      "baselineWin": true,
+      "stretchWin": true,
+      "baselineHpLost": 0,
+      "stretchHpLost": 1,
+      "cardNames": [
+        "終焉覺悟",
+        "超維虛空湮滅",
+        "終焉覺悟",
+        "舊神庇護之陣",
+        "舊神庇護之陣",
+        "護甲猛擊",
+        "心智防波堤",
+        "心靈震波",
+        "舊神庇護之陣",
+        "屠神裁決爆轟",
+        "舊印殘印",
+        "完整的深淵古印",
+        "真相潮汐",
+        "超維星辰共鳴"
+      ]
+    }
+  ]
+}

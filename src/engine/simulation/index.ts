@@ -6,4 +6,4 @@ export * from './combatSimulator';
 export * from './archetypes';
 export * from './balanceAnalyzer';
 export * from './balanceSampler';
-
+export * from './mapElitesOptimizer';

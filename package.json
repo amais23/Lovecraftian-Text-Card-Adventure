@@ -11,6 +11,7 @@
     "test:run": "vitest run",
     "lint": "oxlint",
     "sim:balance": "npx tsx scripts/balanceSimulator.ts",
+    "sim:elites": "npx tsx scripts/runMapElitesBenchmark.ts",
     "preview": "vite preview",
     "tauri": "tauri"
   },
