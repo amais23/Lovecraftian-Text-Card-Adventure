@@ -166,6 +166,30 @@ button,
   transform: scale(1.08);
 }
 
+/* In-Game Header Settings Button */
+.combat-header-settings-btn,
+.map-header-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(22, 26, 35, 0.85);
+  border: 1px solid var(--border-gold);
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.combat-header-settings-btn:hover,
+.map-header-settings-btn:hover {
+  background: rgba(35, 42, 58, 0.95);
+  border-color: #ffd700;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.35);
+  transform: scale(1.08);
+}
+
 /* Typewriter Visuals */
 .typewriter-text-span {
   display: inline;

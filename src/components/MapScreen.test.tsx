@@ -172,4 +172,23 @@ describe('MapScreen Component (Issue #43 / ADR-0022)', () => {
     expect(minY).toBeLessThan(200);
     expect(maxY).toBeGreaterThan(2000);
   });
+
+  describe('In-Exploration Settings & Update Safety Guard (ADR-0040 / #74)', () => {
+    it('opens settings modal from map header and locks update check with safety hint', () => {
+      const state = createMockMapState(1);
+      const dispatch = vi.fn();
+      render(<MapScreen state={state} dispatch={dispatch} />);
+
+      const settingsBtn = screen.getByRole('button', { name: /開啟設定/i });
+      fireEvent.click(settingsBtn);
+
+      expect(screen.getByRole('heading', { level: 2, name: /遊戲設定/i })).toBeDefined();
+      expect(screen.getByRole('heading', { level: 3, name: /版本與更新/i })).toBeDefined();
+
+      const checkBtn = screen.getByRole('button', { name: /檢查更新/i });
+      expect(checkBtn.hasAttribute('disabled')).toBe(true);
+      expect(screen.getByText(/請返回主標題選單進行更新/i)).toBeDefined();
+    });
+  });
 });
+

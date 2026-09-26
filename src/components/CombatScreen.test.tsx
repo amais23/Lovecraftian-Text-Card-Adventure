@@ -256,4 +256,22 @@ describe('CombatScreen Component (Cosmic Banishment VFX & True Ending)', () => {
       expect(screen.getByText('歷史日誌：遭遇敵人！')).toBeDefined();
     });
   });
+
+  describe('In-Combat Settings & Update Safety Guard (ADR-0040 / #74)', () => {
+    it('opens settings modal from combat header and locks update check with safety hint', () => {
+      const dispatch = vi.fn();
+      render(<CombatScreen state={mockState} dispatch={dispatch} />);
+
+      const settingsBtn = screen.getByRole('button', { name: /開啟設定/i });
+      fireEvent.click(settingsBtn);
+
+      expect(screen.getByRole('heading', { level: 2, name: /遊戲設定/i })).toBeDefined();
+      expect(screen.getByRole('heading', { level: 3, name: /版本與更新/i })).toBeDefined();
+
+      const checkBtn = screen.getByRole('button', { name: /檢查更新/i });
+      expect(checkBtn.hasAttribute('disabled')).toBe(true);
+      expect(screen.getByText(/請返回主標題選單進行更新/i)).toBeDefined();
+    });
+  });
 });
+

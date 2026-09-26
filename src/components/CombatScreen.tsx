@@ -8,10 +8,11 @@ import { CardView } from './CardView';
 import { AudioToggle } from './AudioToggle';
 import { calculateCardFanOut } from '../engine/handMath';
 import { soundEngine } from '../engine/audioManager';
-import { Trophy, Coins, Compass, Sparkles, AlertTriangle, Trash2, X } from 'lucide-react';
+import { Trophy, Coins, Compass, Sparkles, AlertTriangle, Trash2, X, Settings } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
 import { isAncientSealUnlocked } from '../engine/abyssalSeals';
 import { getCombatBackground } from '../engine/backgroundArtworks';
+import { SettingsModal } from './modals/SettingsModal';
 
 interface CombatScreenProps {
   state: GameState;
@@ -20,6 +21,7 @@ interface CombatScreenProps {
 
 export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) => {
   const [isBanishmentVfxActive, setIsBanishmentVfxActive] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const isCombatEnded = state.phase !== 'combat';
 
   const prevPlayerHealthRef = useRef(state.investigator.health);
@@ -124,6 +126,15 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
             第 {state.turn} 回合
           </div>
           <AudioToggle />
+          <button
+            id="combat-settings-btn"
+            className="combat-header-settings-btn"
+            onClick={() => setIsSettingsOpen(true)}
+            aria-label="開啟設定"
+            title="遊戲設定"
+          >
+            <Settings size={18} color="#9d9685" />
+          </button>
         </div>
       </header>
 
@@ -296,6 +307,12 @@ export const CombatScreen: React.FC<CombatScreenProps> = ({ state, dispatch }) =
           onRetryCombat={handleRestart}
         />
       )}
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        isGameInProgress={true}
+      />
     </div>
   );
 };

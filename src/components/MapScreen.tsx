@@ -20,8 +20,10 @@ import {
   Droplets,
   Ghost,
   Sparkles,
+  Settings,
 } from 'lucide-react';
 import { ArkhamGazette } from './ArkhamGazette';
+import { SettingsModal } from './modals/SettingsModal';
 
 interface MapScreenProps {
   state: GameState;
@@ -167,6 +169,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
   const [scrollStartY, setScrollStartY] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const updatePositions = useCallback(() => {
     if (!canvasRef.current || !map) return;
@@ -358,6 +361,15 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
           </div>
 
           <AudioToggle />
+          <button
+            id="map-settings-btn"
+            className="map-header-settings-btn"
+            onClick={() => setIsSettingsOpen(true)}
+            aria-label="開啟設定"
+            title="遊戲設定"
+          >
+            <Settings size={18} color="#9d9685" />
+          </button>
         </div>
       </header>
 
@@ -548,6 +560,12 @@ export const MapScreen: React.FC<MapScreenProps> = ({ state, dispatch }) => {
           dispatch={dispatch}
         />
       )}
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        isGameInProgress={true}
+      />
     </div>
   );
 };

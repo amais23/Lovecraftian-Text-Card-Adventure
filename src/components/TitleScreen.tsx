@@ -165,6 +165,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ dispatch, onAbyssDeath
       <SettingsModal
         isOpen={activeModal === 'settings'}
         onClose={handleCloseModal}
+        updateService={updateService}
       />
       <ExitEasterEggModal
         isOpen={activeModal === 'exit'}

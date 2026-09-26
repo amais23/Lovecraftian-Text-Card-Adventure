@@ -287,6 +287,42 @@ describe('TitleScreen & TitleMenu Integration', () => {
 
       expect(screen.queryByRole('heading', { name: /發現新版本/ })).toBeNull();
     });
+
+    it('allows investigator to manually check for updates in SettingsModal and awaken UpdateModal even if dismissed', async () => {
+      const mockSource = {
+        check: vi.fn().mockResolvedValue({
+          version: '0.4.1',
+          currentVersion: '0.4.0',
+          body: '手動檢查發現的最新修訂',
+        }),
+      };
+      const testService = new UpdateService(mockSource);
+      testService.dismissVersion('0.4.1');
+
+      await act(async () => {
+        render(<TitleScreen dispatch={mockDispatch} updateService={testService} />);
+      });
+
+      // Initially suppressed because it's dismissed
+      expect(screen.queryByRole('heading', { name: /發現新版本/ })).toBeNull();
+
+      // Open SettingsModal from TitleMenu
+      const settingsBtn = screen.getByRole('button', { name: /遊戲設定/i });
+      fireEvent.click(settingsBtn);
+
+      expect(screen.getByRole('heading', { level: 3, name: /版本與更新/i })).toBeDefined();
+
+      // Click manual check update button
+      const checkBtn = screen.getByRole('button', { name: /檢查更新/i });
+      await act(async () => {
+        fireEvent.click(checkBtn);
+      });
+
+      // UpdateModal is awakened and visible
+      const updateHeader = await screen.findByRole('heading', { name: /發現新版本/ });
+      expect(updateHeader).toBeDefined();
+      expect(screen.getByText('0.4.1')).toBeDefined();
+    });
   });
 });
 

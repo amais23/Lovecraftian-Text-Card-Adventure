@@ -988,6 +988,145 @@
   line-height: 1.5;
 }
 
+/* --- Version & Manual Update Section (ADR-0040 / #74) --- */
+.settings-version-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(20, 24, 32, 0.85);
+  border: 1px solid rgba(207, 168, 102, 0.35);
+  border-radius: 16px;
+  font-size: 0.82rem;
+}
+
+.settings-version-pill .version-label {
+  color: var(--text-dim);
+}
+
+.settings-version-pill .version-number {
+  color: var(--text-gold);
+  font-family: var(--font-title);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.settings-update-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.settings-update-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.settings-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(30, 38, 52, 0.9);
+  border: 1px solid rgba(207, 168, 102, 0.5);
+  border-radius: var(--radius-sm);
+  color: var(--text-parchment);
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  letter-spacing: 0.5px;
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+}
+
+.settings-action-btn:hover:not(:disabled) {
+  background: rgba(45, 58, 80, 0.95);
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.settings-action-btn:disabled,
+.settings-action-btn.disabled {
+  opacity: 0.45;
+  cursor: var(--cursor-not-allowed, not-allowed);
+  background: rgba(22, 26, 34, 0.6);
+  border-color: rgba(150, 150, 150, 0.3);
+  box-shadow: none;
+  transform: none;
+}
+
+.settings-update-guard-hint {
+  font-size: 0.85rem;
+  color: #ff9e7d;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 100, 80, 0.1);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(255, 120, 100, 0.35);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+.settings-update-status {
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-update-status.up-to-date {
+  color: #74c69d;
+}
+
+.settings-update-status.error {
+  color: #ef4444;
+}
+
+.settings-update-status.available {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.settings-update-available-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-view-update-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  background: rgba(207, 168, 102, 0.15);
+  border: 1px solid rgba(207, 168, 102, 0.4);
+  border-radius: var(--radius-sm);
+  color: var(--text-gold);
+  cursor: var(--cursor-pointer, pointer);
+  transition: all 0.2s ease;
+}
+
+.settings-view-update-btn:hover {
+  background: rgba(207, 168, 102, 0.3);
+  border-color: #ffd700;
+}
+
+.spin-animation {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .section-title-sub {
   display: flex;
   align-items: center;

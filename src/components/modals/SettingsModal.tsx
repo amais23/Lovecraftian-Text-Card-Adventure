@@ -1,20 +1,37 @@
 import React from 'react';
-import { Settings, X, Volume2, VolumeX, Sparkles, Swords, Shield, Flame, Activity, Keyboard, Terminal } from 'lucide-react';
+import { Settings, X, Volume2, VolumeX, Sparkles, Swords, Shield, Flame, Activity, Keyboard, Terminal, RefreshCw, Loader2 } from 'lucide-react';
 import { soundEngine } from '../../engine/audioManager';
 import { useSoundMuted } from '../../hooks/useSoundMuted';
 import { useModalDismiss } from '../../hooks/useModalDismiss';
 import { useDevMode } from '../../hooks/useDevMode';
 import { devModeManager } from '../../engine/devModeManager';
+import { updateService as defaultUpdateService, type UpdateService } from '../../services/updateService';
+import { useAutoUpdater } from '../../hooks/useAutoUpdater';
+import { UpdateModal } from './UpdateModal';
 
-interface SettingsModalProps {
+export interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isGameInProgress?: boolean;
+  isInGame?: boolean;
+  updateService?: UpdateService;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({
+  isOpen,
+  onClose,
+  isGameInProgress = false,
+  isInGame = false,
+  updateService: updateServiceProp,
+}) => {
   const isMuted = useSoundMuted();
   const isDevMode = useDevMode();
   const { handleBackdropClick, dismiss } = useModalDismiss({ isOpen, onClose });
+
+  const isGameActive = Boolean(isGameInProgress || isInGame);
+  const activeUpdateService = updateServiceProp ?? defaultUpdateService;
+  const currentVersion = activeUpdateService.getCurrentVersion();
+  const updater = useAutoUpdater({ service: activeUpdateService });
 
   if (!isOpen) return null;
 
@@ -27,9 +44,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     devModeManager.toggleDevMode();
   };
 
+  const handleCheckUpdate = () => {
+    if (isGameActive || updater.status === 'checking') return;
+    soundEngine.playClick();
+    void updater.checkUpdate(false);
+  };
+
   return (
-    <div
-      className="eldritch-modal-backdrop"
+    <>
+      <div
+        className="eldritch-modal-backdrop"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
@@ -196,12 +220,93 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </p>
           </section>
 
-          {/* Section 3: About & Version */}
+          {/* Section: Version & Update (Issue #74 / ADR-0040) */}
+          <section className="settings-section settings-update-section">
+            <div className="settings-section-header">
+              <div className="section-title-wrap">
+                <RefreshCw
+                  size={20}
+                  color="#ffd700"
+                  className={updater.status === 'checking' ? 'spin-animation' : ''}
+                />
+                <h3>版本與更新</h3>
+              </div>
+              <div className="settings-version-pill">
+                <span className="version-label">目前本機版本</span>
+                <span className="version-number">v{currentVersion}</span>
+              </div>
+            </div>
+
+            <div className="settings-update-body">
+              <div className="settings-update-action-row">
+                <button
+                  id="settings-check-update-btn"
+                  className={`settings-action-btn ${isGameActive ? 'disabled' : ''} ${updater.status === 'checking' ? 'checking' : ''}`}
+                  onClick={handleCheckUpdate}
+                  disabled={isGameActive || updater.status === 'checking'}
+                  aria-label="檢查更新"
+                  title={isGameActive ? '請返回主標題選單進行更新' : '檢查更新'}
+                >
+                  {updater.status === 'checking' ? (
+                    <>
+                      <Loader2 size={16} className="spin-animation" />
+                      <span>檢查中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={16} />
+                      <span>檢查更新</span>
+                    </>
+                  )}
+                </button>
+
+                {isGameActive && (
+                  <p className="settings-update-guard-hint" role="status">
+                    ⚠️ 請返回主標題選單進行更新
+                  </p>
+                )}
+
+                {!isGameActive && updater.status === 'up-to-date' && (
+                  <p className="settings-update-status up-to-date" role="status">
+                    ✓ 目前已是最新版本
+                  </p>
+                )}
+
+                {!isGameActive && updater.status === 'error' && (
+                  <p className="settings-update-status error" role="alert">
+                    ✕ {updater.error || '檢查更新失敗：無法連線至更新伺服器'}
+                  </p>
+                )}
+
+                {!isGameActive && updater.status === 'available' && (
+                  <div className="settings-update-available-info">
+                    <span className="settings-update-status available" role="status">
+                      ★ 發現新版本 v{updater.updateInfo?.version}
+                    </span>
+                    <button
+                      className="settings-view-update-btn"
+                      onClick={updater.openModal}
+                    >
+                      檢視更新資訊
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <p className="settings-hint">
+                {isGameActive
+                  ? '為保障記憶體即時對局與存檔資料完整，探險與戰鬥途中鎖定更新重啟。'
+                  : '手動檢查 GitHub Releases 最新發布版本，即使用戶曾勾選略過此版本仍可手動喚起更新。'}
+              </p>
+            </div>
+          </section>
+
+          {/* Section 4: About & Version */}
           <section className="settings-section about-section">
             <h3 className="section-title-sub">關於本調查手記</h3>
             <div className="about-details">
               <p>
-                <strong>《克蘇魯文字卡牌冒險》</strong> v0.4.0
+                <strong>《克蘇魯文字卡牌冒險》</strong> v{currentVersion}
               </p>
               <p className="about-flavor">
                 基於 H.P. 洛夫克拉夫特宇宙恐懼神話體系打造的文字冒險與卡牌對弈遊戲。
@@ -214,5 +319,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
       </div>
     </div>
+
+    <UpdateModal
+        isOpen={updater.isModalOpen}
+        onClose={updater.closeModal}
+        updateInfo={updater.updateInfo}
+        onDismissVersion={updater.dismissCurrentVersion}
+      />
+    </>
   );
 };
