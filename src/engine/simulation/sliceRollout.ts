@@ -130,7 +130,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
     customDeck ? customDeck.map((c) => ({ ...c })) : CardRegistry.getStarterDeck(occupation)
   );
 
-  let currentRelics: Relic[] = [...currentInvestigator.relics];
+  let currentRelics: Relic[] = [...(currentInvestigator.relics ?? [])];
 
   // 2. 產生該深度的完整 DAG 地圖 (16 層或 8 層)
   const map = generateProceduralInvestigationMap({
