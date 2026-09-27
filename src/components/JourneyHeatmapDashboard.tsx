@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Map,
+  Map as MapIcon,
+  Globe,
   Compass,
   Activity,
   Skull,
@@ -10,7 +11,8 @@ import {
   GitFork,
   Users,
 } from 'lucide-react';
-import journeySummaryRaw from '../data/balance/journey_summary.json';
+import journeySummaryInvestigatorRaw from '../data/balance/journey_summary.json';
+import journeySummaryOccultistRaw from '../data/balance/journey_summary_occultist.json';
 import {
   SLICE_DEFINITIONS,
   type JourneySummaryJson,
@@ -19,11 +21,18 @@ import {
 import { soundEngine } from '../engine/audioManager';
 import '../styles/journeyHeatmap.css';
 
-const summaryData = journeySummaryRaw as unknown as JourneySummaryJson;
-
 type SubTabKey = 'monsters' | 'deck' | 'cards' | 'paths' | 'groups';
 
-export const JourneyHeatmapDashboard: React.FC = () => {
+export interface JourneyHeatmapDashboardProps {
+  containerRef?: React.Ref<HTMLDivElement>;
+  onScroll?: React.UIEventHandler<HTMLDivElement>;
+}
+
+export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = ({
+  containerRef,
+  onScroll,
+}) => {
+  const [selectedOccupation, setSelectedOccupation] = useState<'investigator' | 'occultist'>('investigator');
   const [selectedSliceId, setSelectedSliceId] = useState<number>(1);
   const [activeSubTab, setActiveSubTab] = useState<SubTabKey>('monsters');
   const [showAllMonsters, setShowAllMonsters] = useState<boolean>(false);
@@ -31,10 +40,84 @@ export const JourneyHeatmapDashboard: React.FC = () => {
   const [cardCategoryFilter, setCardCategoryFilter] = useState<string>('all');
   const [dataVersion, setDataVersion] = useState<number>(0);
 
+  const summaryData = useMemo(() => {
+    if (dataVersion < 0) return journeySummaryInvestigatorRaw as unknown as JourneySummaryJson;
+    return selectedOccupation === 'occultist'
+      ? (journeySummaryOccultistRaw as unknown as JourneySummaryJson)
+      : (journeySummaryInvestigatorRaw as unknown as JourneySummaryJson);
+  }, [selectedOccupation, dataVersion]);
+
   const currentSlice: SliceSimulationSummary = useMemo(() => {
-    if (dataVersion < 0) return summaryData.slices[1];
-    return summaryData.slices[selectedSliceId] ?? summaryData.slices[1];
-  }, [selectedSliceId, dataVersion]);
+    const id = selectedSliceId === 0 ? 1 : selectedSliceId;
+    return summaryData.slices[id] ?? summaryData.slices[1];
+  }, [summaryData, selectedSliceId]);
+
+  // Global 26-monsters threat ranking across all slices
+  const globalMonstersLeaderboard = useMemo(() => {
+    const map = new Map<string, {
+      id: string;
+      name: string;
+      depth: number;
+      role: string;
+      health: number;
+      armor: number;
+      encounters: number;
+      kills: number;
+      totalHpLoss: number;
+    }>();
+
+    Object.values(summaryData.slices || {}).forEach((slice) => {
+      (slice.monsters || []).forEach((m) => {
+        const existing = map.get(m.id);
+        if (existing) {
+          existing.encounters += m.encounters;
+          existing.kills += m.kills;
+          existing.totalHpLoss += m.meanHpLoss * m.encounters;
+        } else {
+          map.set(m.id, {
+            id: m.id,
+            name: m.name,
+            depth: m.depth,
+            role: m.role,
+            health: m.health,
+            armor: m.armor,
+            encounters: m.encounters,
+            kills: m.kills,
+            totalHpLoss: m.meanHpLoss * m.encounters,
+          });
+        }
+      });
+    });
+
+    return Array.from(map.values())
+      .map((item) => ({
+        ...item,
+        lethality: item.encounters > 0 ? item.kills / item.encounters : 0,
+        meanHpLoss: item.encounters > 0 ? item.totalHpLoss / item.encounters : 0,
+      }))
+      .sort((a, b) => b.kills - a.kills);
+  }, [summaryData]);
+
+  // 4-Persona cross-slice survival matrix
+  const personaProgressionMatrix = useMemo(() => {
+    const personas: Array<{ key: 'balanced' | 'cautious' | 'greedy' | 'pure_random'; label: string }> = [
+      { key: 'cautious', label: '生存謹慎型 (Cautious)' },
+      { key: 'balanced', label: '常態平衡型 (Balanced)' },
+      { key: 'greedy', label: '貪婪構築型 (Greedy)' },
+      { key: 'pure_random', label: '純隨機探索型 (Random)' },
+    ];
+
+    return personas.map((p) => {
+      const sliceRates = (summaryData.progression || []).map((s) => {
+        const perf = s.personas?.[p.key];
+        return perf ? { survivalRate: perf.survivalRate, meanCombatHpLoss: perf.meanCombatHpLoss } : null;
+      });
+      return {
+        ...p,
+        sliceRates,
+      };
+    });
+  }, [summaryData]);
 
   // Filtered Cards
   const filteredCards = useMemo(() => {
@@ -67,17 +150,47 @@ export const JourneyHeatmapDashboard: React.FC = () => {
   };
 
   return (
-    <div className="journey-heatmap-container">
+    <div
+      ref={containerRef}
+      onScroll={onScroll}
+      className="journey-heatmap-container"
+      tabIndex={0}
+      aria-label="全地圖七階切片多流派蒙地卡羅平衡模擬熱點地圖"
+    >
       {/* 1. Header & Meta Banner */}
       <div className="journey-meta-banner">
         <div className="journey-title-group">
           <h2>
-            <Map size={22} />
+            <MapIcon size={22} />
             全地圖七階切片多流派蒙地卡羅平衡模擬熱點地圖
           </h2>
           <p>
             基於 ADR-0042 蒙地卡羅多流派抽樣與全域混合存活池交接之客觀數值矩陣
           </p>
+        </div>
+
+        {/* Occupation Switcher */}
+        <div className="journey-occupation-tabs">
+          <button
+            type="button"
+            className={`journey-occ-chip ${selectedOccupation === 'investigator' ? 'active' : ''}`}
+            onClick={() => {
+              soundEngine.playClick();
+              setSelectedOccupation('investigator');
+            }}
+          >
+            🕵️ 私家偵探 ({summaryData.totalRollouts ? (selectedOccupation === 'investigator' ? `${(summaryData.totalRollouts / 10000).toFixed(0)}萬樣本` : '122萬樣本') : ''})
+          </button>
+          <button
+            type="button"
+            className={`journey-occ-chip ${selectedOccupation === 'occultist' ? 'active' : ''}`}
+            onClick={() => {
+              soundEngine.playClick();
+              setSelectedOccupation('occultist');
+            }}
+          >
+            🔮 秘術學者 ({summaryData.totalRollouts ? (selectedOccupation === 'occultist' ? `${(summaryData.totalRollouts / 10000).toFixed(0)}萬樣本` : '90萬樣本') : ''})
+          </button>
         </div>
 
         <div className="journey-stat-badges">
@@ -232,6 +345,14 @@ export const JourneyHeatmapDashboard: React.FC = () => {
 
       {/* 3. Slice Navigation Tabs */}
       <div className="slice-selector-tabs">
+        <button
+          type="button"
+          className={`slice-tab-btn overview-tab ${selectedSliceId === 0 ? 'active' : ''}`}
+          onClick={() => handleSliceClick(0)}
+        >
+          <Globe size={15} />
+          🌐 全程 7 切片宏觀總覽
+        </button>
         {SLICE_DEFINITIONS.map((s) => {
           const isActive = s.id === selectedSliceId;
           return (
@@ -247,8 +368,153 @@ export const JourneyHeatmapDashboard: React.FC = () => {
         })}
       </div>
 
-      {/* 4. Sub-Tabs Bar */}
-      <div className="sub-tabs-bar">
+      {selectedSliceId === 0 ? (
+        <div className="journey-global-overview">
+          {/* 1. 7 切片橫向進程矩陣表 */}
+          <div className="overview-block">
+            <h3 className="overview-block-title">
+              <Compass size={18} />
+              7 切片全旅程進程走勢矩陣 (Cross-Progression Matrix)
+            </h3>
+            <div className="journey-table-container">
+              <table className="journey-data-table">
+                <thead>
+                  <tr>
+                    <th>切片編號與名稱</th>
+                    <th>深度階段</th>
+                    <th>進入樣本 N</th>
+                    <th>通關樣本 N</th>
+                    <th>切片存活率</th>
+                    <th>全程累積存活率</th>
+                    <th>單場均損血</th>
+                    <th>累計淨損血</th>
+                    <th>末均 HP</th>
+                    <th>末均牌庫</th>
+                    <th>頭號致命威脅</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summaryData.progression?.map((s) => (
+                    <tr key={s.sliceId}>
+                      <td style={{ fontWeight: 600, color: '#38bdf8' }}>{s.sliceDef.name}</td>
+                      <td>Depth {s.sliceDef.depth}</td>
+                      <td>{s.rolloutsEntered.toLocaleString()}</td>
+                      <td>{s.rolloutsCompleted.toLocaleString()}</td>
+                      <td className={s.sliceSurvivalRate >= 0.3 ? 'highlight-green' : s.sliceSurvivalRate < 0.1 ? 'highlight-red' : ''}>
+                        {(s.sliceSurvivalRate * 100).toFixed(1)}%
+                      </td>
+                      <td className={s.cumulativeSurvivalRate >= 0.1 ? 'highlight-green' : 'highlight-red'}>
+                        {(s.cumulativeSurvivalRate * 100).toFixed(2)}%
+                      </td>
+                      <td>{s.meanCombatHpLoss.toFixed(1)} HP</td>
+                      <td>{s.meanNetHpLoss.toFixed(1)} HP</td>
+                      <td>{s.meanFinalHp.toFixed(1)} HP</td>
+                      <td>{s.meanFinalDeckSize.toFixed(1)} 張</td>
+                      <td style={{ color: '#fca5a5' }}>
+                        {s.topFatalMonster ? `${s.topFatalMonster.name} (${s.topFatalMonster.percentage.toFixed(1)}%)` : '無'}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="sub-tab-btn"
+                          style={{ padding: '4px 8px', fontSize: '0.78rem', border: '1px solid rgba(56, 189, 248, 0.3)' }}
+                          onClick={() => handleSliceClick(s.sliceId)}
+                        >
+                          深入檢視 ➔
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 2. 四大流派跨切片存活矩陣 */}
+          <div className="overview-block">
+            <h3 className="overview-block-title">
+              <Users size={18} />
+              四大代理人策略流派跨切片存活率矩陣 (4-Persona Cross-Slice Matrix)
+            </h3>
+            <div className="journey-table-container">
+              <table className="journey-data-table">
+                <thead>
+                  <tr>
+                    <th>代理人流派</th>
+                    <th>人口權重</th>
+                    <th>Slice 1</th>
+                    <th>Slice 2</th>
+                    <th>Slice 3</th>
+                    <th>Slice 4 (瓶頸)</th>
+                    <th>Slice 5</th>
+                    <th>Slice 6</th>
+                    <th>Slice 7 (終局)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {personaProgressionMatrix.map((p) => (
+                    <tr key={p.key}>
+                      <td style={{ fontWeight: 700, color: '#f1f5f9' }}>{p.label}</td>
+                      <td>25.0%</td>
+                      {p.sliceRates.map((sr, idx) => (
+                        <td key={idx} className={sr && sr.survivalRate >= 0.3 ? 'highlight-green' : sr && sr.survivalRate < 0.05 ? 'highlight-red' : ''}>
+                          {sr ? `${(sr.survivalRate * 100).toFixed(1)}%` : '-'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 3. 全旅程敵怪致死威脅總榜 */}
+          <div className="overview-block">
+            <h3 className="overview-block-title">
+              <Skull size={18} />
+              全域 26 隻敵怪綜合致死威脅天梯榜 (All-Monsters Global Threat Ranking)
+            </h3>
+            <div className="journey-table-container">
+              <table className="journey-data-table">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>敵怪名稱</th>
+                    <th>所屬深度</th>
+                    <th>類型</th>
+                    <th>總遭遇人次</th>
+                    <th>總斬殺人數</th>
+                    <th>平均損血</th>
+                    <th>綜合戰鬥致死率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {globalMonstersLeaderboard.map((m, idx) => (
+                    <tr key={m.id}>
+                      <td style={{ fontWeight: 700, color: idx < 3 ? '#ffd700' : '#94a3b8' }}>#{idx + 1}</td>
+                      <td style={{ fontWeight: 600 }}>{m.name}</td>
+                      <td>Depth {m.depth}</td>
+                      <td>
+                        <span style={{ color: m.role === 'boss' ? '#f87171' : m.role === 'elite' ? '#fbbf24' : '#94a3b8' }}>
+                          {m.role === 'boss' ? '首領' : m.role === 'elite' ? '精英' : '常規'}
+                        </span>
+                      </td>
+                      <td>{m.encounters.toLocaleString()}</td>
+                      <td style={{ fontWeight: 700, color: m.kills > 1000 ? '#fca5a5' : '#f1f5f9' }}>{m.kills.toLocaleString()}</td>
+                      <td>{m.meanHpLoss.toFixed(1)} HP</td>
+                      <td className={m.lethality >= 0.2 ? 'highlight-red' : ''}>{(m.lethality * 100).toFixed(1)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 4. Sub-Tabs Bar */}
+          <div className="sub-tabs-bar">
         <button
           type="button"
           className={`sub-tab-btn ${activeSubTab === 'monsters' ? 'active' : ''}`}
@@ -632,6 +898,9 @@ export const JourneyHeatmapDashboard: React.FC = () => {
           </div>
         </div>
       )}
+        </>
+      )}
     </div>
   );
 };
+

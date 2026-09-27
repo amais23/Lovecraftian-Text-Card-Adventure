@@ -39,6 +39,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 /* Header */
@@ -1213,7 +1214,29 @@
   padding: 20px 24px 60px;
   gap: 20px;
   color: #e2e8f0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
 }
+
+.balance-matrix-dashboard::-webkit-scrollbar {
+  width: 10px;
+}
+
+.balance-matrix-dashboard::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 5px;
+}
+
+.balance-matrix-dashboard::-webkit-scrollbar-thumb {
+  background: rgba(207, 168, 102, 0.3);
+  border-radius: 5px;
+  border: 2px solid rgba(15, 23, 42, 0.7);
+}
+
+.balance-matrix-dashboard::-webkit-scrollbar-thumb:hover {
+  background: rgba(207, 168, 102, 0.6);
+}
+
 
 .balance-dashboard-header {
   display: flex;

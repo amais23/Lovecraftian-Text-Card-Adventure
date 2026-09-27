@@ -333,7 +333,15 @@ const CopiesLineChart: React.FC<CopiesLineChartProps> = ({ curve, isRelic = fals
   );
 };
 
-export const BalanceMatrixDashboard: React.FC = () => {
+export interface BalanceMatrixDashboardProps {
+  containerRef?: React.Ref<HTMLDivElement>;
+  onScroll?: React.UIEventHandler<HTMLDivElement>;
+}
+
+export const BalanceMatrixDashboard: React.FC<BalanceMatrixDashboardProps> = ({
+  containerRef,
+  onScroll,
+}) => {
   // Navigation sub-tab: 'scatter' (cards & relics) | 'topology' (ADR-0038 MDS scatter & diff) | 'enemies' (26-threat leaderboard)
   const [subTab, setSubTab] = useState<'scatter' | 'topology' | 'enemies'>('scatter');
 
@@ -425,7 +433,14 @@ export const BalanceMatrixDashboard: React.FC = () => {
   const currentRelic = balanceData.relics[selectedRelicId] || filteredRelics[0] || allRelics[0];
 
   return (
-    <div className="balance-matrix-dashboard" data-testid="balance-matrix-dashboard">
+    <div
+      ref={containerRef}
+      onScroll={onScroll}
+      className="balance-matrix-dashboard"
+      data-testid="balance-matrix-dashboard"
+      tabIndex={0}
+      aria-label="數值平衡天梯與模擬矩陣"
+    >
       {/* Top Header & Metrics Banner */}
       <header className="balance-dashboard-header">
         <div className="balance-title-block">

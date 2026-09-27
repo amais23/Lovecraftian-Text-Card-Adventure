@@ -5,13 +5,40 @@
 .journey-heatmap-container {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   gap: 20px;
-  padding: 24px;
+  padding: 24px 24px 80px;
   color: #e2e8f0;
   max-width: 1600px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
 }
+
+/* Custom Scrollbar for Journey Dashboard */
+.journey-heatmap-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.journey-heatmap-container::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 5px;
+}
+
+.journey-heatmap-container::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 5px;
+  border: 2px solid rgba(15, 23, 42, 0.7);
+}
+
+.journey-heatmap-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
+
 
 /* Header & Meta Banner */
 .journey-meta-banner {
@@ -41,6 +68,44 @@
   margin: 0;
   font-size: 0.85rem;
   color: #94a3b8;
+}
+
+/* Occupation Switcher in Header */
+.journey-occupation-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.journey-occ-chip {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.journey-occ-chip:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.journey-occ-chip.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
 }
 
 .journey-stat-badges {
@@ -260,6 +325,53 @@
   border-color: #38bdf8;
   box-shadow: 0 0 12px rgba(2, 132, 199, 0.4);
 }
+
+.slice-tab-btn.overview-tab {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+}
+
+.slice-tab-btn.overview-tab:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
+  border-color: #818cf8;
+}
+
+.slice-tab-btn.overview-tab.active {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #818cf8;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.5);
+}
+
+/* Global Overview Sections */
+.journey-global-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.overview-block {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overview-block-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 
 /* Sub-tabs */
 .sub-tabs-bar {

@@ -65,5 +65,63 @@ describe('JourneyHeatmapDashboard - ADR-0042 Slice 4 Visualization (Issue #90)',
 
     // Verify heatmap dashboard is rendered
     expect(screen.getByText(/七階切片宏觀進程走勢/i)).toBeDefined();
+
+    // Verify container has aria-label and can trigger scroll event
+    const container = screen.getByLabelText(/全地圖七階切片多流派蒙地卡羅平衡模擬熱點地圖/i);
+    expect(container).toBeDefined();
+    expect(container.classList.contains('journey-heatmap-container')).toBe(true);
+
+    // Simulate vertical scroll
+    fireEvent.scroll(container, { target: { scrollTop: 500 } });
+
+    // Verify floating scroll buttons
+    const scrollToBottomBtn = screen.getByTitle(/滾動至底部/i);
+    expect(scrollToBottomBtn).toBeDefined();
+    fireEvent.click(scrollToBottomBtn);
+
+    const scrollToTopBtn = screen.getByTitle(/回到頂部/i);
+    expect(scrollToTopBtn).toBeDefined();
+    fireEvent.click(scrollToTopBtn);
+  });
+
+  it('allows toggling between investigator and occultist occupations', () => {
+    render(<JourneyHeatmapDashboard />);
+
+    // Initially investigator is active
+    const investigatorBtn = screen.getByRole('button', { name: /私家偵探/i });
+    const occultistBtn = screen.getByRole('button', { name: /秘術學者/i });
+
+    expect(investigatorBtn.classList.contains('active')).toBe(true);
+    expect(occultistBtn.classList.contains('active')).toBe(false);
+
+    // Switch to Occultist
+    fireEvent.click(occultistBtn);
+    expect(occultistBtn.classList.contains('active')).toBe(true);
+    expect(investigatorBtn.classList.contains('active')).toBe(false);
+
+    // Switch back to Investigator
+    fireEvent.click(investigatorBtn);
+    expect(investigatorBtn.classList.contains('active')).toBe(true);
+  });
+
+  it('allows switching between per-slice granular view and comprehensive 7-slice global overview', () => {
+    render(<JourneyHeatmapDashboard />);
+
+    // Switch to 7-Slice Global Overview
+    const overviewBtn = screen.getByRole('button', { name: /全程 7 切片宏觀總覽/i });
+    fireEvent.click(overviewBtn);
+
+    // Verify 3 global overview blocks are rendered
+    expect(screen.getByText(/7 切片全旅程進程走勢矩陣/i)).toBeDefined();
+    expect(screen.getByText(/四大代理人策略流派跨切片存活率矩陣/i)).toBeDefined();
+    expect(screen.getByText(/全域 26 隻敵怪綜合致死威脅天梯榜/i)).toBeDefined();
+
+    // Click back to Slice 3
+    const slice3Btn = screen.getByRole('button', { name: /Slice 3/i });
+    fireEvent.click(slice3Btn);
+
+    // Sub-tabs should be restored
+    expect(screen.getByRole('button', { name: /敵怪損耗與致死統計/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /精確牌庫/i })).toBeDefined();
   });
 });

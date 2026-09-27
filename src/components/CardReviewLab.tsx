@@ -127,6 +127,8 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
   // Scroll references and controls
   const cardsListRef = useRef<HTMLDivElement>(null);
   const monstersListRef = useRef<HTMLDivElement>(null);
+  const balanceListRef = useRef<HTMLDivElement>(null);
+  const journeyListRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const handleCardsScroll = () => {
@@ -141,30 +143,64 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
     }
   };
 
+  const handleBalanceScroll = () => {
+    if (balanceListRef.current) {
+      setShowScrollTop(balanceListRef.current.scrollTop > 300);
+    }
+  };
+
+  const handleJourneyScroll = () => {
+    if (journeyListRef.current) {
+      setShowScrollTop(journeyListRef.current.scrollTop > 300);
+    }
+  };
+
+  // Sync showScrollTop state when switching tabs
+  useEffect(() => {
+    let currentEl: HTMLDivElement | null = null;
+    if (activeTab === 'cards') currentEl = cardsListRef.current;
+    else if (activeTab === 'monsters') currentEl = monstersListRef.current;
+    else if (activeTab === 'balance') currentEl = balanceListRef.current;
+    else if (activeTab === 'journey') currentEl = journeyListRef.current;
+
+    setShowScrollTop(Boolean(currentEl && currentEl.scrollTop > 300));
+  }, [activeTab]);
+
+  const safeScrollTo = (el: HTMLDivElement | null, top: number) => {
+    if (!el) return;
+    if (typeof el.scrollTo === 'function') {
+      el.scrollTo({ top, behavior: 'smooth' });
+    } else {
+      el.scrollTop = top;
+    }
+  };
+
   const scrollToTop = () => {
     soundEngine.playClick();
-    if (activeTab === 'cards' && cardsListRef.current) {
-      cardsListRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (activeTab === 'monsters' && monstersListRef.current) {
-      monstersListRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (activeTab === 'cards') safeScrollTo(cardsListRef.current, 0);
+    else if (activeTab === 'monsters') safeScrollTo(monstersListRef.current, 0);
+    else if (activeTab === 'balance') safeScrollTo(balanceListRef.current, 0);
+    else if (activeTab === 'journey') safeScrollTo(journeyListRef.current, 0);
   };
 
   const scrollToBottom = () => {
     soundEngine.playClick();
-    if (activeTab === 'cards' && cardsListRef.current) {
-      cardsListRef.current.scrollTo({ top: cardsListRef.current.scrollHeight, behavior: 'smooth' });
-    } else if (activeTab === 'monsters' && monstersListRef.current) {
-      monstersListRef.current.scrollTo({ top: monstersListRef.current.scrollHeight, behavior: 'smooth' });
-    }
+    if (activeTab === 'cards') safeScrollTo(cardsListRef.current, cardsListRef.current?.scrollHeight ?? 0);
+    else if (activeTab === 'monsters') safeScrollTo(monstersListRef.current, monstersListRef.current?.scrollHeight ?? 0);
+    else if (activeTab === 'balance') safeScrollTo(balanceListRef.current, balanceListRef.current?.scrollHeight ?? 0);
+    else if (activeTab === 'journey') safeScrollTo(journeyListRef.current, journeyListRef.current?.scrollHeight ?? 0);
   };
 
-  // Delegate mouse wheel from fixed header/filter bars to scrollable list
+  // Delegate mouse wheel from fixed header/filter bars to active scrollable list
   const handleHeaderWheel = (e: React.WheelEvent) => {
     if (activeTab === 'cards' && cardsListRef.current) {
       cardsListRef.current.scrollTop += e.deltaY;
     } else if (activeTab === 'monsters' && monstersListRef.current) {
       monstersListRef.current.scrollTop += e.deltaY;
+    } else if (activeTab === 'balance' && balanceListRef.current) {
+      balanceListRef.current.scrollTop += e.deltaY;
+    } else if (activeTab === 'journey' && journeyListRef.current) {
+      journeyListRef.current.scrollTop += e.deltaY;
     }
   };
 
@@ -407,7 +443,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
 
       <div className="card-review-lab-window">
         {/* Top Header */}
-        <header className="review-lab-header">
+        <header className="review-lab-header" onWheel={handleHeaderWheel}>
           <div className="header-left">
             <button className="review-back-btn" onClick={onClose} title="返回主選單">
               <ArrowLeft size={18} />
@@ -1095,9 +1131,15 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
             </div>
           </div>
         ) : activeTab === 'balance' ? (
-          <BalanceMatrixDashboard />
+          <BalanceMatrixDashboard
+            containerRef={balanceListRef}
+            onScroll={handleBalanceScroll}
+          />
         ) : (
-          <JourneyHeatmapDashboard />
+          <JourneyHeatmapDashboard
+            containerRef={journeyListRef}
+            onScroll={handleJourneyScroll}
+          />
         )}
 
         {/* Quick Floating Scroll Controls */}
