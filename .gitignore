@@ -10,9 +10,10 @@ dist-ssr/
 .env.*
 !.env.example
 
-# Logs
+# Logs & Conversations
 logs/
 *.log
+docs/conversations/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -23,8 +24,10 @@ lerna-debug.log*
 coverage/
 *.lcov
 
-# TypeScript
+# TypeScript & Python
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 
 # Editor directories and files
 .vscode/*
