@@ -41,7 +41,7 @@ export function parseJourneyCliArgs(argv: string[]): JourneyCliOptions {
   let timeBudgetSeconds = 15;
   let samplesPerSlice: number | undefined = undefined;
   let occupation: 'investigator' | 'occultist' = 'investigator';
-  let outputPath = path.resolve(process.cwd(), 'src/data/balance/journey_summary.json');
+  let explicitOutputPath: string | undefined = undefined;
   let noSave = false;
 
   for (let i = 0; i < argv.length; i++) {
@@ -75,12 +75,21 @@ export function parseJourneyCliArgs(argv: string[]): JourneyCliOptions {
       }
       i++;
     } else if (arg === '--output' && argv[i + 1]) {
-      outputPath = argv[i + 1];
+      explicitOutputPath = argv[i + 1];
       i++;
     } else if (arg === '--no-save') {
       noSave = true;
     }
   }
+
+  const outputPath =
+    explicitOutputPath ??
+    path.resolve(
+      process.cwd(),
+      occupation === 'occultist'
+        ? 'src/data/balance/journey_summary_occultist.json'
+        : 'src/data/balance/journey_summary.json'
+    );
 
   return {
     targetSlice,

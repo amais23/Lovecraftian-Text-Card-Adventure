@@ -42,6 +42,12 @@ describe('Production Journey CLI & Summary Generator (ADR-0042 / Issue #89)', ()
     expect(parseJourneyCliArgs(['--slice', '9']).targetSlice).toBe(7);
   });
 
+  it('automatically sets default outputPath to journey_summary_occultist.json for occultist', () => {
+    const opts = parseJourneyCliArgs(['--occupation', 'occultist']);
+    expect(opts.occupation).toBe('occultist');
+    expect(opts.outputPath).toContain('journey_summary_occultist.json');
+  });
+
   it('generates schema-compliant JSON summary structure', () => {
     const result = runJourneySimulation({
       samplesPerSlice: 4,

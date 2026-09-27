@@ -8,6 +8,11 @@ import { ensureUniqueCardIds } from '../cardFactory';
 import { applyRelicToInvestigator, PRESET_RELICS } from '../relics';
 import { MYTHOS_EVENTS } from '../eventData';
 import {
+  ABYSSAL_FRAGMENT_1,
+  ABYSSAL_FRAGMENT_2,
+  ABYSSAL_FRAGMENT_3,
+} from '../abyssalSeals';
+import {
   type AgentPersona,
   type AgentPersonaType,
   getAgentPersona,
@@ -16,6 +21,7 @@ import {
   evaluateMarketChoice,
   evaluatePathChoice,
   evaluateEventChoice,
+  isBasicStarterCard,
   type EvaluationContext,
   type RewardChoiceOption,
   type SanctuaryChoiceOption,
@@ -65,7 +71,7 @@ export interface CombatRecord {
 
 export interface CardRewardRecord {
   offeredCardIds: string[];
-  chosenType: 'card' | 'bandage' | 'skip';
+  chosenType: 'card' | 'bandage' | 'skip' | 'seal_fragment';
   chosenCardId?: string;
 }
 
@@ -112,7 +118,7 @@ export interface SliceRolloutResult {
 /**
  * 簡易偽隨機生成器 (Mulberry32)
  */
-function createPrng(seed: number): () => number {
+export function createPrng(seed: number): () => number {
   let s = (seed ^ 0x12345678) >>> 0;
   return () => {
     s = (s + 0x6d2b79f5) >>> 0;
@@ -318,11 +324,26 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         { type: 'skip' as const, obols: 5 },
       ];
 
+      // 首領戰勝利時提供承受深淵封印殘片之抉擇
+      let fragmentCard: Card | undefined = undefined;
+      if (currentNode.type === 'boss') {
+        fragmentCard = depth === 1 ? { ...ABYSSAL_FRAGMENT_1 } : depth === 2 ? { ...ABYSSAL_FRAGMENT_2 } : { ...ABYSSAL_FRAGMENT_3 };
+        rewardOptions.push({
+          type: 'seal_fragment',
+          fragmentCard,
+        });
+      }
+
       const chosenReward = evaluateRewardChoice(persona, rewardOptions, evalCtx, rng);
       cardRewards.push({
         offeredCardIds: rewardCards.map((c) => c.id),
         chosenType: chosenReward.type,
-        chosenCardId: chosenReward.type === 'card' && chosenReward.card ? chosenReward.card.id : undefined,
+        chosenCardId:
+          chosenReward.type === 'seal_fragment' && chosenReward.fragmentCard
+            ? chosenReward.fragmentCard.id
+            : chosenReward.type === 'card' && chosenReward.card
+            ? chosenReward.card.id
+            : undefined,
       });
 
       if (chosenReward.type === 'card' && chosenReward.card) {
@@ -344,6 +365,16 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
           deltaHp: heal,
           deltaObols: baseObols,
         });
+      } else if (chosenReward.type === 'seal_fragment' && chosenReward.fragmentCard) {
+        const frag = chosenReward.fragmentCard;
+        currentDeck = ensureUniqueCardIds([...currentDeck, { ...frag }]);
+        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，承受深淵封印殘片【${frag.name}】`;
+        intraNodeChoices.push({
+          category: 'reward',
+          action: '戰後選擇: 【承受深淵封印殘片 (Boss)】',
+          deltaHp: 0,
+          deltaObols: baseObols,
+        });
       } else {
         currentInvestigator.obols += 5;
         logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，跳過戰利品 (+5 古金幣)`;
@@ -363,10 +394,11 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         { action: 'meditate', cardsCount: 3 },
       ];
 
-      // 牌庫大於 1 張時允許除役
+      // 牌庫大於 1 張時允許除役，優先篩選初始白板卡
       if (currentDeck.length > 1) {
-        // 挑選最多 3 張候選卡牌供代理人除役考慮
-        const purgeCandidates = currentDeck.slice(0, 4);
+        const starterCandidates = currentDeck.filter((c) => isBasicStarterCard(c));
+        const otherCandidates = currentDeck.filter((c) => !isBasicStarterCard(c));
+        const purgeCandidates = [...starterCandidates, ...otherCandidates].slice(0, 4);
         for (const c of purgeCandidates) {
           sanctuaryOptions.push({ action: 'purge', cardId: c.id });
         }
@@ -424,7 +456,13 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         marketOptions.push({ action: 'buy_relic', cost: 50 });
       }
       if (currentInvestigator.obols >= 75 && currentDeck.length > 1) {
-        marketOptions.push({ action: 'purge_card', cardId: currentDeck[0].id, cost: 75 });
+        const purgeCandidate = currentDeck.find((c) => isBasicStarterCard(c)) ?? currentDeck[0];
+        marketOptions.push({
+          action: 'purge_card',
+          cardId: purgeCandidate.id,
+          purgeCard: purgeCandidate,
+          cost: 75,
+        });
       }
 
       const choice = evaluateMarketChoice(persona, marketOptions, evalCtx, rng);
@@ -523,8 +561,65 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         });
         break;
       }
+    } else if (currentNode.type === 'altar') {
+      const isCautious = persona.type === 'cautious';
+      if (!isCautious && currentInvestigator.health > 8) {
+        currentInvestigator.health -= 4;
+        currentInvestigator.obols += 20;
+        logAction = '禁忌祭壇：獻祭生命獲得深淵恩賜 (-4 生命值, +20 古金幣)';
+        intraNodeChoices.push({
+          category: 'event',
+          action: '禁忌祭壇: 【鮮血祭獻 (+20 古金幣)】',
+          deltaHp: -4,
+          deltaObols: 20,
+        });
+      } else {
+        logAction = '禁忌祭壇：凝視不可名狀雕像後謹慎離開';
+        intraNodeChoices.push({
+          category: 'event',
+          action: '禁忌祭壇: 【謹慎離開】',
+          deltaHp: 0,
+          deltaObols: 0,
+        });
+      }
+    } else if (currentNode.type === 'blood_altar') {
+      const starterCard = currentDeck.find((c) => isBasicStarterCard(c));
+      if (starterCard && currentInvestigator.health > 6 && persona.type !== 'cautious') {
+        currentInvestigator.health -= 3;
+        currentDeck = currentDeck.filter((c) => c.id !== starterCard.id);
+        logAction = `血之祭壇：以鮮血為誓除役卡牌【${starterCard.name}】(-3 生命值)`;
+        intraNodeChoices.push({
+          category: 'sanctuary',
+          action: '血之祭壇: 【鮮血除役卡牌】',
+          deltaHp: -3,
+          deltaObols: 0,
+        });
+      } else {
+        logAction = '血之祭壇：繞過血槽繼續前行';
+      }
+    } else if (currentNode.type === 'vault') {
+      const unowned = PRESET_RELICS.filter((r) => !currentRelics.some((cr) => cr.id === r.id));
+      const relic = unowned[0] ?? PRESET_RELICS[0];
+      currentRelics = [...currentRelics, relic];
+      currentInvestigator = applyRelicToInvestigator(currentInvestigator, relic);
+      logAction = `遺物秘閣：破除遠古封印獲取舊日遺物【${relic.name}】`;
+      intraNodeChoices.push({
+        category: 'reward',
+        action: `遺物秘閣: 【獲取舊日遺物 ${relic.name}】`,
+        deltaHp: 0,
+        deltaObols: 0,
+      });
+    } else if (currentNode.type === 'remains') {
+      currentInvestigator.obols += 15;
+      logAction = '屍骨遺骸：哀悼前人遺骸，拾得遺留的 15 古金幣';
+      intraNodeChoices.push({
+        category: 'reward',
+        action: '屍骨遺骸: 【拾得前人古金幣 (+15)】',
+        deltaHp: 0,
+        deltaObols: 15,
+      });
     } else {
-      // 祭壇或其他類型
+      // 其他類型
       logAction = `造訪特殊節點【${currentNode.label}】`;
     }
 

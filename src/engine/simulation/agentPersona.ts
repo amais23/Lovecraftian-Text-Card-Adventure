@@ -133,8 +133,9 @@ export function sampleWeightedChoice<T>(
 // 1. 戰後獎勵決策 (Post-Combat Reward Choice)
 // ─────────────────────────────────────────────────────────────
 export interface RewardChoiceOption {
-  type: 'card' | 'bandage' | 'skip';
+  type: 'card' | 'bandage' | 'skip' | 'seal_fragment';
   card?: Card;
+  fragmentCard?: Card;
   healAmount?: number;
   obols?: number;
 }
@@ -195,6 +196,18 @@ export function evaluateRewardChoice(
         } else {
           // 平衡型牌庫過厚時適度跳過
           weight = sanityDeck.length >= 18 ? 25 : 10;
+        }
+      } else if (opt.type === 'seal_fragment') {
+        // 承受深淵封印殘片 (Boss 戰後抉擇)
+        if (persona.type === 'greedy') {
+          // 貪婪型渴望收集完整深淵古印以達成終極成就
+          weight = isAlert ? 15 : 55;
+        } else if (persona.type === 'cautious') {
+          // 謹慎型忌憚無法打出的黑色瘋狂詛咒卡牌稀釋牌庫
+          weight = isAlert ? 2 : 12;
+        } else {
+          // 平衡型視生命值狀態中度承擔
+          weight = isAlert ? 8 : 30;
         }
       }
 
@@ -280,6 +293,7 @@ export interface MarketChoiceOption {
   relicId?: string;
   card?: Card;
   cardId?: string;
+  purgeCard?: Card;
   cost: number;
 }
 
@@ -315,7 +329,14 @@ export function evaluateMarketChoice(
       } else if (opt.action === 'buy_relic') {
         weight = persona.type === 'greedy' ? 80 : 35;
       } else if (opt.action === 'purge_card') {
-        weight = persona.type === 'greedy' ? 60 : sanityDeck.length >= 15 ? 30 : 10;
+        const isBasic = opt.purgeCard ? isBasicStarterCard(opt.purgeCard) : true;
+        if (persona.type === 'greedy') {
+          weight = isBasic ? 70 : 35;
+        } else if (persona.type === 'cautious') {
+          weight = 10;
+        } else {
+          weight = isBasic && sanityDeck.length >= 14 ? 35 : 15;
+        }
       } else if (opt.action === 'buy_card') {
         const tier = opt.card?.tier ?? 1;
         weight = persona.type === 'greedy' ? (tier >= 2 ? 45 : 10) : 20;
@@ -358,6 +379,10 @@ export function evaluatePathChoice(
       let weight = 20;
 
       switch (node.type) {
+        case 'boss':
+          weight = 100; // 首領節點為終點宿敵，拓撲連通時必經
+          break;
+
         case 'sanctuary':
           if (isAlert) {
             weight = persona.type === 'cautious' ? 100 : 60;
@@ -368,6 +393,18 @@ export function evaluatePathChoice(
 
         case 'market':
           weight = persona.type === 'greedy' ? 70 : 25;
+          break;
+
+        case 'vault':
+          weight = persona.type === 'greedy' ? 60 : persona.type === 'cautious' ? 25 : 35;
+          break;
+
+        case 'blood_altar':
+          weight = persona.type === 'greedy' ? 40 : persona.type === 'cautious' ? (isAlert ? 1 : 5) : (isAlert ? 3 : 20);
+          break;
+
+        case 'remains':
+          weight = persona.type === 'greedy' ? 45 : 30;
           break;
 
         case 'elite':

@@ -6,7 +6,7 @@ import {
   type AgentPersonaType,
   getAgentPersona,
 } from './agentPersona';
-import { runSliceRollout, type SliceRolloutResult } from './sliceRollout';
+import { runSliceRollout, createPrng, type SliceRolloutResult } from './sliceRollout';
 
 // ─────────────────────────────────────────────────────────────
 // 0. 輔助計算函數 (Helpers)
@@ -450,6 +450,9 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       event: { label: '秘識奇遇 (Event)', visits: 0, hpLossSum: 0, deaths: 0 },
       altar: { label: '禁忌祭壇 (Altar)', visits: 0, hpLossSum: 0, deaths: 0 },
       boss: { label: '首領決戰 (Boss)', visits: 0, hpLossSum: 0, deaths: 0 },
+      vault: { label: '遺物秘閣 (Vault)', visits: 0, hpLossSum: 0, deaths: 0 },
+      blood_altar: { label: '血之祭壇 (Blood Altar)', visits: 0, hpLossSum: 0, deaths: 0 },
+      remains: { label: '屍骨遺骸 (Remains)', visits: 0, hpLossSum: 0, deaths: 0 },
     };
 
     // 6. 存活組 vs 陣亡組全維度累加器
@@ -464,14 +467,8 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       const persona = getAgentPersona(personaType);
       const rolloutSeed = (seedBase + sliceDef.id * 100000 + rolloutIndex) >>> 0;
 
-      // 產生該條 Rollout 的 PRNG
-      let s = rolloutSeed;
-      const rolloutPrng = () => {
-        s = (s + 0x6d2b79f5) >>> 0;
-        let t = Math.imul(s ^ (s >>> 15), 1 | s);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
+      // 產生該條 Rollout 的 PRNG (Mulberry32)
+      const rolloutPrng = createPrng(rolloutSeed);
 
       // 從全域混合存活池中抽樣起點（Slice 1 時為空，自動 fallback）
       const initialSnapshot = currentPool.sample(rolloutPrng, createFallbackBaseline);

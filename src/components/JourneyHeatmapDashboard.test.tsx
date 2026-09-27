@@ -150,8 +150,16 @@ describe('JourneyHeatmapDashboard - ADR-0042 Slice 4 Visualization (Issue #90)',
     // Verify domain term is present
     expect(screen.getAllByText(/生命值/i).length).toBeGreaterThan(0);
 
-    // Verify no bare HP abbreviation exists in DOM text
+    // Verify no bare HP abbreviation exists in default DOM text
     expect(container.innerHTML).not.toMatch(/\bHP\b/);
+
+    // Click through each sub-tab and verify zero bare HP abbreviations
+    const subTabLabels = [/路徑與抉擇/i, /存活對比/i, /精確牌庫/i, /全卡牌效益矩陣/i, /敵怪損耗與致死統計/i];
+    for (const tabPattern of subTabLabels) {
+      const btn = screen.getByRole('button', { name: tabPattern });
+      fireEvent.click(btn);
+      expect(container.innerHTML).not.toMatch(/\bHP\b/);
+    }
 
     // Switch to global overview and verify
     const overviewBtn = screen.getByRole('button', { name: /全程 7 切片宏觀總覽/i });

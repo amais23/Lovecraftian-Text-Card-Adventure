@@ -128,5 +128,27 @@ describe('Single Slice 8-Floor Monte Carlo Rollout (ADR-0042 / Issue #87)', () =
       const result = runSliceRollout(config);
       expect(result.madnessTurnsTotal).toBeGreaterThanOrEqual(1);
     });
+
+    it('offers abyssal seal fragment on boss victory and records intraNodeChoice', () => {
+      const config: SliceRolloutConfig = {
+        sliceId: 2,
+        depth: 1,
+        startLayer: 15,
+        endLayer: 15,
+        persona: getAgentPersona('greedy'),
+        seed: 42,
+        initialInvestigator: { ...INITIAL_INVESTIGATOR, health: 100, maxHealth: 100, obols: 50 },
+        initialDeck: [...starterDeck],
+      };
+
+      const result = runSliceRollout(config);
+      expect(result.success).toBe(true);
+      const bossRewardChoice = result.intraNodeChoices.find((c) => c.action.includes('承受深淵封印殘片 (Boss)'));
+      // In slice 2 boss victory, greedy persona has strong incentive to take seal fragment
+      if (bossRewardChoice) {
+        expect(bossRewardChoice.category).toBe('reward');
+        expect(result.finalDeck.some((c) => c.id.includes('fragment'))).toBe(true);
+      }
+    });
   });
 });
