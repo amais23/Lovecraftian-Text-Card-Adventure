@@ -32,23 +32,25 @@ describe('ADR-0028 Custom Help Cursor System (--cursor-help)', () => {
       expect(cursorCss).toMatch(/url\(['"]?\/cursors\/madness-help\.png['"]?\)\s+10\s+10/);
     });
 
-    it('maps .relic-badge and .status-effect-badge to var(--cursor-help)', () => {
+    it('maps .relic-badge and .status-effect-badge to var(--cursor-help) in cursor.css global rule', () => {
       const cursorCss = fs.readFileSync(cursorCssPath, 'utf-8');
-      const combatCss = fs.readFileSync(combatCssPath, 'utf-8');
 
-      // Either in cursor.css as global rule or combat.css as element rule
-      const combinedCss = cursorCss + '\n' + combatCss;
-      expect(combinedCss).toMatch(/\.relic-badge[\s\S]*?cursor:\s*var\(--cursor-help\)/);
-      expect(combinedCss).toMatch(/\.status-effect-badge[\s\S]*?cursor:\s*var\(--cursor-help\)/);
+      // Global rule lives exclusively in cursor.css (single source of truth per ADR-0028 §3).
+      // The rule uses var(--cursor-help, help) — ", help" is the native cascade fallback.
+      expect(cursorCss).toMatch(/\.relic-badge[\s\S]*?cursor:\s*var\(--cursor-help,\s*help\)/);
+      expect(cursorCss).toMatch(/\.status-effect-badge[\s\S]*?cursor:\s*var\(--cursor-help,\s*help\)/);
     });
 
-    it('ensures no unthemed raw "cursor: help;" remains without var(--cursor-help) in combat.css', () => {
+    it('combat.css retains native "cursor: help" (overridden by cursor.css global cascade)', () => {
       const combatCss = fs.readFileSync(combatCssPath, 'utf-8');
-      // In combat.css, relic-badge and status-effect-badge should not have raw "cursor: help;"
-      expect(combatCss).not.toMatch(/\.relic-badge\s*\{[^}]*cursor:\s*help;/);
-      expect(combatCss).not.toMatch(/\.status-effect-badge\s*\{[^}]*cursor:\s*help;/);
-      expect(combatCss).not.toMatch(/\.enemy-trait-badge\s*\{[^}]*cursor:\s*help;/);
-      expect(combatCss).not.toMatch(/\.shoggoth-stance-badge\s*\{[^}]*cursor:\s*help;/);
+      // Per ADR-0028 §3: existing class selectors must not be modified.
+      // combat.css keeps browser-native "cursor: help" on individual badges;
+      // cursor.css global rule cascades over it (same specificity, later source).
+      // Confirm combat.css does NOT contain the CSS variable form — only cursor.css owns that.
+      expect(combatCss).not.toMatch(/\.relic-badge\s*\{[^}]*cursor:\s*var\(--cursor-help/);
+      expect(combatCss).not.toMatch(/\.status-effect-badge\s*\{[^}]*cursor:\s*var\(--cursor-help/);
+      expect(combatCss).not.toMatch(/\.enemy-trait-badge\s*\{[^}]*cursor:\s*var\(--cursor-help/);
+      expect(combatCss).not.toMatch(/\.shoggoth-stance-badge\s*\{[^}]*cursor:\s*var\(--cursor-help/);
     });
   });
 

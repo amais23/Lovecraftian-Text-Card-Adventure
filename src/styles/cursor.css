@@ -111,14 +111,16 @@ summary,
   cursor: var(--cursor-grabbing) !important;
 }
 
-/* Information inspection & Help (ADR-0028) */
+/* Information inspection & Help (ADR-0028)
+   Single source of truth — overrides the browser-native "cursor: help" set on
+   individual badges in combat.css via cascade (same specificity, later source). */
 .relic-badge,
 .status-effect-badge,
 .enemy-trait-badge,
 .shoggoth-stance-badge,
 .cursor-help,
 [data-cursor="help"] {
-  cursor: var(--cursor-help);
+  cursor: var(--cursor-help, help);
 }
 
 /* Disabled & Not-allowed states */
