@@ -9,3 +9,4 @@ export * from './balanceSampler';
 export * from './mapElitesOptimizer';
 export * from './agentPersona';
 export * from './sliceRollout';
+export * from './journeyScheduler';
