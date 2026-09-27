@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { resolveMythosEvent } from './eventResolver';
+import { resolveMythosEvent, applyMythosResult } from './eventResolver';
 import type { MythosEventContext } from './types';
-import type { Investigator, Card, MythosEvent, MythosEventOption } from '../../types/game';
+import type { Investigator, Card, MythosEvent, MythosEventOption, GameState } from '../../types/game';
 import { DEFAULT_HAND_CAPACITY } from '../combat';
 
 // ────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function makeCtx(overrides: Partial<MythosEventContext> = {}): MythosEventContex
 // ────────────────────────────────────────────────────────────
 
 describe('resolveMythosEvent — health_change', () => {
-  it('加血量不超過 maxHealth', () => {
+  it('增加生命值不超過 maxHealth', () => {
     const event = makeEvent([{
       id: 'opt1',
       text: '選項一',
@@ -352,14 +352,39 @@ describe('resolveMythosEvent — trigger_combat', () => {
       expect(DEFAULT_HAND_CAPACITY).toBe(2);
     }
   });
+
+  it('未顯式指定 ctx.occupationId 時，回退採用 ctx.investigator.occupationId', () => {
+    const enemy = {
+      id: 'enemy_ghoul',
+      name: '食屍鬼',
+      title: '陰暗潛伏者',
+      health: 30,
+      maxHealth: 30,
+      armor: 0,
+      currentIntent: { type: 'attack' as const, value: 6, name: '爪擊', description: '' },
+    };
+    const event = makeEvent([{
+      id: 'opt1',
+      text: '選項一',
+      consequences: [{ type: 'trigger_combat', enemy, narrative: '遭遇敵人！' }],
+    }]);
+    const ctx = makeCtx({
+      investigator: makeInvestigator({ occupationId: 'occultist' }),
+      occupationId: undefined,
+    });
+
+    const result = resolveMythosEvent(event, event.options[0], ctx);
+
+    expect(result.outcome).toBe('combat');
+  });
 });
 
 // ────────────────────────────────────────────────────────────
-// 7. 古金幣不足守門
+// 7. 選項前置條件（前置守門由呼叫端負責）
 // ────────────────────────────────────────────────────────────
 
-describe('resolveMythosEvent — 守門：古金幣不足', () => {
-  it('古金幣不足時拋出錯誤，呼叫方負責在執行前檢查', () => {
+describe('resolveMythosEvent — 選項前置條件', () => {
+  it('選項包含 requires.obols 時由呼叫端前置守門，傳入後正常解析', () => {
     // eventResolver 本身不做守門（守門由 reducer 負責），
     // 此測試確認 resolver 不會靜默略過有 requires.obols 的選項
     // 故意構造後果清單為空（選項通過但無後果），確認 resolved 正常回傳
@@ -425,5 +450,105 @@ describe('resolveMythosEvent — 複合後果', () => {
 
     expect(result.logs).toContain('第一行敘事。');
     expect(result.logs).toContain('第二行敘事。');
+  });
+});
+
+// ────────────────────────────────────────────────────────────
+// 9. applyMythosResult
+// ────────────────────────────────────────────────────────────
+
+function makeMockGameState(overrides: Partial<GameState> = {}): GameState {
+  return {
+    phase: 'event',
+    turn: 1,
+    currentEvent: makeEvent([]),
+    investigator: makeInvestigator(),
+    sanityDeck: [makeCard('s1')],
+    hand: [makeCard('h1')],
+    discardPile: [makeCard('d1')],
+    exhaustPile: [],
+    relics: [],
+    adventureStats: { enemiesDefeated: 0, totalObolsCollected: 0, nodesVisited: 0, maxLayer: 0 },
+    battleLog: ['起始日誌'],
+    isMadness: false,
+    cardsPlayedThisTurn: 0,
+    ...overrides,
+  } as unknown as GameState;
+}
+
+describe('applyMythosResult', () => {
+  it('defeat 終局：進入 gameover 階段，保留 updatedEvent 與 adventureStats 並前置 logs', () => {
+    const state = makeMockGameState();
+    const defeatResult = {
+      outcome: 'defeat' as const,
+      investigator: makeInvestigator({ health: 0 }),
+      updatedEvent: makeEvent([]),
+      adventureStats: { enemiesDefeated: 0, totalObolsCollected: 10, nodesVisited: 1, maxLayer: 1 },
+      logs: ['【肉體殞命】調查員在奇遇事件中傷重不治！'],
+    };
+
+    const nextState = applyMythosResult(state, defeatResult);
+
+    expect(nextState.phase).toBe('gameover');
+    expect(nextState.investigator.health).toBe(0);
+    expect(nextState.adventureStats.totalObolsCollected).toBe(10);
+    expect(nextState.battleLog[0]).toBe('【肉體殞命】調查員在奇遇事件中傷重不治！');
+    expect(nextState.battleLog[1]).toBe('起始日誌');
+  });
+
+  it('combat 終局：進入 combat 階段，轉移敵人與手牌牌庫，重置戰鬥暫態', () => {
+    const state = makeMockGameState();
+    const enemy = {
+      id: 'enemy_ghoul',
+      name: '食屍鬼',
+      title: '陰暗潛伏者',
+      health: 30,
+      maxHealth: 30,
+      armor: 0,
+      currentIntent: { type: 'attack' as const, value: 6, name: '爪擊', description: '' },
+    };
+    const combatResult = {
+      outcome: 'combat' as const,
+      investigator: makeInvestigator({ armor: 0, stamina: 3, health: 18 }),
+      sanityDeck: [makeCard('c1')],
+      hand: [makeCard('c2')],
+      discardPile: [],
+      enemy,
+      adventureStats: { enemiesDefeated: 0, totalObolsCollected: 5, nodesVisited: 1, maxLayer: 1 },
+      logs: ['進入戰鬥！'],
+    };
+
+    const nextState = applyMythosResult(state, combatResult);
+
+    expect(nextState.phase).toBe('combat');
+    expect(nextState.turn).toBe(1);
+    expect(nextState.currentEnemy?.id).toBe('enemy_ghoul');
+    expect(nextState.currentEvent).toBeUndefined();
+    expect(nextState.combatInitialHealth).toBe(18);
+    expect(nextState.cardsPlayedThisTurn).toBe(0);
+    expect(nextState.hand).toHaveLength(1);
+    expect(nextState.sanityDeck).toHaveLength(1);
+    expect(nextState.discardPile).toHaveLength(0);
+  });
+
+  it('resolved 終局：維持原階段，套用更新後的卡牌堆、調查員與事件快照', () => {
+    const state = makeMockGameState({ phase: 'event' });
+    const resolvedResult = {
+      outcome: 'resolved' as const,
+      investigator: makeInvestigator({ obols: 25 }),
+      sanityDeck: [makeCard('s1'), makeCard('s2')],
+      hand: [makeCard('h1')],
+      discardPile: [makeCard('d1')],
+      updatedEvent: makeEvent([]),
+      adventureStats: { enemiesDefeated: 0, totalObolsCollected: 15, nodesVisited: 2, maxLayer: 1 },
+      logs: ['一般結算敘事。'],
+    };
+
+    const nextState = applyMythosResult(state, resolvedResult);
+
+    expect(nextState.phase).toBe('event');
+    expect(nextState.investigator.obols).toBe(25);
+    expect(nextState.sanityDeck).toHaveLength(2);
+    expect(nextState.battleLog[0]).toBe('一般結算敘事。');
   });
 });

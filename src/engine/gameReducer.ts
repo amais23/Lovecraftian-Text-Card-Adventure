@@ -50,6 +50,7 @@ import {
 } from './nodes';
 import {
   resolveMythosEvent,
+  applyMythosResult,
   type MythosEventContext,
 } from './events';
 import {
@@ -616,45 +617,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       if (mythosResult.outcome === 'defeat') {
         saveFallenInvestigatorFromState(state, `於奇遇【${state.currentEvent.title}】中傷重不治`);
-        return {
-          ...state,
-          phase: 'gameover',
-          investigator: mythosResult.investigator,
-          currentEvent: mythosResult.updatedEvent,
-          adventureStats: mythosResult.adventureStats,
-          battleLog: [...mythosResult.logs, ...state.battleLog],
-        };
       }
 
-      if (mythosResult.outcome === 'combat') {
-        return {
-          ...state,
-          phase: 'combat',
-          turn: 1,
-          investigator: mythosResult.investigator,
-          sanityDeck: mythosResult.sanityDeck,
-          hand: mythosResult.hand,
-          discardPile: [],
-          isMadness: false,
-          currentEnemy: mythosResult.enemy,
-          currentEvent: undefined,
-          adventureStats: mythosResult.adventureStats,
-          battleLog: [...mythosResult.logs, ...state.battleLog],
-          combatInitialHealth: mythosResult.investigator.health,
-          cardsPlayedThisTurn: 0,
-        };
-      }
-
-      return {
-        ...state,
-        investigator: mythosResult.investigator,
-        sanityDeck: mythosResult.sanityDeck,
-        hand: mythosResult.hand,
-        discardPile: mythosResult.discardPile,
-        currentEvent: mythosResult.updatedEvent,
-        adventureStats: mythosResult.adventureStats,
-        battleLog: [...mythosResult.logs, ...state.battleLog],
-      };
+      return applyMythosResult(state, mythosResult);
     }
 
     case 'COMPLETE_EVENT': {

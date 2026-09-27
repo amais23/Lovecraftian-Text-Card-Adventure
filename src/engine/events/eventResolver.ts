@@ -1,4 +1,4 @@
-import type { Card, Enemy, MythosEvent, MythosEventOption } from '../../types/game';
+import type { Card, Enemy, GameState, MythosEvent, MythosEventOption } from '../../types/game';
 import { applyRelicToInvestigator } from '../relics';
 import { cloneEnemy } from '../enemyCatalog';
 import { INITIAL_GHOUL } from '../initialData';
@@ -138,9 +138,10 @@ export function resolveMythosEvent(
   if (triggerCombatEnemy) {
     const currentCards = [...sanityDeck, ...hand, ...discardPile];
     const handCapacity = investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+    const effectiveOccupation = occupationId ?? ctx.investigator.occupationId ?? 'investigator';
     const { hand: combatHand, sanityDeck: combatSanityDeck } = setupCombatDeck(
       currentCards,
-      occupationId ?? 'investigator',
+      effectiveOccupation,
       shuffledDeck,
       handCapacity,
     );
@@ -171,6 +172,59 @@ export function resolveMythosEvent(
     updatedEvent,
     adventureStats: updatedStats,
     logs,
+  };
+}
+
+/**
+ * 套用秘識奇遇結果至 GameState（純函數狀態轉換）
+ *
+ * 根據 MythosResult 的三種互斥終局（defeat, combat, resolved），
+ * 將更新後的狀態欄位合併至當前 GameState。
+ * 注意：外部持久化副作用（如 saveFallenInvestigatorFromState）由呼叫端於套用前處理。
+ */
+export function applyMythosResult(
+  state: GameState,
+  result: MythosResult,
+): GameState {
+  if (result.outcome === 'defeat') {
+    return {
+      ...state,
+      phase: 'gameover',
+      investigator: result.investigator,
+      currentEvent: result.updatedEvent,
+      adventureStats: result.adventureStats,
+      battleLog: [...result.logs, ...state.battleLog],
+    };
+  }
+
+  if (result.outcome === 'combat') {
+    return {
+      ...state,
+      phase: 'combat',
+      turn: 1,
+      investigator: result.investigator,
+      sanityDeck: result.sanityDeck,
+      hand: result.hand,
+      discardPile: result.discardPile,
+      isMadness: false,
+      currentEnemy: result.enemy,
+      currentEvent: undefined,
+      adventureStats: result.adventureStats,
+      battleLog: [...result.logs, ...state.battleLog],
+      combatInitialHealth: result.investigator.health,
+      cardsPlayedThisTurn: 0,
+    };
+  }
+
+  return {
+    ...state,
+    investigator: result.investigator,
+    sanityDeck: result.sanityDeck,
+    hand: result.hand,
+    discardPile: result.discardPile,
+    currentEvent: result.updatedEvent,
+    adventureStats: result.adventureStats,
+    battleLog: [...result.logs, ...state.battleLog],
   };
 }
 
