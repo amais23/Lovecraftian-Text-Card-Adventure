@@ -262,15 +262,15 @@ class GroupMetricAccumulator {
   sanctuaryVisits = 0;
   bandagePicks = 0;
 
-  record(result: SliceRolloutResult, endHp: number, eliteVisits: number, sanctuaryVisits: number, bandagePicks: number): void {
+  record(result: SliceRolloutResult, endHp: number): void {
     this.count++;
     this.maxHpSum += result.investigator.maxHealth;
     this.endHpSum += endHp;
     this.deckSizeSum += result.finalDeck.length;
     this.relicsSum += result.finalRelics.length;
-    this.eliteVisits += eliteVisits;
-    this.sanctuaryVisits += sanctuaryVisits;
-    this.bandagePicks += bandagePicks;
+    this.eliteVisits += result.nodesVisited.filter((n) => n.type === 'elite').length;
+    this.sanctuaryVisits += result.nodesVisited.filter((n) => n.type === 'sanctuary').length;
+    this.bandagePicks += result.intraNodeChoices.filter((c) => c.action.includes('包紮')).length;
   }
 
   get avgMaxHp(): number { return this.count > 0 ? this.maxHpSum / this.count : 25; }
@@ -347,7 +347,7 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       pure_random: { entered: 0, completed: 0, combatLoss: 0, netLoss: 0 },
     };
 
-    // 1. 全 26 隻怪物追蹤器
+    // 1. 全 26 隻怪物追蹤器（以 depth_id 複合鍵避免跨深度同名怪碰撞）
     const monsterMap: Record<string, {
       m: MonsterReviewData;
       encounters: number;
@@ -358,7 +358,8 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       turnsSum: number;
     }> = {};
     for (const m of allMonstersList) {
-      monsterMap[m.id] = {
+      const key = `${m.depth}_${m.id}`;
+      monsterMap[key] = {
         m,
         encounters: 0,
         kills: 0,
@@ -529,7 +530,8 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
 
       // 累加怪物遭遇
       for (const combat of result.combatRecords) {
-        const mTracker = monsterMap[combat.enemyId];
+        const key = `${combat.depth}_${combat.enemyId}`;
+        const mTracker = monsterMap[key];
         if (mTracker) {
           mTracker.encounters++;
           mTracker.hpLossSum += combat.healthLost;
@@ -617,17 +619,13 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       }
 
       // 累加存活組 vs 陣亡組分析
-      const eliteVisits = result.nodesVisited.filter((n) => n.type === 'elite').length;
-      const sanctuaryVisits = result.nodesVisited.filter((n) => n.type === 'sanctuary').length;
-      const bandagePicks = result.intraNodeChoices.filter((c) => c.action.includes('包紮')).length;
-
       if (result.success && result.investigator.health > 0) {
         completedCount++;
         personaStats[personaType].completed++;
         sumFinalHp += result.investigator.health;
         sumFinalDeckSize += result.finalDeck.length;
 
-        survivingGroup.record(result, result.investigator.health, eliteVisits, sanctuaryVisits, bandagePicks);
+        survivingGroup.record(result, result.investigator.health);
 
         // 存活者匯入下一切片的全域混合存活池
         nextPool.add({
@@ -640,7 +638,7 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
           sourcePersona: personaType,
         });
       } else {
-        fallenGroup.record(result, 0, eliteVisits, sanctuaryVisits, bandagePicks);
+        fallenGroup.record(result, 0);
 
         if (result.fatalEncounter) {
           const monsterName = result.fatalEncounter.enemyName ?? '未知強敵';
@@ -717,7 +715,8 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
     // 1. 全 26 隻敵怪分別獨立統計資料
     const totalEncountersInSlice = Object.values(monsterMap).reduce((acc, m) => acc + m.encounters, 0);
     const monstersResult: MonsterSliceMetrics[] = allMonstersList.map((m) => {
-      const t = monsterMap[m.id];
+      const key = `${m.depth}_${m.id}`;
+      const t = monsterMap[key];
       const enc = t.encounters;
       const meanHp = enc > 0 ? t.hpLossSum / enc : 0;
       const medianHp = computeMedian(t.hpLosses);
@@ -843,51 +842,51 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
     });
 
     // 6. 存活組 vs 陣亡組全維度客觀對比
-    const sMaxHp = survivingGroup.avgMaxHp;
-    const fMaxHp = fallenGroup.avgMaxHp;
-    const sDeck = survivingGroup.avgDeckSize;
-    const fDeck = fallenGroup.avgDeckSize;
-    const sRelics = survivingGroup.avgRelics;
-    const fRelics = fallenGroup.avgRelics;
-    const sElite = survivingGroup.avgEliteVisits;
-    const fElite = fallenGroup.avgEliteVisits;
-    const sSanc = survivingGroup.avgSanctuaryVisits;
-    const fSanc = fallenGroup.avgSanctuaryVisits;
+    const survivingMaxHp = survivingGroup.avgMaxHp;
+    const fallenMaxHp = fallenGroup.avgMaxHp;
+    const survivingDeckSize = survivingGroup.avgDeckSize;
+    const fallenDeckSize = fallenGroup.avgDeckSize;
+    const survivingRelicsCount = survivingGroup.avgRelics;
+    const fallenRelicsCount = fallenGroup.avgRelics;
+    const survivingEliteVisits = survivingGroup.avgEliteVisits;
+    const fallenEliteVisits = fallenGroup.avgEliteVisits;
+    const survivingSanctuaryVisits = survivingGroup.avgSanctuaryVisits;
+    const fallenSanctuaryVisits = fallenGroup.avgSanctuaryVisits;
 
     const groupComparisonResult: GroupComparisonMetrics[] = [
       {
         dimension: '平均最大生命值',
-        survivingValue: `${sMaxHp.toFixed(1)} 生命值`,
-        fallenValue: `${fMaxHp.toFixed(1)} 生命值`,
-        delta: `${sMaxHp - fMaxHp >= 0 ? '+' : ''}${(sMaxHp - fMaxHp).toFixed(1)} 生命值`,
+        survivingValue: `${survivingMaxHp.toFixed(1)} 生命值`,
+        fallenValue: `${fallenMaxHp.toFixed(1)} 生命值`,
+        delta: `${survivingMaxHp - fallenMaxHp >= 0 ? '+' : ''}${(survivingMaxHp - fallenMaxHp).toFixed(1)} 生命值`,
         note: '高生命上限提供容錯護城河',
       },
       {
         dimension: '平均理智牌庫大小 (Deck Size)',
-        survivingValue: `${sDeck.toFixed(1)} 張`,
-        fallenValue: `${fDeck.toFixed(1)} 張`,
-        delta: `${sDeck - fDeck >= 0 ? '+' : ''}${(sDeck - fDeck).toFixed(1)} 張`,
+        survivingValue: `${survivingDeckSize.toFixed(1)} 張`,
+        fallenValue: `${fallenDeckSize.toFixed(1)} 張`,
+        delta: `${survivingDeckSize - fallenDeckSize >= 0 ? '+' : ''}${(survivingDeckSize - fallenDeckSize).toFixed(1)} 張`,
         note: '過厚牌庫稀釋抽到關鍵防禦牌的機率',
       },
       {
         dimension: '平均持有舊日遺物數 (Relics)',
-        survivingValue: `${sRelics.toFixed(1)} 件`,
-        fallenValue: `${fRelics.toFixed(1)} 件`,
-        delta: `${sRelics - fRelics >= 0 ? '+' : ''}${(sRelics - fRelics).toFixed(1)} 件`,
+        survivingValue: `${survivingRelicsCount.toFixed(1)} 件`,
+        fallenValue: `${fallenRelicsCount.toFixed(1)} 件`,
+        delta: `${survivingRelicsCount - fallenRelicsCount >= 0 ? '+' : ''}${(survivingRelicsCount - fallenRelicsCount).toFixed(1)} 件`,
         note: '被動遺物持續提供數值優勢',
       },
       {
         dimension: '節點造訪: 精英遭遇平均次數',
-        survivingValue: `${sElite.toFixed(1)} 次`,
-        fallenValue: `${fElite.toFixed(1)} 次`,
-        delta: `${sElite - fElite >= 0 ? '+' : ''}${(sElite - fElite).toFixed(1)} 次`,
+        survivingValue: `${survivingEliteVisits.toFixed(1)} 次`,
+        fallenValue: `${fallenEliteVisits.toFixed(1)} 次`,
+        delta: `${survivingEliteVisits - fallenEliteVisits >= 0 ? '+' : ''}${(survivingEliteVisits - fallenEliteVisits).toFixed(1)} 次`,
         note: '頻繁挑釁精英怪顯著抬升暴斃風險',
       },
       {
         dimension: '節點造訪: 避難所平均次數',
-        survivingValue: `${sSanc.toFixed(1)} 次`,
-        fallenValue: `${fSanc.toFixed(1)} 次`,
-        delta: `${sSanc - fSanc >= 0 ? '+' : ''}${(sSanc - fSanc).toFixed(1)} 次`,
+        survivingValue: `${survivingSanctuaryVisits.toFixed(1)} 次`,
+        fallenValue: `${fallenSanctuaryVisits.toFixed(1)} 次`,
+        delta: `${survivingSanctuaryVisits - fallenSanctuaryVisits >= 0 ? '+' : ''}${(survivingSanctuaryVisits - fallenSanctuaryVisits).toFixed(1)} 次`,
         note: '避難所包紮與除役是續航核心關鍵',
       },
     ];

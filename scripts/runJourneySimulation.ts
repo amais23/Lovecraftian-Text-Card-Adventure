@@ -141,8 +141,6 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
 
   // 0. 7 切片橫向進程總覽表
   header('第零部分：7 切片橫向進程總覽表 (Seven-Slice Cross-Progression Summary)');
-  // 0. 7 切片橫向進程總覽表
-  header('第零部分：7 切片橫向進程總覽表 (Seven-Slice Cross-Progression Summary)');
   console.table(
     result.progression.map((s) => ({
       '切片編號與名稱': s.sliceDef.name,

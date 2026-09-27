@@ -100,4 +100,28 @@ describe('Full-Factor Objective Statistical Matrix Aggregation (ADR-0042 / Issue
     expect(starterCard).toBeDefined();
     expect(starterCard!.survOwnRate).toBeGreaterThanOrEqual(0);
   });
+
+  it('maintains independent monster metrics across depths when same enemyId appears in multiple depths', () => {
+    const result = runJourneySimulation({
+      samplesPerSlice: 8,
+      occupation: 'investigator',
+      seedBase: 777,
+    });
+
+    const slice1 = result.slices[1]; // Depth 1
+    const slice3 = result.slices[3]; // Depth 2
+
+    const d1Elder = slice1.monsters.find((m) => m.id === 'enemy_deep_one_elder' && m.depth === 1);
+    const d2Elder = slice1.monsters.find((m) => m.id === 'enemy_deep_one_elder' && m.depth === 2);
+
+    expect(d1Elder).toBeDefined();
+    expect(d2Elder).toBeDefined();
+    // Depth 2 elder in slice 1 should not have false encounters from depth 1 elder
+    expect(d2Elder!.encounters).toBe(0);
+
+    const d1ElderInSlice3 = slice3.monsters.find((m) => m.id === 'enemy_deep_one_elder' && m.depth === 1);
+    expect(d1ElderInSlice3).toBeDefined();
+    // Depth 1 elder in slice 3 should not have false encounters from depth 2 elder
+    expect(d1ElderInSlice3!.encounters).toBe(0);
+  });
 });

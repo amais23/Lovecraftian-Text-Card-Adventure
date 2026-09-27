@@ -150,5 +150,23 @@ describe('Single Slice 8-Floor Monte Carlo Rollout (ADR-0042 / Issue #87)', () =
         expect(result.finalDeck.some((c) => c.id.includes('fragment'))).toBe(true);
       }
     });
+
+    it('records altar_vs_sanctuary path choice when fork contains forbidden altar and sanctuary', () => {
+      const config: SliceRolloutConfig = {
+        sliceId: 1,
+        depth: 1,
+        startLayer: 0,
+        endLayer: 7,
+        persona: getAgentPersona('cautious'),
+        seed: 9, // seed 9 generates an altar vs sanctuary fork
+      };
+
+      const result = runSliceRollout(config);
+      const altarSanctuaryChoice = result.pathChoices.find((p) => p.pair === 'altar_vs_sanctuary');
+      expect(altarSanctuaryChoice).toBeDefined();
+      expect(altarSanctuaryChoice?.choiceA).toBe('禁忌祭壇');
+      expect(altarSanctuaryChoice?.choiceB).toBe('安全避難所');
+      expect(typeof altarSanctuaryChoice?.pickedA).toBe('boolean');
+    });
   });
 });

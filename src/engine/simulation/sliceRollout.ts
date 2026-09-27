@@ -697,6 +697,14 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
             choiceB: '秘識奇遇',
             pickedA: nextNode.type === 'market',
           });
+        } else if (types.includes('altar') && types.includes('sanctuary')) {
+          pathChoices.push({
+            pair: 'altar_vs_sanctuary',
+            label: '【禁忌祭壇 vs 安全避難所】',
+            choiceA: '禁忌祭壇',
+            choiceB: '安全避難所',
+            pickedA: nextNode.type === 'altar',
+          });
         }
       }
 

@@ -35,12 +35,12 @@ Accepted（補充 ADR-0036 正交戰鬥平衡模擬、ADR-0022 深度 16 層 DAG
 將橫跨 4 個調查深度的完整冒險歷程，以每 8 層為單位劃分為 7 個標準「調查切片（Investigation Slice）」：
 
 - **Slice 1**: Depth 1 前階 (Floor 0 ~ 7，開局探索)
-- **Slice 2**: Depth 1 後階 (Floor 8 ~ 15，第一深度決戰，守關首領：達貢眷族主教)
+- **Slice 2**: Depth 1 後階 (Floor 8 ~ 15，第一深度決戰，守關首領：修格斯幼體)
 - **Slice 3**: Depth 2 前階 (Floor 0 ~ 7，深潛者潮汐滲透)
-- **Slice 4**: Depth 2 後階 (Floor 8 ~ 15，第二深度決戰，守關首領：達貢巨型神眷)
+- **Slice 4**: Depth 2 後階 (Floor 8 ~ 15，第二深度決戰，守關首領：大袞的深淵祭司)
 - **Slice 5**: Depth 3 前階 (Floor 0 ~ 7，修格斯原核異界)
 - **Slice 6**: Depth 3 後階 (Floor 8 ~ 15，第三深度決戰，守關首領：原生巨型修格斯)
-- **Slice 7**: Depth 4 深淵核心 (Floor 0 ~ 7，終極支配者對決，守關首領：舊日支配者化身)
+- **Slice 7**: Depth 4 深淵核心 (Floor 0 ~ 7，終極支配者對決，守關首領：克蘇魯星之眷族)
 
 每個切片長度嚴格限制為 8 層，徹底消除整趟長征的跨深度組合膨脹。
 
@@ -117,7 +117,7 @@ Accepted（補充 ADR-0036 正交戰鬥平衡模擬、ADR-0022 深度 16 層 DAG
   - `progression`: 7 切片宏觀進程陣列。
   - `slices[sliceId]`: 各切片二級物件（含 `personas`、`monsters`、`deckSizes`、`pathChoices`、`intraNodeChoices`、`cards`、`groupComparison`）。
 - **CLI 終端互動**：
-  - `npm run sim:journey`（或原型 `npm run prototype:journey`）：輸出宏觀總覽與當前切片明細。
+  - `npm run sim:journey`：輸出宏觀總覽與當前切片明細。
   - `--slice <1-7>`：切換切片明細。
   - `--all-monsters` / `--all-cards`：展開全量 26 隻怪物或 73 張卡牌大表。
 - **DevMode 審查室整合 ([CardReviewLab.tsx](file:///Users/sandbox1/Documents/文字冒險遊戲/src/components/CardReviewLab.tsx))**：
