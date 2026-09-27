@@ -4384,7 +4384,7 @@
   font-size: clamp(0.68rem, 1.1dvh, 0.75rem);
   font-family: var(--font-title);
   font-weight: 600;
-  cursor: help;
+  cursor: var(--cursor-help, help);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
 }
@@ -4452,7 +4452,7 @@
   border-radius: var(--radius-sm);
   font-size: clamp(0.68rem, 1.1dvh, 0.76rem);
   font-family: var(--font-title);
-  cursor: help;
+  cursor: var(--cursor-help, help);
   user-select: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -5652,7 +5652,7 @@
   border-radius: 12px;
   font-size: 0.72rem;
   font-family: var(--font-title);
-  cursor: help;
+  cursor: var(--cursor-help, help);
   transition: all 0.2s ease;
   box-shadow: 0 0 6px rgba(171, 71, 188, 0.2);
 }
@@ -5680,7 +5680,7 @@
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 700;
-  cursor: help;
+  cursor: var(--cursor-help, help);
 }
 
 .shoggoth-stance-badge.charging {

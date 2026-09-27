@@ -29,6 +29,11 @@
                         image-set(url('/cursors/disabled.png') 1x, url('/cursors/@2x/disabled.png') 2x) 16 16,
                         url('/cursors/disabled.png') 16 16,
                         not-allowed;
+
+  --cursor-help: -webkit-image-set(url('/cursors/help.png') 1x, url('/cursors/@2x/help.png') 2x) 10 10,
+                 image-set(url('/cursors/help.png') 1x, url('/cursors/@2x/help.png') 2x) 10 10,
+                 url('/cursors/help.png') 10 10,
+                 help;
 }
 
 :root[data-sanity-state="madness"] {
@@ -56,6 +61,11 @@
                         image-set(url('/cursors/madness-disabled.png') 1x, url('/cursors/@2x/madness-disabled.png') 2x) 16 16,
                         url('/cursors/madness-disabled.png') 16 16,
                         not-allowed;
+
+  --cursor-help: -webkit-image-set(url('/cursors/madness-help.png') 1x, url('/cursors/@2x/madness-help.png') 2x) 10 10,
+                 image-set(url('/cursors/madness-help.png') 1x, url('/cursors/@2x/madness-help.png') 2x) 10 10,
+                 url('/cursors/madness-help.png') 10 10,
+                 help;
 }
 
 /* Global root cursor */
@@ -101,6 +111,16 @@ summary,
   cursor: var(--cursor-grabbing) !important;
 }
 
+/* Information inspection & Help (ADR-0028) */
+.relic-badge,
+.status-effect-badge,
+.enemy-trait-badge,
+.shoggoth-stance-badge,
+.cursor-help,
+[data-cursor="help"] {
+  cursor: var(--cursor-help);
+}
+
 /* Disabled & Not-allowed states */
 :disabled,
 [disabled],
@@ -112,3 +132,4 @@ summary,
 .end-turn-btn.discarding {
   cursor: var(--cursor-not-allowed) !important;
 }
+
