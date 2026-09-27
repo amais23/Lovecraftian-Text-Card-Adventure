@@ -143,4 +143,20 @@ describe('JourneyHeatmapDashboard - ADR-0042 Slice 4 Visualization (Issue #90)',
     expect(screen.getByText(/尚無全地圖數值模擬資料/i)).toBeDefined();
     expect(screen.getByText(/npm run sim:journey/i)).toBeDefined();
   });
+
+  it('strictly adheres to CONTEXT.md domain language: uses 生命值 and contains zero HP abbreviations in UI', () => {
+    const { container } = render(<JourneyHeatmapDashboard />);
+
+    // Verify domain term is present
+    expect(screen.getAllByText(/生命值/i).length).toBeGreaterThan(0);
+
+    // Verify no bare HP abbreviation exists in DOM text
+    expect(container.innerHTML).not.toMatch(/\bHP\b/);
+
+    // Switch to global overview and verify
+    const overviewBtn = screen.getByRole('button', { name: /全程 7 切片宏觀總覽/i });
+    fireEvent.click(overviewBtn);
+    expect(container.innerHTML).not.toMatch(/\bHP\b/);
+    expect(screen.getByText(/末均生命值/i)).toBeDefined();
+  });
 });

@@ -1,4 +1,5 @@
 import type { Card, Investigator, MapNode, MythosEvent, MythosEventOption } from '../../types/game';
+import { CardRegistry } from '../cards/registry';
 
 export type AgentPersonaType = 'balanced' | 'cautious' | 'greedy' | 'pure_random';
 
@@ -6,31 +7,72 @@ export interface AgentPersona {
   type: AgentPersonaType;
   name: string;
   description: string;
-  /** 生命值警戒門檻 (0 ~ 1，當 HP / maxHealth 低於此比值時強烈傾向回復生命) */
+  /** 生命值警戒門檻 (0 ~ 1，當生命值比值低於此門檻時強烈傾向回復生命) */
   healthAlertThreshold: number;
   /** 拿牌與除役偏好 */
   deckTendency: 'balanced' | 'survival' | 'streamline' | 'random';
+}
+
+/**
+ * 判斷卡牌是否具備生存防禦/回復性質 (涵蓋護甲、治療效果或防護標籤)
+ */
+export function isSurvivalCard(card?: Card): boolean {
+  if (!card) return false;
+  if (card.effects?.some((e) => e.type === 'armor' || e.type === 'heal')) {
+    return true;
+  }
+  const id = card.id.toLowerCase();
+  return (
+    id.includes('first_aid') ||
+    id.includes('defend') ||
+    id.includes('breakwater') ||
+    id.includes('astral_ward') ||
+    id.includes('heal') ||
+    id.includes('armor')
+  );
+}
+
+/**
+ * 判斷卡牌是否為基礎初始牌 (涵蓋私家偵探與秘術學者之初始牌庫原型)
+ */
+export function isBasicStarterCard(card?: Card): boolean {
+  if (!card) return false;
+  const canonicalId = card.id.replace(/_copy_\d+$/, '');
+  const starterIds = new Set<string>([
+    ...CardRegistry.getStarterDeck('investigator').map((c) => c.id.replace(/_copy_\d+$/, '')),
+    ...CardRegistry.getStarterDeck('occultist').map((c) => c.id.replace(/_copy_\d+$/, '')),
+  ]);
+  if (starterIds.has(canonicalId)) {
+    return true;
+  }
+  return (
+    card.name.includes('打擊') ||
+    card.name.includes('防禦') ||
+    card.name.includes('靈能衝擊') ||
+    card.name.includes('厄運凝視') ||
+    card.name.includes('星界庇護')
+  );
 }
 
 export const AGENT_PERSONAS: Record<AgentPersonaType, AgentPersona> = {
   balanced: {
     type: 'balanced',
     name: '常態平衡型',
-    description: '理性權衡，中度生命門檻（HP≤45%時回血），綜合考量卡牌強度評分與牌庫厚度。',
+    description: '理性權衡，中度生命門檻（生命值≤45%時回血），綜合考量卡牌強度評分與牌庫厚度。',
     healthAlertThreshold: 0.45,
     deckTendency: 'balanced',
   },
   cautious: {
     type: 'cautious',
     name: '生存謹慎型',
-    description: '保命至上，高度生命門檻（HP≤65%時全力回血），避開精英與高危祭壇，偏好防禦與治療。',
+    description: '保命至上，高度生命門檻（生命值≤65%時全力回血），避開精英與高危祭壇，偏好防禦與治療。',
     healthAlertThreshold: 0.65,
     deckTendency: 'survival',
   },
   greedy: {
     type: 'greedy',
     name: '貪婪構築型',
-    description: '極致構築，低度生命門檻（HP≤25%才回血），優先除役初始普通牌、搶購強力遺物與高階卡。',
+    description: '極致構築，低度生命門檻（生命值≤25%才回血），優先除役初始普通牌、搶購強力遺物與高階卡。',
     healthAlertThreshold: 0.25,
     deckTendency: 'streamline',
   },
@@ -128,14 +170,13 @@ export function evaluateRewardChoice(
       } else if (opt.type === 'card') {
         const card = opt.card;
         const tier = card?.tier ?? 1;
-        const isSurvivalCard =
-          card?.id.includes('first_aid') || card?.id.includes('defend') || card?.id.includes('breakwater');
+        const isSurvival = isSurvivalCard(card);
 
         if (persona.type === 'greedy') {
           // 貪婪型極度偏好 Tier 2+ 高階卡，對 Tier 1 基礎卡興趣缺缺
           weight = tier >= 3 ? 60 : tier === 2 ? 35 : 5;
         } else if (persona.type === 'cautious') {
-          weight = isSurvivalCard ? 25 : 12;
+          weight = isSurvival ? 25 : 12;
           if (isAlert) weight *= 0.3; // 瀕危時抓牌慾望下降
         } else {
           // 平衡型
@@ -201,7 +242,7 @@ export function evaluateSanctuaryChoice(
         }
       } else if (opt.action === 'purge') {
         const targetCard = sanityDeck.find((c) => c.id === opt.cardId);
-        const isBasicCard = targetCard?.name.includes('打擊') || targetCard?.name.includes('防禦');
+        const isBasicCard = isBasicStarterCard(targetCard);
 
         if (persona.type === 'greedy') {
           // 貪婪型優先除役初始白板卡以精簡牌庫

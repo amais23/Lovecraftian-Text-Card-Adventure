@@ -33,12 +33,12 @@ export interface SliceDefinition {
 
 export const SLICE_DEFINITIONS: SliceDefinition[] = [
   { id: 1, name: 'Slice 1: Depth 1 前階 (Floor 0~7)', depth: 1, startLayer: 0, endLayer: 7, role: '開局探索' },
-  { id: 2, name: 'Slice 2: Depth 1 後階 (Floor 8~15)', depth: 1, startLayer: 8, endLayer: 15, role: '第一深度決戰', bossName: '達貢眷族主教' },
+  { id: 2, name: 'Slice 2: Depth 1 後階 (Floor 8~15)', depth: 1, startLayer: 8, endLayer: 15, role: '第一深度決戰', bossName: '修格斯幼體' },
   { id: 3, name: 'Slice 3: Depth 2 前階 (Floor 0~7)', depth: 2, startLayer: 0, endLayer: 7, role: '深潛者潮汐滲透' },
-  { id: 4, name: 'Slice 4: Depth 2 後階 (Floor 8~15)', depth: 2, startLayer: 8, endLayer: 15, role: '第二深度決戰', bossName: '達貢巨型神眷' },
+  { id: 4, name: 'Slice 4: Depth 2 後階 (Floor 8~15)', depth: 2, startLayer: 8, endLayer: 15, role: '第二深度決戰', bossName: '大袞的深淵祭司' },
   { id: 5, name: 'Slice 5: Depth 3 前階 (Floor 0~7)', depth: 3, startLayer: 0, endLayer: 7, role: '修格斯原核異界' },
   { id: 6, name: 'Slice 6: Depth 3 後階 (Floor 8~15)', depth: 3, startLayer: 8, endLayer: 15, role: '第三深度決戰', bossName: '原生巨型修格斯' },
-  { id: 7, name: 'Slice 7: Depth 4 深淵核心 (Floor 0~7)', depth: 4, startLayer: 0, endLayer: 7, role: '終極支配者對決', bossName: '舊日支配者化身' },
+  { id: 7, name: 'Slice 7: Depth 4 深淵核心 (Floor 0~7)', depth: 4, startLayer: 0, endLayer: 7, role: '終極支配者對決', bossName: '克蘇魯星之眷族' },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ export interface DeckSizeSliceMetrics {
   mortality: number;
   madnessRate: number;
   avgTurns: number;
-  avgArmor: number;
+  avgArmor?: number;
 }
 
 export interface CardSliceMetrics {
@@ -174,6 +174,15 @@ export interface IntraNodeChoiceMetrics {
   deltaMortality: number;
 }
 
+export interface NodeVisitSliceMetrics {
+  type: string;
+  label: string;
+  visitCount: number;
+  visitRate: number;
+  meanHpLoss: number;
+  lethality: number;
+}
+
 export interface GroupComparisonMetrics {
   dimension: string;
   survivingValue: string;
@@ -211,6 +220,7 @@ export interface SliceSimulationSummary {
   cards: CardSliceMetrics[];
   pathChoices: PathChoiceMetrics[];
   intraNodeChoices: IntraNodeChoiceMetrics[];
+  nodeVisits?: NodeVisitSliceMetrics[];
   groupComparison: GroupComparisonMetrics[];
 }
 
@@ -240,6 +250,34 @@ export interface JourneySummaryJson {
   totalJourneyNetHpLoss: number;
   progression: SliceSimulationSummary[];
   slices: Record<number, SliceSimulationSummary>;
+}
+
+class GroupMetricAccumulator {
+  count = 0;
+  maxHpSum = 0;
+  endHpSum = 0;
+  deckSizeSum = 0;
+  relicsSum = 0;
+  eliteVisits = 0;
+  sanctuaryVisits = 0;
+  bandagePicks = 0;
+
+  record(result: SliceRolloutResult, endHp: number, eliteVisits: number, sanctuaryVisits: number, bandagePicks: number): void {
+    this.count++;
+    this.maxHpSum += result.investigator.maxHealth;
+    this.endHpSum += endHp;
+    this.deckSizeSum += result.finalDeck.length;
+    this.relicsSum += result.finalRelics.length;
+    this.eliteVisits += eliteVisits;
+    this.sanctuaryVisits += sanctuaryVisits;
+    this.bandagePicks += bandagePicks;
+  }
+
+  get avgMaxHp(): number { return this.count > 0 ? this.maxHpSum / this.count : 25; }
+  get avgDeckSize(): number { return this.count > 0 ? this.deckSizeSum / this.count : 12; }
+  get avgRelics(): number { return this.count > 0 ? this.relicsSum / this.count : 0; }
+  get avgEliteVisits(): number { return this.count > 0 ? this.eliteVisits / this.count : 0; }
+  get avgSanctuaryVisits(): number { return this.count > 0 ? this.sanctuaryVisits / this.count : 0; }
 }
 
 const STANDARD_PERSONAS: AgentPersonaType[] = ['balanced', 'cautious', 'greedy', 'pure_random'];
@@ -403,25 +441,20 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       deaths: number;
     }> = {};
 
-    // 6. 存活組 vs 陣亡組全維度累加器
-    const groupAcc = {
-      survivingCount: 0,
-      fallenCount: 0,
-      survivingMaxHpSum: 0,
-      fallenMaxHpSum: 0,
-      survivingEndHpSum: 0,
-      fallenEndHpSum: 0,
-      survivingDeckSizeSum: 0,
-      fallenDeckSizeSum: 0,
-      survivingRelicsSum: 0,
-      fallenRelicsSum: 0,
-      survivingEliteVisits: 0,
-      fallenEliteVisits: 0,
-      survivingSanctuaryVisits: 0,
-      fallenSanctuaryVisits: 0,
-      survivingBandagePicks: 0,
-      fallenBandagePicks: 0,
+    // 0. 節點造訪統計器
+    const nodeTypeStats: Record<string, { label: string; visits: number; hpLossSum: number; deaths: number }> = {
+      combat: { label: '常規遭遇 (Combat)', visits: 0, hpLossSum: 0, deaths: 0 },
+      elite: { label: '精英遭遇 (Elite)', visits: 0, hpLossSum: 0, deaths: 0 },
+      sanctuary: { label: '安全避難所 (Sanctuary)', visits: 0, hpLossSum: 0, deaths: 0 },
+      market: { label: '黑市商鋪 (Market)', visits: 0, hpLossSum: 0, deaths: 0 },
+      event: { label: '秘識奇遇 (Event)', visits: 0, hpLossSum: 0, deaths: 0 },
+      altar: { label: '禁忌祭壇 (Altar)', visits: 0, hpLossSum: 0, deaths: 0 },
+      boss: { label: '首領決戰 (Boss)', visits: 0, hpLossSum: 0, deaths: 0 },
     };
+
+    // 6. 存活組 vs 陣亡組全維度累加器
+    const survivingGroup = new GroupMetricAccumulator();
+    const fallenGroup = new GroupMetricAccumulator();
 
     let rolloutIndex = 0;
 
@@ -478,6 +511,23 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
 
       if (result.madnessTurnsTotal > 0) {
         sumMadnessTriggered++;
+      }
+
+      // 累加節點造訪與損害
+      for (const log of result.decisionLogs) {
+        const stats = nodeTypeStats[log.nodeType];
+        if (stats) {
+          stats.visits++;
+          if (log.deltaHp < 0) {
+            stats.hpLossSum += Math.abs(log.deltaHp);
+          }
+        }
+      }
+      if (!result.success && result.fatalEncounter) {
+        const lastNode = result.nodesVisited[result.nodesVisited.length - 1];
+        if (lastNode && nodeTypeStats[lastNode.type]) {
+          nodeTypeStats[lastNode.type].deaths++;
+        }
       }
 
       // 累加怪物遭遇
@@ -580,14 +630,7 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
         sumFinalHp += result.investigator.health;
         sumFinalDeckSize += result.finalDeck.length;
 
-        groupAcc.survivingCount++;
-        groupAcc.survivingMaxHpSum += result.investigator.maxHealth;
-        groupAcc.survivingEndHpSum += result.investigator.health;
-        groupAcc.survivingDeckSizeSum += result.finalDeck.length;
-        groupAcc.survivingRelicsSum += result.finalRelics.length;
-        groupAcc.survivingEliteVisits += eliteVisits;
-        groupAcc.survivingSanctuaryVisits += sanctuaryVisits;
-        groupAcc.survivingBandagePicks += bandagePicks;
+        survivingGroup.record(result, result.investigator.health, eliteVisits, sanctuaryVisits, bandagePicks);
 
         // 存活者匯入下一切片的全域混合存活池
         nextPool.add({
@@ -600,14 +643,7 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
           sourcePersona: personaType,
         });
       } else {
-        groupAcc.fallenCount++;
-        groupAcc.fallenMaxHpSum += result.investigator.maxHealth;
-        groupAcc.fallenEndHpSum += 0;
-        groupAcc.fallenDeckSizeSum += result.finalDeck.length;
-        groupAcc.fallenRelicsSum += result.finalRelics.length;
-        groupAcc.fallenEliteVisits += eliteVisits;
-        groupAcc.fallenSanctuaryVisits += sanctuaryVisits;
-        groupAcc.fallenBandagePicks += bandagePicks;
+        fallenGroup.record(result, 0, eliteVisits, sanctuaryVisits, bandagePicks);
 
         if (result.fatalEncounter) {
           const monsterName = result.fatalEncounter.enemyName ?? '未知強敵';
@@ -737,7 +773,6 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
         mortality: Math.round(mortality * 1000) / 1000,
         madnessRate: Math.round(madnessRate * 1000) / 1000,
         avgTurns: Math.round(avgTurns * 10) / 10,
-        avgArmor: 8.0,
       });
     }
 
@@ -811,25 +846,23 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
     });
 
     // 6. 存活組 vs 陣亡組全維度客觀對比
-    const sN = groupAcc.survivingCount;
-    const fN = groupAcc.fallenCount;
-    const sMaxHp = sN > 0 ? groupAcc.survivingMaxHpSum / sN : 25;
-    const fMaxHp = fN > 0 ? groupAcc.fallenMaxHpSum / fN : 25;
-    const sDeck = sN > 0 ? groupAcc.survivingDeckSizeSum / sN : 12;
-    const fDeck = fN > 0 ? groupAcc.fallenDeckSizeSum / fN : 12;
-    const sRelics = sN > 0 ? groupAcc.survivingRelicsSum / sN : 0;
-    const fRelics = fN > 0 ? groupAcc.fallenRelicsSum / fN : 0;
-    const sElite = sN > 0 ? groupAcc.survivingEliteVisits / sN : 0;
-    const fElite = fN > 0 ? groupAcc.fallenEliteVisits / fN : 0;
-    const sSanc = sN > 0 ? groupAcc.survivingSanctuaryVisits / sN : 0;
-    const fSanc = fN > 0 ? groupAcc.fallenSanctuaryVisits / fN : 0;
+    const sMaxHp = survivingGroup.avgMaxHp;
+    const fMaxHp = fallenGroup.avgMaxHp;
+    const sDeck = survivingGroup.avgDeckSize;
+    const fDeck = fallenGroup.avgDeckSize;
+    const sRelics = survivingGroup.avgRelics;
+    const fRelics = fallenGroup.avgRelics;
+    const sElite = survivingGroup.avgEliteVisits;
+    const fElite = fallenGroup.avgEliteVisits;
+    const sSanc = survivingGroup.avgSanctuaryVisits;
+    const fSanc = fallenGroup.avgSanctuaryVisits;
 
     const groupComparisonResult: GroupComparisonMetrics[] = [
       {
-        dimension: '平均最大生命值 (Max HP)',
-        survivingValue: `${sMaxHp.toFixed(1)} HP`,
-        fallenValue: `${fMaxHp.toFixed(1)} HP`,
-        delta: `${sMaxHp - fMaxHp >= 0 ? '+' : ''}${(sMaxHp - fMaxHp).toFixed(1)} HP`,
+        dimension: '平均最大生命值',
+        survivingValue: `${sMaxHp.toFixed(1)} 生命值`,
+        fallenValue: `${fMaxHp.toFixed(1)} 生命值`,
+        delta: `${sMaxHp - fMaxHp >= 0 ? '+' : ''}${(sMaxHp - fMaxHp).toFixed(1)} 生命值`,
         note: '高生命上限提供容錯護城河',
       },
       {
@@ -862,6 +895,22 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       },
     ];
 
+    // 7. 節點造訪率與損耗統計 (動態計算)
+    const totalNodeVisitsInSlice = Object.values(nodeTypeStats).reduce((sum, n) => sum + n.visits, 0);
+    const nodeVisitsResult: NodeVisitSliceMetrics[] = Object.entries(nodeTypeStats).map(([type, data]) => {
+      const visitRate = totalNodeVisitsInSlice > 0 ? data.visits / totalNodeVisitsInSlice : 0;
+      const meanLoss = data.visits > 0 ? data.hpLossSum / data.visits : 0;
+      const lethality = data.visits > 0 ? data.deaths / data.visits : 0;
+      return {
+        type,
+        label: data.label,
+        visitCount: data.visits,
+        visitRate: Math.round(visitRate * 1000) / 1000,
+        meanHpLoss: Math.round(meanLoss * 10) / 10,
+        lethality: Math.round(lethality * 1000) / 1000,
+      };
+    });
+
     const summary: SliceSimulationSummary = {
       sliceId: sliceDef.id,
       sliceDef,
@@ -882,6 +931,7 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       cards: cardsResult,
       pathChoices: pathChoicesResult,
       intraNodeChoices: intraNodeChoicesResult,
+      nodeVisits: nodeVisitsResult,
       groupComparison: groupComparisonResult,
     };
 

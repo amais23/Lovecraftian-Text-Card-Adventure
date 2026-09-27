@@ -1064,7 +1064,7 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
 
                     <div className="monster-stats-badge">
                       <div className="hp-stat">
-                        <span className="label">HP</span>
+                        <span className="label">生命值</span>
                         <span className="value">{monster.health}</span>
                       </div>
                       <div className="armor-stat">

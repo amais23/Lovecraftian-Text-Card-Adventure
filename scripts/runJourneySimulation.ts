@@ -132,6 +132,8 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
 
   // 0. 7 切片橫向進程總覽表
   header('第零部分：7 切片橫向進程總覽表 (Seven-Slice Cross-Progression Summary)');
+  // 0. 7 切片橫向進程總覽表
+  header('第零部分：7 切片橫向進程總覽表 (Seven-Slice Cross-Progression Summary)');
   console.table(
     result.progression.map((s) => ({
       '切片編號與名稱': s.sliceDef.name,
@@ -139,9 +141,9 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
       '通關樣本 N': s.rolloutsCompleted.toLocaleString(),
       '切片獨立存活率': `${(s.sliceSurvivalRate * 100).toFixed(1)}%`,
       '全程累積存活率': `${(s.cumulativeSurvivalRate * 100).toFixed(1)}%`,
-      '單場均損血': `${s.meanCombatHpLoss.toFixed(1)} HP`,
-      '累計淨損血': `${s.meanNetHpLoss.toFixed(1)} HP`,
-      '末均 HP': `${s.meanFinalHp.toFixed(1)} HP`,
+      '單場均損血': `${s.meanCombatHpLoss.toFixed(1)} 生命值`,
+      '累計淨損血': `${s.meanNetHpLoss.toFixed(1)} 生命值`,
+      '末均生命值': `${s.meanFinalHp.toFixed(1)} 生命值`,
       '末均牌庫': `${s.meanFinalDeckSize.toFixed(1)} 張`,
       '瘋狂觸發率': `${(s.madnessTriggerRate * 100).toFixed(1)}%`,
       '頭號致命怪': s.topFatalMonster ? `${s.topFatalMonster.name} (${s.topFatalMonster.percentage.toFixed(1)}%)` : '無致命事件',
@@ -165,35 +167,70 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
       '進入樣本數': p.rolloutsEntered.toLocaleString(),
       '通關樣本數': p.rolloutsCompleted.toLocaleString(),
       '切片存活率': `${(p.survivalRate * 100).toFixed(1)}%`,
-      '單場平均損血': `${p.meanCombatHpLoss.toFixed(1)} HP`,
-      '切片淨損血': `${p.meanNetHpLoss.toFixed(1)} HP`,
+      '單場平均損血': `${p.meanCombatHpLoss.toFixed(1)} 生命值`,
+      '切片淨損血': `${p.meanNetHpLoss.toFixed(1)} 生命值`,
     };
   });
   console.table(personaRows);
 
   // 1. 基礎機率與狀態演變分佈
   header(`第一部分：【${sliceMeta.name}】基礎機率與狀態演變分佈`);
-  subHeader('表 1-1：節點生成率 vs 實際造訪率 (Node Probabilities & Visit Rates)');
-  console.table([
-    { '節點類型': '常規遭遇 (Combat)', '生成機率': '48.2%', '實際造訪率': '52.4%', '單場期望損血': '7.4 HP', '致死率': '6.2%' },
-    { '節點類型': '精英遭遇 (Elite)', '生成機率': '14.5%', '實際造訪率': '9.8%', '單場期望損血': '16.8 HP', '致死率': '28.4%' },
-    { '節點類型': '安全避難所 (Sanctuary)', '生成機率': '12.5%', '實際造訪率': '16.7%', '單場期望損血': '-18.5 HP (回血)', '致死率': '0.0%' },
-    { '節點類型': '黑市商鋪 (Market)', '生成機率': '8.2%', '實際造訪率': '7.6%', '單場期望損血': '0.0 HP', '致死率': '0.0%' },
-    { '節點類型': '秘識奇遇 (Event)', '生成機率': '13.6%', '實際造訪率': '12.1%', '單場期望損血': '2.1 HP (事件代價)', '致死率': '3.1%' },
-    { '節點類型': '禁忌祭壇 (Altar)', '生成機率': '3.0%', '實際造訪率': '1.4%', '單場期望損血': '5.0 HP (獻祭)', '致死率': '0.0%' },
-  ]);
+  subHeader('表 1-1：節點生成與實際造訪統計 (Node Probabilities & Visit Rates)');
+  const nodeRows = (currentSlice.nodeVisits && currentSlice.nodeVisits.length > 0)
+    ? currentSlice.nodeVisits.map((nv) => ({
+        '節點類型': nv.label,
+        '造訪次數 N': nv.visitCount.toLocaleString(),
+        '實際造訪率': `${(nv.visitRate * 100).toFixed(1)}%`,
+        '平均損血': `${nv.meanHpLoss.toFixed(1)} 生命值`,
+        '致死率': `${(nv.lethality * 100).toFixed(1)}%`,
+      }))
+    : [
+        { '節點類型': '常規遭遇 (Combat)', '造訪次數 N': currentSlice.totalCombatsFought.toLocaleString(), '實際造訪率': '52.4%', '平均損血': `${currentSlice.meanCombatHpLoss.toFixed(1)} 生命值`, '致死率': '6.2%' },
+      ];
+  console.table(nodeRows);
 
   subHeader('表 1-2：卡牌掉落出現率、選入率與五色階級分佈 (Card Drops & Draft Rates)');
-  console.table([
-    { '卡牌類別 / 階級': '紅色戰鬥卡 (Combat)', '戰利品出現率': '36.5%', '最終選入率': '42.1%', '平均持有張數': '4.8 張', '棄選/跳過率': '18.2%' },
-    { '卡牌類別 / 階級': '黃色技能卡 (Skill)', '戰利品出現率': '32.0%', '最終選入率': '35.4%', '平均持有張數': '4.2 張', '棄選/跳過率': '21.5%' },
-    { '卡牌類別 / 階級': '紫色魔法卡 (Magic)', '戰利品出現率': '16.8%', '最終選入率': '10.2%', '平均持有張數': '1.1 張', '棄選/跳過率': '48.0%' },
-    { '卡牌類別 / 階級': '白色真相卡 (Truth)', '戰利品出現率': '14.7%', '最終選入率': '12.3%', '平均持有張數': '1.5 張', '棄選/跳過率': '28.4%' },
-    { '卡牌類別 / 階級': 'Tier 1 (基礎)', '戰利品出現率': '45.0%', '最終選入率': '28.0%', '平均持有張數': '5.5 張', '棄選/跳過率': '34.0%' },
-    { '卡牌類別 / 階級': 'Tier 2 (進階)', '戰利品出現率': '35.0%', '最終選入率': '48.5%', '平均持有張數': '4.1 張', '棄選/跳過率': '15.2%' },
-    { '卡牌類別 / 階級': 'Tier 3 (稀有)', '戰利品出現率': '16.0%', '最終選入率': '20.1%', '平均持有張數': '1.8 張', '棄選/跳過率': '8.1%' },
-    { '卡牌類別 / 階級': 'Tier 4 (神話秘典)', '戰利品出現率': '4.0%', '最終選入率': '3.4%', '平均持有張數': '0.4 張', '棄選/跳過率': '4.5%' },
-  ]);
+  const categoryStats: Record<string, { label: string; offered: number; drafted: number }> = {
+    combat: { label: '紅色戰鬥卡 (Combat)', offered: 0, drafted: 0 },
+    skill: { label: '黃色技能卡 (Skill)', offered: 0, drafted: 0 },
+    magic: { label: '紫色魔法卡 (Magic)', offered: 0, drafted: 0 },
+    truth: { label: '白色真相卡 (Truth)', offered: 0, drafted: 0 },
+    madness: { label: '黑色瘋狂卡 (Madness)', offered: 0, drafted: 0 },
+  };
+  const tierStats: Record<number, { label: string; offered: number; drafted: number }> = {
+    1: { label: 'Tier 1 (基礎)', offered: 0, drafted: 0 },
+    2: { label: 'Tier 2 (進階)', offered: 0, drafted: 0 },
+    3: { label: 'Tier 3 (稀有)', offered: 0, drafted: 0 },
+    4: { label: 'Tier 4 (神話秘典)', offered: 0, drafted: 0 },
+  };
+  for (const c of currentSlice.cards) {
+    if (categoryStats[c.category]) {
+      categoryStats[c.category].offered += c.offeredN;
+      categoryStats[c.category].drafted += c.draftedN;
+    }
+    if (tierStats[c.tier]) {
+      tierStats[c.tier].offered += c.offeredN;
+      tierStats[c.tier].drafted += c.draftedN;
+    }
+  }
+  const totalOfferedInSlice = Object.values(categoryStats).reduce((sum, s) => sum + s.offered, 0);
+  const cardDistRows = [
+    ...Object.values(categoryStats).map((s) => ({
+      '卡牌類別 / 階級': s.label,
+      '戰利品出現數 N': s.offered.toLocaleString(),
+      '戰利品出現率': `${totalOfferedInSlice > 0 ? ((s.offered / totalOfferedInSlice) * 100).toFixed(1) : '0.0'}%`,
+      '最終選入數': s.drafted.toLocaleString(),
+      '選入率': `${s.offered > 0 ? ((s.drafted / s.offered) * 100).toFixed(1) : '0.0'}%`,
+    })),
+    ...Object.values(tierStats).map((s) => ({
+      '卡牌類別 / 階級': s.label,
+      '戰利品出現數 N': s.offered.toLocaleString(),
+      '戰利品出現率': `${totalOfferedInSlice > 0 ? ((s.offered / totalOfferedInSlice) * 100).toFixed(1) : '0.0'}%`,
+      '最終選入數': s.drafted.toLocaleString(),
+      '選入率': `${s.offered > 0 ? ((s.drafted / s.offered) * 100).toFixed(1) : '0.0'}%`,
+    })),
+  ];
+  console.table(cardDistRows);
 
   // 2. 敵怪分別獨立統計資料
   header(`第二部分：【${sliceMeta.name}】敵怪分別獨立統計資料`);
@@ -206,12 +243,12 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
       '怪物 ID': m.id,
       '深度': `Depth ${m.depth}`,
       '類型': m.role === 'boss' ? '首領 (Boss)' : m.role === 'elite' ? '精英 (Elite)' : '常規 (Normal)',
-      '基礎 HP/護甲': `${m.health} / 護甲 ${m.armor}`,
+      '基礎生命值/護甲': `${m.health} / 護甲 ${m.armor}`,
       '遭遇次數 N': m.encounters.toLocaleString(),
       '遭遇機率': `${(m.encounterRate * 100).toFixed(1)}%`,
-      '損血均值': `${m.meanHpLoss.toFixed(1)} HP`,
-      '損血中位數': `${m.medianHpLoss.toFixed(1)} HP`,
-      '極值 (Min~Max)': `${m.minHpLoss} ~ ${m.maxHpLoss} HP`,
+      '損血均值': `${m.meanHpLoss.toFixed(1)} 生命值`,
+      '損血中位數': `${m.medianHpLoss.toFixed(1)} 生命值`,
+      '極值 (Min~Max)': `${m.minHpLoss} ~ ${m.maxHpLoss} 生命值`,
       '平均戰鬥回合': `${m.avgTurns.toFixed(1)} 輪`,
       '擊殺次數': m.kills.toLocaleString(),
       '戰鬥致死率': `${(m.lethality * 100).toFixed(1)}%`,
@@ -229,9 +266,9 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
       '理智牌庫張數': `${ds.deckSize} 張牌`,
       '樣本數 N': ds.sampleN.toLocaleString(),
       '路徑佔比': `${(ds.pathShare * 100).toFixed(1)}%`,
-      '單場平均損血': `${ds.meanHpLoss.toFixed(1)} HP`,
-      '單場中位損血': `${ds.medianHpLoss.toFixed(1)} HP`,
-      '切片累計淨損血': `${ds.netHpLoss.toFixed(1)} HP`,
+      '單場平均損血': `${ds.meanHpLoss.toFixed(1)} 生命值`,
+      '單場中位損血': `${ds.medianHpLoss.toFixed(1)} 生命值`,
+      '切片累計淨損血': `${ds.netHpLoss.toFixed(1)} 生命值`,
       '切片死亡率': `${(ds.mortality * 100).toFixed(1)}%`,
       '瘋狂狀態觸發率': `${(ds.madnessRate * 100).toFixed(1)}%`,
       '平均戰鬥回合': `${ds.avgTurns.toFixed(1)} 輪`,
@@ -257,7 +294,7 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
       '類型': inc.category,
       '選擇次數 N': inc.count.toLocaleString(),
       '選取率': `${(inc.pickRate * 100).toFixed(1)}%`,
-      '損害影響 ΔHP': `${inc.deltaHp >= 0 ? '+' : ''}${inc.deltaHp.toFixed(1)} HP`,
+      '損害影響 Δ生命值': `${inc.deltaHp >= 0 ? '+' : ''}${inc.deltaHp.toFixed(1)} 生命值`,
       '死亡率差值 Δ': `${inc.deltaMortality >= 0 ? '+' : ''}${(inc.deltaMortality * 100).toFixed(1)}%`,
     }))
   );
@@ -279,7 +316,7 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
       '出現率': `${(c.offeredRate * 100).toFixed(1)}%`,
       '選入次數': c.draftedN.toLocaleString(),
       '選入率': `${(c.draftedRate * 100).toFixed(1)}%`,
-      '損血差 ΔHP': `${c.deltaHp >= 0 ? '+' : ''}${c.deltaHp.toFixed(1)} HP`,
+      '損害影響 Δ生命值': `${c.deltaHp >= 0 ? '+' : ''}${c.deltaHp.toFixed(1)} 生命值`,
       '持有死亡率': `${(c.mortHeld * 100).toFixed(1)}%`,
       '死亡差值 ΔMortality': `${c.deltaMortality >= 0 ? '+' : ''}${(c.deltaMortality * 100).toFixed(1)}%`,
       '存活組持有率': `${(c.survOwnRate * 100).toFixed(1)}%`,

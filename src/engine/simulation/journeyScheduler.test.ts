@@ -16,15 +16,15 @@ describe('Seven-Stage Slice Scheduler & Global Mixed Pool (ADR-0042 / Issue #88)
       expect(SLICE_DEFINITIONS).toHaveLength(7);
 
       expect(SLICE_DEFINITIONS[0]).toMatchObject({ id: 1, depth: 1, startLayer: 0, endLayer: 7 });
-      expect(SLICE_DEFINITIONS[1]).toMatchObject({ id: 2, depth: 1, startLayer: 8, endLayer: 15, bossName: '達貢眷族主教' });
+      expect(SLICE_DEFINITIONS[1]).toMatchObject({ id: 2, depth: 1, startLayer: 8, endLayer: 15, bossName: '修格斯幼體' });
 
       expect(SLICE_DEFINITIONS[2]).toMatchObject({ id: 3, depth: 2, startLayer: 0, endLayer: 7 });
-      expect(SLICE_DEFINITIONS[3]).toMatchObject({ id: 4, depth: 2, startLayer: 8, endLayer: 15, bossName: '達貢巨型神眷' });
+      expect(SLICE_DEFINITIONS[3]).toMatchObject({ id: 4, depth: 2, startLayer: 8, endLayer: 15, bossName: '大袞的深淵祭司' });
 
       expect(SLICE_DEFINITIONS[4]).toMatchObject({ id: 5, depth: 3, startLayer: 0, endLayer: 7 });
       expect(SLICE_DEFINITIONS[5]).toMatchObject({ id: 6, depth: 3, startLayer: 8, endLayer: 15, bossName: '原生巨型修格斯' });
 
-      expect(SLICE_DEFINITIONS[6]).toMatchObject({ id: 7, depth: 4, startLayer: 0, endLayer: 7, bossName: '舊日支配者化身' });
+      expect(SLICE_DEFINITIONS[6]).toMatchObject({ id: 7, depth: 4, startLayer: 0, endLayer: 7, bossName: '克蘇魯星之眷族' });
     });
   });
 

@@ -166,6 +166,30 @@ describe('Agent Persona Decision Engine (ADR-0042 / Issue #87)', () => {
       expect(purgeCount).toBeGreaterThanOrEqual(60);
     });
 
+    it('greedy persona recognizes occultist starter cards as purge candidates', () => {
+      const occultistContext: EvaluationContext = {
+        ...dummyContext,
+        sanityDeck: [
+          { id: 'card_magic_blast_0', name: '靈能衝擊', category: 'magic', tier: 1, costType: 'sanity', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+          { id: 'card_astral_ward_0', name: '星界庇護', category: 'skill', tier: 1, costType: 'stamina', costValue: 1, isTemporary: false, effects: [], description: '', flavorText: '' },
+          { id: 'card_high_magic', name: '星辰裂解', category: 'magic', tier: 3, costType: 'sanity', costValue: 2, isTemporary: false, effects: [], description: '', flavorText: '' },
+        ],
+      };
+      const occSanctuaryOptions = [
+        { action: 'bandage' as const, healAmount: 15 },
+        { action: 'meditate' as const, cardsCount: 3 },
+        { action: 'purge' as const, cardId: 'card_magic_blast_0' },
+      ];
+      const greedy = getAgentPersona('greedy');
+      let purgeCount = 0;
+      const trials = 100;
+      for (let i = 0; i < trials; i++) {
+        const choice = evaluateSanctuaryChoice(greedy, occSanctuaryOptions, occultistContext, () => i / trials);
+        if (choice.action === 'purge') purgeCount++;
+      }
+      expect(purgeCount).toBeGreaterThanOrEqual(60);
+    });
+
     it('cautious persona strongly prioritizes bandage when hurt', () => {
       const hurtContext: EvaluationContext = {
         ...dummyContext,

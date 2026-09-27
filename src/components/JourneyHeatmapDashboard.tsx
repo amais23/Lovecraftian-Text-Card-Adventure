@@ -59,6 +59,25 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
     (summaryData.totalRollouts ?? 0) > 0
   );
 
+  const investigatorTotalRollouts = useMemo(() => {
+    if (customSummaryData && selectedOccupation === 'investigator') {
+      return summaryData.totalRollouts;
+    }
+    return (journeySummaryInvestigatorRaw as unknown as JourneySummaryJson)?.totalRollouts;
+  }, [customSummaryData, selectedOccupation, summaryData]);
+
+  const occultistTotalRollouts = useMemo(() => {
+    if (customSummaryData && selectedOccupation === 'occultist') {
+      return summaryData.totalRollouts;
+    }
+    return (journeySummaryOccultistRaw as unknown as JourneySummaryJson)?.totalRollouts;
+  }, [customSummaryData, selectedOccupation, summaryData]);
+
+  const formatSampleCount = (count?: number) => {
+    if (!count) return '';
+    return `${(count / 10000).toFixed(0)}萬樣本`;
+  };
+
   const currentSlice: SliceSimulationSummary | undefined = useMemo(() => {
     if (!summaryData?.slices) return undefined;
     const id = selectedSliceId === 0 ? 1 : selectedSliceId;
@@ -192,7 +211,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
               setSelectedOccupation('investigator');
             }}
           >
-            🕵️ 私家偵探 ({summaryData.totalRollouts ? (selectedOccupation === 'investigator' ? `${(summaryData.totalRollouts / 10000).toFixed(0)}萬樣本` : '122萬樣本') : ''})
+            🕵️ 私家偵探 {investigatorTotalRollouts ? `(${formatSampleCount(investigatorTotalRollouts)})` : ''}
           </button>
           <button
             type="button"
@@ -202,7 +221,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
               setSelectedOccupation('occultist');
             }}
           >
-            🔮 秘術學者 ({summaryData.totalRollouts ? (selectedOccupation === 'occultist' ? `${(summaryData.totalRollouts / 10000).toFixed(0)}萬樣本` : '90萬樣本') : ''})
+            🔮 秘術學者 {occultistTotalRollouts ? `(${formatSampleCount(occultistTotalRollouts)})` : ''}
           </button>
         </div>
 
@@ -312,11 +331,11 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                 </div>
                 <div className="progression-metrics-row">
                   <span>單場損血:</span>
-                  <strong>{s.meanCombatHpLoss.toFixed(1)} HP</strong>
+                  <strong>{s.meanCombatHpLoss.toFixed(1)} 生命值</strong>
                 </div>
                 <div className="progression-metrics-row">
                   <span>累計損血:</span>
-                  <strong>{s.meanNetHpLoss.toFixed(1)} HP</strong>
+                  <strong>{s.meanNetHpLoss.toFixed(1)} 生命值</strong>
                 </div>
                 {s.topFatalMonster && (
                   <div className="progression-metrics-row" style={{ marginTop: '6px', color: '#f87171' }}>
@@ -373,11 +392,11 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                   </div>
                   <div className="persona-metric-row">
                     <span>單場均損血:</span>
-                    <strong>{p.meanCombatHpLoss.toFixed(1)} HP</strong>
+                    <strong>{p.meanCombatHpLoss.toFixed(1)} 生命值</strong>
                   </div>
                   <div className="persona-metric-row">
                     <span>切片淨損血:</span>
-                    <strong>{p.meanNetHpLoss.toFixed(1)} HP</strong>
+                    <strong>{p.meanNetHpLoss.toFixed(1)} 生命值</strong>
                   </div>
                 </div>
               );
@@ -431,7 +450,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                     <th>全程累積存活率</th>
                     <th>單場均損血</th>
                     <th>累計淨損血</th>
-                    <th>末均 HP</th>
+                    <th>末均生命值</th>
                     <th>末均牌庫</th>
                     <th>頭號致命威脅</th>
                     <th>操作</th>
@@ -450,9 +469,9 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                       <td className={s.cumulativeSurvivalRate >= 0.1 ? 'highlight-green' : 'highlight-red'}>
                         {(s.cumulativeSurvivalRate * 100).toFixed(2)}%
                       </td>
-                      <td>{s.meanCombatHpLoss.toFixed(1)} HP</td>
-                      <td>{s.meanNetHpLoss.toFixed(1)} HP</td>
-                      <td>{s.meanFinalHp.toFixed(1)} HP</td>
+                      <td>{s.meanCombatHpLoss.toFixed(1)} 生命值</td>
+                      <td>{s.meanNetHpLoss.toFixed(1)} 生命值</td>
+                      <td>{s.meanFinalHp.toFixed(1)} 生命值</td>
                       <td>{s.meanFinalDeckSize.toFixed(1)} 張</td>
                       <td style={{ color: '#fca5a5' }}>
                         {s.topFatalMonster ? `${s.topFatalMonster.name} (${s.topFatalMonster.percentage.toFixed(1)}%)` : '無'}
@@ -545,7 +564,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                       </td>
                       <td>{m.encounters.toLocaleString()}</td>
                       <td style={{ fontWeight: 700, color: m.kills > 1000 ? '#fca5a5' : '#f1f5f9' }}>{m.kills.toLocaleString()}</td>
-                      <td>{m.meanHpLoss.toFixed(1)} HP</td>
+                      <td>{m.meanHpLoss.toFixed(1)} 生命值</td>
                       <td className={m.lethality >= 0.2 ? 'highlight-red' : ''}>{(m.lethality * 100).toFixed(1)}%</td>
                     </tr>
                   ))}
@@ -629,7 +648,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                   <th>怪物名稱</th>
                   <th>深度</th>
                   <th>類型</th>
-                  <th>基礎 HP/護甲</th>
+                  <th>基礎生命值/護甲</th>
                   <th>遭遇次數 N</th>
                   <th>遭遇率</th>
                   <th>均值損血</th>
@@ -666,9 +685,9 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                       <td>{m.health} / 護甲 {m.armor}</td>
                       <td>{m.encounters.toLocaleString()}</td>
                       <td>{(m.encounterRate * 100).toFixed(1)}%</td>
-                      <td>{m.meanHpLoss.toFixed(1)} HP</td>
-                      <td>{m.medianHpLoss.toFixed(1)} HP</td>
-                      <td>{m.minHpLoss} ~ {m.maxHpLoss} HP</td>
+                      <td>{m.meanHpLoss.toFixed(1)} 生命值</td>
+                      <td>{m.medianHpLoss.toFixed(1)} 生命值</td>
+                      <td>{m.minHpLoss} ~ {m.maxHpLoss} 生命值</td>
                       <td>{m.avgTurns.toFixed(1)} 輪</td>
                       <td>{m.kills.toLocaleString()}</td>
                       <td className={isHighRisk ? 'highlight-red' : ''}>{lethalityPct}%</td>
@@ -732,9 +751,9 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                     </td>
                     <td>{ds.sampleN.toLocaleString()}</td>
                     <td>{(ds.pathShare * 100).toFixed(1)}%</td>
-                    <td>{ds.meanHpLoss.toFixed(1)} HP</td>
-                    <td>{ds.medianHpLoss.toFixed(1)} HP</td>
-                    <td>{ds.netHpLoss.toFixed(1)} HP</td>
+                    <td>{ds.meanHpLoss.toFixed(1)} 生命值</td>
+                    <td>{ds.medianHpLoss.toFixed(1)} 生命值</td>
+                    <td>{ds.netHpLoss.toFixed(1)} 生命值</td>
                     <td
                       style={{
                         color: ds.mortality >= 0.5 ? '#f87171' : ds.mortality <= 0.25 ? '#4ade80' : '#cbd5e1',
@@ -804,7 +823,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                   <th>出現率</th>
                   <th>選入次數</th>
                   <th>選入率</th>
-                  <th>損血差 ΔHP</th>
+                  <th>損血差 Δ生命值</th>
                   <th>持有死亡率</th>
                   <th>死亡差值 ΔMort</th>
                   <th>存活組持有率</th>
@@ -822,7 +841,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                     <td>{c.draftedN.toLocaleString()}</td>
                     <td>{(c.draftedRate * 100).toFixed(1)}%</td>
                     <td style={{ color: c.deltaHp < 0 ? '#4ade80' : c.deltaHp > 0 ? '#f87171' : '#94a3b8' }}>
-                      {c.deltaHp >= 0 ? '+' : ''}{c.deltaHp.toFixed(1)} HP
+                      {c.deltaHp >= 0 ? '+' : ''}{c.deltaHp.toFixed(1)} 生命值
                     </td>
                     <td>{(c.mortHeld * 100).toFixed(1)}%</td>
                     <td style={{ color: c.deltaMortality < 0 ? '#4ade80' : c.deltaMortality > 0 ? '#f87171' : '#94a3b8' }}>
