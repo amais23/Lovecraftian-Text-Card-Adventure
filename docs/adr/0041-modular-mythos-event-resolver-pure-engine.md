@@ -10,7 +10,7 @@ Accepted（延續 ADR-0029、ADR-0030、ADR-0034 推進引擎領域深層模組�
 
 1. **Reducer 行內邏輯膨脹**：
    - `RESOLVE_EVENT_OPTION` case 內含約 135 行行內結算代碼，負責迭代選項的所有後果（`health_change`、`sanity_change`、`gain_obols`、`gain_card`、`gain_relic`、`trigger_combat`）。
-   - 包含理智牌庫燒牌、棄牌回補、真相卡注入（心靈澄澈）、金幣增量累計至 `adventureStats`、殞命分支判定以及轉場戰鬥牌庫建立（`setupCombatDeck`）等邏輯。
+   - 包含理智牌庫燒牌、棄牌回補、真相卡注入（心靈澄澈）、古金幣增量累計至 `adventureStats`、殞命分支判定以及轉場戰鬥牌庫建立（`setupCombatDeck`）等邏輯。
 2. **測試表面過寬（Wide Test Surface）**：
    - 驗證單一奇遇選項的數值變更或分支終局，必須構建擁有 40+ 欄位的龐大 `GameState` 物件並透過全域 Reducer 派發 Action，提高測試維護成本與脆弱性。
 3. **架構不對稱性**：

@@ -19,7 +19,7 @@ function makeInvestigator(overrides: Partial<Investigator> = {}): Investigator {
     maxStamina: 3,
     armor: 0,
     obols: 10,
-    handCapacity: 4,
+    handRetention: 4,
     ...overrides,
   };
 }
