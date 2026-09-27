@@ -137,13 +137,13 @@ export function resolveMythosEvent(
   // ── 終局 2：觸發戰鬥轉場 ──────────────────────────────────
   if (triggerCombatEnemy) {
     const currentCards = [...sanityDeck, ...hand, ...discardPile];
-    const handCapacity = investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
+    const handRetention = investigator.handRetention ?? investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
     const effectiveOccupation = occupationId ?? ctx.investigator.occupationId ?? 'investigator';
     const { hand: combatHand, sanityDeck: combatSanityDeck } = setupCombatDeck(
       currentCards,
       effectiveOccupation,
       shuffledDeck,
-      handCapacity,
+      handRetention,
     );
 
     return {

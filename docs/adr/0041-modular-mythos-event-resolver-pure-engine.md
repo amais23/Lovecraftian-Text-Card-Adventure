@@ -31,7 +31,7 @@ src/engine/events/
 ├── types.ts          # 輸入快照與互斥三終局輸出型別 (MythosEventContext, MythosResult)
 ├── eventResolver.ts  # 純函數解析核心：resolveMythosEvent(event, option, ctx)
 ├── index.ts          # 領域對外暴露小介面 (Small Seam)
-└── eventResolver.test.ts # 針對事件結算接縫的高槓桿單元測試 (19 tests)
+└── eventResolver.test.ts # 針對事件結算接縫的高槓桿單元測試 (21 tests)
 ```
 
 ### 2. 極簡純函數接縫定義 (Small Interface & Pure Engine)
@@ -82,5 +82,5 @@ return applyMythosResult(state, mythosResult);
 ## 後續影響與成效 (Consequences)
 
 1. **Reducer 行數大幅精簡**：`RESOLVE_EVENT_OPTION` 由原本 135 行縮減至約 15 行狀態協調，原行內邏輯全數刪除。
-2. **高槓桿快速單元測試**：新建 `eventResolver.test.ts`，以極小測試 fixture 覆蓋全部 6 種後果類型、3 種終局分支與狀態套用（19 tests, ~5ms 執行完畢）。
-3. **零回歸保證**：既有 `gameReducer.test.ts`（193 tests）無任何改動下全數綠燈通過，全套件 72 個測試檔、873 項測試全綠。
+2. **高槓桿快速單元測試**：新建 `eventResolver.test.ts`，以極小測試 fixture 覆蓋全部 6 種後果類型、3 種終局分支與狀態套用（21 tests, ~5ms 執行完畢）。
+3. **零回歸保證**：既有 `gameReducer.test.ts`（193 tests）無任何改動下全數綠燈通過，全套件 72 個測試檔、875 項測試全綠。

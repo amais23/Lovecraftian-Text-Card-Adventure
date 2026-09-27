@@ -322,7 +322,7 @@ describe('resolveMythosEvent — trigger_combat', () => {
     }
   });
 
-  it('未顯式指定 handCapacity 時預設遵循 DEFAULT_HAND_CAPACITY (2)', () => {
+  it('優先讀取 handRetention 作為戰鬥初始手牌保留數', () => {
     const enemy = {
       id: 'enemy_ghoul',
       name: '食屍鬼',
@@ -338,7 +338,67 @@ describe('resolveMythosEvent — trigger_combat', () => {
       consequences: [{ type: 'trigger_combat', enemy, narrative: '遭遇敵人！' }],
     }]);
     const ctx = makeCtx({
-      investigator: makeInvestigator({ handCapacity: undefined }),
+      investigator: makeInvestigator({ handRetention: 3, handCapacity: 2 }),
+      sanityDeck: [makeCard('c1'), makeCard('c2'), makeCard('c3'), makeCard('c4')],
+      hand: [],
+      discardPile: [],
+    });
+
+    const result = resolveMythosEvent(event, event.options[0], ctx);
+
+    expect(result.outcome).toBe('combat');
+    if (result.outcome === 'combat') {
+      expect(result.hand).toHaveLength(3);
+    }
+  });
+
+  it('未指定 handRetention 時回退採用 handCapacity', () => {
+    const enemy = {
+      id: 'enemy_ghoul',
+      name: '食屍鬼',
+      title: '陰暗潛伏者',
+      health: 30,
+      maxHealth: 30,
+      armor: 0,
+      currentIntent: { type: 'attack' as const, value: 6, name: '爪擊', description: '' },
+    };
+    const event = makeEvent([{
+      id: 'opt1',
+      text: '選項一',
+      consequences: [{ type: 'trigger_combat', enemy, narrative: '遭遇敵人！' }],
+    }]);
+    const ctx = makeCtx({
+      investigator: makeInvestigator({ handRetention: undefined, handCapacity: 3 }),
+      sanityDeck: [makeCard('c1'), makeCard('c2'), makeCard('c3'), makeCard('c4')],
+      hand: [],
+      discardPile: [],
+    });
+
+    const result = resolveMythosEvent(event, event.options[0], ctx);
+
+    expect(result.outcome).toBe('combat');
+    if (result.outcome === 'combat') {
+      expect(result.hand).toHaveLength(3);
+    }
+  });
+
+  it('未顯式指定 handRetention 與 handCapacity 時預設遵循 DEFAULT_HAND_CAPACITY (2)', () => {
+    const enemy = {
+      id: 'enemy_ghoul',
+      name: '食屍鬼',
+      title: '陰暗潛伏者',
+      health: 30,
+      maxHealth: 30,
+      armor: 0,
+      currentIntent: { type: 'attack' as const, value: 6, name: '爪擊', description: '' },
+    };
+    const event = makeEvent([{
+      id: 'opt1',
+      text: '選項一',
+      consequences: [{ type: 'trigger_combat', enemy, narrative: '遭遇敵人！' }],
+    }]);
+    const ctx = makeCtx({
+      investigator: makeInvestigator({ handRetention: undefined, handCapacity: undefined }),
       sanityDeck: [makeCard('c1'), makeCard('c2'), makeCard('c3'), makeCard('c4')],
       hand: [],
       discardPile: [],
@@ -491,7 +551,7 @@ describe('applyMythosResult', () => {
 
     expect(nextState.phase).toBe('gameover');
     expect(nextState.investigator.health).toBe(0);
-    expect(nextState.adventureStats.totalObolsCollected).toBe(10);
+    expect(nextState.adventureStats?.totalObolsCollected).toBe(10);
     expect(nextState.battleLog[0]).toBe('【肉體殞命】調查員在奇遇事件中傷重不治！');
     expect(nextState.battleLog[1]).toBe('起始日誌');
   });
