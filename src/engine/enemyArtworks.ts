@@ -191,8 +191,8 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_ancient_hound',
     name: '遠古廷達洛斯宿尊',
     category: 'hound',
-    cartoonUrl: '/enemies/cartoon/enemy_ancient_hound.png',
-    realisticUrl: '/enemies/realistic/enemy_ancient_hound.png',
+    cartoonUrl: '/enemies/cartoon/enemy_ancient_hound_of_tindalos.png',
+    realisticUrl: '/enemies/realistic/enemy_ancient_hound_of_tindalos.png',
     conceptLore: '戴著金色稜角項圈的大稜鏡小狗 vs 穿梭億萬時空、全身覆蓋尖銳結晶與時間侵蝕灰燼的遠古宿尊。',
   },
   enemy_migo_scout: {
@@ -265,8 +265,8 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_non_euclidean_construct',
     name: '非歐幾何異構體',
     category: 'ancient_guardian',
-    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
-    realisticUrl: '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
+    cartoonUrl: '/enemies/cartoon/enemy_non_euclidean_construct.png',
+    realisticUrl: '/enemies/realistic/enemy_non_euclidean_construct.png',
     conceptLore: '常態為滾動的發光綠色幾何積木塊；瘋狂時展現反向折疊維度、引力逆轉的活體非歐幾何巨石。',
   },
   enemy_cosmic_acolyte: {
@@ -289,8 +289,8 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_ancient_guardian',
     name: '遠古不朽守護者',
     category: 'ancient_guardian',
-    cartoonUrl: '/enemies/cartoon/enemy_ancient_guardian.png',
-    realisticUrl: '/enemies/realistic/enemy_ancient_guardian.png',
+    cartoonUrl: '/enemies/cartoon/enemy_ancient_eldritch_guardian.png',
+    realisticUrl: '/enemies/realistic/enemy_ancient_eldritch_guardian.png',
     conceptLore: '頭戴發光星冠的小金人雕像 vs 守衛星辰之門的無解神聖古神造物。',
   },
   enemy_star_spawn: {
@@ -315,16 +315,16 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
     enemyId: 'enemy_ancient_hound_of_tindalos',
     name: '廷達洛斯追獵古獸',
     category: 'hound',
-    cartoonUrl: '/enemies/cartoon/enemy_void_wanderer.png',
-    realisticUrl: '/enemies/realistic/enemy_void_wanderer.png',
+    cartoonUrl: '/enemies/cartoon/enemy_ancient_hound_of_tindalos.png',
+    realisticUrl: '/enemies/realistic/enemy_ancient_hound_of_tindalos.png',
     conceptLore: '穿梭億萬時空死角的廷達洛斯古獸，對應遠古廷達洛斯宿尊美術設定。',
   },
   enemy_ancient_eldritch_guardian: {
     enemyId: 'enemy_ancient_eldritch_guardian',
     name: '舊日太古守護者',
     category: 'ancient_guardian',
-    cartoonUrl: '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
-    realisticUrl: '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
+    cartoonUrl: '/enemies/cartoon/enemy_ancient_eldritch_guardian.png',
+    realisticUrl: '/enemies/realistic/enemy_ancient_eldritch_guardian.png',
     conceptLore: '拉萊耶永恆守望者，對應遠古不朽守護者美術設定。',
   },
 };
@@ -334,35 +334,70 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
  */
 export const VERIFIED_ENEMY_IMAGE_PATHS = new Set<string>([
   '/enemies/cartoon/enemy_abyssal_barnacle_mass.png',
+  '/enemies/cartoon/enemy_ancient_eldritch_guardian.png',
+  '/enemies/cartoon/enemy_ancient_guardian.png',
+  '/enemies/cartoon/enemy_ancient_hound.png',
+  '/enemies/cartoon/enemy_ancient_hound_of_tindalos.png',
   '/enemies/cartoon/enemy_arkham_cultist.png',
+  '/enemies/cartoon/enemy_byakhee_rotwing.png',
   '/enemies/cartoon/enemy_cemetery_carrion_worm.png',
+  '/enemies/cartoon/enemy_colossal_shoggoth.png',
+  '/enemies/cartoon/enemy_cosmic_acolyte.png',
   '/enemies/cartoon/enemy_cosmic_prophet.png',
   '/enemies/cartoon/enemy_cultist_zealot.png',
+  '/enemies/cartoon/enemy_dagon_champion.png',
+  '/enemies/cartoon/enemy_dagon_priest.png',
+  '/enemies/cartoon/enemy_deep_one_elder.png',
+  '/enemies/cartoon/enemy_deep_one_warrior.png',
+  '/enemies/cartoon/enemy_drowned_soul.png',
+  '/enemies/cartoon/enemy_formless_spawn.png',
+  '/enemies/cartoon/enemy_frenzied_deep_one.png',
   '/enemies/cartoon/enemy_ghoul_high_priest.png',
   '/enemies/cartoon/enemy_ghoul_lurker.png',
+  '/enemies/cartoon/enemy_hound_of_tindalos.png',
   '/enemies/cartoon/enemy_innsmouth_hybrid.png',
   '/enemies/cartoon/enemy_migo_scout.png',
   '/enemies/cartoon/enemy_nightgaunt.png',
+  '/enemies/cartoon/enemy_non_euclidean_construct.png',
   '/enemies/cartoon/enemy_outer_god_piper.png',
+  '/enemies/cartoon/enemy_proto_shoggoth_spawn.png',
   '/enemies/cartoon/enemy_rlyeh_dream_apparition.png',
   '/enemies/cartoon/enemy_rlyeh_sarcophagus_guard.png',
   '/enemies/cartoon/enemy_shoggoth_progeny.png',
+  '/enemies/cartoon/enemy_star_spawn.png',
+  '/enemies/cartoon/enemy_star_spawn_larva.png',
   '/enemies/cartoon/enemy_tidal_siren.png',
   '/enemies/cartoon/enemy_void_wanderer.png',
   '/enemies/cartoon/enemy_walls_rat_swarm.png',
   '/enemies/realistic/enemy_abyssal_barnacle_mass.png',
+  '/enemies/realistic/enemy_ancient_eldritch_guardian.png',
+  '/enemies/realistic/enemy_ancient_guardian.png',
+  '/enemies/realistic/enemy_ancient_hound.png',
+  '/enemies/realistic/enemy_ancient_hound_of_tindalos.png',
   '/enemies/realistic/enemy_arkham_cultist.png',
+  '/enemies/realistic/enemy_byakhee_rotwing.png',
   '/enemies/realistic/enemy_cemetery_carrion_worm.png',
+  '/enemies/realistic/enemy_cosmic_acolyte.png',
   '/enemies/realistic/enemy_cosmic_prophet.png',
   '/enemies/realistic/enemy_cultist_zealot.png',
+  '/enemies/realistic/enemy_dagon_champion.png',
+  '/enemies/realistic/enemy_deep_one_elder.png',
+  '/enemies/realistic/enemy_deep_one_warrior.png',
+  '/enemies/realistic/enemy_drowned_soul.png',
+  '/enemies/realistic/enemy_formless_spawn.png',
+  '/enemies/realistic/enemy_frenzied_deep_one.png',
   '/enemies/realistic/enemy_ghoul_high_priest.png',
   '/enemies/realistic/enemy_ghoul_lurker.png',
+  '/enemies/realistic/enemy_hound_of_tindalos.png',
   '/enemies/realistic/enemy_innsmouth_hybrid.png',
   '/enemies/realistic/enemy_migo_scout.png',
   '/enemies/realistic/enemy_nightgaunt.png',
+  '/enemies/realistic/enemy_non_euclidean_construct.png',
   '/enemies/realistic/enemy_outer_god_piper.png',
+  '/enemies/realistic/enemy_proto_shoggoth_spawn.png',
   '/enemies/realistic/enemy_rlyeh_dream_apparition.png',
   '/enemies/realistic/enemy_rlyeh_sarcophagus_guard.png',
+  '/enemies/realistic/enemy_star_spawn_larva.png',
   '/enemies/realistic/enemy_tidal_siren.png',
   '/enemies/realistic/enemy_void_wanderer.png',
   '/enemies/realistic/enemy_walls_rat_swarm.png',
@@ -435,23 +470,32 @@ export function getActiveEnemyIllustration(
   const cartoonUrl = enemy.illustration?.cartoonUrl ?? registered?.cartoonUrl;
   const realisticUrl = enemy.illustration?.realisticUrl ?? registered?.realisticUrl;
 
+  const hasCustomIllustration = Boolean(
+    enemy.illustration?.cartoonUrl || enemy.illustration?.realisticUrl
+  );
+  const isValidUrl = (url?: string): boolean => {
+    if (!url) return false;
+    if (hasCustomIllustration) return true;
+    return isEnemyImageVerified(url);
+  };
+
   const isBoss = enemy.category === 'boss' || registered?.category === 'boss';
 
   // 2. 首領永恆假面：舊日首領永遠保持可愛卡通形態
   if (isBoss) {
-    return cartoonUrl ?? null;
+    return isValidUrl(cartoonUrl) ? cartoonUrl! : null;
   }
 
   // 3. 認知防衛瓦解狀態（理智受損閃爍中 或 理智歸零之瘋狂狀態）
   if (isFlickering || isMadness) {
-    if (realisticUrl) return realisticUrl;
-    if (cartoonUrl) return cartoonUrl;
+    if (isValidUrl(realisticUrl)) return realisticUrl!;
+    if (isValidUrl(cartoonUrl)) return cartoonUrl!;
     return null;
   }
 
   // 4. 常態（理智尚存）：大腦保護性濾鏡呈現可愛卡通形態
-  if (cartoonUrl) return cartoonUrl;
-  if (realisticUrl) return realisticUrl;
+  if (isValidUrl(cartoonUrl)) return cartoonUrl!;
+  if (isValidUrl(realisticUrl)) return realisticUrl!;
 
   return null;
 }

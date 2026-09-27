@@ -108,8 +108,8 @@ export const GHOUL_INTENTS: EnemyIntent[] = [
 ];
 
 export const INITIAL_GHOUL: Enemy = {
-  id: 'enemy_ghoul_01',
-  name: '食屍鬼 (Ghoul)',
+  id: 'enemy_ghoul_lurker',
+  name: '食屍鬼潛伏者',
   title: '墓穴的潛伏者',
   health: 30,
   maxHealth: 30,
