@@ -51,6 +51,39 @@ export interface DecisionLogRecord {
   deltaObols: number;
 }
 
+export interface CombatRecord {
+  enemyId: string;
+  enemyName: string;
+  enemyRole: 'normal' | 'elite' | 'boss';
+  depth: DepthLevel;
+  healthLost: number;
+  investigatorHpRemaining: number;
+  turnsTaken: number;
+  outcome: 'victory' | 'defeat' | 'timeout';
+  deckSize: number;
+}
+
+export interface CardRewardRecord {
+  offeredCardIds: string[];
+  chosenType: 'card' | 'bandage' | 'skip';
+  chosenCardId?: string;
+}
+
+export interface PathChoiceRecord {
+  pair: string;
+  label: string;
+  choiceA: string;
+  choiceB: string;
+  pickedA: boolean;
+}
+
+export interface IntraNodeChoiceRecord {
+  category: 'reward' | 'sanctuary' | 'market' | 'event';
+  action: string;
+  deltaHp: number;
+  deltaObols: number;
+}
+
 export interface SliceRolloutResult {
   sliceId: number;
   success: boolean;
@@ -64,6 +97,10 @@ export interface SliceRolloutResult {
   madnessTurnsTotal: number;
   nodesVisited: NodeVisitRecord[];
   decisionLogs: DecisionLogRecord[];
+  combatRecords: CombatRecord[];
+  cardRewards: CardRewardRecord[];
+  pathChoices: PathChoiceRecord[];
+  intraNodeChoices: IntraNodeChoiceRecord[];
   fatalEncounter?: {
     nodeId: string;
     enemyId?: string;
@@ -148,6 +185,10 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
 
   const nodesVisited: NodeVisitRecord[] = [];
   const decisionLogs: DecisionLogRecord[] = [];
+  const combatRecords: CombatRecord[] = [];
+  const cardRewards: CardRewardRecord[] = [];
+  const pathChoices: PathChoiceRecord[] = [];
+  const intraNodeChoices: IntraNodeChoiceRecord[] = [];
   let fatalEncounter: SliceRolloutResult['fatalEncounter'] | undefined = undefined;
 
   // 4. 定位 startLayer 的起始候選節點
@@ -222,6 +263,18 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         statusEffects: [],
       };
 
+      combatRecords.push({
+        enemyId: enemy.id,
+        enemyName: enemy.name,
+        enemyRole: currentNode.type === 'boss' ? 'boss' : currentNode.type === 'elite' ? 'elite' : 'normal',
+        depth,
+        healthLost: hpLossInCombat,
+        investigatorHpRemaining: currentInvestigator.health,
+        turnsTaken: combatRes.turns,
+        outcome: combatRes.outcome,
+        deckSize: currentDeck.length,
+      });
+
       // 檢查戰鬥死亡 (即刻死亡剪枝)
       if (combatRes.outcome !== 'victory' || currentInvestigator.health <= 0) {
         currentInvestigator.health = 0;
@@ -262,16 +315,40 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       ];
 
       const chosenReward = evaluateRewardChoice(persona, rewardOptions, evalCtx, rng);
+      cardRewards.push({
+        offeredCardIds: rewardCards.map((c) => c.id),
+        chosenType: chosenReward.type,
+        chosenCardId: chosenReward.type === 'card' && chosenReward.card ? chosenReward.card.id : undefined,
+      });
+
       if (chosenReward.type === 'card' && chosenReward.card) {
         currentDeck = ensureUniqueCardIds([...currentDeck, { ...chosenReward.card }]);
         logAction = `戰勝【${enemy.name}】(+${baseObols}金)，挑選卡牌【${chosenReward.card.name}】`;
+        intraNodeChoices.push({
+          category: 'reward',
+          action: `卡牌構築: 挑選【${chosenReward.card.name}】`,
+          deltaHp: 0,
+          deltaObols: baseObols,
+        });
       } else if (chosenReward.type === 'bandage') {
         const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, 12);
         currentInvestigator.health += heal;
         logAction = `戰勝【${enemy.name}】(+${baseObols}金)，選擇戰地包紮 (+${heal} HP)`;
+        intraNodeChoices.push({
+          category: 'reward',
+          action: '戰後選擇: 【戰地包紮 (+12 HP)】',
+          deltaHp: heal,
+          deltaObols: baseObols,
+        });
       } else {
         currentInvestigator.obols += 5;
         logAction = `戰勝【${enemy.name}】(+${baseObols}金)，跳過戰利品 (+5 金幣)`;
+        intraNodeChoices.push({
+          category: 'reward',
+          action: '戰後選擇: 【跳過獎勵 (精簡牌庫)】',
+          deltaHp: 0,
+          deltaObols: baseObols + 5,
+        });
       }
     } else if (currentNode.type === 'sanctuary') {
       const isHaven = currentLayer === 8 && depth <= 3;
@@ -296,12 +373,30 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, healAmount);
         currentInvestigator.health += heal;
         logAction = `避難所休憩：包紮療傷 (+${heal} HP)`;
+        intraNodeChoices.push({
+          category: 'sanctuary',
+          action: '避難所: 【包紮療傷 (+20 HP)】',
+          deltaHp: heal,
+          deltaObols: 0,
+        });
       } else if (choice.action === 'purge' && choice.cardId) {
         const removed = currentDeck.find((c) => c.id === choice.cardId);
         currentDeck = currentDeck.filter((c) => c.id !== choice.cardId);
         logAction = `避難所爐火：焚毀除役卡牌【${removed?.name ?? '未知'}】`;
+        intraNodeChoices.push({
+          category: 'sanctuary',
+          action: `避難所: 【爐火除役: ${removed?.name ?? '基礎牌'}】`,
+          deltaHp: 0,
+          deltaObols: 0,
+        });
       } else {
         logAction = `避難所冥想：心智澄澈微光 (+真相洞悉)`;
+        intraNodeChoices.push({
+          category: 'sanctuary',
+          action: '避難所: 【心智冥想 (+3 真相微光)】',
+          deltaHp: 0,
+          deltaObols: 0,
+        });
       }
     } else if (currentNode.type === 'market') {
       const marketOptions: MarketChoiceOption[] = [{ action: 'leave', cost: 0 }];
@@ -334,10 +429,22 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, 8);
         currentInvestigator.health += heal;
         logAction = `黑市交易：購買應急醫療補給 (-15 金, +${heal} HP)`;
+        intraNodeChoices.push({
+          category: 'market',
+          action: '黑市: 【採購醫療補給】',
+          deltaHp: heal,
+          deltaObols: -15,
+        });
       } else if (choice.action === 'buy_card' && choice.card && currentInvestigator.obols >= 45) {
         currentInvestigator.obols -= 45;
         currentDeck = ensureUniqueCardIds([...currentDeck, { ...choice.card }]);
         logAction = `黑市交易：採購卡牌【${choice.card.name}】(-45 金)`;
+        intraNodeChoices.push({
+          category: 'market',
+          action: '黑市: 【採購進階卡牌】',
+          deltaHp: 0,
+          deltaObols: -45,
+        });
       } else if (choice.action === 'buy_relic' && currentInvestigator.obols >= 50) {
         currentInvestigator.obols -= 50;
         const relicCandidates = PRESET_RELICS.filter((r) => !currentRelics.some((cr) => cr.id === r.id));
@@ -345,13 +452,31 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         currentRelics = [...currentRelics, relic];
         currentInvestigator = applyRelicToInvestigator(currentInvestigator, relic);
         logAction = `黑市交易：收購舊日遺物【${relic.name}】(-50 金)`;
+        intraNodeChoices.push({
+          category: 'market',
+          action: '黑市: 【採購舊日遺物】',
+          deltaHp: 0,
+          deltaObols: -50,
+        });
       } else if (choice.action === 'purge_card' && choice.cardId && currentInvestigator.obols >= 75) {
         currentInvestigator.obols -= 75;
         const removed = currentDeck.find((c) => c.id === choice.cardId);
         currentDeck = currentDeck.filter((c) => c.id !== choice.cardId);
         logAction = `黑市交易：付費除役卡牌【${removed?.name ?? '未知'}】(-75 金)`;
+        intraNodeChoices.push({
+          category: 'market',
+          action: '黑市: 【付費除役卡牌】',
+          deltaHp: 0,
+          deltaObols: -75,
+        });
       } else {
         logAction = '黑市巡視：未做大額交易離開';
+        intraNodeChoices.push({
+          category: 'market',
+          action: '黑市: 【全額保留古金幣離開】',
+          deltaHp: 0,
+          deltaObols: 0,
+        });
       }
     } else if (currentNode.type === 'event') {
       const allEvents = Object.values(MYTHOS_EVENTS);
@@ -372,6 +497,12 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       currentInvestigator.obols = Math.max(0, currentInvestigator.obols + deltaObols);
 
       logAction = `奇遇【${pickedEvent.title}】：選擇「${option.text}」(${deltaHp >= 0 ? '+' : ''}${deltaHp} HP, ${deltaObols >= 0 ? '+' : ''}${deltaObols} 金)`;
+      intraNodeChoices.push({
+        category: 'event',
+        action: `奇遇【${pickedEvent.title}】: ${option.text}`,
+        deltaHp,
+        deltaObols,
+      });
 
       if (currentInvestigator.health <= 0) {
         fatalEncounter = {
@@ -421,7 +552,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         break; // 拓撲無後續節點
       }
 
-      currentNode = evaluatePathChoice(
+      const nextNode = evaluatePathChoice(
         persona,
         candidateNextNodes,
         {
@@ -432,6 +563,45 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         },
         rng
       );
+
+      if (candidateNextNodes.length > 1) {
+        const types = candidateNextNodes.map((n) => n.type);
+        if (types.includes('combat') && types.includes('sanctuary')) {
+          pathChoices.push({
+            pair: 'combat_vs_sanctuary',
+            label: '【常規戰 vs 安全避難所】',
+            choiceA: '常規戰',
+            choiceB: '安全避難所',
+            pickedA: nextNode.type === 'combat',
+          });
+        } else if (types.includes('combat') && types.includes('elite')) {
+          pathChoices.push({
+            pair: 'combat_vs_elite',
+            label: '【常規戰 vs 精英遭遇】',
+            choiceA: '常規戰',
+            choiceB: '精英遭遇',
+            pickedA: nextNode.type === 'combat',
+          });
+        } else if (types.includes('elite') && types.includes('sanctuary')) {
+          pathChoices.push({
+            pair: 'elite_vs_sanctuary',
+            label: '【精英遭遇 vs 安全避難所】',
+            choiceA: '精英遭遇',
+            choiceB: '安全避難所',
+            pickedA: nextNode.type === 'elite',
+          });
+        } else if (types.includes('market') && types.includes('event')) {
+          pathChoices.push({
+            pair: 'market_vs_event',
+            label: '【黑市商鋪 vs 秘識奇遇】',
+            choiceA: '黑市商鋪',
+            choiceB: '秘識奇遇',
+            pickedA: nextNode.type === 'market',
+          });
+        }
+      }
+
+      currentNode = nextNode;
     }
   }
 
@@ -451,6 +621,10 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
     madnessTurnsTotal,
     nodesVisited,
     decisionLogs,
+    combatRecords,
+    cardRewards,
+    pathChoices,
+    intraNodeChoices,
     fatalEncounter,
   };
 }
