@@ -33,9 +33,11 @@ import {
   ChevronDown,
   FileCode,
   Activity,
+  Map,
 } from 'lucide-react';
 import { generateStandaloneReviewHtml } from '../utils/generateStandaloneReviewHtml';
 import { BalanceMatrixDashboard } from './BalanceMatrixDashboard';
+import { JourneyHeatmapDashboard } from './JourneyHeatmapDashboard';
 import '../styles/cardReview.css';
 
 const STORAGE_KEY = 'arkham_card_review_decisions';
@@ -81,8 +83,8 @@ interface CardReviewLabProps {
 }
 
 export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
-  // Navigation Tabs: 'cards' or 'monsters' or 'balance'
-  const [activeTab, setActiveTab] = useState<'cards' | 'monsters' | 'balance'>('cards');
+  // Navigation Tabs: 'cards' or 'monsters' or 'balance' or 'journey'
+  const [activeTab, setActiveTab] = useState<'cards' | 'monsters' | 'balance' | 'journey'>('cards');
 
   // Storage state for card decisions: { [cardId]: { decision: 'accepted'|'rejected'|'pending', note: string } }
   const [decisions, setDecisions] = useState<Record<string, StoredReviewDecision>>(() => {
@@ -448,6 +450,16 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
             >
               <Activity size={16} />
               <span>數值平衡天梯與模擬矩陣</span>
+            </button>
+            <button
+              className={`mode-tab-btn ${activeTab === 'journey' ? 'active' : ''}`}
+              onClick={() => {
+                soundEngine.playClick();
+                setActiveTab('journey');
+              }}
+            >
+              <Map size={16} />
+              <span>全地圖數值熱點地圖 (7切片模擬)</span>
             </button>
           </div>
         </header>
@@ -1082,8 +1094,10 @@ export const CardReviewLab: React.FC<CardReviewLabProps> = ({ onClose }) => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'balance' ? (
           <BalanceMatrixDashboard />
+        ) : (
+          <JourneyHeatmapDashboard />
         )}
 
         {/* Quick Floating Scroll Controls */}
