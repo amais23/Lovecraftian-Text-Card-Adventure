@@ -335,8 +335,6 @@ export const ENEMY_ARTWORKS_REGISTRY: Record<string, EnemyArtworkInfo> = {
 export const VERIFIED_ENEMY_IMAGE_PATHS = new Set<string>([
   '/enemies/cartoon/enemy_abyssal_barnacle_mass.png',
   '/enemies/cartoon/enemy_ancient_eldritch_guardian.png',
-  '/enemies/cartoon/enemy_ancient_guardian.png',
-  '/enemies/cartoon/enemy_ancient_hound.png',
   '/enemies/cartoon/enemy_ancient_hound_of_tindalos.png',
   '/enemies/cartoon/enemy_arkham_cultist.png',
   '/enemies/cartoon/enemy_byakhee_rotwing.png',
@@ -371,8 +369,6 @@ export const VERIFIED_ENEMY_IMAGE_PATHS = new Set<string>([
   '/enemies/cartoon/enemy_walls_rat_swarm.png',
   '/enemies/realistic/enemy_abyssal_barnacle_mass.png',
   '/enemies/realistic/enemy_ancient_eldritch_guardian.png',
-  '/enemies/realistic/enemy_ancient_guardian.png',
-  '/enemies/realistic/enemy_ancient_hound.png',
   '/enemies/realistic/enemy_ancient_hound_of_tindalos.png',
   '/enemies/realistic/enemy_arkham_cultist.png',
   '/enemies/realistic/enemy_byakhee_rotwing.png',
