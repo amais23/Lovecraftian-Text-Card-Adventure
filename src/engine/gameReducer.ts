@@ -8,7 +8,6 @@ import type {
   Investigator,
   InvestigationMap,
   MapNode,
-  MythosEvent,
 } from '../types/game';
 import {
   INITIAL_GHOUL,
@@ -49,6 +48,10 @@ import {
   resolveNodeLeave,
   type NodeActionResult,
 } from './nodes';
+import {
+  resolveMythosEvent,
+  type MythosEventContext,
+} from './events';
 import {
   clearFallenInvestigator,
   getFallenInvestigator,
@@ -599,128 +602,59 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      let currentInvestigator: Investigator = { ...state.investigator };
-      let newSanityDeck = [...state.sanityDeck];
-      let newDiscardPile = [...state.discardPile];
-      const newHand = [...state.hand];
-      let triggerCombatEnemy: Enemy | undefined;
-      const outcomeTexts: string[] = [];
-
-      for (const consequence of option.consequences) {
-        outcomeTexts.push(consequence.narrative);
-        if (consequence.type === 'health_change' && consequence.value !== undefined) {
-          currentInvestigator.health = Math.max(0, Math.min(currentInvestigator.maxHealth, currentInvestigator.health + consequence.value));
-        } else if (consequence.type === 'gain_obols' && consequence.value !== undefined) {
-          currentInvestigator.obols = Math.max(0, currentInvestigator.obols + consequence.value);
-        } else if (consequence.type === 'sanity_change' && consequence.value !== undefined) {
-          if (consequence.value < 0) {
-            const burnCount = Math.min(newSanityDeck.length, Math.abs(consequence.value));
-            newSanityDeck = newSanityDeck.slice(burnCount);
-          } else if (consequence.value > 0) {
-            let deficit = consequence.value;
-            if (newDiscardPile.length > 0) {
-              const recoverCount = Math.min(newDiscardPile.length, deficit);
-              const recovered = newDiscardPile.splice(0, recoverCount);
-              newSanityDeck = [...newSanityDeck, ...recovered];
-              deficit -= recoverCount;
-            }
-            for (let i = 0; i < deficit; i++) {
-              newSanityDeck.push({
-                id: `event_truth_restored_${newSanityDeck.length + 1}`,
-                name: '心靈澄澈',
-                category: 'truth',
-                costType: 'stamina',
-                costValue: 1,
-                isTemporary: false,
-                effects: [{ type: 'add_to_deck', value: 2 }],
-                description: '平抑恐慌與混亂，向理智牌庫注入 2 張真相卡。',
-                flavorText: '「在混沌之中覓得一絲清明。」',
-              });
-            }
-          }
-        } else if (consequence.type === 'gain_card' && consequence.card) {
-          newSanityDeck.push({
-            ...consequence.card,
-            id: `${consequence.card.id}_evt_${state.sanityDeck.length + 1}`,
-            isTemporary: false,
-          });
-        } else if (consequence.type === 'gain_relic' && consequence.relic) {
-          currentInvestigator = applyRelicToInvestigator(currentInvestigator, consequence.relic);
-        } else if (consequence.type === 'trigger_combat') {
-          triggerCombatEnemy = consequence.enemy ?? INITIAL_GHOUL;
-        }
-      }
-
-      const gainedObols = Math.max(0, currentInvestigator.obols - state.investigator.obols);
-      const currentStats = ensureAdventureStats(state);
-      const updatedStats: AdventureStats = {
-        ...currentStats,
-        totalObolsCollected: currentStats.totalObolsCollected + gainedObols,
+      const mythosCtx: MythosEventContext = {
+        investigator: state.investigator,
+        sanityDeck: state.sanityDeck,
+        hand: state.hand,
+        discardPile: state.discardPile,
+        shuffledDeck: action.payload.shuffledDeck,
+        occupationId: state.investigator.occupationId,
+        adventureStats: ensureAdventureStats(state),
+        eventTitle: state.currentEvent.title,
       };
 
-      const updatedEvent: MythosEvent = {
-        ...state.currentEvent,
-        selectedOptionId: option.id,
-        resolvedOutcomeText: outcomeTexts,
-      };
+      const mythosResult = resolveMythosEvent(state.currentEvent, option, mythosCtx);
 
-      if (currentInvestigator.health <= 0) {
-        saveFallenInvestigatorFromState(state, `於奇遇【${state.currentEvent?.title ?? '未知奇遇'}】中傷重不治`);
+      if (mythosResult.outcome === 'defeat') {
+        saveFallenInvestigatorFromState(state, `於奇遇【${state.currentEvent.title}】中傷重不治`);
         return {
           ...state,
           phase: 'gameover',
-          investigator: currentInvestigator,
-          currentEvent: updatedEvent,
-          adventureStats: updatedStats,
-          battleLog: [`【肉體殞命】調查員在奇遇事件中傷重不治！`, ...state.battleLog],
+          investigator: mythosResult.investigator,
+          currentEvent: mythosResult.updatedEvent,
+          adventureStats: mythosResult.adventureStats,
+          battleLog: [...mythosResult.logs, ...state.battleLog],
         };
       }
 
-      if (triggerCombatEnemy) {
-        const currentCards = [
-          ...newSanityDeck,
-          ...newHand,
-          ...newDiscardPile,
-        ];
-        const handCapacity = currentInvestigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
-        const { hand, sanityDeck } = setupCombatDeck(
-          currentCards,
-          state.investigator.occupationId ?? 'investigator',
-          action.payload.shuffledDeck,
-          handCapacity
-        );
-
+      if (mythosResult.outcome === 'combat') {
         return {
           ...state,
           phase: 'combat',
           turn: 1,
-          investigator: {
-            ...currentInvestigator,
-            armor: 0,
-            stamina: currentInvestigator.maxStamina,
-          },
-          sanityDeck,
-          hand,
+          investigator: mythosResult.investigator,
+          sanityDeck: mythosResult.sanityDeck,
+          hand: mythosResult.hand,
           discardPile: [],
           isMadness: false,
-          currentEnemy: cloneEnemy(triggerCombatEnemy),
+          currentEnemy: mythosResult.enemy,
           currentEvent: undefined,
-          adventureStats: updatedStats,
-          battleLog: outcomeTexts.concat(state.battleLog),
-          combatInitialHealth: currentInvestigator.health,
+          adventureStats: mythosResult.adventureStats,
+          battleLog: [...mythosResult.logs, ...state.battleLog],
+          combatInitialHealth: mythosResult.investigator.health,
           cardsPlayedThisTurn: 0,
         };
       }
 
       return {
         ...state,
-        investigator: currentInvestigator,
-        sanityDeck: newSanityDeck,
-        hand: newHand,
-        discardPile: newDiscardPile,
-        currentEvent: updatedEvent,
-        adventureStats: updatedStats,
-        battleLog: outcomeTexts.concat(state.battleLog),
+        investigator: mythosResult.investigator,
+        sanityDeck: mythosResult.sanityDeck,
+        hand: mythosResult.hand,
+        discardPile: mythosResult.discardPile,
+        currentEvent: mythosResult.updatedEvent,
+        adventureStats: mythosResult.adventureStats,
+        battleLog: [...mythosResult.logs, ...state.battleLog],
       };
     }
 
