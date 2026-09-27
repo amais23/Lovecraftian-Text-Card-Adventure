@@ -3,6 +3,10 @@
  *
  * 執行指令:
  *   npm run sim:journey (預設 15 秒時間預算，均勻平分 7 個切片，輸出宏觀總覽 + Slice 1 明細)
+ *   npm run sim:journey -- --both (同時並行模擬「私家偵探」與「秘術學者」兩職業)
+ *   npm run sim:journey -- --workers 4 (使用 4 核心 Worker 並行抽樣加速)
+ *   npm run sim:journey -- --both --workers 4 (雙職業各開 4 核心並行，全量加速！)
+ *   npm run sim:journey -- --workers auto (自動以 CPU 實體核心數全開並行)
  *   npm run sim:journey -- --slice 2 (切換檢視 Slice 2: D1後階)
  *   npm run sim:journey -- --all-monsters (輸出全量 26 隻敵怪)
  *   npm run sim:journey -- --all-cards (輸出全量 73 張卡牌)
@@ -12,9 +16,13 @@
  */
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { fork } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import {
   runJourneySimulation,
+  mergeJourneySimulationResults,
   SLICE_DEFINITIONS,
   type JourneySimulationResult,
   type JourneySummaryJson,
@@ -30,9 +38,14 @@ export interface JourneyCliOptions {
   showAllCards: boolean;
   timeBudgetSeconds: number;
   samplesPerSlice?: number;
-  occupation: 'investigator' | 'occultist';
+  occupation: 'investigator' | 'occultist' | 'all';
+  bothOccupations: boolean;
+  workers: number;
   outputPath: string;
   noSave: boolean;
+  isWorkerSubtask?: boolean;
+  workerId?: number;
+  seedBase?: number;
 }
 
 /**
@@ -44,9 +57,14 @@ export function parseJourneyCliArgs(argv: string[]): JourneyCliOptions {
   let showAllCards = false;
   let timeBudgetSeconds = 15;
   let samplesPerSlice: number | undefined = undefined;
-  let occupation: 'investigator' | 'occultist' = 'investigator';
+  let occupation: 'investigator' | 'occultist' | 'all' = 'investigator';
+  let bothOccupations = false;
+  let workers = 1;
   let explicitOutputPath: string | undefined = undefined;
   let noSave = false;
+  let isWorkerSubtask = false;
+  let workerId: number | undefined = undefined;
+  let seedBase: number | undefined = undefined;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -73,9 +91,26 @@ export function parseJourneyCliArgs(argv: string[]): JourneyCliOptions {
       }
       i++;
     } else if (arg === '--occupation' && argv[i + 1]) {
-      const occ = argv[i + 1];
-      if (occ === 'investigator' || occ === 'occultist') {
+      const occ = argv[i + 1].toLowerCase();
+      if (occ === 'all' || occ === 'both') {
+        bothOccupations = true;
+        occupation = 'all';
+      } else if (occ === 'investigator' || occ === 'occultist') {
         occupation = occ;
+      }
+      i++;
+    } else if (arg === '--both' || arg === '--both-occupations' || arg === '--all-occupations') {
+      bothOccupations = true;
+      occupation = 'all';
+    } else if ((arg === '--workers' || arg === '-w') && argv[i + 1]) {
+      const val = argv[i + 1].toLowerCase();
+      if (val === 'auto') {
+        workers = Math.max(1, os.cpus().length);
+      } else {
+        const parsed = parseInt(val, 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          workers = Math.max(1, Math.min(32, parsed));
+        }
       }
       i++;
     } else if (arg === '--output' && argv[i + 1]) {
@@ -83,6 +118,14 @@ export function parseJourneyCliArgs(argv: string[]): JourneyCliOptions {
       i++;
     } else if (arg === '--no-save') {
       noSave = true;
+    } else if (arg === '--worker-subtask') {
+      isWorkerSubtask = true;
+    } else if (arg === '--worker-id' && argv[i + 1]) {
+      workerId = parseInt(argv[i + 1], 10);
+      i++;
+    } else if (arg === '--seed' && argv[i + 1]) {
+      seedBase = parseInt(argv[i + 1], 10);
+      i++;
     }
   }
 
@@ -102,8 +145,13 @@ export function parseJourneyCliArgs(argv: string[]): JourneyCliOptions {
     timeBudgetSeconds,
     samplesPerSlice,
     occupation,
+    bothOccupations,
+    workers,
     outputPath,
     noSave,
+    isWorkerSubtask,
+    workerId,
+    seedBase,
   };
 }
 
@@ -357,44 +405,237 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
 /**
  * 主執行入口
  */
+function saveSummaryJson(result: JourneySimulationResult, outputPath: string): void {
+  const summaryJson: JourneySummaryJson = {
+    generatedAt: new Date().toISOString(),
+    version: '1.0.0',
+    totalRollouts: result.totalRollouts,
+    elapsedMilliseconds: result.elapsedMilliseconds,
+    overallSurvivalRate: result.overallSurvivalRate,
+    totalJourneyNetHpLoss: result.totalJourneyNetHpLoss,
+    progression: result.progression,
+    slices: result.slices,
+  };
+
+  const dir = path.dirname(outputPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(outputPath, JSON.stringify(summaryJson, null, 2), 'utf-8');
+  console.log(`\x1b[32m✔ 統計矩陣結構化資料已成功寫入:\x1b[0m ${outputPath}`);
+}
+
+function launchWorker(
+  scriptPath: string,
+  workerId: number,
+  occupation: 'investigator' | 'occultist',
+  timeBudgetSeconds: number,
+  samplesPerSlice: number | undefined,
+  seedBase: number
+): Promise<JourneySimulationResult> {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '--worker-subtask',
+      '--worker-id', String(workerId),
+      '--occupation', occupation,
+      '--time', String(timeBudgetSeconds),
+      '--seed', String(seedBase),
+    ];
+    if (samplesPerSlice !== undefined) {
+      args.push('--samples', String(samplesPerSlice));
+    }
+
+    const child = fork(scriptPath, args, {
+      execArgv: process.execArgv,
+      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+    });
+
+    let result: JourneySimulationResult | undefined = undefined;
+
+    child.on('message', (msg: any) => {
+      if (msg && msg.type === 'RESULT') {
+        result = msg.result;
+      }
+    });
+
+    child.on('error', (err) => {
+      reject(err);
+    });
+
+    child.on('exit', (code) => {
+      if (code !== 0 && !result) {
+        reject(new Error(`Worker ${workerId} exited with code ${code}`));
+      } else if (result) {
+        resolve(result);
+      } else {
+        reject(new Error(`Worker ${workerId} exited without returning result`));
+      }
+    });
+  });
+}
+
+async function runSingleOccupationSimulation(
+  occupation: 'investigator' | 'occultist',
+  options: JourneyCliOptions,
+  scriptPath: string
+): Promise<JourneySimulationResult> {
+  const workers = options.workers;
+  const isParallel = workers > 1;
+
+  if (!isParallel) {
+    let lastReportedSlice = 0;
+    return runJourneySimulation({
+      timeBudgetSeconds: options.timeBudgetSeconds,
+      samplesPerSlice: options.samplesPerSlice,
+      occupation,
+      seedBase: options.seedBase ?? (occupation === 'investigator' ? 1000 : 5000),
+      onProgress: (p) => {
+        if (p.currentSliceId !== lastReportedSlice) {
+          lastReportedSlice = p.currentSliceId;
+          process.stdout.write(
+            `\r\x1b[33m▶ [${occupation === 'investigator' ? '私家偵探' : '秘術學者'}] 正在演算 Slice ${p.currentSliceId}/7 (${SLICE_DEFINITIONS[p.currentSliceId - 1].name})...\x1b[0m`
+          );
+        }
+      },
+    });
+  }
+
+  process.stdout.write(
+    `\r\x1b[35m▶ [${occupation === 'investigator' ? '私家偵探' : '秘術學者'}] 啟動 ${workers} 個 Worker 核心並行運算中...\x1b[0m`
+  );
+
+  const workerPromises: Promise<JourneySimulationResult>[] = [];
+  const baseSeed = options.seedBase ?? (occupation === 'investigator' ? 1000 : 5000);
+  const workerSamples = options.samplesPerSlice
+    ? Math.max(1, Math.ceil(options.samplesPerSlice / workers))
+    : undefined;
+
+  for (let w = 0; w < workers; w++) {
+    const seed = baseSeed + w * 100_000;
+    workerPromises.push(
+      launchWorker(scriptPath, w + 1, occupation, options.timeBudgetSeconds, workerSamples, seed)
+    );
+  }
+
+  const results = await Promise.all(workerPromises);
+  return mergeJourneySimulationResults(results);
+}
+
+export function printDualOccupationComparison(
+  invResult: JourneySimulationResult,
+  occResult: JourneySimulationResult,
+  elapsedSeconds: number
+): void {
+  header('雙職業全地圖平衡模擬橫向比對總覽 (Dual-Occupation Comparison)');
+  console.log(`總運算耗時: ${elapsedSeconds.toFixed(2)} 秒 (雙職業全並行加速)`);
+
+  const comparisonRows = [
+    {
+      '指標維度 (Metric)': '總模擬樣本數 (Total Rollouts)',
+      '私家偵探 (Investigator)': invResult.totalRollouts.toLocaleString(),
+      '秘術學者 (Occultist)': occResult.totalRollouts.toLocaleString(),
+      '差異評註 (Insight)': '兩職業均達充分大數取樣',
+    },
+    {
+      '指標維度 (Metric)': '全地圖全程存活率 (Overall Survival)',
+      '私家偵探 (Investigator)': `${(invResult.overallSurvivalRate * 100).toFixed(1)}%`,
+      '秘術學者 (Occultist)': `${(occResult.overallSurvivalRate * 100).toFixed(1)}%`,
+      '差異評註 (Insight)': `${invResult.overallSurvivalRate - occResult.overallSurvivalRate >= 0 ? '+' : ''}${((invResult.overallSurvivalRate - occResult.overallSurvivalRate) * 100).toFixed(1)}% 差距`,
+    },
+    {
+      '指標維度 (Metric)': '全旅程累計淨損血 (Total Net HP Loss)',
+      '私家偵探 (Investigator)': `${invResult.totalJourneyNetHpLoss.toFixed(1)} 生命值`,
+      '秘術學者 (Occultist)': `${occResult.totalJourneyNetHpLoss.toFixed(1)} 生命值`,
+      '差異評註 (Insight)': invResult.totalJourneyNetHpLoss < occResult.totalJourneyNetHpLoss ? '私家偵探續航更穩' : '秘術學者續航更優',
+    },
+    {
+      '指標維度 (Metric)': '終局平均牌庫大小 (Final Deck Size)',
+      '私家偵探 (Investigator)': `${invResult.progression[6]?.meanFinalDeckSize.toFixed(1) ?? 'N/A'} 張`,
+      '秘術學者 (Occultist)': `${occResult.progression[6]?.meanFinalDeckSize.toFixed(1) ?? 'N/A'} 張`,
+      '差異評註 (Insight)': '反映不同職業構築除役與抓牌傾向',
+    },
+    {
+      '指標維度 (Metric)': '首切片存活率 (Slice 1 Survival)',
+      '私家偵探 (Investigator)': `${((invResult.slices[1]?.sliceSurvivalRate ?? 0) * 100).toFixed(1)}%`,
+      '秘術學者 (Occultist)': `${((occResult.slices[1]?.sliceSurvivalRate ?? 0) * 100).toFixed(1)}%`,
+      '差異評註 (Insight)': '新手入門與初始牌組容錯率對照',
+    },
+    {
+      '指標維度 (Metric)': '深淵終局存活率 (Slice 7 Survival)',
+      '私家偵探 (Investigator)': `${((invResult.slices[7]?.sliceSurvivalRate ?? 0) * 100).toFixed(1)}%`,
+      '秘術學者 (Occultist)': `${((occResult.slices[7]?.sliceSurvivalRate ?? 0) * 100).toFixed(1)}%`,
+      '差異評註 (Insight)': '終極宿敵壓迫感與職業破局力對照',
+    },
+  ];
+
+  console.table(comparisonRows);
+}
+
+/**
+ * 主執行入口
+ */
 export async function runCli(): Promise<void> {
   const options = parseJourneyCliArgs(process.argv.slice(2));
-  console.log(`\n\x1b[1m\x1b[34m[JourneySimulation]\x1b[0m 開始執行全地圖切片蒙地卡羅平衡模擬...`);
-  console.log(`設定: 職業=${options.occupation} | 時限=${options.timeBudgetSeconds}s | 樣本=${options.samplesPerSlice ?? '時間自適應'} | 檢視切片=Slice ${options.targetSlice}`);
+  const scriptPath = fileURLToPath(import.meta.url);
 
-  let lastReportedSlice = 0;
-  const result = runJourneySimulation({
-    timeBudgetSeconds: options.timeBudgetSeconds,
-    samplesPerSlice: options.samplesPerSlice,
-    occupation: options.occupation,
-    seedBase: 1000,
-    onProgress: (p) => {
-      if (p.currentSliceId !== lastReportedSlice) {
-        lastReportedSlice = p.currentSliceId;
-        process.stdout.write(`\r\x1b[33m▶ 正在演算 Slice ${p.currentSliceId}/7 (${SLICE_DEFINITIONS[p.currentSliceId - 1].name})...\x1b[0m`);
-      }
-    },
-  });
+  if (options.isWorkerSubtask) {
+    const result = runJourneySimulation({
+      timeBudgetSeconds: options.timeBudgetSeconds,
+      samplesPerSlice: options.samplesPerSlice,
+      occupation: options.occupation as 'investigator' | 'occultist',
+      seedBase: options.seedBase ?? 1000,
+    });
+    if (process.send) {
+      process.send({ type: 'RESULT', workerId: options.workerId, result }, () => {
+        process.exit(0);
+      });
+    } else {
+      process.exit(0);
+    }
+    return;
+  }
+
+  // 雙職業並行模式
+  if (options.bothOccupations || options.occupation === 'all') {
+    console.log(`\n\x1b[1m\x1b[34m[JourneySimulation:Dual]\x1b[0m 開始執行雙職業全地圖多核心蒙地卡羅平衡模擬...`);
+    console.log(
+      `設定: 雙職業並行 | 每職業核心數=${options.workers} | 時限=${options.timeBudgetSeconds}s | 樣本=${options.samplesPerSlice ?? '時間自適應'}`
+    );
+
+    const startParallel = performance.now();
+    const [invResult, occResult] = await Promise.all([
+      runSingleOccupationSimulation('investigator', options, scriptPath),
+      runSingleOccupationSimulation('occultist', options, scriptPath),
+    ]);
+    const totalElapsed = (performance.now() - startParallel) / 1000;
+    process.stdout.write('\r                                                                                \r');
+
+    if (!options.noSave) {
+      saveSummaryJson(invResult, path.resolve(process.cwd(), 'src/data/balance/journey_summary.json'));
+      saveSummaryJson(occResult, path.resolve(process.cwd(), 'src/data/balance/journey_summary_occultist.json'));
+    }
+
+    printDualOccupationComparison(invResult, occResult, totalElapsed);
+    printJourneyReport(invResult, { ...options, occupation: 'investigator' });
+    return;
+  }
+
+  // 單職業模式 (支援多核心 workers)
+  console.log(`\n\x1b[1m\x1b[34m[JourneySimulation]\x1b[0m 開始執行全地圖切片蒙地卡羅平衡模擬...`);
+  console.log(
+    `設定: 職業=${options.occupation} | 核心數=${options.workers} | 時限=${options.timeBudgetSeconds}s | 樣本=${options.samplesPerSlice ?? '時間自適應'} | 檢視切片=Slice ${options.targetSlice}`
+  );
+
+  const startSingle = performance.now();
+  const result = await runSingleOccupationSimulation(
+    options.occupation as 'investigator' | 'occultist',
+    options,
+    scriptPath
+  );
   process.stdout.write('\r                                                                                \r');
 
   if (!options.noSave) {
-    const summaryJson: JourneySummaryJson = {
-      generatedAt: new Date().toISOString(),
-      version: '1.0.0',
-      totalRollouts: result.totalRollouts,
-      elapsedMilliseconds: result.elapsedMilliseconds,
-      overallSurvivalRate: result.overallSurvivalRate,
-      totalJourneyNetHpLoss: result.totalJourneyNetHpLoss,
-      progression: result.progression,
-      slices: result.slices,
-    };
-
-    const dir = path.dirname(options.outputPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(options.outputPath, JSON.stringify(summaryJson, null, 2), 'utf-8');
-    console.log(`\x1b[32m✔ 統計矩陣結構化資料已成功寫入:\x1b[0m ${options.outputPath}`);
+    saveSummaryJson(result, options.outputPath);
   }
 
   printJourneyReport(result, options);

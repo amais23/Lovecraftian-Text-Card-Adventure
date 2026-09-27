@@ -3,6 +3,7 @@ import {
   SLICE_DEFINITIONS,
   GlobalMixedPool,
   runJourneySimulation,
+  mergeJourneySimulationResults,
   type SurvivingInvestigatorSnapshot,
   type JourneySimulationOptions,
 } from './journeyScheduler';
@@ -148,6 +149,45 @@ describe('Seven-Stage Slice Scheduler & Global Mixed Pool (ADR-0042 / Issue #88)
       expect(result.progression).toHaveLength(7);
       // Execution time should be close to 0.5s (+/- small margin, < 2.0s)
       expect(elapsed).toBeLessThan(2.0);
+    });
+  });
+
+  describe('5. Multi-Core Map-Reduce Result Merging', () => {
+    it('throws error when merging empty result array', () => {
+      expect(() => mergeJourneySimulationResults([])).toThrow('Cannot merge an empty array');
+    });
+
+    it('returns the same object when merging a single result', () => {
+      const single = runJourneySimulation({ samplesPerSlice: 4, seedBase: 100 });
+      expect(mergeJourneySimulationResults([single])).toBe(single);
+    });
+
+    it('accurately aggregates two independent simulation results across all slices', () => {
+      const res1 = runJourneySimulation({ samplesPerSlice: 4, seedBase: 101 });
+      const res2 = runJourneySimulation({ samplesPerSlice: 4, seedBase: 202 });
+
+      const merged = mergeJourneySimulationResults([res1, res2]);
+
+      expect(merged.totalRollouts).toBe(res1.totalRollouts + res2.totalRollouts);
+      expect(merged.progression).toHaveLength(7);
+
+      for (let s = 1; s <= 7; s++) {
+        const slice = merged.slices[s];
+        expect(slice.rolloutsEntered).toBe(res1.slices[s].rolloutsEntered + res2.slices[s].rolloutsEntered);
+        expect(slice.rolloutsCompleted).toBe(res1.slices[s].rolloutsCompleted + res2.slices[s].rolloutsCompleted);
+        expect(slice.sliceSurvivalRate).toBeCloseTo(slice.rolloutsCompleted / slice.rolloutsEntered);
+        expect(typeof slice.meanCombatHpLoss).toBe('number');
+        expect(typeof slice.meanNetHpLoss).toBe('number');
+        expect(slice.personas.balanced.rolloutsEntered).toBe(
+          res1.slices[s].personas.balanced.rolloutsEntered + res2.slices[s].personas.balanced.rolloutsEntered
+        );
+        expect(slice.monsters.length).toBeGreaterThan(0);
+        expect(slice.cards.length).toBeGreaterThan(0);
+        expect(slice.groupComparison.length).toBeGreaterThanOrEqual(4);
+      }
+
+      expect(merged.overallSurvivalRate).toBeGreaterThanOrEqual(0);
+      expect(merged.overallSurvivalRate).toBeLessThanOrEqual(1);
     });
   });
 });

@@ -48,6 +48,34 @@ describe('Production Journey CLI & Summary Generator (ADR-0042 / Issue #89)', ()
     expect(opts.outputPath).toContain('journey_summary_occultist.json');
   });
 
+  it('parses --both and --occupation all to enable simultaneous dual-occupation simulation', () => {
+    const opts1 = parseJourneyCliArgs(['--both']);
+    expect(opts1.bothOccupations).toBe(true);
+    expect(opts1.occupation).toBe('all');
+
+    const opts2 = parseJourneyCliArgs(['--occupation', 'all']);
+    expect(opts2.bothOccupations).toBe(true);
+    expect(opts2.occupation).toBe('all');
+
+    const opts3 = parseJourneyCliArgs(['--occupation', 'both']);
+    expect(opts3.bothOccupations).toBe(true);
+    expect(opts3.occupation).toBe('all');
+  });
+
+  it('parses --workers and -w with numbers and auto core count', () => {
+    const opts1 = parseJourneyCliArgs(['--workers', '4']);
+    expect(opts1.workers).toBe(4);
+
+    const opts2 = parseJourneyCliArgs(['-w', '8']);
+    expect(opts2.workers).toBe(8);
+
+    const optsAuto = parseJourneyCliArgs(['--workers', 'auto']);
+    expect(optsAuto.workers).toBeGreaterThanOrEqual(1);
+
+    const optsDefault = parseJourneyCliArgs([]);
+    expect(optsDefault.workers).toBe(1);
+  });
+
   it('generates schema-compliant JSON summary structure', () => {
     const result = runJourneySimulation({
       samplesPerSlice: 4,
