@@ -192,7 +192,13 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
         '致死率': `${(nv.lethality * 100).toFixed(1)}%`,
       }))
     : [
-        { '節點類型': '常規遭遇 (Combat)', '造訪次數 N': currentSlice.totalCombatsFought.toLocaleString(), '實際造訪率': '52.4%', '平均損血': `${currentSlice.meanCombatHpLoss.toFixed(1)} 生命值`, '致死率': '6.2%' },
+        {
+          '節點類型': '常規遭遇 (Combat)',
+          '造訪次數 N': currentSlice.totalCombatsFought.toLocaleString(),
+          '實際造訪率': 'N/A',
+          '平均損血': `${currentSlice.meanCombatHpLoss.toFixed(1)} 生命值`,
+          '致死率': 'N/A',
+        },
       ];
   console.table(nodeRows);
 
@@ -207,7 +213,7 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
   const tierStats: Record<number, { label: string; offered: number; drafted: number }> = {
     1: { label: 'Tier 1 (基礎)', offered: 0, drafted: 0 },
     2: { label: 'Tier 2 (進階)', offered: 0, drafted: 0 },
-    3: { label: 'Tier 3 (稀有)', offered: 0, drafted: 0 },
+    3: { label: 'Tier 3 (高階)', offered: 0, drafted: 0 },
     4: { label: 'Tier 4 (神話秘典)', offered: 0, drafted: 0 },
   };
   for (const c of currentSlice.cards) {

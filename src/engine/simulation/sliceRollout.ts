@@ -128,6 +128,611 @@ export function createPrng(seed: number): () => number {
   };
 }
 
+interface NodeResolutionContext {
+  depth: DepthLevel;
+  currentLayer: number;
+  persona: AgentPersona;
+  occupation: 'investigator' | 'occultist';
+  rng: () => number;
+}
+
+interface NodeResolutionResult {
+  investigator: Investigator;
+  deck: Card[];
+  relics: Relic[];
+  logAction: string;
+  isFatal?: boolean;
+  fatalEncounter?: SliceRolloutResult['fatalEncounter'];
+  intraNodeChoice?: IntraNodeChoiceRecord;
+  combatMetrics?: {
+    hpLossInCombat: number;
+    isMadness: boolean;
+    isVictory: boolean;
+    combatRecord: CombatRecord;
+    cardRewardRecord?: CardRewardRecord;
+  };
+}
+
+function resolveCombatNode(
+  node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const { depth, currentLayer, persona, occupation, rng } = ctx;
+  const combatRole: 'combat' | 'elite' | 'boss' =
+    node.type === 'boss' ? 'boss' : node.type === 'elite' ? 'elite' : 'combat';
+  let enemy: Enemy;
+  if (node.enemyId) {
+    const template = getEnemyTemplateById(node.enemyId);
+    enemy = template ? template : getEncounterEnemy(depth, combatRole, rng);
+  } else {
+    enemy = getEncounterEnemy(depth, combatRole, rng);
+  }
+
+  const combatRes = simulateCombat({
+    deck,
+    relics,
+    enemy,
+    investigator,
+    policyMode: 'optimal',
+    randomFn: rng,
+  });
+
+  const hpLossInCombat = combatRes.healthLost;
+  const updatedInvestigator: Investigator = {
+    ...investigator,
+    health: combatRes.investigatorHealthRemaining,
+    armor: 0,
+    statusEffects: [],
+  };
+
+  const combatRecord: CombatRecord = {
+    enemyId: enemy.id,
+    enemyName: enemy.name,
+    enemyRole: node.type === 'boss' ? 'boss' : node.type === 'elite' ? 'elite' : 'normal',
+    depth,
+    healthLost: hpLossInCombat,
+    investigatorHpRemaining: updatedInvestigator.health,
+    turnsTaken: combatRes.turns,
+    outcome: combatRes.outcome,
+    deckSize: deck.length,
+  };
+
+  if (combatRes.outcome !== 'victory' || updatedInvestigator.health <= 0) {
+    updatedInvestigator.health = 0;
+    return {
+      investigator: updatedInvestigator,
+      deck,
+      relics,
+      isFatal: true,
+      fatalEncounter: {
+        nodeId: node.id,
+        enemyId: enemy.id,
+        enemyName: enemy.name,
+        layer: currentLayer,
+      },
+      logAction: `戰鬥陣亡: 遭【${enemy.name}】致命擊破`,
+      combatMetrics: {
+        hpLossInCombat,
+        isMadness: combatRes.isMadness,
+        isVictory: false,
+        combatRecord,
+      },
+    };
+  }
+
+  const baseObols = node.type === 'boss' ? 50 : node.type === 'elite' ? 25 : 15;
+  updatedInvestigator.obols += baseObols;
+
+  const rewardCards = CardRegistry.generateRewardCards({
+    depth,
+    isBoss: node.type === 'boss',
+    count: 3,
+    occupationId: occupation,
+    randomFn: rng,
+  });
+
+  const rewardOptions: RewardChoiceOption[] = [
+    ...rewardCards.map((c) => ({ type: 'card' as const, card: c })),
+    { type: 'bandage' as const, healAmount: 12 },
+    { type: 'skip' as const, obols: 5 },
+  ];
+
+  let fragmentCard: Card | undefined = undefined;
+  if (node.type === 'boss') {
+    fragmentCard = depth === 1 ? { ...ABYSSAL_FRAGMENT_1 } : depth === 2 ? { ...ABYSSAL_FRAGMENT_2 } : { ...ABYSSAL_FRAGMENT_3 };
+    rewardOptions.push({
+      type: 'seal_fragment',
+      fragmentCard,
+    });
+  }
+
+  const evalCtx: EvaluationContext = {
+    investigator: updatedInvestigator,
+    sanityDeck: deck,
+    currentDepth: depth,
+    currentLayer,
+  };
+
+  const chosenReward = evaluateRewardChoice(persona, rewardOptions, evalCtx, rng);
+  const cardRewardRecord: CardRewardRecord = {
+    offeredCardIds: rewardCards.map((c) => c.id),
+    chosenType: chosenReward.type,
+    chosenCardId:
+      chosenReward.type === 'seal_fragment' && chosenReward.fragmentCard
+        ? chosenReward.fragmentCard.id
+        : chosenReward.type === 'card' && chosenReward.card
+        ? chosenReward.card.id
+        : undefined,
+  };
+
+  let updatedDeck = deck;
+  let logAction = '';
+  let intraNodeChoice: IntraNodeChoiceRecord;
+
+  if (chosenReward.type === 'card' && chosenReward.card) {
+    updatedDeck = ensureUniqueCardIds([...updatedDeck, { ...chosenReward.card }]);
+    logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，挑選卡牌【${chosenReward.card.name}】`;
+    intraNodeChoice = {
+      category: 'reward',
+      action: `卡牌構築: 挑選【${chosenReward.card.name}】`,
+      deltaHp: 0,
+      deltaObols: baseObols,
+    };
+  } else if (chosenReward.type === 'bandage') {
+    const heal = Math.min(updatedInvestigator.maxHealth - updatedInvestigator.health, 12);
+    updatedInvestigator.health += heal;
+    logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，選擇戰地包紮 (+${heal} 生命值)`;
+    intraNodeChoice = {
+      category: 'reward',
+      action: '戰後選擇: 【戰地包紮】',
+      deltaHp: heal,
+      deltaObols: baseObols,
+    };
+  } else if (chosenReward.type === 'seal_fragment' && chosenReward.fragmentCard) {
+    const frag = chosenReward.fragmentCard;
+    updatedDeck = ensureUniqueCardIds([...updatedDeck, { ...frag }]);
+    logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，承受深淵封印殘片【${frag.name}】`;
+    intraNodeChoice = {
+      category: 'reward',
+      action: '戰後選擇: 【承受深淵封印殘片 (Boss)】',
+      deltaHp: 0,
+      deltaObols: baseObols,
+    };
+  } else {
+    updatedInvestigator.obols += 5;
+    logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，跳過戰利品 (+5 古金幣)`;
+    intraNodeChoice = {
+      category: 'reward',
+      action: '戰後選擇: 【跳過獎勵 (精簡牌庫)】',
+      deltaHp: 0,
+      deltaObols: baseObols + 5,
+    };
+  }
+
+  return {
+    investigator: updatedInvestigator,
+    deck: updatedDeck,
+    relics,
+    logAction,
+    intraNodeChoice,
+    combatMetrics: {
+      hpLossInCombat,
+      isMadness: combatRes.isMadness,
+      isVictory: true,
+      combatRecord,
+      cardRewardRecord,
+    },
+  };
+}
+
+function resolveSanctuaryNode(
+  _node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const { depth, currentLayer, persona, rng } = ctx;
+  const isHaven = currentLayer === 8 && depth <= 3;
+  const healAmount = isHaven ? 15 : 8;
+
+  const sanctuaryOptions: SanctuaryChoiceOption[] = [
+    { action: 'bandage', healAmount },
+    { action: 'meditate', cardsCount: 3 },
+  ];
+
+  if (deck.length > 1) {
+    const starterCandidates = deck.filter((c) => isBasicStarterCard(c));
+    const otherCandidates = deck.filter((c) => !isBasicStarterCard(c));
+    const purgeCandidates = [...starterCandidates, ...otherCandidates].slice(0, 4);
+    for (const c of purgeCandidates) {
+      sanctuaryOptions.push({ action: 'purge', cardId: c.id });
+    }
+  }
+
+  const evalCtx: EvaluationContext = {
+    investigator,
+    sanityDeck: deck,
+    currentDepth: depth,
+    currentLayer,
+  };
+
+  const choice = evaluateSanctuaryChoice(persona, sanctuaryOptions, evalCtx, rng);
+  const updatedInvestigator = { ...investigator };
+  let updatedDeck = deck;
+  let logAction = '';
+  let intraNodeChoice: IntraNodeChoiceRecord;
+
+  if (choice.action === 'bandage') {
+    const heal = Math.min(updatedInvestigator.maxHealth - updatedInvestigator.health, healAmount);
+    updatedInvestigator.health += heal;
+    logAction = `避難所休憩：包紮療傷 (+${heal} 生命值)`;
+    intraNodeChoice = {
+      category: 'sanctuary',
+      action: '避難所: 【包紮療傷】',
+      deltaHp: heal,
+      deltaObols: 0,
+    };
+  } else if (choice.action === 'purge' && choice.cardId) {
+    const removed = updatedDeck.find((c) => c.id === choice.cardId);
+    updatedDeck = updatedDeck.filter((c) => c.id !== choice.cardId);
+    logAction = `避難所爐火：焚毀除役卡牌【${removed?.name ?? '未知'}】`;
+    intraNodeChoice = {
+      category: 'sanctuary',
+      action: `避難所: 【爐火除役: ${removed?.name ?? '基礎牌'}】`,
+      deltaHp: 0,
+      deltaObols: 0,
+    };
+  } else {
+    logAction = `避難所冥想：心智澄澈微光 (+真相洞悉)`;
+    intraNodeChoice = {
+      category: 'sanctuary',
+      action: '避難所: 【心智冥想 (+3 真相微光)】',
+      deltaHp: 0,
+      deltaObols: 0,
+    };
+  }
+
+  return {
+    investigator: updatedInvestigator,
+    deck: updatedDeck,
+    relics,
+    logAction,
+    intraNodeChoice,
+  };
+}
+
+function resolveMarketNode(
+  _node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const { depth, currentLayer, persona, occupation, rng } = ctx;
+  const marketOptions: MarketChoiceOption[] = [{ action: 'leave', cost: 0 }];
+
+  if (investigator.obols >= 15) {
+    marketOptions.push({ action: 'buy_medical', cost: 15 });
+  }
+  if (investigator.obols >= 45) {
+    const candidateCards = CardRegistry.generateRewardCards({
+      depth,
+      isBoss: false,
+      count: 2,
+      occupationId: occupation,
+      randomFn: rng,
+    });
+    if (candidateCards[0]) {
+      marketOptions.push({ action: 'buy_card', card: candidateCards[0], cost: 45 });
+    }
+  }
+  if (investigator.obols >= 50) {
+    marketOptions.push({ action: 'buy_relic', cost: 50 });
+  }
+  if (investigator.obols >= 75 && deck.length > 1) {
+    const purgeCandidate = deck.find((c) => isBasicStarterCard(c)) ?? deck[0];
+    marketOptions.push({
+      action: 'purge_card',
+      cardId: purgeCandidate.id,
+      purgeCard: purgeCandidate,
+      cost: 75,
+    });
+  }
+
+  const evalCtx: EvaluationContext = {
+    investigator,
+    sanityDeck: deck,
+    currentDepth: depth,
+    currentLayer,
+  };
+
+  const choice = evaluateMarketChoice(persona, marketOptions, evalCtx, rng);
+  const updatedInvestigator = { ...investigator };
+  let updatedDeck = deck;
+  let updatedRelics = relics;
+  let logAction = '';
+  let intraNodeChoice: IntraNodeChoiceRecord;
+
+  if (choice.action === 'buy_medical' && updatedInvestigator.obols >= 15) {
+    updatedInvestigator.obols -= 15;
+    const heal = Math.min(updatedInvestigator.maxHealth - updatedInvestigator.health, 8);
+    updatedInvestigator.health += heal;
+    logAction = `黑市交易：購買應急醫療補給 (-15 古金幣, +${heal} 生命值)`;
+    intraNodeChoice = {
+      category: 'market',
+      action: '黑市: 【採購醫療補給】',
+      deltaHp: heal,
+      deltaObols: -15,
+    };
+  } else if (choice.action === 'buy_card' && choice.card && updatedInvestigator.obols >= 45) {
+    updatedInvestigator.obols -= 45;
+    updatedDeck = ensureUniqueCardIds([...updatedDeck, { ...choice.card }]);
+    logAction = `黑市交易：採購卡牌【${choice.card.name}】(-45 古金幣)`;
+    intraNodeChoice = {
+      category: 'market',
+      action: '黑市: 【採購進階卡牌】',
+      deltaHp: 0,
+      deltaObols: -45,
+    };
+  } else if (choice.action === 'buy_relic' && updatedInvestigator.obols >= 50) {
+    updatedInvestigator.obols -= 50;
+    const relicCandidates = PRESET_RELICS.filter((r) => !updatedRelics.some((cr) => cr.id === r.id));
+    const relic = relicCandidates[0] ?? PRESET_RELICS[0];
+    updatedRelics = [...updatedRelics, relic];
+    applyRelicToInvestigator(updatedInvestigator, relic);
+    logAction = `黑市交易：收購舊日遺物【${relic.name}】(-50 古金幣)`;
+    intraNodeChoice = {
+      category: 'market',
+      action: '黑市: 【採購舊日遺物】',
+      deltaHp: 0,
+      deltaObols: -50,
+    };
+  } else if (choice.action === 'purge_card' && choice.cardId && updatedInvestigator.obols >= 75) {
+    updatedInvestigator.obols -= 75;
+    const removed = updatedDeck.find((c) => c.id === choice.cardId);
+    updatedDeck = updatedDeck.filter((c) => c.id !== choice.cardId);
+    logAction = `黑市交易：付費除役卡牌【${removed?.name ?? '未知'}】(-75 古金幣)`;
+    intraNodeChoice = {
+      category: 'market',
+      action: '黑市: 【付費除役卡牌】',
+      deltaHp: 0,
+      deltaObols: -75,
+    };
+  } else {
+    logAction = '黑市巡視：未做大額交易離開';
+    intraNodeChoice = {
+      category: 'market',
+      action: '黑市: 【全額保留古金幣離開】',
+      deltaHp: 0,
+      deltaObols: 0,
+    };
+  }
+
+  return {
+    investigator: updatedInvestigator,
+    deck: updatedDeck,
+    relics: updatedRelics,
+    logAction,
+    intraNodeChoice,
+  };
+}
+
+function resolveEventNode(
+  node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const { depth, currentLayer, persona, rng } = ctx;
+  const allEvents = Object.values(MYTHOS_EVENTS);
+  const pickedEvent = allEvents[Math.floor(rng() * allEvents.length)] ?? allEvents[0];
+  const evalCtx: EvaluationContext = {
+    investigator,
+    sanityDeck: deck,
+    currentDepth: depth,
+    currentLayer,
+  };
+  const option = evaluateEventChoice(persona, pickedEvent, evalCtx, rng);
+
+  let deltaHp = 0;
+  let deltaObols = 0;
+  for (const consequence of option.consequences) {
+    if (consequence.type === 'health_change' && consequence.value !== undefined) {
+      deltaHp += consequence.value;
+    } else if (consequence.type === 'gain_obols' && consequence.value !== undefined) {
+      deltaObols += consequence.value;
+    }
+  }
+
+  const updatedInvestigator: Investigator = {
+    ...investigator,
+    health: Math.max(0, Math.min(investigator.maxHealth, investigator.health + deltaHp)),
+    obols: Math.max(0, investigator.obols + deltaObols),
+  };
+
+  const logAction = `奇遇【${pickedEvent.title}】：選擇「${option.text}」(${deltaHp >= 0 ? '+' : ''}${deltaHp} 生命值, ${deltaObols >= 0 ? '+' : ''}${deltaObols} 古金幣)`;
+  const intraNodeChoice: IntraNodeChoiceRecord = {
+    category: 'event',
+    action: `奇遇【${pickedEvent.title}】: ${option.text}`,
+    deltaHp,
+    deltaObols,
+  };
+
+  if (updatedInvestigator.health <= 0) {
+    return {
+      investigator: updatedInvestigator,
+      deck,
+      relics,
+      logAction,
+      intraNodeChoice,
+      isFatal: true,
+      fatalEncounter: {
+        nodeId: node.id,
+        enemyName: `奇遇殞命: ${pickedEvent.title}`,
+        layer: currentLayer,
+      },
+    };
+  }
+
+  return {
+    investigator: updatedInvestigator,
+    deck,
+    relics,
+    logAction,
+    intraNodeChoice,
+  };
+}
+
+function resolveAltarNode(
+  _node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const isCautious = ctx.persona.type === 'cautious';
+  const updatedInvestigator = { ...investigator };
+
+  if (!isCautious && updatedInvestigator.health > 8) {
+    updatedInvestigator.health -= 4;
+    updatedInvestigator.obols += 20;
+    return {
+      investigator: updatedInvestigator,
+      deck,
+      relics,
+      logAction: '禁忌祭壇：獻祭生命獲得深淵恩賜 (-4 生命值, +20 古金幣)',
+      intraNodeChoice: {
+        category: 'event',
+        action: '禁忌祭壇: 【鮮血祭獻 (+20 古金幣)】',
+        deltaHp: -4,
+        deltaObols: 20,
+      },
+    };
+  }
+
+  return {
+    investigator: updatedInvestigator,
+    deck,
+    relics,
+    logAction: '禁忌祭壇：凝視不可名狀雕像後謹慎離開',
+    intraNodeChoice: {
+      category: 'event',
+      action: '禁忌祭壇: 【謹慎離開】',
+      deltaHp: 0,
+      deltaObols: 0,
+    },
+  };
+}
+
+function resolveBloodAltarNode(
+  _node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const starterCard = deck.find((c) => isBasicStarterCard(c));
+  const updatedInvestigator = { ...investigator };
+
+  if (starterCard && updatedInvestigator.health > 6 && ctx.persona.type !== 'cautious') {
+    updatedInvestigator.health -= 3;
+    const updatedDeck = deck.filter((c) => c.id !== starterCard.id);
+    return {
+      investigator: updatedInvestigator,
+      deck: updatedDeck,
+      relics,
+      logAction: `血之祭壇：以鮮血為誓除役卡牌【${starterCard.name}】(-3 生命值)`,
+      intraNodeChoice: {
+        category: 'sanctuary',
+        action: '血之祭壇: 【鮮血除役卡牌】',
+        deltaHp: -3,
+        deltaObols: 0,
+      },
+    };
+  }
+
+  return {
+    investigator: updatedInvestigator,
+    deck,
+    relics,
+    logAction: '血之祭壇：繞過血槽繼續前行',
+  };
+}
+
+function resolveVaultNode(
+  _node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  _ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const unowned = PRESET_RELICS.filter((r) => !relics.some((cr) => cr.id === r.id));
+  const relic = unowned[0] ?? PRESET_RELICS[0];
+  const updatedRelics = [...relics, relic];
+  const updatedInvestigator = applyRelicToInvestigator(investigator, relic);
+
+  return {
+    investigator: updatedInvestigator,
+    deck,
+    relics: updatedRelics,
+    logAction: `遺物秘閣：破除遠古封印獲取舊日遺物【${relic.name}】`,
+    intraNodeChoice: {
+      category: 'reward',
+      action: `遺物秘閣: 【獲取舊日遺物 ${relic.name}】`,
+      deltaHp: 0,
+      deltaObols: 0,
+    },
+  };
+}
+
+function resolveRemainsNode(
+  _node: MapNode,
+  investigator: Investigator,
+  deck: Card[],
+  relics: Relic[],
+  _ctx: NodeResolutionContext
+): NodeResolutionResult {
+  const updatedInvestigator: Investigator = {
+    ...investigator,
+    obols: investigator.obols + 15,
+  };
+
+  return {
+    investigator: updatedInvestigator,
+    deck,
+    relics,
+    logAction: '屍骨遺骸：哀悼前人遺骸，拾得遺留的 15 古金幣',
+    intraNodeChoice: {
+      category: 'reward',
+      action: '屍骨遺骸: 【拾得前人古金幣 (+15)】',
+      deltaHp: 0,
+      deltaObols: 15,
+    },
+  };
+}
+
+interface KnownPathPairConfig {
+  pair: string;
+  label: string;
+  typeA: MapNodeType;
+  typeB: MapNodeType;
+  choiceA: string;
+  choiceB: string;
+}
+
+const KNOWN_PATH_PAIRS: KnownPathPairConfig[] = [
+  { pair: 'combat_vs_sanctuary', label: '【常規戰 vs 安全避難所】', typeA: 'combat', typeB: 'sanctuary', choiceA: '常規戰', choiceB: '安全避難所' },
+  { pair: 'combat_vs_elite', label: '【常規戰 vs 精英遭遇】', typeA: 'combat', typeB: 'elite', choiceA: '常規戰', choiceB: '精英遭遇' },
+  { pair: 'elite_vs_sanctuary', label: '【精英遭遇 vs 安全避難所】', typeA: 'elite', typeB: 'sanctuary', choiceA: '精英遭遇', choiceB: '安全避難所' },
+  { pair: 'market_vs_event', label: '【黑市商鋪 vs 秘識奇遇】', typeA: 'market', typeB: 'event', choiceA: '黑市商鋪', choiceB: '秘識奇遇' },
+  { pair: 'altar_vs_sanctuary', label: '【禁忌祭壇 vs 安全避難所】', typeA: 'altar', typeB: 'sanctuary', choiceA: '禁忌祭壇', choiceB: '安全避難所' },
+];
+
 /**
  * 執行單一切片（8 層）之蒙地卡羅軌跡抽樣 (Single Slice 8-Floor Monte Carlo Rollout)
  */
@@ -227,409 +832,90 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       label: currentNode.label,
     });
 
-    const evalCtx: EvaluationContext = {
-      investigator: currentInvestigator,
-      sanityDeck: currentDeck,
-      currentDepth: depth,
-      currentLayer,
-    };
-
-    let logAction = '';
     const hpBeforeNode = currentInvestigator.health;
     const obolsBeforeNode = currentInvestigator.obols;
 
-    // ─────────────────────────────────────────────────────────
-    // 節點事件處理
-    // ─────────────────────────────────────────────────────────
-    if (currentNode.type === 'combat' || currentNode.type === 'elite' || currentNode.type === 'boss') {
+    const nodeCtx: NodeResolutionContext = {
+      depth,
+      currentLayer,
+      persona,
+      occupation,
+      rng,
+    };
+
+    let res: NodeResolutionResult;
+    switch (currentNode.type) {
+      case 'combat':
+      case 'elite':
+      case 'boss':
+        res = resolveCombatNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'sanctuary':
+        res = resolveSanctuaryNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'market':
+        res = resolveMarketNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'event':
+        res = resolveEventNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'altar':
+        res = resolveAltarNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'blood_altar':
+        res = resolveBloodAltarNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'vault':
+        res = resolveVaultNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      case 'remains':
+        res = resolveRemainsNode(currentNode, currentInvestigator, currentDeck, currentRelics, nodeCtx);
+        break;
+      default:
+        res = {
+          investigator: currentInvestigator,
+          deck: currentDeck,
+          relics: currentRelics,
+          logAction: `造訪特殊節點【${currentNode.label}】`,
+        };
+        break;
+    }
+
+    currentInvestigator = res.investigator;
+    currentDeck = res.deck;
+    currentRelics = res.relics;
+
+    if (res.combatMetrics) {
       combatsFought++;
-      let enemy: Enemy;
-      if (currentNode.enemyId) {
-        const template = getEnemyTemplateById(currentNode.enemyId);
-        enemy = template ? template : getEncounterEnemy(depth, currentNode.type, rng);
-      } else {
-        enemy = getEncounterEnemy(depth, currentNode.type, rng);
-      }
-
-      // 執行單場戰鬥
-      const combatRes = simulateCombat({
-        deck: currentDeck,
-        relics: currentRelics,
-        enemy,
-        investigator: currentInvestigator,
-        policyMode: 'optimal',
-        randomFn: rng,
-      });
-
-      const hpLossInCombat = combatRes.healthLost;
-      combatHpLoss += hpLossInCombat;
-      if (combatRes.isMadness) {
+      combatHpLoss += res.combatMetrics.hpLossInCombat;
+      if (res.combatMetrics.isMadness) {
         madnessTurnsTotal++;
       }
-      currentInvestigator = {
-        ...currentInvestigator,
-        health: combatRes.investigatorHealthRemaining,
-        armor: 0,
-        statusEffects: [],
-      };
-
-      combatRecords.push({
-        enemyId: enemy.id,
-        enemyName: enemy.name,
-        enemyRole: currentNode.type === 'boss' ? 'boss' : currentNode.type === 'elite' ? 'elite' : 'normal',
-        depth,
-        healthLost: hpLossInCombat,
-        investigatorHpRemaining: currentInvestigator.health,
-        turnsTaken: combatRes.turns,
-        outcome: combatRes.outcome,
-        deckSize: currentDeck.length,
-      });
-
-      // 檢查戰鬥死亡 (即刻死亡剪枝)
-      if (combatRes.outcome !== 'victory' || currentInvestigator.health <= 0) {
-        currentInvestigator.health = 0;
-        fatalEncounter = {
-          nodeId: currentNode.id,
-          enemyId: enemy.id,
-          enemyName: enemy.name,
-          layer: currentLayer,
-        };
-        decisionLogs.push({
-          layer: currentLayer,
-          nodeType: currentNode.type,
-          actionTaken: `戰鬥陣亡: 遭【${enemy.name}】致命擊破`,
-          deltaHp: -hpLossInCombat,
-          deltaObols: 0,
-        });
-        break; // 停止後續探索
+      combatRecords.push(res.combatMetrics.combatRecord);
+      if (res.combatMetrics.cardRewardRecord) {
+        cardRewards.push(res.combatMetrics.cardRewardRecord);
       }
-
-      combatsWon++;
-
-      // 戰勝結算：生成戰利品
-      const baseObols = currentNode.type === 'boss' ? 50 : currentNode.type === 'elite' ? 25 : 15;
-      currentInvestigator.obols += baseObols;
-
-      const rewardCards = CardRegistry.generateRewardCards({
-        depth,
-        isBoss: currentNode.type === 'boss',
-        count: 3,
-        occupationId: occupation,
-        randomFn: rng,
-      });
-
-      const rewardOptions: RewardChoiceOption[] = [
-        ...rewardCards.map((c) => ({ type: 'card' as const, card: c })),
-        { type: 'bandage' as const, healAmount: 12 },
-        { type: 'skip' as const, obols: 5 },
-      ];
-
-      // 首領戰勝利時提供承受深淵封印殘片之抉擇
-      let fragmentCard: Card | undefined = undefined;
-      if (currentNode.type === 'boss') {
-        fragmentCard = depth === 1 ? { ...ABYSSAL_FRAGMENT_1 } : depth === 2 ? { ...ABYSSAL_FRAGMENT_2 } : { ...ABYSSAL_FRAGMENT_3 };
-        rewardOptions.push({
-          type: 'seal_fragment',
-          fragmentCard,
-        });
+      if (res.combatMetrics.isVictory) {
+        combatsWon++;
       }
+    }
 
-      const chosenReward = evaluateRewardChoice(persona, rewardOptions, evalCtx, rng);
-      cardRewards.push({
-        offeredCardIds: rewardCards.map((c) => c.id),
-        chosenType: chosenReward.type,
-        chosenCardId:
-          chosenReward.type === 'seal_fragment' && chosenReward.fragmentCard
-            ? chosenReward.fragmentCard.id
-            : chosenReward.type === 'card' && chosenReward.card
-            ? chosenReward.card.id
-            : undefined,
-      });
-
-      if (chosenReward.type === 'card' && chosenReward.card) {
-        currentDeck = ensureUniqueCardIds([...currentDeck, { ...chosenReward.card }]);
-        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，挑選卡牌【${chosenReward.card.name}】`;
-        intraNodeChoices.push({
-          category: 'reward',
-          action: `卡牌構築: 挑選【${chosenReward.card.name}】`,
-          deltaHp: 0,
-          deltaObols: baseObols,
-        });
-      } else if (chosenReward.type === 'bandage') {
-        const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, 12);
-        currentInvestigator.health += heal;
-        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，選擇戰地包紮 (+${heal} 生命值)`;
-        intraNodeChoices.push({
-          category: 'reward',
-          action: '戰後選擇: 【戰地包紮】',
-          deltaHp: heal,
-          deltaObols: baseObols,
-        });
-      } else if (chosenReward.type === 'seal_fragment' && chosenReward.fragmentCard) {
-        const frag = chosenReward.fragmentCard;
-        currentDeck = ensureUniqueCardIds([...currentDeck, { ...frag }]);
-        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，承受深淵封印殘片【${frag.name}】`;
-        intraNodeChoices.push({
-          category: 'reward',
-          action: '戰後選擇: 【承受深淵封印殘片 (Boss)】',
-          deltaHp: 0,
-          deltaObols: baseObols,
-        });
-      } else {
-        currentInvestigator.obols += 5;
-        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，跳過戰利品 (+5 古金幣)`;
-        intraNodeChoices.push({
-          category: 'reward',
-          action: '戰後選擇: 【跳過獎勵 (精簡牌庫)】',
-          deltaHp: 0,
-          deltaObols: baseObols + 5,
-        });
-      }
-    } else if (currentNode.type === 'sanctuary') {
-      const isHaven = currentLayer === 8 && depth <= 3;
-      const healAmount = isHaven ? 15 : 8;
-
-      const sanctuaryOptions: SanctuaryChoiceOption[] = [
-        { action: 'bandage', healAmount },
-        { action: 'meditate', cardsCount: 3 },
-      ];
-
-      // 牌庫大於 1 張時允許除役，優先篩選初始白板卡
-      if (currentDeck.length > 1) {
-        const starterCandidates = currentDeck.filter((c) => isBasicStarterCard(c));
-        const otherCandidates = currentDeck.filter((c) => !isBasicStarterCard(c));
-        const purgeCandidates = [...starterCandidates, ...otherCandidates].slice(0, 4);
-        for (const c of purgeCandidates) {
-          sanctuaryOptions.push({ action: 'purge', cardId: c.id });
-        }
-      }
-
-      const choice = evaluateSanctuaryChoice(persona, sanctuaryOptions, evalCtx, rng);
-      if (choice.action === 'bandage') {
-        const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, healAmount);
-        currentInvestigator.health += heal;
-        logAction = `避難所休憩：包紮療傷 (+${heal} 生命值)`;
-        intraNodeChoices.push({
-          category: 'sanctuary',
-          action: '避難所: 【包紮療傷】',
-          deltaHp: heal,
-          deltaObols: 0,
-        });
-      } else if (choice.action === 'purge' && choice.cardId) {
-        const removed = currentDeck.find((c) => c.id === choice.cardId);
-        currentDeck = currentDeck.filter((c) => c.id !== choice.cardId);
-        logAction = `避難所爐火：焚毀除役卡牌【${removed?.name ?? '未知'}】`;
-        intraNodeChoices.push({
-          category: 'sanctuary',
-          action: `避難所: 【爐火除役: ${removed?.name ?? '基礎牌'}】`,
-          deltaHp: 0,
-          deltaObols: 0,
-        });
-      } else {
-        logAction = `避難所冥想：心智澄澈微光 (+真相洞悉)`;
-        intraNodeChoices.push({
-          category: 'sanctuary',
-          action: '避難所: 【心智冥想 (+3 真相微光)】',
-          deltaHp: 0,
-          deltaObols: 0,
-        });
-      }
-    } else if (currentNode.type === 'market') {
-      const marketOptions: MarketChoiceOption[] = [{ action: 'leave', cost: 0 }];
-
-      if (currentInvestigator.obols >= 15) {
-        marketOptions.push({ action: 'buy_medical', cost: 15 });
-      }
-      if (currentInvestigator.obols >= 45) {
-        const candidateCards = CardRegistry.generateRewardCards({
-          depth,
-          isBoss: false,
-          count: 2,
-          occupationId: occupation,
-          randomFn: rng,
-        });
-        if (candidateCards[0]) {
-          marketOptions.push({ action: 'buy_card', card: candidateCards[0], cost: 45 });
-        }
-      }
-      if (currentInvestigator.obols >= 50) {
-        marketOptions.push({ action: 'buy_relic', cost: 50 });
-      }
-      if (currentInvestigator.obols >= 75 && currentDeck.length > 1) {
-        const purgeCandidate = currentDeck.find((c) => isBasicStarterCard(c)) ?? currentDeck[0];
-        marketOptions.push({
-          action: 'purge_card',
-          cardId: purgeCandidate.id,
-          purgeCard: purgeCandidate,
-          cost: 75,
-        });
-      }
-
-      const choice = evaluateMarketChoice(persona, marketOptions, evalCtx, rng);
-      if (choice.action === 'buy_medical' && currentInvestigator.obols >= 15) {
-        currentInvestigator.obols -= 15;
-        const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, 8);
-        currentInvestigator.health += heal;
-        logAction = `黑市交易：購買應急醫療補給 (-15 古金幣, +${heal} 生命值)`;
-        intraNodeChoices.push({
-          category: 'market',
-          action: '黑市: 【採購醫療補給】',
-          deltaHp: heal,
-          deltaObols: -15,
-        });
-      } else if (choice.action === 'buy_card' && choice.card && currentInvestigator.obols >= 45) {
-        currentInvestigator.obols -= 45;
-        currentDeck = ensureUniqueCardIds([...currentDeck, { ...choice.card }]);
-        logAction = `黑市交易：採購卡牌【${choice.card.name}】(-45 古金幣)`;
-        intraNodeChoices.push({
-          category: 'market',
-          action: '黑市: 【採購進階卡牌】',
-          deltaHp: 0,
-          deltaObols: -45,
-        });
-      } else if (choice.action === 'buy_relic' && currentInvestigator.obols >= 50) {
-        currentInvestigator.obols -= 50;
-        const relicCandidates = PRESET_RELICS.filter((r) => !currentRelics.some((cr) => cr.id === r.id));
-        const relic = relicCandidates[0] ?? PRESET_RELICS[0];
-        currentRelics = [...currentRelics, relic];
-        currentInvestigator = applyRelicToInvestigator(currentInvestigator, relic);
-        logAction = `黑市交易：收購舊日遺物【${relic.name}】(-50 古金幣)`;
-        intraNodeChoices.push({
-          category: 'market',
-          action: '黑市: 【採購舊日遺物】',
-          deltaHp: 0,
-          deltaObols: -50,
-        });
-      } else if (choice.action === 'purge_card' && choice.cardId && currentInvestigator.obols >= 75) {
-        currentInvestigator.obols -= 75;
-        const removed = currentDeck.find((c) => c.id === choice.cardId);
-        currentDeck = currentDeck.filter((c) => c.id !== choice.cardId);
-        logAction = `黑市交易：付費除役卡牌【${removed?.name ?? '未知'}】(-75 古金幣)`;
-        intraNodeChoices.push({
-          category: 'market',
-          action: '黑市: 【付費除役卡牌】',
-          deltaHp: 0,
-          deltaObols: -75,
-        });
-      } else {
-        logAction = '黑市巡視：未做大額交易離開';
-        intraNodeChoices.push({
-          category: 'market',
-          action: '黑市: 【全額保留古金幣離開】',
-          deltaHp: 0,
-          deltaObols: 0,
-        });
-      }
-    } else if (currentNode.type === 'event') {
-      const allEvents = Object.values(MYTHOS_EVENTS);
-      const pickedEvent = allEvents[Math.floor(rng() * allEvents.length)] ?? allEvents[0];
-      const option = evaluateEventChoice(persona, pickedEvent, evalCtx, rng);
-
-      let deltaHp = 0;
-      let deltaObols = 0;
-      for (const consequence of option.consequences) {
-        if (consequence.type === 'health_change' && consequence.value !== undefined) {
-          deltaHp += consequence.value;
-        } else if (consequence.type === 'gain_obols' && consequence.value !== undefined) {
-          deltaObols += consequence.value;
-        }
-      }
-
-      currentInvestigator.health = Math.max(0, Math.min(currentInvestigator.maxHealth, currentInvestigator.health + deltaHp));
-      currentInvestigator.obols = Math.max(0, currentInvestigator.obols + deltaObols);
-
-      logAction = `奇遇【${pickedEvent.title}】：選擇「${option.text}」(${deltaHp >= 0 ? '+' : ''}${deltaHp} 生命值, ${deltaObols >= 0 ? '+' : ''}${deltaObols} 古金幣)`;
-      intraNodeChoices.push({
-        category: 'event',
-        action: `奇遇【${pickedEvent.title}】: ${option.text}`,
-        deltaHp,
-        deltaObols,
-      });
-
-      if (currentInvestigator.health <= 0) {
-        fatalEncounter = {
-          nodeId: currentNode.id,
-          enemyName: `奇遇殞命: ${pickedEvent.title}`,
-          layer: currentLayer,
-        };
-        decisionLogs.push({
-          layer: currentLayer,
-          nodeType: currentNode.type,
-          actionTaken: logAction,
-          deltaHp: currentInvestigator.health - hpBeforeNode,
-          deltaObols: currentInvestigator.obols - obolsBeforeNode,
-        });
-        break;
-      }
-    } else if (currentNode.type === 'altar') {
-      const isCautious = persona.type === 'cautious';
-      if (!isCautious && currentInvestigator.health > 8) {
-        currentInvestigator.health -= 4;
-        currentInvestigator.obols += 20;
-        logAction = '禁忌祭壇：獻祭生命獲得深淵恩賜 (-4 生命值, +20 古金幣)';
-        intraNodeChoices.push({
-          category: 'event',
-          action: '禁忌祭壇: 【鮮血祭獻 (+20 古金幣)】',
-          deltaHp: -4,
-          deltaObols: 20,
-        });
-      } else {
-        logAction = '禁忌祭壇：凝視不可名狀雕像後謹慎離開';
-        intraNodeChoices.push({
-          category: 'event',
-          action: '禁忌祭壇: 【謹慎離開】',
-          deltaHp: 0,
-          deltaObols: 0,
-        });
-      }
-    } else if (currentNode.type === 'blood_altar') {
-      const starterCard = currentDeck.find((c) => isBasicStarterCard(c));
-      if (starterCard && currentInvestigator.health > 6 && persona.type !== 'cautious') {
-        currentInvestigator.health -= 3;
-        currentDeck = currentDeck.filter((c) => c.id !== starterCard.id);
-        logAction = `血之祭壇：以鮮血為誓除役卡牌【${starterCard.name}】(-3 生命值)`;
-        intraNodeChoices.push({
-          category: 'sanctuary',
-          action: '血之祭壇: 【鮮血除役卡牌】',
-          deltaHp: -3,
-          deltaObols: 0,
-        });
-      } else {
-        logAction = '血之祭壇：繞過血槽繼續前行';
-      }
-    } else if (currentNode.type === 'vault') {
-      const unowned = PRESET_RELICS.filter((r) => !currentRelics.some((cr) => cr.id === r.id));
-      const relic = unowned[0] ?? PRESET_RELICS[0];
-      currentRelics = [...currentRelics, relic];
-      currentInvestigator = applyRelicToInvestigator(currentInvestigator, relic);
-      logAction = `遺物秘閣：破除遠古封印獲取舊日遺物【${relic.name}】`;
-      intraNodeChoices.push({
-        category: 'reward',
-        action: `遺物秘閣: 【獲取舊日遺物 ${relic.name}】`,
-        deltaHp: 0,
-        deltaObols: 0,
-      });
-    } else if (currentNode.type === 'remains') {
-      currentInvestigator.obols += 15;
-      logAction = '屍骨遺骸：哀悼前人遺骸，拾得遺留的 15 古金幣';
-      intraNodeChoices.push({
-        category: 'reward',
-        action: '屍骨遺骸: 【拾得前人古金幣 (+15)】',
-        deltaHp: 0,
-        deltaObols: 15,
-      });
-    } else {
-      // 其他類型
-      logAction = `造訪特殊節點【${currentNode.label}】`;
+    if (res.intraNodeChoice) {
+      intraNodeChoices.push(res.intraNodeChoice);
     }
 
     decisionLogs.push({
       layer: currentLayer,
       nodeType: currentNode.type,
-      actionTaken: logAction,
+      actionTaken: res.logAction,
       deltaHp: currentInvestigator.health - hpBeforeNode,
       deltaObols: currentInvestigator.obols - obolsBeforeNode,
     });
+
+    if (res.isFatal) {
+      fatalEncounter = res.fatalEncounter;
+      break;
+    }
 
     // ─────────────────────────────────────────────────────────
     // 邁向下一個樓層節點
@@ -665,46 +951,19 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
 
       if (candidateNextNodes.length > 1) {
         const types = candidateNextNodes.map((n) => n.type);
-        if (types.includes('combat') && types.includes('sanctuary')) {
-          pathChoices.push({
-            pair: 'combat_vs_sanctuary',
-            label: '【常規戰 vs 安全避難所】',
-            choiceA: '常規戰',
-            choiceB: '安全避難所',
-            pickedA: nextNode.type === 'combat',
-          });
-        } else if (types.includes('combat') && types.includes('elite')) {
-          pathChoices.push({
-            pair: 'combat_vs_elite',
-            label: '【常規戰 vs 精英遭遇】',
-            choiceA: '常規戰',
-            choiceB: '精英遭遇',
-            pickedA: nextNode.type === 'combat',
-          });
-        } else if (types.includes('elite') && types.includes('sanctuary')) {
-          pathChoices.push({
-            pair: 'elite_vs_sanctuary',
-            label: '【精英遭遇 vs 安全避難所】',
-            choiceA: '精英遭遇',
-            choiceB: '安全避難所',
-            pickedA: nextNode.type === 'elite',
-          });
-        } else if (types.includes('market') && types.includes('event')) {
-          pathChoices.push({
-            pair: 'market_vs_event',
-            label: '【黑市商鋪 vs 秘識奇遇】',
-            choiceA: '黑市商鋪',
-            choiceB: '秘識奇遇',
-            pickedA: nextNode.type === 'market',
-          });
-        } else if (types.includes('altar') && types.includes('sanctuary')) {
-          pathChoices.push({
-            pair: 'altar_vs_sanctuary',
-            label: '【禁忌祭壇 vs 安全避難所】',
-            choiceA: '禁忌祭壇',
-            choiceB: '安全避難所',
-            pickedA: nextNode.type === 'altar',
-          });
+        for (const pairConfig of KNOWN_PATH_PAIRS) {
+          if (types.includes(pairConfig.typeA) && types.includes(pairConfig.typeB)) {
+            // 唯有真正挑選了 A 或 B 時才記錄，避免在多分支時產生錯誤歸因
+            if (nextNode.type === pairConfig.typeA || nextNode.type === pairConfig.typeB) {
+              pathChoices.push({
+                pair: pairConfig.pair,
+                label: pairConfig.label,
+                choiceA: pairConfig.choiceA,
+                choiceB: pairConfig.choiceB,
+                pickedA: nextNode.type === pairConfig.typeA,
+              });
+            }
+          }
         }
       }
 

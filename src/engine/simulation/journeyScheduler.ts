@@ -278,6 +278,7 @@ class GroupMetricAccumulator {
   get avgRelics(): number { return this.count > 0 ? this.relicsSum / this.count : 0; }
   get avgEliteVisits(): number { return this.count > 0 ? this.eliteVisits / this.count : 0; }
   get avgSanctuaryVisits(): number { return this.count > 0 ? this.sanctuaryVisits / this.count : 0; }
+  get avgBandagePicks(): number { return this.count > 0 ? this.bandagePicks / this.count : 0; }
 }
 
 const STANDARD_PERSONAS: AgentPersonaType[] = ['balanced', 'cautious', 'greedy', 'pure_random'];
@@ -531,74 +532,74 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
       // 累加怪物遭遇
       for (const combat of result.combatRecords) {
         const key = `${combat.depth}_${combat.enemyId}`;
-        const mTracker = monsterMap[key];
-        if (mTracker) {
-          mTracker.encounters++;
-          mTracker.hpLossSum += combat.healthLost;
-          if (mTracker.hpLosses.length < 200) {
-            mTracker.hpLosses.push(combat.healthLost);
+        const monsterTracker = monsterMap[key];
+        if (monsterTracker) {
+          monsterTracker.encounters++;
+          monsterTracker.hpLossSum += combat.healthLost;
+          if (monsterTracker.hpLosses.length < 200) {
+            monsterTracker.hpLosses.push(combat.healthLost);
           }
-          mTracker.turnsSum += combat.turnsTaken;
+          monsterTracker.turnsSum += combat.turnsTaken;
           if (combat.outcome === 'victory') {
-            mTracker.wins++;
+            monsterTracker.wins++;
           } else {
-            mTracker.kills++;
+            monsterTracker.kills++;
           }
         }
       }
 
       // 累加卡牌戰利品掉落與選入
-      for (const cr of result.cardRewards) {
-        for (const offeredId of cr.offeredCardIds) {
+      for (const rewardRecord of result.cardRewards) {
+        for (const offeredId of rewardRecord.offeredCardIds) {
           if (cardMap[offeredId]) cardMap[offeredId].offeredN++;
         }
-        if (cr.chosenCardId && cardMap[cr.chosenCardId]) {
-          cardMap[cr.chosenCardId].draftedN++;
+        if (rewardRecord.chosenCardId && cardMap[rewardRecord.chosenCardId]) {
+          cardMap[rewardRecord.chosenCardId].draftedN++;
         }
       }
 
       // 累加路徑分支抉擇
-      for (const pc of result.pathChoices) {
-        if (pathMap[pc.pair]) {
-          if (pc.pickedA) {
-            pathMap[pc.pair].countA++;
-            if (!result.success) pathMap[pc.pair].deathsA++;
+      for (const pathChoice of result.pathChoices) {
+        if (pathMap[pathChoice.pair]) {
+          if (pathChoice.pickedA) {
+            pathMap[pathChoice.pair].countA++;
+            if (!result.success) pathMap[pathChoice.pair].deathsA++;
           } else {
-            pathMap[pc.pair].countB++;
-            if (!result.success) pathMap[pc.pair].deathsB++;
+            pathMap[pathChoice.pair].countB++;
+            if (!result.success) pathMap[pathChoice.pair].deathsB++;
           }
         }
       }
 
       // 累加節點內部抉擇
-      for (const inc of result.intraNodeChoices) {
-        if (!intraNodeMap[inc.action]) {
-          intraNodeMap[inc.action] = {
-            category: inc.category,
-            action: inc.action,
+      for (const intraChoice of result.intraNodeChoices) {
+        if (!intraNodeMap[intraChoice.action]) {
+          intraNodeMap[intraChoice.action] = {
+            category: intraChoice.category,
+            action: intraChoice.action,
             count: 0,
             hpDeltaSum: 0,
             deaths: 0,
           };
         }
-        intraNodeMap[inc.action].count++;
-        intraNodeMap[inc.action].hpDeltaSum += inc.deltaHp;
-        if (!result.success) intraNodeMap[inc.action].deaths++;
+        intraNodeMap[intraChoice.action].count++;
+        intraNodeMap[intraChoice.action].hpDeltaSum += intraChoice.deltaHp;
+        if (!result.success) intraNodeMap[intraChoice.action].deaths++;
       }
 
       // 累加精確牌庫大小統計
       const clampedSize = Math.max(8, Math.min(25, result.finalDeck.length));
-      const dsTracker = deckSizeMap[clampedSize];
-      dsTracker.sampleN++;
-      dsTracker.combatLossSum += result.combatHpLoss;
-      dsTracker.netLossSum += result.netHpLoss;
-      if (dsTracker.hpLosses.length < 200) {
-        dsTracker.hpLosses.push(result.combatHpLoss);
+      const deckSizeTracker = deckSizeMap[clampedSize];
+      deckSizeTracker.sampleN++;
+      deckSizeTracker.combatLossSum += result.combatHpLoss;
+      deckSizeTracker.netLossSum += result.netHpLoss;
+      if (deckSizeTracker.hpLosses.length < 200) {
+        deckSizeTracker.hpLosses.push(result.combatHpLoss);
       }
-      if (!result.success) dsTracker.deaths++;
-      if (result.madnessTurnsTotal > 0) dsTracker.madness++;
+      if (!result.success) deckSizeTracker.deaths++;
+      if (result.madnessTurnsTotal > 0) deckSizeTracker.madness++;
       for (const c of result.combatRecords) {
-        dsTracker.turnsSum += c.turnsTaken;
+        deckSizeTracker.turnsSum += c.turnsTaken;
       }
 
       // 累加卡牌持有與死亡率關聯（去除 ensureUniqueCardIds 追加的 _copy_ 後綴以對齊圖鑑母表）
@@ -716,15 +717,15 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
     const totalEncountersInSlice = Object.values(monsterMap).reduce((acc, m) => acc + m.encounters, 0);
     const monstersResult: MonsterSliceMetrics[] = allMonstersList.map((m) => {
       const key = `${m.depth}_${m.id}`;
-      const t = monsterMap[key];
-      const enc = t.encounters;
-      const meanHp = enc > 0 ? t.hpLossSum / enc : 0;
-      const medianHp = computeMedian(t.hpLosses);
-      const minHp = t.hpLosses.length > 0 ? Math.min(...t.hpLosses) : 0;
-      const maxHp = t.hpLosses.length > 0 ? Math.max(...t.hpLosses) : 0;
-      const avgTurns = enc > 0 ? t.turnsSum / enc : 0;
-      const winRate = enc > 0 ? t.wins / enc : 1;
-      const lethality = enc > 0 ? t.kills / enc : 0;
+      const monsterTracker = monsterMap[key];
+      const enc = monsterTracker.encounters;
+      const meanHp = enc > 0 ? monsterTracker.hpLossSum / enc : 0;
+      const medianHp = computeMedian(monsterTracker.hpLosses);
+      const minHp = monsterTracker.hpLosses.length > 0 ? Math.min(...monsterTracker.hpLosses) : 0;
+      const maxHp = monsterTracker.hpLosses.length > 0 ? Math.max(...monsterTracker.hpLosses) : 0;
+      const avgTurns = enc > 0 ? monsterTracker.turnsSum / enc : 0;
+      const winRate = enc > 0 ? monsterTracker.wins / enc : 0;
+      const lethality = enc > 0 ? monsterTracker.kills / enc : 0;
       const encRate = totalEncountersInSlice > 0 ? enc / totalEncountersInSlice : 0;
 
       return {
@@ -741,7 +742,7 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
         minHpLoss: minHp,
         maxHpLoss: maxHp,
         avgTurns: Math.round(avgTurns * 10) / 10,
-        kills: t.kills,
+        kills: monsterTracker.kills,
         lethality: Math.round(lethality * 1000) / 1000,
         winRate: Math.round(winRate * 1000) / 1000,
       };
@@ -888,6 +889,13 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
         fallenValue: `${fallenSanctuaryVisits.toFixed(1)} 次`,
         delta: `${survivingSanctuaryVisits - fallenSanctuaryVisits >= 0 ? '+' : ''}${(survivingSanctuaryVisits - fallenSanctuaryVisits).toFixed(1)} 次`,
         note: '避難所包紮與除役是續航核心關鍵',
+      },
+      {
+        dimension: '戰後抉擇: 戰地包紮平均次數',
+        survivingValue: `${survivingGroup.avgBandagePicks.toFixed(1)} 次`,
+        fallenValue: `${fallenGroup.avgBandagePicks.toFixed(1)} 次`,
+        delta: `${survivingGroup.avgBandagePicks - fallenGroup.avgBandagePicks >= 0 ? '+' : ''}${(survivingGroup.avgBandagePicks - fallenGroup.avgBandagePicks).toFixed(1)} 次`,
+        note: '戰後及時包紮回復生命值可有效預防突發暴斃',
       },
     ];
 

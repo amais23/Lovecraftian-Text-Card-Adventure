@@ -4,6 +4,20 @@ import { defineConfig } from 'vitest/config'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('journey_summary')) {
+            return 'journey-summary-data';
+          }
+          if (id.includes('balance_summary_data')) {
+            return 'balance-summary-data';
+          }
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -65,7 +65,7 @@ export const AGENT_PERSONAS: Record<AgentPersonaType, AgentPersona> = {
   cautious: {
     type: 'cautious',
     name: '生存謹慎型',
-    description: '保命至上，高度生命門檻（生命值≤65%時全力回血），避開精英與高危祭壇，偏好防禦與治療。',
+    description: '保命至上，高度生命門檻（生命值≤65%時全力回血），避開精英與高危禁忌祭壇，偏好防禦與治療。',
     healthAlertThreshold: 0.65,
     deckTendency: 'survival',
   },
