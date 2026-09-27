@@ -6,6 +6,9 @@ export type AgentPersonaType = 'balanced' | 'cautious' | 'greedy' | 'pure_random
 export interface AgentPersona {
   type: AgentPersonaType;
   name: string;
+  label: string;
+  shortRole: string;
+  uiClass: string;
   description: string;
   /** 生命值警戒門檻 (0 ~ 1，當生命值比值低於此門檻時強烈傾向回復生命) */
   healthAlertThreshold: number;
@@ -58,6 +61,9 @@ export const AGENT_PERSONAS: Record<AgentPersonaType, AgentPersona> = {
   balanced: {
     type: 'balanced',
     name: '常態平衡型',
+    label: '常態平衡型 (Balanced)',
+    shortRole: '理性兼顧生存與卡牌品質',
+    uiClass: 'balanced',
     description: '理性權衡，中度生命門檻（生命值≤45%時回血），綜合考量卡牌強度評分與牌庫厚度。',
     healthAlertThreshold: 0.45,
     deckTendency: 'balanced',
@@ -65,6 +71,9 @@ export const AGENT_PERSONAS: Record<AgentPersonaType, AgentPersona> = {
   cautious: {
     type: 'cautious',
     name: '生存謹慎型',
+    label: '生存謹慎型 (Cautious)',
+    shortRole: '高警戒必回血、避開精英',
+    uiClass: 'cautious',
     description: '保命至上，高度生命門檻（生命值≤65%時全力回血），避開精英與高危禁忌祭壇，偏好防禦與治療。',
     healthAlertThreshold: 0.65,
     deckTendency: 'survival',
@@ -72,6 +81,9 @@ export const AGENT_PERSONAS: Record<AgentPersonaType, AgentPersona> = {
   greedy: {
     type: 'greedy',
     name: '貪婪構築型',
+    label: '貪婪構築型 (Greedy)',
+    shortRole: '極致除役廢牌、搶購遺物',
+    uiClass: 'greedy',
     description: '極致構築，低度生命門檻（生命值≤25%才回血），優先除役初始普通牌、搶購強力遺物與高階卡。',
     healthAlertThreshold: 0.25,
     deckTendency: 'streamline',
@@ -79,6 +91,9 @@ export const AGENT_PERSONAS: Record<AgentPersonaType, AgentPersona> = {
   pure_random: {
     type: 'pure_random',
     name: '純隨機探索型',
+    label: '純隨機探索型 (Random)',
+    shortRole: '等機率盲選衡量邊界下限',
+    uiClass: 'random',
     description: '邊界下限基準，所有合法決策選項採 1/K 等機率盲選，不考量數值與狀態。',
     healthAlertThreshold: 0.0,
     deckTendency: 'random',
@@ -92,11 +107,30 @@ export function getAgentPersona(type?: AgentPersonaType): AgentPersona {
   return AGENT_PERSONAS[type];
 }
 
+export function getPersonaLabel(type?: AgentPersonaType): string {
+  if (!type || !AGENT_PERSONAS[type]) {
+    return AGENT_PERSONAS.balanced.label;
+  }
+  return AGENT_PERSONAS[type].label;
+}
+
 export interface EvaluationContext {
   investigator: Investigator;
   sanityDeck: Card[];
   currentDepth: number;
   currentLayer: number;
+}
+
+/**
+ * 計算調查員生命值比例與 Persona 警戒狀態
+ */
+export function computeAlertState(
+  persona: AgentPersona,
+  investigator: Investigator
+): { hpRatio: number; isAlert: boolean } {
+  const hpRatio = investigator.health / Math.max(1, investigator.maxHealth);
+  const isAlert = hpRatio <= persona.healthAlertThreshold;
+  return { hpRatio, isAlert };
 }
 
 /**
@@ -151,8 +185,7 @@ export function evaluateRewardChoice(
   }
 
   const { investigator, sanityDeck } = ctx;
-  const hpRatio = investigator.health / Math.max(1, investigator.maxHealth);
-  const isAlert = hpRatio <= persona.healthAlertThreshold;
+  const { hpRatio, isAlert } = computeAlertState(persona, investigator);
 
   return sampleWeightedChoice(
     options,
@@ -238,8 +271,7 @@ export function evaluateSanctuaryChoice(
   }
 
   const { investigator, sanityDeck } = ctx;
-  const hpRatio = investigator.health / Math.max(1, investigator.maxHealth);
-  const isAlert = hpRatio <= persona.healthAlertThreshold;
+  const { hpRatio, isAlert } = computeAlertState(persona, investigator);
 
   return sampleWeightedChoice(
     options,
@@ -308,8 +340,7 @@ export function evaluateMarketChoice(
   }
 
   const { investigator, sanityDeck } = ctx;
-  const hpRatio = investigator.health / Math.max(1, investigator.maxHealth);
-  const isAlert = hpRatio <= persona.healthAlertThreshold;
+  const { isAlert } = computeAlertState(persona, investigator);
 
   return sampleWeightedChoice(
     options,
@@ -370,8 +401,7 @@ export function evaluatePathChoice(
   }
 
   const { investigator } = ctx;
-  const hpRatio = investigator.health / Math.max(1, investigator.maxHealth);
-  const isAlert = hpRatio <= persona.healthAlertThreshold;
+  const { isAlert } = computeAlertState(persona, investigator);
 
   return sampleWeightedChoice(
     outgoingNodes,
@@ -457,8 +487,7 @@ export function evaluateEventChoice(
   }
 
   const { investigator } = ctx;
-  const hpRatio = investigator.health / Math.max(1, investigator.maxHealth);
-  const isAlert = hpRatio <= persona.healthAlertThreshold;
+  const { isAlert } = computeAlertState(persona, investigator);
 
   return sampleWeightedChoice(
     options,

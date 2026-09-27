@@ -18,6 +18,11 @@ import {
   type JourneySummaryJson,
   type SliceSimulationSummary,
 } from '../engine/simulation/journeyScheduler';
+import {
+  AGENT_PERSONAS,
+  getAgentPersona,
+  type AgentPersonaType,
+} from '../engine/simulation/agentPersona';
 import { soundEngine } from '../engine/audioManager';
 import '../styles/journeyHeatmap.css';
 
@@ -132,12 +137,11 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
 
   // 4-Persona cross-slice survival matrix
   const personaProgressionMatrix = useMemo(() => {
-    const personas: Array<{ key: 'balanced' | 'cautious' | 'greedy' | 'pure_random'; label: string }> = [
-      { key: 'cautious', label: '生存謹慎型 (Cautious)' },
-      { key: 'balanced', label: '常態平衡型 (Balanced)' },
-      { key: 'greedy', label: '貪婪構築型 (Greedy)' },
-      { key: 'pure_random', label: '純隨機探索型 (Random)' },
-    ];
+    const personaKeys: AgentPersonaType[] = ['cautious', 'balanced', 'greedy', 'pure_random'];
+    const personas = personaKeys.map((key) => ({
+      key,
+      label: AGENT_PERSONAS[key].label,
+    }));
 
     return personas.map((p) => {
       const sliceRates = (summaryData?.progression || []).map((s) => {
@@ -352,30 +356,12 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
         {currentSlice?.personas && (
           <div className="persona-cards-grid">
             {Object.values(currentSlice.personas).map((p) => {
-              const pClass =
-                p.persona === 'balanced'
-                  ? 'balanced'
-                  : p.persona === 'cautious'
-                  ? 'cautious'
-                  : p.persona === 'greedy'
-                  ? 'greedy'
-                  : 'random';
-              const pLabel =
-                p.persona === 'balanced'
-                  ? '常態平衡型 (Balanced)'
-                  : p.persona === 'cautious'
-                  ? '生存謹慎型 (Cautious)'
-                  : p.persona === 'greedy'
-                  ? '貪婪構築型 (Greedy)'
-                  : '純隨機探索型 (Random)';
-              const pRole =
-                p.persona === 'balanced'
-                  ? '理性兼顧生存與卡牌品質'
-                  : p.persona === 'cautious'
-                  ? '高警戒必回血、避開精英'
-                  : p.persona === 'greedy'
-                  ? '極致除役廢牌、搶購遺物'
-                  : '等機率盲選衡量邊界下限';
+              const personaMeta =
+                AGENT_PERSONAS[p.persona as AgentPersonaType] ??
+                getAgentPersona(p.persona as AgentPersonaType);
+              const pClass = personaMeta.uiClass;
+              const pLabel = personaMeta.label;
+              const pRole = personaMeta.shortRole;
 
               return (
                 <div key={p.persona} className={`persona-card ${pClass}`}>

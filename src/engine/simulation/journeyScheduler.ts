@@ -96,10 +96,6 @@ export class GlobalMixedPool {
   clear(): void {
     this.pool = [];
   }
-
-  getAll(): SurvivingInvestigatorSnapshot[] {
-    return this.pool;
-  }
 }
 
 // ─────────────────────────────────────────────────────────────

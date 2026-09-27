@@ -19,6 +19,10 @@ import {
   type JourneySimulationResult,
   type JourneySummaryJson,
 } from '../src/engine/simulation/journeyScheduler';
+import {
+  getPersonaLabel,
+  type AgentPersonaType,
+} from '../src/engine/simulation/agentPersona';
 
 export interface JourneyCliOptions {
   targetSlice: number;
@@ -160,14 +164,7 @@ export function printJourneyReport(result: JourneySimulationResult, options: Jou
   // 0-2. 當前切片四流派快照
   subHeader(`表 0-2：【${sliceMeta.name}】四種代理人流派獨立表現快照 (Persona Breakdown)`);
   const personaRows = Object.values(currentSlice.personas).map((p) => {
-    const label =
-      p.persona === 'balanced'
-        ? '常態平衡型 (Balanced)'
-        : p.persona === 'cautious'
-        ? '生存謹慎型 (Cautious)'
-        : p.persona === 'greedy'
-        ? '貪婪構築型 (Greedy)'
-        : '純隨機探索型 (Random)';
+    const label = getPersonaLabel(p.persona as AgentPersonaType);
     return {
       '代理人流派 (Persona)': label,
       '人口比例': '25.0%',

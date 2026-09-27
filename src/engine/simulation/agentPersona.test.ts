@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   getAgentPersona,
+  getPersonaLabel,
+  computeAlertState,
   evaluateRewardChoice,
   evaluateSanctuaryChoice,
   evaluatePathChoice,
@@ -47,6 +49,30 @@ describe('Agent Persona Decision Engine (ADR-0042 / Issue #87)', () => {
     it('retrieves personas correctly from registry and falls back to balanced on unknown', () => {
       expect(getAgentPersona('greedy').type).toBe('greedy');
       expect(getAgentPersona('unknown' as any).type).toBe('balanced');
+    });
+
+    it('provides label, shortRole, uiClass and getPersonaLabel helper for UI and reporting consistency', () => {
+      expect(getPersonaLabel('balanced')).toBe('常態平衡型 (Balanced)');
+      expect(getPersonaLabel('cautious')).toBe('生存謹慎型 (Cautious)');
+      expect(getPersonaLabel('greedy')).toBe('貪婪構築型 (Greedy)');
+      expect(getPersonaLabel('pure_random')).toBe('純隨機探索型 (Random)');
+      expect(getPersonaLabel('unknown' as any)).toBe('常態平衡型 (Balanced)');
+
+      const cautious = getAgentPersona('cautious');
+      expect(cautious.label).toBe('生存謹慎型 (Cautious)');
+      expect(cautious.shortRole).toContain('高警戒');
+      expect(cautious.uiClass).toBe('cautious');
+    });
+
+    it('computes alert state correctly via computeAlertState', () => {
+      const cautious = getAgentPersona('cautious'); // threshold 0.65
+      const state1 = computeAlertState(cautious, { ...INITIAL_INVESTIGATOR, health: 13, maxHealth: 20 });
+      expect(state1.hpRatio).toBeCloseTo(0.65);
+      expect(state1.isAlert).toBe(true);
+
+      const state2 = computeAlertState(cautious, { ...INITIAL_INVESTIGATOR, health: 14, maxHealth: 20 });
+      expect(state2.hpRatio).toBeCloseTo(0.70);
+      expect(state2.isAlert).toBe(false);
     });
   });
 
