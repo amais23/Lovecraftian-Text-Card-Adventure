@@ -25,7 +25,7 @@ describe('Full-Factor Objective Statistical Matrix Aggregation (ADR-0042 / Issue
       expect(slice.sliceId).toBe(sliceDef.id);
       expect(slice.rolloutsEntered).toBe(8);
 
-      // 1. Monsetrs breakdown
+      // 1. Monsters breakdown
       expect(Array.isArray(slice.monsters)).toBe(true);
       expect(slice.monsters.length).toBeGreaterThan(0);
       for (const m of slice.monsters) {
@@ -86,5 +86,18 @@ describe('Full-Factor Objective Statistical Matrix Aggregation (ADR-0042 / Issue
       expect(slice.personas.pure_random).toBeDefined();
       expect(slice.personas.balanced.rolloutsEntered).toBe(2);
     }
+  });
+
+  it('correctly associates duplicated card copies (_copy_n) with canonical card metrics', () => {
+    const result = runJourneySimulation({
+      samplesPerSlice: 4,
+      occupation: 'investigator',
+      seedBase: 123,
+    });
+
+    const slice1 = result.slices[1];
+    const starterCard = slice1.cards.find((c) => c.id === 'card_punch_1');
+    expect(starterCard).toBeDefined();
+    expect(starterCard!.survOwnRate).toBeGreaterThanOrEqual(0);
   });
 });

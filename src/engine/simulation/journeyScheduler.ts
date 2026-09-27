@@ -552,8 +552,10 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
         dsTracker.turnsSum += c.turnsTaken;
       }
 
-      // 累加卡牌持有與死亡率關聯
-      const uniqueCardIdsInFinal = new Set(result.finalDeck.map((c) => c.id));
+      // 累加卡牌持有與死亡率關聯（去除 ensureUniqueCardIds 追加的 _copy_ 後綴以對齊圖鑑母表）
+      const uniqueCardIdsInFinal = new Set(
+        result.finalDeck.map((c) => c.id.replace(/_copy_\d+$/, ''))
+      );
       for (const cardId of uniqueCardIdsInFinal) {
         if (cardMap[cardId]) {
           cardMap[cardId].rolloutsHeld++;

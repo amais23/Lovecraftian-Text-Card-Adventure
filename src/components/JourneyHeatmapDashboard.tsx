@@ -26,11 +26,13 @@ type SubTabKey = 'monsters' | 'deck' | 'cards' | 'paths' | 'groups';
 export interface JourneyHeatmapDashboardProps {
   containerRef?: React.Ref<HTMLDivElement>;
   onScroll?: React.UIEventHandler<HTMLDivElement>;
+  customSummaryData?: JourneySummaryJson;
 }
 
 export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = ({
   containerRef,
   onScroll,
+  customSummaryData,
 }) => {
   const [selectedOccupation, setSelectedOccupation] = useState<'investigator' | 'occultist'>('investigator');
   const [selectedSliceId, setSelectedSliceId] = useState<number>(1);
@@ -40,14 +42,25 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
   const [cardCategoryFilter, setCardCategoryFilter] = useState<string>('all');
   const [dataVersion, setDataVersion] = useState<number>(0);
 
-  const summaryData = useMemo(() => {
+  const summaryData: JourneySummaryJson = useMemo(() => {
+    if (customSummaryData) {
+      return customSummaryData;
+    }
     if (dataVersion < 0) return journeySummaryInvestigatorRaw as unknown as JourneySummaryJson;
     return selectedOccupation === 'occultist'
       ? (journeySummaryOccultistRaw as unknown as JourneySummaryJson)
       : (journeySummaryInvestigatorRaw as unknown as JourneySummaryJson);
-  }, [selectedOccupation, dataVersion]);
+  }, [customSummaryData, selectedOccupation, dataVersion]);
 
-  const currentSlice: SliceSimulationSummary = useMemo(() => {
+  const hasData = Boolean(
+    summaryData &&
+    summaryData.progression &&
+    summaryData.progression.length > 0 &&
+    (summaryData.totalRollouts ?? 0) > 0
+  );
+
+  const currentSlice: SliceSimulationSummary | undefined = useMemo(() => {
+    if (!summaryData?.slices) return undefined;
     const id = selectedSliceId === 0 ? 1 : selectedSliceId;
     return summaryData.slices[id] ?? summaryData.slices[1];
   }, [summaryData, selectedSliceId]);
@@ -66,7 +79,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
       totalHpLoss: number;
     }>();
 
-    Object.values(summaryData.slices || {}).forEach((slice) => {
+    Object.values(summaryData?.slices || {}).forEach((slice) => {
       (slice.monsters || []).forEach((m) => {
         const existing = map.get(m.id);
         if (existing) {
@@ -108,7 +121,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
     ];
 
     return personas.map((p) => {
-      const sliceRates = (summaryData.progression || []).map((s) => {
+      const sliceRates = (summaryData?.progression || []).map((s) => {
         const perf = s.personas?.[p.key];
         return perf ? { survivalRate: perf.survivalRate, meanCombatHpLoss: perf.meanCombatHpLoss } : null;
       });
@@ -204,7 +217,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
           </div>
           <div className="journey-badge">
             <span>歷程淨損血</span>
-            <strong>{(summaryData.totalJourneyNetHpLoss ?? 0).toFixed(1)} HP</strong>
+            <strong>{(summaryData?.totalJourneyNetHpLoss ?? 0).toFixed(1)} 生命值</strong>
           </div>
           <div className="journey-badge">
             <span>模擬耗時</span>
@@ -226,12 +239,42 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
         </div>
       </div>
 
-      {/* 2. Top Progression Overview (7-Slice Timeline) */}
-      <div className="progression-section">
-        <div className="progression-section-title">
-          <Compass size={18} />
-          七階切片宏觀進程走勢 (Seven-Slice Cross-Progression Overview)
+      {/* 2. Empty State vs Full Progression Overview */}
+      {!hasData || !currentSlice ? (
+        <div className="journey-empty-state" data-testid="journey-empty-state" role="alert">
+          <div className="journey-empty-icon">
+            <Activity size={44} />
+          </div>
+          <h3 className="journey-empty-title">尚無全地圖數值模擬資料</h3>
+          <p className="journey-empty-description">
+            尚未在 <code>src/data/balance/journey_summary.json</code> 檢測到有效的模擬報告數據。
+          </p>
+          <div className="journey-empty-guidance">
+            請於終端機執行下列命令以產生最新全地圖七階切片平衡模擬報告：
+          </div>
+          <div className="journey-empty-code-box">
+            <code>npm run sim:journey</code>
+          </div>
+          <button
+            type="button"
+            className="journey-empty-retry-btn"
+            onClick={() => {
+              soundEngine.playClick();
+              setDataVersion((v) => v + 1);
+            }}
+          >
+            <RefreshCw size={15} />
+            <span>重新載入報告</span>
+          </button>
         </div>
+      ) : (
+        <>
+          {/* Top Progression Overview (7-Slice Timeline) */}
+          <div className="progression-section">
+            <div className="progression-section-title">
+              <Compass size={18} />
+              七階切片宏觀進程走勢 (Seven-Slice Cross-Progression Overview)
+            </div>
 
         <div className="progression-cards-grid">
           {summaryData.progression?.map((s) => {
@@ -842,7 +885,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                     <th>類型</th>
                     <th>選擇次數 N</th>
                     <th>選取率</th>
-                    <th>損害影響 ΔHP</th>
+                    <th>損害影響 (生命值)</th>
                     <th>死亡率差值 Δ</th>
                   </tr>
                 </thead>
@@ -853,7 +896,7 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
                       <td>{inc.category}</td>
                       <td>{inc.count.toLocaleString()}</td>
                       <td>{(inc.pickRate * 100).toFixed(1)}%</td>
-                      <td>{inc.deltaHp >= 0 ? '+' : ''}{inc.deltaHp.toFixed(1)} HP</td>
+                      <td>{inc.deltaHp >= 0 ? '+' : ''}{inc.deltaHp.toFixed(1)} 生命值</td>
                       <td style={{ color: inc.deltaMortality > 0 ? '#f87171' : '#4ade80' }}>
                         {inc.deltaMortality >= 0 ? '+' : ''}{(inc.deltaMortality * 100).toFixed(1)}%
                       </td>
@@ -897,6 +940,8 @@ export const JourneyHeatmapDashboard: React.FC<JourneyHeatmapDashboardProps> = (
             </table>
           </div>
         </div>
+      )}
+        </>
       )}
         </>
       )}

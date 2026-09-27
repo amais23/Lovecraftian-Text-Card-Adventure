@@ -8,7 +8,7 @@
  *   npm run sim:journey -- --all-cards (輸出全量 73 張卡牌)
  *   npm run sim:journey -- --time 5 (極速 5 秒驗證)
  *   npm run sim:journey -- --samples 1000 (固定每切片 1000 條樣本模式)
- *   npm run sim:journey -- --occupation occultist (切換為神秘學者)
+ *   npm run sim:journey -- --occupation occultist (切換為秘術學者)
  */
 
 import fs from 'node:fs';

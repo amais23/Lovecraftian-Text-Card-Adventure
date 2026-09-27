@@ -1,7 +1,7 @@
 import type { Card, DepthLevel, Enemy, Investigator, MapNode, MapNodeType, Relic } from '../../types/game';
 import { INITIAL_INVESTIGATOR } from '../initialData';
 import { generateProceduralInvestigationMap } from '../mapGenerator';
-import { getEncounterEnemy } from '../enemyCatalog';
+import { getEncounterEnemy, getEnemyTemplateById } from '../enemyCatalog';
 import { simulateCombat } from './combatSimulator';
 import { CardRegistry } from '../cards/registry';
 import { ensureUniqueCardIds } from '../cardFactory';
@@ -239,7 +239,8 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       combatsFought++;
       let enemy: Enemy;
       if (currentNode.enemyId) {
-        enemy = getEncounterEnemy(depth, currentNode.type, rng);
+        const template = getEnemyTemplateById(currentNode.enemyId);
+        enemy = template ? template : getEncounterEnemy(depth, currentNode.type, rng);
       } else {
         enemy = getEncounterEnemy(depth, currentNode.type, rng);
       }
@@ -256,6 +257,9 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
 
       const hpLossInCombat = combatRes.healthLost;
       combatHpLoss += hpLossInCombat;
+      if (combatRes.isMadness) {
+        madnessTurnsTotal++;
+      }
       currentInvestigator = {
         ...currentInvestigator,
         health: combatRes.investigatorHealthRemaining,
@@ -323,7 +327,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
 
       if (chosenReward.type === 'card' && chosenReward.card) {
         currentDeck = ensureUniqueCardIds([...currentDeck, { ...chosenReward.card }]);
-        logAction = `戰勝【${enemy.name}】(+${baseObols}金)，挑選卡牌【${chosenReward.card.name}】`;
+        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，挑選卡牌【${chosenReward.card.name}】`;
         intraNodeChoices.push({
           category: 'reward',
           action: `卡牌構築: 挑選【${chosenReward.card.name}】`,
@@ -333,16 +337,16 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       } else if (chosenReward.type === 'bandage') {
         const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, 12);
         currentInvestigator.health += heal;
-        logAction = `戰勝【${enemy.name}】(+${baseObols}金)，選擇戰地包紮 (+${heal} HP)`;
+        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，選擇戰地包紮 (+${heal} 生命值)`;
         intraNodeChoices.push({
           category: 'reward',
-          action: '戰後選擇: 【戰地包紮 (+12 HP)】',
+          action: '戰後選擇: 【戰地包紮】',
           deltaHp: heal,
           deltaObols: baseObols,
         });
       } else {
         currentInvestigator.obols += 5;
-        logAction = `戰勝【${enemy.name}】(+${baseObols}金)，跳過戰利品 (+5 金幣)`;
+        logAction = `戰勝【${enemy.name}】(+${baseObols} 古金幣)，跳過戰利品 (+5 古金幣)`;
         intraNodeChoices.push({
           category: 'reward',
           action: '戰後選擇: 【跳過獎勵 (精簡牌庫)】',
@@ -372,10 +376,10 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       if (choice.action === 'bandage') {
         const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, healAmount);
         currentInvestigator.health += heal;
-        logAction = `避難所休憩：包紮療傷 (+${heal} HP)`;
+        logAction = `避難所休憩：包紮療傷 (+${heal} 生命值)`;
         intraNodeChoices.push({
           category: 'sanctuary',
-          action: '避難所: 【包紮療傷 (+20 HP)】',
+          action: '避難所: 【包紮療傷】',
           deltaHp: heal,
           deltaObols: 0,
         });
@@ -428,7 +432,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         currentInvestigator.obols -= 15;
         const heal = Math.min(currentInvestigator.maxHealth - currentInvestigator.health, 8);
         currentInvestigator.health += heal;
-        logAction = `黑市交易：購買應急醫療補給 (-15 金, +${heal} HP)`;
+        logAction = `黑市交易：購買應急醫療補給 (-15 古金幣, +${heal} 生命值)`;
         intraNodeChoices.push({
           category: 'market',
           action: '黑市: 【採購醫療補給】',
@@ -438,7 +442,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       } else if (choice.action === 'buy_card' && choice.card && currentInvestigator.obols >= 45) {
         currentInvestigator.obols -= 45;
         currentDeck = ensureUniqueCardIds([...currentDeck, { ...choice.card }]);
-        logAction = `黑市交易：採購卡牌【${choice.card.name}】(-45 金)`;
+        logAction = `黑市交易：採購卡牌【${choice.card.name}】(-45 古金幣)`;
         intraNodeChoices.push({
           category: 'market',
           action: '黑市: 【採購進階卡牌】',
@@ -451,7 +455,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         const relic = relicCandidates[0] ?? PRESET_RELICS[0];
         currentRelics = [...currentRelics, relic];
         currentInvestigator = applyRelicToInvestigator(currentInvestigator, relic);
-        logAction = `黑市交易：收購舊日遺物【${relic.name}】(-50 金)`;
+        logAction = `黑市交易：收購舊日遺物【${relic.name}】(-50 古金幣)`;
         intraNodeChoices.push({
           category: 'market',
           action: '黑市: 【採購舊日遺物】',
@@ -462,7 +466,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
         currentInvestigator.obols -= 75;
         const removed = currentDeck.find((c) => c.id === choice.cardId);
         currentDeck = currentDeck.filter((c) => c.id !== choice.cardId);
-        logAction = `黑市交易：付費除役卡牌【${removed?.name ?? '未知'}】(-75 金)`;
+        logAction = `黑市交易：付費除役卡牌【${removed?.name ?? '未知'}】(-75 古金幣)`;
         intraNodeChoices.push({
           category: 'market',
           action: '黑市: 【付費除役卡牌】',
@@ -496,7 +500,7 @@ export function runSliceRollout(config: SliceRolloutConfig): SliceRolloutResult 
       currentInvestigator.health = Math.max(0, Math.min(currentInvestigator.maxHealth, currentInvestigator.health + deltaHp));
       currentInvestigator.obols = Math.max(0, currentInvestigator.obols + deltaObols);
 
-      logAction = `奇遇【${pickedEvent.title}】：選擇「${option.text}」(${deltaHp >= 0 ? '+' : ''}${deltaHp} HP, ${deltaObols >= 0 ? '+' : ''}${deltaObols} 金)`;
+      logAction = `奇遇【${pickedEvent.title}】：選擇「${option.text}」(${deltaHp >= 0 ? '+' : ''}${deltaHp} 生命值, ${deltaObols >= 0 ? '+' : ''}${deltaObols} 古金幣)`;
       intraNodeChoices.push({
         category: 'event',
         action: `奇遇【${pickedEvent.title}】: ${option.text}`,

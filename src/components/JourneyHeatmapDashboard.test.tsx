@@ -124,4 +124,23 @@ describe('JourneyHeatmapDashboard - ADR-0042 Slice 4 Visualization (Issue #90)',
     expect(screen.getByRole('button', { name: /敵怪損耗與致死統計/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /精確牌庫/i })).toBeDefined();
   });
+
+  it('displays empty state guidance with npm run sim:journey when simulation data is empty', () => {
+    const emptyData = {
+      generatedAt: '',
+      version: '1.0.0',
+      totalRollouts: 0,
+      elapsedMilliseconds: 0,
+      overallSurvivalRate: 0,
+      totalJourneyNetHpLoss: 0,
+      progression: [],
+      slices: {},
+    };
+
+    render(<JourneyHeatmapDashboard customSummaryData={emptyData} />);
+
+    expect(screen.getByTestId('journey-empty-state')).toBeDefined();
+    expect(screen.getByText(/尚無全地圖數值模擬資料/i)).toBeDefined();
+    expect(screen.getByText(/npm run sim:journey/i)).toBeDefined();
+  });
 });

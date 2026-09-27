@@ -145,9 +145,9 @@ export function evaluateRewardChoice(
           if (isAlert) weight *= 0.5;
         }
       } else if (opt.type === 'skip') {
-        // 跳過換金幣
+        // 跳過換古金幣
         if (persona.type === 'greedy') {
-          // 貪婪型若無高品質卡牌，優先拿金幣去黑市採購
+          // 貪婪型若無高品質卡牌，優先拿古金幣去黑市採購
           weight = 30;
         } else if (persona.type === 'cautious') {
           weight = isAlert ? 5 : 10;
@@ -335,7 +335,7 @@ export function evaluatePathChoice(
           } else if (persona.type === 'cautious') {
             weight = 5; // 謹慎型常態避開精英
           } else if (persona.type === 'greedy') {
-            weight = 40; // 貪婪型追求精英的高額遺物與金幣
+            weight = 40; // 貪婪型追求精英的高額遺物與古金幣
           } else {
             weight = 20;
           }

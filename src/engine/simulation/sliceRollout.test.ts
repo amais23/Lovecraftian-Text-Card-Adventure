@@ -102,9 +102,31 @@ describe('Single Slice 8-Floor Monte Carlo Rollout (ADR-0042 / Issue #87)', () =
       if (result.success) {
         expect(lastVisited.layer).toBe(15);
         expect(lastVisited.type).toBe('boss');
+        const bossCombat = result.combatRecords.find((c) => c.enemyRole === 'boss');
+        expect(bossCombat).toBeDefined();
+        expect(bossCombat?.enemyId).toBe('enemy_shoggoth_progeny');
       } else {
         expect(result.fatalEncounter).toBeDefined();
       }
+    });
+  });
+
+  describe('4. Madness Trigger & Encounter Resolution', () => {
+    it('records madnessTurnsTotal when investigator enters madness during combat', () => {
+      // 1-card deck quickly exhausts sanity into madness
+      const config: SliceRolloutConfig = {
+        sliceId: 1,
+        depth: 1,
+        startLayer: 0,
+        endLayer: 0,
+        persona: getAgentPersona('pure_random'),
+        seed: 1234,
+        initialInvestigator: { ...INITIAL_INVESTIGATOR, health: 30, maxHealth: 30, obols: 0 },
+        initialDeck: [starterDeck[0]],
+      };
+
+      const result = runSliceRollout(config);
+      expect(result.madnessTurnsTotal).toBeGreaterThanOrEqual(1);
     });
   });
 });
