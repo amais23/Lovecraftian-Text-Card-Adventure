@@ -610,7 +610,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         shuffledDeck: action.payload.shuffledDeck,
         occupationId: state.investigator.occupationId,
         adventureStats: ensureAdventureStats(state),
-        eventTitle: state.currentEvent.title,
       };
 
       const mythosResult = resolveMythosEvent(state.currentEvent, option, mythosCtx);

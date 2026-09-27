@@ -2,7 +2,7 @@ import type { Card, Enemy, MythosEvent, MythosEventOption } from '../../types/ga
 import { applyRelicToInvestigator } from '../relics';
 import { cloneEnemy } from '../enemyCatalog';
 import { INITIAL_GHOUL } from '../initialData';
-import { setupCombatDeck } from '../combat';
+import { setupCombatDeck, DEFAULT_HAND_CAPACITY } from '../combat';
 import type { MythosEventContext, MythosResult } from './types';
 
 /**
@@ -37,6 +37,7 @@ export function resolveMythosEvent(
   const hand = [...initialHand];
   let triggerCombatEnemy: Enemy | undefined;
   const logs: string[] = [];
+  let gainedCardsCount = 0;
 
   // ── 逐一套用後果 ──────────────────────────────────────────
   for (const consequence of option.consequences) {
@@ -85,9 +86,10 @@ export function resolveMythosEvent(
 
       case 'gain_card': {
         if (!consequence.card) break;
+        gainedCardsCount++;
         const injected: Card = {
           ...consequence.card,
-          id: `${consequence.card.id}_evt_${initialSanityDeck.length + 1}`,
+          id: `${consequence.card.id}_evt_${initialSanityDeck.length + gainedCardsCount}`,
           isTemporary: false,
         };
         sanityDeck = [...sanityDeck, injected];
@@ -135,7 +137,7 @@ export function resolveMythosEvent(
   // ── 終局 2：觸發戰鬥轉場 ──────────────────────────────────
   if (triggerCombatEnemy) {
     const currentCards = [...sanityDeck, ...hand, ...discardPile];
-    const handCapacity = investigator.handCapacity ?? 4;
+    const handCapacity = investigator.handCapacity ?? DEFAULT_HAND_CAPACITY;
     const { hand: combatHand, sanityDeck: combatSanityDeck } = setupCombatDeck(
       currentCards,
       occupationId ?? 'investigator',

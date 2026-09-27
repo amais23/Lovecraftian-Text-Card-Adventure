@@ -21,8 +21,6 @@ export interface MythosEventContext {
   shuffledDeck?: Card[];
   occupationId?: OccupationId;
   adventureStats: AdventureStats;
-  /** 奇遇事件標題（用於殞命日誌） */
-  eventTitle: string;
 }
 
 /**

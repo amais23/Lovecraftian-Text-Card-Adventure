@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { resolveMythosEvent } from './eventResolver';
 import type { MythosEventContext } from './types';
 import type { Investigator, Card, MythosEvent, MythosEventOption } from '../../types/game';
+import { DEFAULT_HAND_CAPACITY } from '../combat';
 
 // ────────────────────────────────────────────────────────────
 // 測試輔助工具
@@ -55,7 +56,6 @@ function makeCtx(overrides: Partial<MythosEventContext> = {}): MythosEventContex
     discardPile: [makeCard('d1')],
     occupationId: 'investigator',
     adventureStats: { enemiesDefeated: 0, totalObolsCollected: 0, nodesVisited: 0, maxLayer: 0 },
-    eventTitle: '測試奇遇',
     ...overrides,
   };
 }
@@ -231,6 +231,32 @@ describe('resolveMythosEvent — gain_card', () => {
       expect(added?.isTemporary).toBe(false);
     }
   });
+
+  it('同一選項多張 gain_card 時卡牌 ID 互不重複', () => {
+    const cardA = makeCard('card_a');
+    const cardB = makeCard('card_b');
+    const event = makeEvent([{
+      id: 'opt1',
+      text: '選項一',
+      consequences: [
+        { type: 'gain_card', card: cardA, narrative: '獲得卡牌 A。' },
+        { type: 'gain_card', card: cardB, narrative: '獲得卡牌 B。' },
+      ],
+    }]);
+    const ctx = makeCtx({ sanityDeck: [makeCard('s1')] });
+
+    const result = resolveMythosEvent(event, event.options[0], ctx);
+
+    expect(result.outcome).toBe('resolved');
+    if (result.outcome === 'resolved') {
+      expect(result.sanityDeck).toHaveLength(3);
+      const ids = result.sanityDeck.map((c) => c.id);
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(3);
+      expect(ids[1]).toBe('card_a_evt_2');
+      expect(ids[2]).toBe('card_b_evt_3');
+    }
+  });
 });
 
 // ────────────────────────────────────────────────────────────
@@ -293,6 +319,37 @@ describe('resolveMythosEvent — trigger_combat', () => {
       expect(result.enemy.id).toBe('enemy_ghoul');
       expect(result.investigator.armor).toBe(0);
       expect(result.investigator.stamina).toBe(ctx.investigator.maxStamina);
+    }
+  });
+
+  it('未顯式指定 handCapacity 時預設遵循 DEFAULT_HAND_CAPACITY (2)', () => {
+    const enemy = {
+      id: 'enemy_ghoul',
+      name: '食屍鬼',
+      title: '陰暗潛伏者',
+      health: 30,
+      maxHealth: 30,
+      armor: 0,
+      currentIntent: { type: 'attack' as const, value: 6, name: '爪擊', description: '' },
+    };
+    const event = makeEvent([{
+      id: 'opt1',
+      text: '選項一',
+      consequences: [{ type: 'trigger_combat', enemy, narrative: '遭遇敵人！' }],
+    }]);
+    const ctx = makeCtx({
+      investigator: makeInvestigator({ handCapacity: undefined }),
+      sanityDeck: [makeCard('c1'), makeCard('c2'), makeCard('c3'), makeCard('c4')],
+      hand: [],
+      discardPile: [],
+    });
+
+    const result = resolveMythosEvent(event, event.options[0], ctx);
+
+    expect(result.outcome).toBe('combat');
+    if (result.outcome === 'combat') {
+      expect(result.hand).toHaveLength(DEFAULT_HAND_CAPACITY);
+      expect(DEFAULT_HAND_CAPACITY).toBe(2);
     }
   });
 });

@@ -31,7 +31,7 @@ src/engine/events/
 ├── types.ts          # 輸入快照與互斥三終局輸出型別 (MythosEventContext, MythosResult)
 ├── eventResolver.ts  # 純函數解析核心：resolveMythosEvent(event, option, ctx)
 ├── index.ts          # 領域對外暴露小介面 (Small Seam)
-└── eventResolver.test.ts # 針對事件結算接縫的高槓桿單元測試 (13 tests)
+└── eventResolver.test.ts # 針對事件結算接縫的高槓桿單元測試 (15 tests)
 ```
 
 ### 2. 極簡純函數接縫定義 (Small Interface & Pure Engine)
@@ -46,7 +46,7 @@ export function resolveMythosEvent(
 ): MythosResult;
 ```
 
-輸入快照 `MythosEventContext` 僅需 8 個必要屬性（`investigator`、`sanityDeck`、`hand`、`discardPile`、`adventureStats`、`eventTitle`，可選 `shuffledDeck`、`occupationId`），不依賴龐大的 `GameState`。
+輸入快照 `MythosEventContext` 僅需 5 個必要屬性（`investigator`、`sanityDeck`、`hand`、`discardPile`、`adventureStats`，可選 `shuffledDeck`、`occupationId`），不依賴龐大的 `GameState`。
 
 輸出型別 `MythosResult` 明確定義三種互斥終局，以 TypeScript 標籤聯集（Discriminated Union）保證型別安全：
 - `defeat`: 調查員生命值歸零，包含死亡日誌與結算後的 `adventureStats`。
@@ -74,5 +74,5 @@ if (mythosResult.outcome === 'defeat') {
 ## 後續影響與成效 (Consequences)
 
 1. **Reducer 行數大幅精簡**：`RESOLVE_EVENT_OPTION` 由原本 135 行縮減至約 50 行狀態協調，原行內邏輯全數刪除。
-2. **高槓桿快速單元測試**：新建 `eventResolver.test.ts`，以極小測試 fixture 覆蓋全部 6 種後果類型與 3 種終局分支（13 tests, ~5ms 執行完畢）。
-3. **零回歸保證**：既有 `gameReducer.test.ts`（193 tests）無任何改動下全數綠燈通過，全套件 72 個測試檔、867 項測試全綠。
+2. **高槓桿快速單元測試**：新建 `eventResolver.test.ts`，以極小測試 fixture 覆蓋全部 6 種後果類型與 3 種終局分支（15 tests, ~5ms 執行完畢）。
+3. **零回歸保證**：既有 `gameReducer.test.ts`（193 tests）無任何改動下全數綠燈通過，全套件 72 個測試檔、869 項測試全綠。
