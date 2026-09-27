@@ -12,6 +12,7 @@
     "lint": "oxlint",
     "sim:balance": "npx tsx scripts/balanceSimulator.ts",
     "sim:elites": "npx tsx scripts/runMapElitesBenchmark.ts",
+    "prototype:journey": "npx tsx scripts/prototype_journey_report.ts",
     "preview": "vite preview",
     "tauri": "tauri"
   },

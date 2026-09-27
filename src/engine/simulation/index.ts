@@ -7,3 +7,5 @@ export * from './archetypes';
 export * from './balanceAnalyzer';
 export * from './balanceSampler';
 export * from './mapElitesOptimizer';
+export * from './agentPersona';
+export * from './sliceRollout';
