@@ -966,6 +966,482 @@ export function runJourneySimulation(options: JourneySimulationOptions = {}): Jo
 /**
  * 聚合多份獨立蒙地卡羅全地圖模擬結果 (用於多核心並行採樣 Map-Reduce)
  */
+/**
+ * 聚合多流派表現快照指標
+ */
+function mergePersonaMetrics(
+  sliceSummaries: SliceSimulationSummary[]
+): Record<AgentPersonaType, PersonaSliceMetrics> {
+  const personaTypes: AgentPersonaType[] = ['balanced', 'cautious', 'greedy', 'pure_random'];
+  const personasSummary = {} as Record<AgentPersonaType, PersonaSliceMetrics>;
+
+  for (const pType of personaTypes) {
+    const pEntered = sliceSummaries.reduce(
+      (sum, s) => sum + (s.personas[pType]?.rolloutsEntered ?? 0),
+      0
+    );
+    const pCompleted = sliceSummaries.reduce(
+      (sum, s) => sum + (s.personas[pType]?.rolloutsCompleted ?? 0),
+      0
+    );
+    const pCombatLoss =
+      pEntered > 0
+        ? sliceSummaries.reduce(
+            (sum, s) =>
+              sum +
+              (s.personas[pType]?.meanCombatHpLoss ?? 0) *
+                (s.personas[pType]?.rolloutsEntered ?? 0),
+            0
+          ) / pEntered
+        : 0;
+    const pNetLoss =
+      pEntered > 0
+        ? sliceSummaries.reduce(
+            (sum, s) =>
+              sum +
+              (s.personas[pType]?.meanNetHpLoss ?? 0) *
+                (s.personas[pType]?.rolloutsEntered ?? 0),
+            0
+          ) / pEntered
+        : 0;
+
+    personasSummary[pType] = {
+      persona: pType,
+      rolloutsEntered: pEntered,
+      rolloutsCompleted: pCompleted,
+      survivalRate: pEntered > 0 ? pCompleted / pEntered : 0,
+      meanCombatHpLoss: pCombatLoss,
+      meanNetHpLoss: pNetLoss,
+    };
+  }
+
+  return personasSummary;
+}
+
+/**
+ * 聚合 26 隻敵怪統計與致命首領
+ */
+function mergeMonsterMetrics(
+  sliceSummaries: SliceSimulationSummary[],
+  totalCombatsFought: number,
+  rolloutsEntered: number,
+  rolloutsCompleted: number
+): {
+  monsters: MonsterSliceMetrics[];
+  topFatalMonster?: { name: string; kills: number; percentage: number };
+} {
+  const monsterMap: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      depth: DepthLevel;
+      role: 'normal' | 'elite' | 'boss';
+      health: number;
+      armor: number;
+      encounters: number;
+      kills: number;
+      wins: number;
+      hpLossWeightedSum: number;
+      medianHpLossWeightedSum: number;
+      minHpLoss: number;
+      maxHpLoss: number;
+      turnsWeightedSum: number;
+    }
+  > = {};
+
+  for (const s of sliceSummaries) {
+    for (const m of s.monsters) {
+      const key = `${m.depth}_${m.id}`;
+      if (!monsterMap[key]) {
+        monsterMap[key] = {
+          id: m.id,
+          name: m.name,
+          depth: m.depth,
+          role: m.role,
+          health: m.health,
+          armor: m.armor,
+          encounters: 0,
+          kills: 0,
+          wins: 0,
+          hpLossWeightedSum: 0,
+          medianHpLossWeightedSum: 0,
+          minHpLoss: m.minHpLoss,
+          maxHpLoss: m.maxHpLoss,
+          turnsWeightedSum: 0,
+        };
+      }
+      const acc = monsterMap[key];
+      acc.encounters += m.encounters;
+      acc.kills += m.kills;
+      acc.wins += Math.round(m.winRate * m.encounters);
+      acc.hpLossWeightedSum += m.meanHpLoss * m.encounters;
+      acc.medianHpLossWeightedSum += m.medianHpLoss * m.encounters;
+      acc.minHpLoss = Math.min(acc.minHpLoss, m.minHpLoss);
+      acc.maxHpLoss = Math.max(acc.maxHpLoss, m.maxHpLoss);
+      acc.turnsWeightedSum += m.avgTurns * m.encounters;
+    }
+  }
+
+  const monstersResult: MonsterSliceMetrics[] = Object.values(monsterMap).map((m) => {
+    const encounters = m.encounters;
+    return {
+      id: m.id,
+      name: m.name,
+      depth: m.depth,
+      role: m.role,
+      health: m.health,
+      armor: m.armor,
+      encounters,
+      encounterRate: totalCombatsFought > 0 ? encounters / totalCombatsFought : 0,
+      meanHpLoss: encounters > 0 ? m.hpLossWeightedSum / encounters : 0,
+      medianHpLoss: encounters > 0 ? m.medianHpLossWeightedSum / encounters : 0,
+      minHpLoss: m.minHpLoss,
+      maxHpLoss: m.maxHpLoss,
+      winRate: encounters > 0 ? m.wins / encounters : 1,
+      kills: m.kills,
+      lethality: encounters > 0 ? m.kills / encounters : 0,
+      avgTurns: encounters > 0 ? m.turnsWeightedSum / encounters : 0,
+    };
+  });
+
+  let topFatalMonster: { name: string; kills: number; percentage: number } | undefined = undefined;
+  const fatalCandidates = monstersResult
+    .map((m) => ({ name: m.name, kills: m.kills }))
+    .filter((m) => m.kills > 0)
+    .sort((a, b) => b.kills - a.kills);
+
+  if (fatalCandidates.length > 0) {
+    const deaths = Math.max(1, rolloutsEntered - rolloutsCompleted);
+    topFatalMonster = {
+      name: fatalCandidates[0].name,
+      kills: fatalCandidates[0].kills,
+      percentage: (fatalCandidates[0].kills / deaths) * 100,
+    };
+  }
+
+  return { monsters: monstersResult, topFatalMonster };
+}
+
+/**
+ * 聚合精確牌庫大小指標 (8 ~ 25+ 張)
+ */
+function mergeDeckSizeMetrics(
+  sliceSummaries: SliceSimulationSummary[],
+  rolloutsEntered: number
+): DeckSizeSliceMetrics[] {
+  const deckSizeMap: Record<
+    number,
+    {
+      deckSize: number;
+      sampleN: number;
+      deaths: number;
+      hpLossWeightedSum: number;
+      netLossWeightedSum: number;
+      medianWeightedSum: number;
+      madnessWeightedSum: number;
+      turnsWeightedSum: number;
+    }
+  > = {};
+
+  for (const s of sliceSummaries) {
+    for (const ds of s.deckSizes) {
+      if (!deckSizeMap[ds.deckSize]) {
+        deckSizeMap[ds.deckSize] = {
+          deckSize: ds.deckSize,
+          sampleN: 0,
+          deaths: 0,
+          hpLossWeightedSum: 0,
+          netLossWeightedSum: 0,
+          medianWeightedSum: 0,
+          madnessWeightedSum: 0,
+          turnsWeightedSum: 0,
+        };
+      }
+      const acc = deckSizeMap[ds.deckSize];
+      acc.sampleN += ds.sampleN;
+      acc.deaths += Math.round(ds.mortality * ds.sampleN);
+      acc.hpLossWeightedSum += ds.meanHpLoss * ds.sampleN;
+      acc.netLossWeightedSum += ds.netHpLoss * ds.sampleN;
+      acc.medianWeightedSum += ds.medianHpLoss * ds.sampleN;
+      acc.madnessWeightedSum += ds.madnessRate * ds.sampleN;
+      acc.turnsWeightedSum += ds.avgTurns * ds.sampleN;
+    }
+  }
+
+  return Object.values(deckSizeMap)
+    .map((ds) => ({
+      deckSize: ds.deckSize,
+      sampleN: ds.sampleN,
+      pathShare: rolloutsEntered > 0 ? ds.sampleN / rolloutsEntered : 0,
+      mortality: ds.sampleN > 0 ? ds.deaths / ds.sampleN : 0,
+      meanHpLoss: ds.sampleN > 0 ? ds.hpLossWeightedSum / ds.sampleN : 0,
+      netHpLoss: ds.sampleN > 0 ? ds.netLossWeightedSum / ds.sampleN : 0,
+      medianHpLoss: ds.sampleN > 0 ? ds.medianWeightedSum / ds.sampleN : 0,
+      madnessRate: ds.sampleN > 0 ? ds.madnessWeightedSum / ds.sampleN : 0,
+      avgTurns: ds.sampleN > 0 ? ds.turnsWeightedSum / ds.sampleN : 0,
+    }))
+    .sort((a, b) => a.deckSize - b.deckSize);
+}
+
+/**
+ * 聚合全卡牌 (73 張) 效益統計
+ */
+function mergeCardMetrics(
+  sliceSummaries: SliceSimulationSummary[],
+  rolloutsEntered: number,
+  rolloutsCompleted: number
+): CardSliceMetrics[] {
+  const cardMap: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      category: string;
+      tier: number;
+      offeredN: number;
+      draftedN: number;
+      deltaHpWeightedSum: number;
+      mortHeldWeightedSum: number;
+      deltaMortalityWeightedSum: number;
+      survOwnRateWeightedSum: number;
+      fallOwnRateWeightedSum: number;
+    }
+  > = {};
+
+  for (const s of sliceSummaries) {
+    for (const c of s.cards) {
+      if (!cardMap[c.id]) {
+        cardMap[c.id] = {
+          id: c.id,
+          name: c.name,
+          category: c.category,
+          tier: c.tier,
+          offeredN: 0,
+          draftedN: 0,
+          deltaHpWeightedSum: 0,
+          mortHeldWeightedSum: 0,
+          deltaMortalityWeightedSum: 0,
+          survOwnRateWeightedSum: 0,
+          fallOwnRateWeightedSum: 0,
+        };
+      }
+      const acc = cardMap[c.id];
+      acc.offeredN += c.offeredN;
+      acc.draftedN += c.draftedN;
+      acc.deltaHpWeightedSum += c.deltaHp * c.draftedN;
+      acc.mortHeldWeightedSum += c.mortHeld * c.draftedN;
+      acc.deltaMortalityWeightedSum += c.deltaMortality * c.draftedN;
+      acc.survOwnRateWeightedSum += c.survOwnRate * s.rolloutsCompleted;
+      acc.fallOwnRateWeightedSum +=
+        c.fallOwnRate * Math.max(0, s.rolloutsEntered - s.rolloutsCompleted);
+    }
+  }
+
+  const totalFallen = Math.max(1, rolloutsEntered - rolloutsCompleted);
+  return Object.values(cardMap).map((c) => ({
+    id: c.id,
+    name: c.name,
+    category: c.category,
+    tier: c.tier,
+    offeredN: c.offeredN,
+    offeredRate: rolloutsEntered > 0 ? c.offeredN / rolloutsEntered : 0,
+    draftedN: c.draftedN,
+    draftedRate: c.offeredN > 0 ? c.draftedN / c.offeredN : 0,
+    deltaHp: c.draftedN > 0 ? c.deltaHpWeightedSum / c.draftedN : 0,
+    mortHeld: c.draftedN > 0 ? c.mortHeldWeightedSum / c.draftedN : 0,
+    deltaMortality: c.draftedN > 0 ? c.deltaMortalityWeightedSum / c.draftedN : 0,
+    survOwnRate: rolloutsCompleted > 0 ? c.survOwnRateWeightedSum / rolloutsCompleted : 0,
+    fallOwnRate: c.fallOwnRateWeightedSum / totalFallen,
+  }));
+}
+
+/**
+ * 聚合路徑分支二選一數據
+ */
+function mergePathChoiceMetrics(sliceSummaries: SliceSimulationSummary[]): PathChoiceMetrics[] {
+  const pathChoiceMap: Record<
+    string,
+    {
+      pair: string;
+      label: string;
+      choiceA: string;
+      choiceB: string;
+      countA: number;
+      countB: number;
+      deltaMortalityWeighted: number;
+    }
+  > = {};
+
+  for (const s of sliceSummaries) {
+    for (const p of s.pathChoices) {
+      if (!pathChoiceMap[p.pair]) {
+        pathChoiceMap[p.pair] = {
+          pair: p.pair,
+          label: p.label,
+          choiceA: p.choiceA,
+          choiceB: p.choiceB,
+          countA: 0,
+          countB: 0,
+          deltaMortalityWeighted: 0,
+        };
+      }
+      const acc = pathChoiceMap[p.pair];
+      const totalP = p.countA + p.countB;
+      acc.countA += p.countA;
+      acc.countB += p.countB;
+      acc.deltaMortalityWeighted += p.deltaMortality * totalP;
+    }
+  }
+
+  return Object.values(pathChoiceMap).map((p) => {
+    const total = p.countA + p.countB;
+    return {
+      pair: p.pair,
+      label: p.label,
+      choiceA: p.choiceA,
+      choiceB: p.choiceB,
+      countA: p.countA,
+      countB: p.countB,
+      pickRateA: total > 0 ? Math.round((p.countA / total) * 1000) / 1000 : 0.5,
+      pickRateB: total > 0 ? Math.round((p.countB / total) * 1000) / 1000 : 0.5,
+      deltaMortality: total > 0 ? Math.round((p.deltaMortalityWeighted / total) * 1000) / 1000 : 0,
+    };
+  });
+}
+
+/**
+ * 聚合節點內部行動抉擇數據
+ */
+function mergeIntraNodeChoiceMetrics(
+  sliceSummaries: SliceSimulationSummary[],
+  rolloutsEntered: number
+): IntraNodeChoiceMetrics[] {
+  const intraNodeMap: Record<
+    string,
+    {
+      category: 'reward' | 'sanctuary' | 'market' | 'event';
+      action: string;
+      count: number;
+      hpDeltaWeighted: number;
+      deltaMortalityWeighted: number;
+    }
+  > = {};
+
+  for (const s of sliceSummaries) {
+    for (const c of s.intraNodeChoices) {
+      if (!intraNodeMap[c.action]) {
+        intraNodeMap[c.action] = {
+          category: c.category,
+          action: c.action,
+          count: 0,
+          hpDeltaWeighted: 0,
+          deltaMortalityWeighted: 0,
+        };
+      }
+      const acc = intraNodeMap[c.action];
+      acc.count += c.count;
+      acc.hpDeltaWeighted += c.deltaHp * c.count;
+      acc.deltaMortalityWeighted += c.deltaMortality * c.count;
+    }
+  }
+
+  return Object.values(intraNodeMap).map((c) => ({
+    category: c.category,
+    action: c.action,
+    count: c.count,
+    pickRate: rolloutsEntered > 0 ? Math.round((c.count / rolloutsEntered) * 1000) / 1000 : 0,
+    deltaHp: c.count > 0 ? Math.round((c.hpDeltaWeighted / c.count) * 10) / 10 : 0,
+    deltaMortality: c.count > 0 ? Math.round((c.deltaMortalityWeighted / c.count) * 1000) / 1000 : 0,
+  }));
+}
+
+/**
+ * 聚合節點造訪頻率與致死率數據
+ */
+function mergeNodeVisitMetrics(sliceSummaries: SliceSimulationSummary[]): NodeVisitSliceMetrics[] {
+  const nodeVisitsMap: Record<
+    string,
+    { label: string; visits: number; hpLossWeightedSum: number; deaths: number }
+  > = {};
+
+  for (const s of sliceSummaries) {
+    if (s.nodeVisits) {
+      for (const nv of s.nodeVisits) {
+        if (!nodeVisitsMap[nv.type]) {
+          nodeVisitsMap[nv.type] = { label: nv.label, visits: 0, hpLossWeightedSum: 0, deaths: 0 };
+        }
+        nodeVisitsMap[nv.type].visits += nv.visitCount;
+        nodeVisitsMap[nv.type].hpLossWeightedSum += nv.meanHpLoss * nv.visitCount;
+        nodeVisitsMap[nv.type].deaths += Math.round(nv.lethality * nv.visitCount);
+      }
+    }
+  }
+
+  const totalVisits = Object.values(nodeVisitsMap).reduce((sum, n) => sum + n.visits, 0);
+  return Object.entries(nodeVisitsMap).map(([type, data]) => {
+    const visitRate = totalVisits > 0 ? data.visits / totalVisits : 0;
+    const meanLoss = data.visits > 0 ? data.hpLossWeightedSum / data.visits : 0;
+    const lethality = data.visits > 0 ? data.deaths / data.visits : 0;
+    return {
+      type,
+      label: data.label,
+      visitCount: data.visits,
+      visitRate: Math.round(visitRate * 1000) / 1000,
+      meanHpLoss: Math.round(meanLoss * 10) / 10,
+      lethality: Math.round(lethality * 1000) / 1000,
+    };
+  });
+}
+
+/**
+ * 聚合存活組 vs 陣亡組全維度客觀指標
+ */
+function mergeGroupComparisonMetrics(
+  sliceSummaries: SliceSimulationSummary[],
+  rolloutsEntered: number,
+  rolloutsCompleted: number,
+  templateSlice: SliceSimulationSummary
+): GroupComparisonMetrics[] {
+  const parseValueAndUnit = (str: string): { val: number; unit: string } => {
+    const match = str.match(/^([+-]?\d+(?:\.\d+)?)\s*(.*)$/);
+    if (!match) return { val: 0, unit: '' };
+    return { val: parseFloat(match[1]), unit: match[2] };
+  };
+
+  const survivingTotalWeight = rolloutsCompleted;
+  const fallenTotalWeight = Math.max(1, rolloutsEntered - rolloutsCompleted);
+
+  return templateSlice.groupComparison.map((templateRow, idx) => {
+    const { unit } = parseValueAndUnit(templateRow.survivingValue);
+    let survSum = 0;
+    let fallSum = 0;
+    for (const s of sliceSummaries) {
+      const row = s.groupComparison[idx];
+      if (row) {
+        survSum += parseValueAndUnit(row.survivingValue).val * s.rolloutsCompleted;
+        fallSum +=
+          parseValueAndUnit(row.fallenValue).val *
+          Math.max(0, s.rolloutsEntered - s.rolloutsCompleted);
+      }
+    }
+    const avgSurv = survivingTotalWeight > 0 ? survSum / survivingTotalWeight : 0;
+    const avgFall = fallenTotalWeight > 0 ? fallSum / fallenTotalWeight : 0;
+    const deltaVal = avgSurv - avgFall;
+    const deltaStr = `${deltaVal >= 0 ? '+' : ''}${deltaVal.toFixed(1)} ${unit}`.trim();
+    return {
+      dimension: templateRow.dimension,
+      survivingValue: `${avgSurv.toFixed(1)} ${unit}`.trim(),
+      fallenValue: `${avgFall.toFixed(1)} ${unit}`.trim(),
+      delta: deltaStr,
+      note: templateRow.note,
+    };
+  });
+}
+
+/**
+ * 聚合多份獨立蒙地卡羅全地圖模擬結果 (用於多核心並行採樣 Map-Reduce)
+ */
 export function mergeJourneySimulationResults(
   results: JourneySimulationResult[]
 ): JourneySimulationResult {
@@ -1008,424 +1484,33 @@ export function mergeJourneySimulationResults(
       return sliceSummaries.reduce((sum, s) => sum + valFn(s) * weightFn(s), 0) / totalWeight;
     };
 
-    const meanCombatHpLoss = weightedAvg((s) => s.meanCombatHpLoss, (s) => s.rolloutsCompleted);
-    const meanNetHpLoss = weightedAvg((s) => s.meanNetHpLoss, (s) => s.rolloutsCompleted);
+    // 損血均值母體為進入該切片之所有樣本 (rolloutsEntered)
+    const meanCombatHpLoss = weightedAvg((s) => s.meanCombatHpLoss, (s) => s.rolloutsEntered);
+    const meanNetHpLoss = weightedAvg((s) => s.meanNetHpLoss, (s) => s.rolloutsEntered);
+    // 終局生命值與理智牌庫僅存活者有結算數據 (rolloutsCompleted)
     const meanFinalHp = weightedAvg((s) => s.meanFinalHp, (s) => s.rolloutsCompleted);
     const meanFinalDeckSize = weightedAvg((s) => s.meanFinalDeckSize, (s) => s.rolloutsCompleted);
     const madnessTriggerRate = weightedAvg((s) => s.madnessTriggerRate, (s) => s.rolloutsEntered);
     const totalCombatsFought = sliceSummaries.reduce((sum, s) => sum + s.totalCombatsFought, 0);
     totalNetHpLossAcc += meanNetHpLoss;
 
-    // 1. Personas 聚合
-    const personaTypes: AgentPersonaType[] = ['balanced', 'cautious', 'greedy', 'pure_random'];
-    const personasSummary = {} as Record<AgentPersonaType, PersonaSliceMetrics>;
-    for (const pType of personaTypes) {
-      const pEntered = sliceSummaries.reduce(
-        (sum, s) => sum + (s.personas[pType]?.rolloutsEntered ?? 0),
-        0
-      );
-      const pCompleted = sliceSummaries.reduce(
-        (sum, s) => sum + (s.personas[pType]?.rolloutsCompleted ?? 0),
-        0
-      );
-      const pCombatLoss =
-        pCompleted > 0
-          ? sliceSummaries.reduce(
-              (sum, s) =>
-                sum +
-                (s.personas[pType]?.meanCombatHpLoss ?? 0) *
-                  (s.personas[pType]?.rolloutsCompleted ?? 0),
-              0
-            ) / pCompleted
-          : 0;
-      const pNetLoss =
-        pCompleted > 0
-          ? sliceSummaries.reduce(
-              (sum, s) =>
-                sum +
-                (s.personas[pType]?.meanNetHpLoss ?? 0) *
-                  (s.personas[pType]?.rolloutsCompleted ?? 0),
-              0
-            ) / pCompleted
-          : 0;
-
-      personasSummary[pType] = {
-        persona: pType,
-        rolloutsEntered: pEntered,
-        rolloutsCompleted: pCompleted,
-        survivalRate: pEntered > 0 ? pCompleted / pEntered : 0,
-        meanCombatHpLoss: pCombatLoss,
-        meanNetHpLoss: pNetLoss,
-      };
-    }
-
-    // 2. Monsters 聚合
-    const monsterMap: Record<
-      string,
-      {
-        id: string;
-        name: string;
-        depth: DepthLevel;
-        role: 'normal' | 'elite' | 'boss';
-        health: number;
-        armor: number;
-        encounters: number;
-        kills: number;
-        wins: number;
-        hpLossWeightedSum: number;
-        medianHpLossWeightedSum: number;
-        minHpLoss: number;
-        maxHpLoss: number;
-        turnsWeightedSum: number;
-      }
-    > = {};
-
-    for (const s of sliceSummaries) {
-      for (const m of s.monsters) {
-        const key = `${m.depth}_${m.id}`;
-        if (!monsterMap[key]) {
-          monsterMap[key] = {
-            id: m.id,
-            name: m.name,
-            depth: m.depth,
-            role: m.role,
-            health: m.health,
-            armor: m.armor,
-            encounters: 0,
-            kills: 0,
-            wins: 0,
-            hpLossWeightedSum: 0,
-            medianHpLossWeightedSum: 0,
-            minHpLoss: m.minHpLoss,
-            maxHpLoss: m.maxHpLoss,
-            turnsWeightedSum: 0,
-          };
-        }
-        const acc = monsterMap[key];
-        acc.encounters += m.encounters;
-        acc.kills += m.kills;
-        acc.wins += Math.round(m.winRate * m.encounters);
-        acc.hpLossWeightedSum += m.meanHpLoss * m.encounters;
-        acc.medianHpLossWeightedSum += m.medianHpLoss * m.encounters;
-        acc.minHpLoss = Math.min(acc.minHpLoss, m.minHpLoss);
-        acc.maxHpLoss = Math.max(acc.maxHpLoss, m.maxHpLoss);
-        acc.turnsWeightedSum += m.avgTurns * m.encounters;
-      }
-    }
-
-    const monstersResult: MonsterSliceMetrics[] = Object.values(monsterMap).map((m) => {
-      const encounters = m.encounters;
-      return {
-        id: m.id,
-        name: m.name,
-        depth: m.depth,
-        role: m.role,
-        health: m.health,
-        armor: m.armor,
-        encounters,
-        encounterRate: totalCombatsFought > 0 ? encounters / totalCombatsFought : 0,
-        meanHpLoss: encounters > 0 ? m.hpLossWeightedSum / encounters : 0,
-        medianHpLoss: encounters > 0 ? m.medianHpLossWeightedSum / encounters : 0,
-        minHpLoss: m.minHpLoss,
-        maxHpLoss: m.maxHpLoss,
-        winRate: encounters > 0 ? m.wins / encounters : 1,
-        kills: m.kills,
-        lethality: encounters > 0 ? m.kills / encounters : 0,
-        avgTurns: encounters > 0 ? m.turnsWeightedSum / encounters : 0,
-      };
-    });
-
-    let topFatalMonster: { name: string; kills: number; percentage: number } | undefined = undefined;
-    const fatalCandidates = monstersResult
-      .map((m) => ({ name: m.name, kills: Math.round(m.lethality * m.encounters) }))
-      .filter((m) => m.kills > 0)
-      .sort((a, b) => b.kills - a.kills);
-
-    if (fatalCandidates.length > 0) {
-      const deaths = Math.max(1, rolloutsEntered - rolloutsCompleted);
-      topFatalMonster = {
-        name: fatalCandidates[0].name,
-        kills: fatalCandidates[0].kills,
-        percentage: (fatalCandidates[0].kills / deaths) * 100,
-      };
-    }
-
-    // 3. DeckSizes 聚合
-    const deckSizeMap: Record<
-      number,
-      {
-        deckSize: number;
-        sampleN: number;
-        deaths: number;
-        hpLossWeightedSum: number;
-        netLossWeightedSum: number;
-        medianWeightedSum: number;
-        madnessWeightedSum: number;
-        turnsWeightedSum: number;
-      }
-    > = {};
-
-    for (const s of sliceSummaries) {
-      for (const ds of s.deckSizes) {
-        if (!deckSizeMap[ds.deckSize]) {
-          deckSizeMap[ds.deckSize] = {
-            deckSize: ds.deckSize,
-            sampleN: 0,
-            deaths: 0,
-            hpLossWeightedSum: 0,
-            netLossWeightedSum: 0,
-            medianWeightedSum: 0,
-            madnessWeightedSum: 0,
-            turnsWeightedSum: 0,
-          };
-        }
-        const acc = deckSizeMap[ds.deckSize];
-        acc.sampleN += ds.sampleN;
-        acc.deaths += Math.round(ds.mortality * ds.sampleN);
-        acc.hpLossWeightedSum += ds.meanHpLoss * ds.sampleN;
-        acc.netLossWeightedSum += ds.netHpLoss * ds.sampleN;
-        acc.medianWeightedSum += ds.medianHpLoss * ds.sampleN;
-        acc.madnessWeightedSum += ds.madnessRate * ds.sampleN;
-        acc.turnsWeightedSum += ds.avgTurns * ds.sampleN;
-      }
-    }
-
-    const deckSizesResult: DeckSizeSliceMetrics[] = Object.values(deckSizeMap)
-      .map((ds) => ({
-        deckSize: ds.deckSize,
-        sampleN: ds.sampleN,
-        pathShare: rolloutsEntered > 0 ? ds.sampleN / rolloutsEntered : 0,
-        mortality: ds.sampleN > 0 ? ds.deaths / ds.sampleN : 0,
-        meanHpLoss: ds.sampleN > 0 ? ds.hpLossWeightedSum / ds.sampleN : 0,
-        netHpLoss: ds.sampleN > 0 ? ds.netLossWeightedSum / ds.sampleN : 0,
-        medianHpLoss: ds.sampleN > 0 ? ds.medianWeightedSum / ds.sampleN : 0,
-        madnessRate: ds.sampleN > 0 ? ds.madnessWeightedSum / ds.sampleN : 0,
-        avgTurns: ds.sampleN > 0 ? ds.turnsWeightedSum / ds.sampleN : 0,
-      }))
-      .sort((a, b) => a.deckSize - b.deckSize);
-
-    // 4. Cards 聚合
-    const cardMap: Record<
-      string,
-      {
-        id: string;
-        name: string;
-        category: string;
-        tier: number;
-        offeredN: number;
-        draftedN: number;
-        deltaHpWeightedSum: number;
-        mortHeldWeightedSum: number;
-        deltaMortalityWeightedSum: number;
-        survOwnRateWeightedSum: number;
-        fallOwnRateWeightedSum: number;
-      }
-    > = {};
-
-    for (const s of sliceSummaries) {
-      for (const c of s.cards) {
-        if (!cardMap[c.id]) {
-          cardMap[c.id] = {
-            id: c.id,
-            name: c.name,
-            category: c.category,
-            tier: c.tier,
-            offeredN: 0,
-            draftedN: 0,
-            deltaHpWeightedSum: 0,
-            mortHeldWeightedSum: 0,
-            deltaMortalityWeightedSum: 0,
-            survOwnRateWeightedSum: 0,
-            fallOwnRateWeightedSum: 0,
-          };
-        }
-        const acc = cardMap[c.id];
-        acc.offeredN += c.offeredN;
-        acc.draftedN += c.draftedN;
-        acc.deltaHpWeightedSum += c.deltaHp * c.draftedN;
-        acc.mortHeldWeightedSum += c.mortHeld * c.draftedN;
-        acc.deltaMortalityWeightedSum += c.deltaMortality * c.draftedN;
-        acc.survOwnRateWeightedSum += c.survOwnRate * s.rolloutsCompleted;
-        acc.fallOwnRateWeightedSum +=
-          c.fallOwnRate * Math.max(0, s.rolloutsEntered - s.rolloutsCompleted);
-      }
-    }
-
-    const totalFallen = Math.max(1, rolloutsEntered - rolloutsCompleted);
-    const cardsResult: CardSliceMetrics[] = Object.values(cardMap).map((c) => ({
-      id: c.id,
-      name: c.name,
-      category: c.category,
-      tier: c.tier,
-      offeredN: c.offeredN,
-      offeredRate: rolloutsEntered > 0 ? c.offeredN / rolloutsEntered : 0,
-      draftedN: c.draftedN,
-      draftedRate: c.offeredN > 0 ? c.draftedN / c.offeredN : 0,
-      deltaHp: c.draftedN > 0 ? c.deltaHpWeightedSum / c.draftedN : 0,
-      mortHeld: c.draftedN > 0 ? c.mortHeldWeightedSum / c.draftedN : 0,
-      deltaMortality: c.draftedN > 0 ? c.deltaMortalityWeightedSum / c.draftedN : 0,
-      survOwnRate: rolloutsCompleted > 0 ? c.survOwnRateWeightedSum / rolloutsCompleted : 0,
-      fallOwnRate: c.fallOwnRateWeightedSum / totalFallen,
-    }));
-
-    // 5. PathChoices 聚合
-    const pathChoiceMap: Record<
-      string,
-      {
-        pair: string;
-        label: string;
-        choiceA: string;
-        choiceB: string;
-        countA: number;
-        countB: number;
-        deltaMortalityWeighted: number;
-      }
-    > = {};
-
-    for (const s of sliceSummaries) {
-      for (const p of s.pathChoices) {
-        if (!pathChoiceMap[p.pair]) {
-          pathChoiceMap[p.pair] = {
-            pair: p.pair,
-            label: p.label,
-            choiceA: p.choiceA,
-            choiceB: p.choiceB,
-            countA: 0,
-            countB: 0,
-            deltaMortalityWeighted: 0,
-          };
-        }
-        const acc = pathChoiceMap[p.pair];
-        const totalP = p.countA + p.countB;
-        acc.countA += p.countA;
-        acc.countB += p.countB;
-        acc.deltaMortalityWeighted += p.deltaMortality * totalP;
-      }
-    }
-
-    const mergedPathChoices: PathChoiceMetrics[] = Object.values(pathChoiceMap).map((p) => {
-      const total = p.countA + p.countB;
-      return {
-        pair: p.pair,
-        label: p.label,
-        choiceA: p.choiceA,
-        choiceB: p.choiceB,
-        countA: p.countA,
-        countB: p.countB,
-        pickRateA: total > 0 ? Math.round((p.countA / total) * 1000) / 1000 : 0.5,
-        pickRateB: total > 0 ? Math.round((p.countB / total) * 1000) / 1000 : 0.5,
-        deltaMortality: total > 0 ? Math.round((p.deltaMortalityWeighted / total) * 1000) / 1000 : 0,
-      };
-    });
-
-    // 6. IntraNodeChoices 聚合
-    const intraNodeMap: Record<
-      string,
-      {
-        category: 'reward' | 'sanctuary' | 'market' | 'event';
-        action: string;
-        count: number;
-        hpDeltaWeighted: number;
-        deltaMortalityWeighted: number;
-      }
-    > = {};
-
-    for (const s of sliceSummaries) {
-      for (const c of s.intraNodeChoices) {
-        if (!intraNodeMap[c.action]) {
-          intraNodeMap[c.action] = {
-            category: c.category,
-            action: c.action,
-            count: 0,
-            hpDeltaWeighted: 0,
-            deltaMortalityWeighted: 0,
-          };
-        }
-        const acc = intraNodeMap[c.action];
-        acc.count += c.count;
-        acc.hpDeltaWeighted += c.deltaHp * c.count;
-        acc.deltaMortalityWeighted += c.deltaMortality * c.count;
-      }
-    }
-
-    const mergedIntraNodeChoices: IntraNodeChoiceMetrics[] = Object.values(intraNodeMap).map((c) => ({
-      category: c.category,
-      action: c.action,
-      count: c.count,
-      pickRate: rolloutsEntered > 0 ? Math.round((c.count / rolloutsEntered) * 1000) / 1000 : 0,
-      deltaHp: c.count > 0 ? Math.round((c.hpDeltaWeighted / c.count) * 10) / 10 : 0,
-      deltaMortality: c.count > 0 ? Math.round((c.deltaMortalityWeighted / c.count) * 1000) / 1000 : 0,
-    }));
-
-    // 7. NodeVisits 聚合
-    const nodeVisitsMap: Record<
-      string,
-      { label: string; visits: number; hpLossWeightedSum: number; deaths: number }
-    > = {};
-    for (const s of sliceSummaries) {
-      if (s.nodeVisits) {
-        for (const nv of s.nodeVisits) {
-          if (!nodeVisitsMap[nv.type]) {
-            nodeVisitsMap[nv.type] = { label: nv.label, visits: 0, hpLossWeightedSum: 0, deaths: 0 };
-          }
-          nodeVisitsMap[nv.type].visits += nv.visitCount;
-          nodeVisitsMap[nv.type].hpLossWeightedSum += nv.meanHpLoss * nv.visitCount;
-          nodeVisitsMap[nv.type].deaths += Math.round(nv.lethality * nv.visitCount);
-        }
-      }
-    }
-    const totalVisits = Object.values(nodeVisitsMap).reduce((sum, n) => sum + n.visits, 0);
-    const mergedNodeVisits: NodeVisitSliceMetrics[] = Object.entries(nodeVisitsMap).map(
-      ([type, data]) => {
-        const visitRate = totalVisits > 0 ? data.visits / totalVisits : 0;
-        const meanLoss = data.visits > 0 ? data.hpLossWeightedSum / data.visits : 0;
-        const lethality = data.visits > 0 ? data.deaths / data.visits : 0;
-        return {
-          type,
-          label: data.label,
-          visitCount: data.visits,
-          visitRate: Math.round(visitRate * 1000) / 1000,
-          meanHpLoss: Math.round(meanLoss * 10) / 10,
-          lethality: Math.round(lethality * 1000) / 1000,
-        };
-      }
+    const personasSummary = mergePersonaMetrics(sliceSummaries);
+    const { monsters: monstersResult, topFatalMonster } = mergeMonsterMetrics(
+      sliceSummaries,
+      totalCombatsFought,
+      rolloutsEntered,
+      rolloutsCompleted
     );
-
-    // 8. GroupComparison 聚合
-    const parseValueAndUnit = (str: string): { val: number; unit: string } => {
-      const match = str.match(/^([+-]?\d+(?:\.\d+)?)\s*(.*)$/);
-      if (!match) return { val: 0, unit: '' };
-      return { val: parseFloat(match[1]), unit: match[2] };
-    };
-
-    const survivingTotalWeight = rolloutsCompleted;
-    const fallenTotalWeight = Math.max(1, rolloutsEntered - rolloutsCompleted);
-    const mergedGroupComparison: GroupComparisonMetrics[] = firstSlice.groupComparison.map(
-      (templateRow, idx) => {
-        const { unit } = parseValueAndUnit(templateRow.survivingValue);
-        let survSum = 0;
-        let fallSum = 0;
-        for (const s of sliceSummaries) {
-          const row = s.groupComparison[idx];
-          if (row) {
-            survSum += parseValueAndUnit(row.survivingValue).val * s.rolloutsCompleted;
-            fallSum +=
-              parseValueAndUnit(row.fallenValue).val *
-              Math.max(0, s.rolloutsEntered - s.rolloutsCompleted);
-          }
-        }
-        const avgSurv = survivingTotalWeight > 0 ? survSum / survivingTotalWeight : 0;
-        const avgFall = fallenTotalWeight > 0 ? fallSum / fallenTotalWeight : 0;
-        const deltaVal = avgSurv - avgFall;
-        const deltaStr = `${deltaVal >= 0 ? '+' : ''}${deltaVal.toFixed(1)} ${unit}`.trim();
-        return {
-          dimension: templateRow.dimension,
-          survivingValue: `${avgSurv.toFixed(1)} ${unit}`.trim(),
-          fallenValue: `${avgFall.toFixed(1)} ${unit}`.trim(),
-          delta: deltaStr,
-          note: templateRow.note,
-        };
-      }
+    const deckSizesResult = mergeDeckSizeMetrics(sliceSummaries, rolloutsEntered);
+    const cardsResult = mergeCardMetrics(sliceSummaries, rolloutsEntered, rolloutsCompleted);
+    const mergedPathChoices = mergePathChoiceMetrics(sliceSummaries);
+    const mergedIntraNodeChoices = mergeIntraNodeChoiceMetrics(sliceSummaries, rolloutsEntered);
+    const mergedNodeVisits = mergeNodeVisitMetrics(sliceSummaries);
+    const mergedGroupComparison = mergeGroupComparisonMetrics(
+      sliceSummaries,
+      rolloutsEntered,
+      rolloutsCompleted,
+      firstSlice
     );
 
     const mergedSummary: SliceSimulationSummary = {

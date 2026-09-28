@@ -6,6 +6,7 @@ import {
   mergeJourneySimulationResults,
   type SurvivingInvestigatorSnapshot,
   type JourneySimulationOptions,
+  type JourneySimulationResult,
 } from './journeyScheduler';
 import { getStarterBaseline } from './deckBuilder';
 
@@ -188,6 +189,40 @@ describe('Seven-Stage Slice Scheduler & Global Mixed Pool (ADR-0042 / Issue #88)
 
       expect(merged.overallSurvivalRate).toBeGreaterThanOrEqual(0);
       expect(merged.overallSurvivalRate).toBeLessThanOrEqual(1);
+    });
+
+    it('correctly weights HP losses by rolloutsEntered even if one run has zero survivors', () => {
+      const base1 = runJourneySimulation({ samplesPerSlice: 4, seedBase: 301 });
+      const base2 = runJourneySimulation({ samplesPerSlice: 4, seedBase: 302 });
+
+      const r1 = JSON.parse(JSON.stringify(base1)) as JourneySimulationResult;
+      const r2 = JSON.parse(JSON.stringify(base2)) as JourneySimulationResult;
+
+      r1.slices[1].rolloutsEntered = 100;
+      r1.slices[1].rolloutsCompleted = 0;
+      r1.slices[1].meanCombatHpLoss = 20;
+      r1.slices[1].meanNetHpLoss = 25;
+      r1.slices[1].personas.balanced.rolloutsEntered = 100;
+      r1.slices[1].personas.balanced.rolloutsCompleted = 0;
+      r1.slices[1].personas.balanced.meanCombatHpLoss = 20;
+      r1.slices[1].personas.balanced.meanNetHpLoss = 25;
+
+      r2.slices[1].rolloutsEntered = 100;
+      r2.slices[1].rolloutsCompleted = 100;
+      r2.slices[1].meanCombatHpLoss = 10;
+      r2.slices[1].meanNetHpLoss = 15;
+      r2.slices[1].personas.balanced.rolloutsEntered = 100;
+      r2.slices[1].personas.balanced.rolloutsCompleted = 100;
+      r2.slices[1].personas.balanced.meanCombatHpLoss = 10;
+      r2.slices[1].personas.balanced.meanNetHpLoss = 15;
+
+      const merged = mergeJourneySimulationResults([r1, r2]);
+
+      // Weighted average across 200 entered rollouts: (20*100 + 10*100) / 200 = 15
+      expect(merged.slices[1].meanCombatHpLoss).toBeCloseTo(15);
+      expect(merged.slices[1].meanNetHpLoss).toBeCloseTo(20);
+      expect(merged.slices[1].personas.balanced.meanCombatHpLoss).toBeCloseTo(15);
+      expect(merged.slices[1].personas.balanced.meanNetHpLoss).toBeCloseTo(20);
     });
   });
 });

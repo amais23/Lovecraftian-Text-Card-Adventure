@@ -425,21 +425,29 @@ function saveSummaryJson(result: JourneySimulationResult, outputPath: string): v
   console.log(`\x1b[32m✔ 統計矩陣結構化資料已成功寫入:\x1b[0m ${outputPath}`);
 }
 
-function launchWorker(
-  scriptPath: string,
-  workerId: number,
-  occupation: 'investigator' | 'occultist',
-  timeBudgetSeconds: number,
-  samplesPerSlice: number | undefined,
-  seedBase: number
-): Promise<JourneySimulationResult> {
+interface WorkerSubtaskConfig {
+  scriptPath: string;
+  workerId: number;
+  occupation: 'investigator' | 'occultist';
+  timeBudgetSeconds: number;
+  samplesPerSlice?: number;
+  seedBase: number;
+}
+
+function launchWorker(config: WorkerSubtaskConfig): Promise<JourneySimulationResult> {
   return new Promise((resolve, reject) => {
+    const { scriptPath, workerId, occupation, timeBudgetSeconds, samplesPerSlice, seedBase } =
+      config;
     const args = [
       '--worker-subtask',
-      '--worker-id', String(workerId),
-      '--occupation', occupation,
-      '--time', String(timeBudgetSeconds),
-      '--seed', String(seedBase),
+      '--worker-id',
+      String(workerId),
+      '--occupation',
+      occupation,
+      '--time',
+      String(timeBudgetSeconds),
+      '--seed',
+      String(seedBase),
     ];
     if (samplesPerSlice !== undefined) {
       args.push('--samples', String(samplesPerSlice));
@@ -447,10 +455,16 @@ function launchWorker(
 
     const child = fork(scriptPath, args, {
       execArgv: process.execArgv,
-      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
     });
 
     let result: JourneySimulationResult | undefined = undefined;
+    let stderrOutput = '';
+
+    child.stdout?.resume();
+    child.stderr?.on('data', (chunk) => {
+      stderrOutput += chunk.toString();
+    });
 
     child.on('message', (msg: any) => {
       if (msg && msg.type === 'RESULT') {
@@ -464,11 +478,19 @@ function launchWorker(
 
     child.on('exit', (code) => {
       if (code !== 0 && !result) {
-        reject(new Error(`Worker ${workerId} exited with code ${code}`));
+        reject(
+          new Error(
+            `Worker ${workerId} exited with code ${code}${stderrOutput ? `: ${stderrOutput.trim()}` : ''}`
+          )
+        );
       } else if (result) {
         resolve(result);
       } else {
-        reject(new Error(`Worker ${workerId} exited without returning result`));
+        reject(
+          new Error(
+            `Worker ${workerId} exited without returning result${stderrOutput ? `: ${stderrOutput.trim()}` : ''}`
+          )
+        );
       }
     });
   });
@@ -513,7 +535,14 @@ async function runSingleOccupationSimulation(
   for (let w = 0; w < workers; w++) {
     const seed = baseSeed + w * 100_000;
     workerPromises.push(
-      launchWorker(scriptPath, w + 1, occupation, options.timeBudgetSeconds, workerSamples, seed)
+      launchWorker({
+        scriptPath,
+        workerId: w + 1,
+        occupation,
+        timeBudgetSeconds: options.timeBudgetSeconds,
+        samplesPerSlice: workerSamples,
+        seedBase: seed,
+      })
     );
   }
 
@@ -558,7 +587,7 @@ export function printDualOccupationComparison(
       '指標維度 (Metric)': '首切片存活率 (Slice 1 Survival)',
       '私家偵探 (Investigator)': `${((invResult.slices[1]?.sliceSurvivalRate ?? 0) * 100).toFixed(1)}%`,
       '秘術學者 (Occultist)': `${((occResult.slices[1]?.sliceSurvivalRate ?? 0) * 100).toFixed(1)}%`,
-      '差異評註 (Insight)': '新手入門與初始牌組容錯率對照',
+      '差異評註 (Insight)': '新手入門與初始理智牌庫容錯率對照',
     },
     {
       '指標維度 (Metric)': '深淵終局存活率 (Slice 7 Survival)',
@@ -616,7 +645,16 @@ export async function runCli(): Promise<void> {
     }
 
     printDualOccupationComparison(invResult, occResult, totalElapsed);
+
+    console.log('\n' + divider('#'));
+    console.log('  【私家偵探 (Investigator) 全切片客觀統計報表】');
+    console.log(divider('#'));
     printJourneyReport(invResult, { ...options, occupation: 'investigator' });
+
+    console.log('\n' + divider('#'));
+    console.log('  【秘術學者 (Occultist) 全切片客觀統計報表】');
+    console.log(divider('#'));
+    printJourneyReport(occResult, { ...options, occupation: 'occultist' });
     return;
   }
 
@@ -626,7 +664,6 @@ export async function runCli(): Promise<void> {
     `設定: 職業=${options.occupation} | 核心數=${options.workers} | 時限=${options.timeBudgetSeconds}s | 樣本=${options.samplesPerSlice ?? '時間自適應'} | 檢視切片=Slice ${options.targetSlice}`
   );
 
-  const startSingle = performance.now();
   const result = await runSingleOccupationSimulation(
     options.occupation as 'investigator' | 'occultist',
     options,
