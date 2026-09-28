@@ -170,22 +170,57 @@ describe('Enemy Eldritch Traits & Canonical Dynamic AI (Issue #47 / ADR-0026)', 
       expect(res.logs[0]).toContain('陰影滑翔');
     });
 
-    it('tide_of_dagon gains tidal armor on odd turns and explodes tidal damage on even turns, consuming armor', () => {
+    it('tide_of_dagon gains 10 tidal armor on odd turns and does not passively deal tsunami damage on even turns', () => {
       const dagon = createTestEnemy({
-        armor: 14,
+        armor: 15,
         traits: [ELDRITCH_TRAIT_DEFINITIONS.tide_of_dagon],
       });
       const inv = createTestInvestigator();
 
-      // Turn 1 (Odd): High Tide
+      // Turn 1 (Odd): High Tide gains 10 armor
       const resT1 = resolveEnemyAction(dagon, { type: 'defend', value: 0, name: '潮汐蓄力', description: '' }, inv, 1);
-      expect(resT1.armorGainToEnemy).toBe(14);
+      expect(resT1.armorGainToEnemy).toBe(10);
+      expect(resT1.logs[0]).toContain('潮漲');
 
-      // Turn 2 (Even): Ebb Tide -> remaining 14 armor converted to damage and consumed
-      const resT2 = resolveEnemyAction(dagon, { type: 'attack', value: 0, name: '潮退', description: '' }, inv, 2);
-      expect(resT2.damageToInvestigator).toBe(14);
-      expect(resT2.armorLossToEnemy).toBe(14);
-      expect(resT2.logs[0]).toContain('海嘯');
+      // Turn 2 (Even): Non-tsunami intent (e.g. erode) does NOT passively deal tsunami damage or consume armor
+      const resT2Erode = resolveEnemyAction(dagon, { type: 'erode', value: 4, name: '海嘯詛咒之禱', description: '' }, inv, 2);
+      expect(resT2Erode.damageToInvestigator).toBe(0);
+      expect(resT2Erode.armorLossToEnemy).toBe(0);
+      expect(resT2Erode.erodeToInvestigator).toBe(4);
+    });
+
+    it('tsunami intent action converts remaining armor to damage and consumes armor', () => {
+      const dagon = createTestEnemy({
+        armor: 15,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.tide_of_dagon],
+      });
+      const inv = createTestInvestigator();
+
+      // Tsunami intent with 15 armor
+      const resTsunami = resolveEnemyAction(
+        dagon,
+        { type: 'attack', value: 0, name: '大袞潮汐·海嘯衝擊', description: '' },
+        inv,
+        2
+      );
+      expect(resTsunami.damageToInvestigator).toBe(15);
+      expect(resTsunami.armorLossToEnemy).toBe(15);
+      expect(resTsunami.logs.some((l) => l.includes('【大袞潮汐·海嘯】') && l.includes('15 點潮汐護甲'))).toBe(true);
+
+      // Tsunami intent with 0 armor (armor was completely broken by player)
+      const brokenDagon = createTestEnemy({
+        armor: 0,
+        traits: [ELDRITCH_TRAIT_DEFINITIONS.tide_of_dagon],
+      });
+      const resZero = resolveEnemyAction(
+        brokenDagon,
+        { type: 'attack', value: 0, name: '大袞潮汐·海嘯衝擊', description: '' },
+        inv,
+        2
+      );
+      expect(resZero.damageToInvestigator).toBe(0);
+      expect(resZero.armorLossToEnemy).toBe(0);
+      expect(resZero.logs.some((l) => l.includes('已被完全擊碎') || l.includes('未能激起任何浪花'))).toBe(true);
     });
 
     it('divine_immortality injects madness card into investigator deck every 2 turns', () => {

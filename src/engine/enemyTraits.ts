@@ -54,7 +54,7 @@ export const ELDRITCH_TRAIT_DEFINITIONS: Record<EnemyTraitId, EnemyTrait> = {
   tide_of_dagon: {
     id: 'tide_of_dagon',
     name: '大袞潮汐',
-    description: '奇數回合【潮漲】獲得 14 點潮汐護甲；偶數回合【潮退】將殘存護甲轉為等量海嘯傷害反噬調查員。',
+    description: '奇數回合【潮漲】獲得 10 點潮汐護甲；偶數回合依意圖釋放【潮退海嘯】將殘存護甲轉為等量衝擊傷害。',
     icon: 'Compass',
   },
   amorphous_body: {
@@ -422,30 +422,53 @@ export function resolveEnemyAction(
 
   // 2. 結算意圖基礎值
   if (intent.type === 'attack') {
-    const rawVal = Math.floor(intent.value * enrageMultiplier);
-    const singleHitFinal = calculateAttackDamage(
-      rawVal,
-      enemy.statusEffects ?? [],
-      investigator.statusEffects ?? []
-    );
-    damageToInvestigator = singleHitFinal * hitCount;
-    if (hitCount > 1) {
-      singleHitDamage = singleHitFinal;
-    }
+    const isTsunamiIntent = intent.name?.includes('海嘯') || intent.name?.includes('潮退');
+    if (isTsunamiIntent) {
+      const remainingTidalArmor = enemy.armor;
+      if (remainingTidalArmor > 0) {
+        const rawVal = Math.floor(remainingTidalArmor * enrageMultiplier);
+        damageToInvestigator = calculateAttackDamage(
+          rawVal,
+          enemy.statusEffects ?? [],
+          investigator.statusEffects ?? []
+        );
+        armorLossToEnemy = remainingTidalArmor;
+        logs.push(
+          `【大袞潮汐·海嘯】潮水退去！${enemy.name} 將殘留的 ${remainingTidalArmor} 點潮汐護甲全額轉化為狂暴的【海嘯衝擊】，直撲調查員！`
+        );
+      } else {
+        damageToInvestigator = 0;
+        armorLossToEnemy = 0;
+        logs.push(
+          `【大袞潮汐·海嘯】潮水退去，但 ${enemy.name} 身上的護甲已被完全擊碎，未能激起任何浪花！`
+        );
+      }
+    } else {
+      const rawVal = Math.floor(intent.value * enrageMultiplier);
+      const singleHitFinal = calculateAttackDamage(
+        rawVal,
+        enemy.statusEffects ?? [],
+        investigator.statusEffects ?? []
+      );
+      damageToInvestigator = singleHitFinal * hitCount;
+      if (hitCount > 1) {
+        singleHitDamage = singleHitFinal;
+      }
 
-    // 食腐本能 (carrion_feeder)：命中帶有流血的調查員吸血 50%
-    const hasBleed = (investigator.statusEffects ?? []).some((s) => s.type === 'bleed' && s.stacks > 0);
-    if (hasTrait(enemy, 'carrion_feeder') && hasBleed && damageToInvestigator > 0) {
-      healToEnemy = Math.max(1, Math.floor(damageToInvestigator * 0.5));
-      logs.push(`【食腐本能】${enemy.name} 啃噬了撕裂的鮮血傷口，恢復了 ${healToEnemy} 點生命值！`);
-    }
+      // 食腐本能 (carrion_feeder)：命中帶有流血的調查員吸血 50%
+      const hasBleed = (investigator.statusEffects ?? []).some((s) => s.type === 'bleed' && s.stacks > 0);
+      if (hasTrait(enemy, 'carrion_feeder') && hasBleed && damageToInvestigator > 0) {
+        healToEnemy = Math.max(1, Math.floor(damageToInvestigator * 0.5));
+        logs.push(`【食腐本能】${enemy.name} 啃噬了撕裂的鮮血傷口，恢復了 ${healToEnemy} 點生命值！`);
+      }
 
-    // 狂信之血 (blood_fanaticism)：生命值 <= 50% 時攻擊附帶精神侵蝕，額外侵蝕 1 點理智牌庫
-    if (hasTrait(enemy, 'blood_fanaticism')) {
-      const hpRatio = enemy.health / enemy.maxHealth;
-      if (hpRatio <= 0.5) {
-        erodeToInvestigator += 1;
-        logs.push(`【狂信之血】${enemy.name} 陷入瀕死癲狂，攻擊附帶精神侵蝕，額外侵蝕 1 點理智牌庫！`);
+      // 狂信之血 (blood_fanaticism)：生命值 <= 50% 時攻擊附帶精神侵蝕，額外侵蝕 1 點理智牌庫
+      if (hasTrait(enemy, 'blood_fanaticism')) {
+        const hpRatio = enemy.health / enemy.maxHealth;
+        if (hpRatio <= 0.5) {
+          erodeToInvestigator += 1;
+          logs.push(`【狂信之血】${enemy.name} 陷入瀕死癲狂，攻擊附帶精神侵蝕，額外侵蝕 1 點理智牌庫！`);
+        }
       }
     }
   } else if (intent.type === 'defend') {
@@ -498,23 +521,10 @@ export function resolveEnemyAction(
   }
 
   // 4. 大袞潮汐 (tide_of_dagon)
-  // 奇數回合潮漲獲得 14 潮汐護甲；偶數回合潮退將剩餘潮汐護甲轉為海嘯衝擊傷害並清空護甲
-  if (hasTrait(enemy, 'tide_of_dagon')) {
-    if (turn % 2 === 1) {
-      // 潮漲 (High Tide)
-      armorGainToEnemy += 14;
-      logs.push(`【大袞潮汐·潮漲】潮水狂湧，${enemy.name} 凝聚了 14 點深海潮汐護甲！`);
-    } else {
-      // 潮退 (Ebb Tide)
-      const remainingTidalArmor = enemy.armor;
-      if (remainingTidalArmor > 0) {
-        damageToInvestigator += remainingTidalArmor;
-        armorLossToEnemy = remainingTidalArmor;
-        logs.push(
-          `【大袞潮汐·海嘯】潮水退去！${enemy.name} 將殘留的 ${remainingTidalArmor} 點潮汐護甲全額轉化為狂暴的【海嘯衝擊】，直撲調查員！`
-        );
-      }
-    }
+  // 奇數回合潮漲獲得 10 點深海潮汐護甲
+  if (hasTrait(enemy, 'tide_of_dagon') && turn % 2 === 1) {
+    armorGainToEnemy += 10;
+    logs.push(`【大袞潮汐·潮漲】潮水狂湧，${enemy.name} 凝聚了 10 點深海潮汐護甲！`);
   }
 
   // 5. 白骨聚生 (ossuary_summoning)

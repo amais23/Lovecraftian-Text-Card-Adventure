@@ -87,10 +87,17 @@ export const INITIAL_SHOGGOTH: Enemy = {
 
 export const DAGON_PRIEST_INTENTS: EnemyIntent[] = [
   {
+    type: 'apply_status',
+    value: 5,
+    statusType: 'bleed',
+    name: '大袞放血祭刺',
+    description: '大袞的深淵祭司揮動長滿藤壺的黑鐵三叉戟，預告施加 5 層【流血】印記。',
+  },
+  {
     type: 'attack',
-    value: 14,
-    name: '深淵三叉戟穿刺',
-    description: '大袞的深淵祭司揮動佈滿藤壺的黑鐵三叉戟，預告造成 14 點傷害。',
+    value: 0,
+    name: '大袞潮汐·海嘯衝擊',
+    description: '潮水退去！大袞的深淵祭司將自身殘存的潮汐護甲全額轉化為狂暴海嘯衝擊，直撲調查員！',
   },
   {
     type: 'erode',
@@ -100,9 +107,21 @@ export const DAGON_PRIEST_INTENTS: EnemyIntent[] = [
   },
   {
     type: 'attack',
+    value: 0,
+    name: '大袞潮汐·海嘯衝擊',
+    description: '潮水退去！大袞的深淵祭司將自身殘存的潮汐護甲全額轉化為狂暴海嘯衝擊，直撲調查員！',
+  },
+  {
+    type: 'attack',
     value: 18,
     name: '深海溺亡巨浪',
     description: '沉重的狂怒海水化作巨浪拍擊而至，預告造成 18 點傷害。',
+  },
+  {
+    type: 'attack',
+    value: 0,
+    name: '大袞潮汐·海嘯衝擊',
+    description: '潮水退去！大袞的深淵祭司將自身殘存的潮汐護甲全額轉化為狂暴海嘯衝擊，直撲調查員！',
   },
 ];
 
@@ -110,9 +129,9 @@ export const INITIAL_DAGON_PRIEST: Enemy = {
   id: 'enemy_dagon_priest',
   name: '大袞的深淵祭司',
   title: '深海王廷的主祭',
-  health: 110,
-  maxHealth: 110,
-  armor: 8,
+  health: 80,
+  maxHealth: 80,
+  armor: 15,
   currentIntent: DAGON_PRIEST_INTENTS[0],
   intentSequence: DAGON_PRIEST_INTENTS,
   currentIntentIndex: 0,

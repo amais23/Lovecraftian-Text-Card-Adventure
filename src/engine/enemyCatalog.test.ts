@@ -125,6 +125,44 @@ describe('Enemy Catalog (Issue #29)', () => {
         expect(/[\u4e00-\u9fa5]/.test(intent.description)).toBe(true);
       }
     });
+
+    it('verifies Dagon Priest (Depth 2 Boss) updated stats and 6-turn tidal sequence', () => {
+      const dagon = getEnemyTemplateById('enemy_dagon_priest');
+      expect(dagon).toBeDefined();
+      expect(dagon!.health).toBe(80);
+      expect(dagon!.maxHealth).toBe(80);
+      expect(dagon!.armor).toBe(15);
+      expect(dagon!.traits?.some((t) => t.id === 'tide_of_dagon')).toBe(true);
+
+      const sequence = dagon!.intentSequence;
+      expect(sequence).toBeDefined();
+      expect(sequence!.length).toBe(6);
+
+      // T1: bleed 5
+      expect(sequence![0].type).toBe('apply_status');
+      expect(sequence![0].statusType).toBe('bleed');
+      expect(sequence![0].value).toBe(5);
+
+      // T2: tsunami attack
+      expect(sequence![1].type).toBe('attack');
+      expect(sequence![1].name).toContain('海嘯');
+
+      // T3: erode 4
+      expect(sequence![2].type).toBe('erode');
+      expect(sequence![2].value).toBe(4);
+
+      // T4: tsunami attack
+      expect(sequence![3].type).toBe('attack');
+      expect(sequence![3].name).toContain('海嘯');
+
+      // T5: wave attack 18
+      expect(sequence![4].type).toBe('attack');
+      expect(sequence![4].value).toBe(18);
+
+      // T6: tsunami attack
+      expect(sequence![5].type).toBe('attack');
+      expect(sequence![5].name).toContain('海嘯');
+    });
   });
 
   describe('Encounter Selection & Clones', () => {

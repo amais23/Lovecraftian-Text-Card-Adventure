@@ -314,14 +314,20 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
         statusEffects: [],
       };
 
-      // Turn 1 (Odd): Builds tidal armor
+      // Turn 1 (Odd): Builds tidal armor (10)
       const oddAction = resolveEnemyAction(dagonPriest!, dagonPriest!.currentIntent, investigator, 1);
-      expect(oddAction.armorGainToEnemy).toBe(14);
+      expect(oddAction.armorGainToEnemy).toBe(10);
       expect(oddAction.logs.some((l) => l.includes('潮漲') || l.includes('潮汐'))).toBe(true);
 
-      // Enemy now has armor going into Turn 2
+      // Enemy now has armor going into Turn 2 with tsunami intent
       const armedPriest: Enemy = {
         ...dagonPriest!,
+        currentIntent: dagonPriest!.intentSequence?.[1] ?? {
+          type: 'attack',
+          value: 0,
+          name: '大袞潮汐·海嘯衝擊',
+          description: '',
+        },
         armor: 14,
       };
 
@@ -329,6 +335,7 @@ describe('Full-System Integration & 56-Layer Expedition Verification (Issue #48)
       const evenAction = resolveEnemyAction(armedPriest, armedPriest.currentIntent, investigator, 2);
       expect(evenAction.logs.some((l) => l.includes('大袞潮汐') || l.includes('海嘯'))).toBe(true);
       expect(evenAction.armorLossToEnemy).toBe(14); // Armor consumed into attack
+      expect(evenAction.damageToInvestigator).toBe(14);
     });
   });
 

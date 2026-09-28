@@ -25,7 +25,13 @@ import { useSanityFlicker } from '../hooks/useSanityFlicker';
 import { getActiveEnemyIllustration } from '../engine/enemyArtworks';
 import { StatusEffectBadge } from './StatusEffectBadge';
 
-function formatIntentValue(intent: EnemyIntent): string {
+function formatIntentValue(intent: EnemyIntent, enemy?: Enemy): string {
+  if (intent.type === 'attack') {
+    if (intent.name?.includes('海嘯') || intent.name?.includes('潮退')) {
+      return enemy ? `${enemy.armor}` : `${intent.value}`;
+    }
+    return `${intent.value}`;
+  }
   if (intent.type === 'heal') {
     return `再生 +${intent.value}`;
   }
@@ -126,7 +132,7 @@ export const EnemyView: React.FC<EnemyViewProps> = ({
           {renderIntentIcon(enemy.currentIntent)}
         </span>
         <span className="intent-name">{enemy.currentIntent.name}</span>
-        <span className="intent-val">{formatIntentValue(enemy.currentIntent)}</span>
+        <span className="intent-val">{formatIntentValue(enemy.currentIntent, enemy)}</span>
       </div>
 
       {/* Enemy Visual Portrait Stage with Core Safe Area (ADR-0021) */}

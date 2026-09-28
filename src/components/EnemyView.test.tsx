@@ -49,6 +49,32 @@ describe('EnemyView Component (ADR-0018)', () => {
     expect(screen.getByText('印記 +2')).toBeDefined();
   });
 
+  it('renders dynamic armor value for tsunami intent action based on enemy armor', () => {
+    const dagonWithArmor: Enemy = {
+      ...dummyEnemy,
+      name: '大袞的深淵祭司',
+      armor: 15,
+      currentIntent: {
+        type: 'attack',
+        value: 0,
+        name: '大袞潮汐·海嘯衝擊',
+        description: '潮水退去！將自身殘存的潮汐護甲全額轉化為狂暴海嘯衝擊！',
+      },
+    };
+
+    const { rerender } = render(<EnemyView enemy={dagonWithArmor} />);
+    expect(screen.getByText('大袞潮汐·海嘯衝擊')).toBeDefined();
+    expect(screen.getByText('15')).toBeDefined();
+
+    // When armor is broken down to 0, intent display dynamically updates to 0
+    const brokenDagon: Enemy = {
+      ...dagonWithArmor,
+      armor: 0,
+    };
+    rerender(<EnemyView enemy={brokenDagon} />);
+    expect(screen.getByText('0')).toBeDefined();
+  });
+
   it('renders active status effects badges on enemy', () => {
     const enemyWithStatuses: Enemy = {
       ...dummyEnemy,
